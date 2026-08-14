@@ -52,65 +52,7 @@ jobs:
           ram-size: 4096M
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: |
-            set -euo pipefail
-            mkdir -p build/rc-device-acceptance/narrow build/rc-device-acceptance/wide
-
-            adb shell cmd connectivity airplane-mode enable || {
-              adb shell settings put global airplane_mode_on 1
-              adb shell am broadcast -a android.intent.action.AIRPLANE_MODE --ez state true
-            }
-            airplane="$(adb shell settings get global airplane_mode_on | tr -d '\r')"
-            test "$airplane" = "1"
-
-            echo '=== NARROW / LIGHT ==='
-            adb shell wm size 1080x1920
-            adb shell wm density 420
-            adb shell cmd uimode night no
-            ./gradlew --no-daemon :app:connectedDebugAndroidTest \
-              -Pandroid.testInstrumentationRunnerArguments.class=com.xuanxue.app.RcDeviceAcceptanceTest \
-              -Pandroid.testInstrumentationRunnerArguments.formFactor=narrow
-            adb pull /sdcard/Android/data/com.xuanxue.app.rc/files/rc-screenshots build/rc-device-acceptance/narrow/screenshots || true
-            if [[ -d app/build/outputs/androidTest-results/connected ]]; then
-              cp -R app/build/outputs/androidTest-results/connected build/rc-device-acceptance/narrow/test-results
-            fi
-            {
-              echo "source_head_sha=${SOURCE_HEAD_SHA}"
-              echo "form_factor=narrow"
-              echo "theme=light"
-              echo "airplane_mode=$(adb shell settings get global airplane_mode_on | tr -d '\r')"
-              adb shell wm size
-              adb shell wm density
-            } > build/rc-device-acceptance/narrow/ENVIRONMENT.txt
-
-            echo '=== WIDE / DARK ==='
-            adb shell wm size 1600x1200
-            adb shell wm density 240
-            adb shell cmd uimode night yes
-            ./gradlew --no-daemon :app:connectedDebugAndroidTest \
-              -Pandroid.testInstrumentationRunnerArguments.class=com.xuanxue.app.RcDeviceAcceptanceTest \
-              -Pandroid.testInstrumentationRunnerArguments.formFactor=wide
-            adb pull /sdcard/Android/data/com.xuanxue.app.rc/files/rc-screenshots build/rc-device-acceptance/wide/screenshots || true
-            if [[ -d app/build/outputs/androidTest-results/connected ]]; then
-              cp -R app/build/outputs/androidTest-results/connected build/rc-device-acceptance/wide/test-results
-            fi
-            {
-              echo "source_head_sha=${SOURCE_HEAD_SHA}"
-              echo "form_factor=wide"
-              echo "theme=dark"
-              echo "airplane_mode=$(adb shell settings get global airplane_mode_on | tr -d '\r')"
-              adb shell wm size
-              adb shell wm density
-            } > build/rc-device-acceptance/wide/ENVIRONMENT.txt
-
-            adb shell pm path com.xuanxue.app.rc > build/rc-device-acceptance/PACKAGE_PATH.txt
-            if adb shell dumpsys package com.xuanxue.app.rc | grep -Fq 'android.permission.INTERNET'; then
-              echo 'Runtime package unexpectedly declares android.permission.INTERNET' >&2
-              exit 1
-            fi
-            echo "internet_permission=absent" > build/rc-device-acceptance/RUNTIME_SECURITY.txt
-            echo "airplane_mode=1" >> build/rc-device-acceptance/RUNTIME_SECURITY.txt
-            echo "source_head_sha=${SOURCE_HEAD_SHA}" >> build/rc-device-acceptance/RUNTIME_SECURITY.txt
+          script: bash .github/scripts/run_rc_emulator_acceptance.sh
 
       - name: Upload emulator acceptance evidence
         if: always()
