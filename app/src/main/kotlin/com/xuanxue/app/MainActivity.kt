@@ -55,7 +55,42 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { XuanxueApp() }
+        setContent {
+            var page by remember { mutableStateOf(0) }
+            Column(Modifier.fillMaxSize()) {
+                // 功能切换 Tab（纯本地，无广告/品牌）
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xFF263238))
+                        .padding(horizontal = 8.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    listOf("紫微斗数" to 0, "八字排盘" to 1).forEach { (label, idx) ->
+                        Text(
+                            label,
+                            Modifier
+                                .weight(1f)
+                                .clickable { page = idx }
+                                .background(
+                                    if (page == idx) Color(0xFF1E88E5) else Color.Transparent,
+                                    MaterialTheme.shapes.small
+                                )
+                                .padding(vertical = 8.dp),
+                            textAlign = TextAlign.Center,
+                            color = Color.White,
+                            fontWeight = if (page == idx) FontWeight.Bold else FontWeight.Normal
+                        )
+                    }
+                }
+                Box(Modifier.weight(1f)) {
+                    when (page) {
+                        0 -> XuanxueApp()
+                        else -> BaziScreen()
+                    }
+                }
+            }
+        }
     }
 }
 
