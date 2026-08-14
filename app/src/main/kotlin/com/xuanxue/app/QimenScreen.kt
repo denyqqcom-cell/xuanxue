@@ -45,11 +45,12 @@ import java.util.Calendar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QimenScreen() {
-    var year by remember { mutableStateOf(2026) }
-    var month by remember { mutableStateOf(8) }
-    var day by remember { mutableStateOf(12) }
-    var hour by remember { mutableStateOf(15) }
-    var minute by remember { mutableStateOf(37) }
+    val now = remember { Calendar.getInstance() }
+    var year by remember { mutableStateOf(now.get(Calendar.YEAR)) }
+    var month by remember { mutableStateOf(now.get(Calendar.MONTH) + 1) }
+    var day by remember { mutableStateOf(now.get(Calendar.DAY_OF_MONTH)) }
+    var hour by remember { mutableStateOf(now.get(Calendar.HOUR_OF_DAY)) }
+    var minute by remember { mutableStateOf(now.get(Calendar.MINUTE)) }
     var showDatePicker by remember { mutableStateOf(false) }
     var chart by remember { mutableStateOf<QimenChart?>(null) }
 
