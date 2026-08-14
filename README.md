@@ -55,7 +55,9 @@ APK 输出：`app/build/outputs/apk/debug/app-debug.apk`
 
 ## 本地资料如何进入工程
 
-本地书籍不直接进入 App。能访问本机资料的 AI 应先按照 [`LOCAL_CORPUS_HANDOFF_PROMPT.md`](LOCAL_CORPUS_HANDOFF_PROMPT.md) 生成结构化交接包，至少拆分：
+本地书籍不直接进入 App。能访问本机资料的 AI 应先按照 [`LOCAL_CORPUS_HANDOFF_PROMPT.md`](LOCAL_CORPUS_HANDOFF_PROMPT.md) 生成结构化交接包。**这个提示词分别运行四次：奇门、八字、六爻、大六壬一次一门，不混合输出。**
+
+交接包至少拆分：
 
 - 可编码排盘/起局算法
 - 流派差异与冲突
