@@ -38,16 +38,20 @@ object QimenCastInput {
         if (!dateRegex.matches(dateValue)) throw InputError.InvalidDate(dateValue)
         if (!timeRegex.matches(timeValue)) throw InputError.InvalidTime(timeValue)
 
+        val dateParts = dateValue.split('-').map { it.toInt() }
+        val timeParts = timeValue.split(':').map { it.toInt() }
+
+        // Do not use DateTimeFormatter's default SMART resolver here: it normalizes invalid
+        // values such as 2026-02-30 and 24:00 instead of rejecting them, which is unsafe for paipan input.
         val date = try {
-            LocalDate.parse(dateValue, dateFormatter)
+            LocalDate.of(dateParts[0], dateParts[1], dateParts[2])
         } catch (_: Exception) {
             throw InputError.InvalidDate(dateValue)
         }
-        val time = try {
-            LocalTime.parse(timeValue, timeFormatter)
-        } catch (_: Exception) {
-            throw InputError.InvalidTime(timeValue)
-        }
+        val hour = timeParts[0]
+        val minute = timeParts[1]
+        if (hour !in 0..23 || minute !in 0..59) throw InputError.InvalidTime(timeValue)
+        val time = LocalTime.of(hour, minute)
 
         val epochMs = LocalDateTime.of(date, time)
             .atZone(ZoneId.of(ZONE_ID))
