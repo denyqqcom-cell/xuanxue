@@ -94,7 +94,7 @@ jobs:
           fi
           if ! timeout 240 bash -c 'until [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" == "1" ]]; do sleep 3; done'; then
             echo 'Emulator was visible to ADB but never completed Android boot.' >&2
-            adb devices -l >&2 || true
+            timeout 5 adb devices -l >&2 || true
             cat build/rc-device-acceptance/emulator.log >&2 || true
             exit 1
           fi
@@ -118,13 +118,15 @@ jobs:
         if: always()
         shell: bash
         run: |
+          set +e
           mkdir -p build/rc-device-acceptance
-          adb devices -l > build/rc-device-acceptance/ADB_DEVICES.txt 2>&1 || true
-          adb shell getprop > build/rc-device-acceptance/DEVICE_PROPERTIES.txt 2>&1 || true
-          adb logcat -d -t 3000 > build/rc-device-acceptance/LOGCAT_TAIL.txt 2>&1 || true
+          timeout 5 adb devices -l > build/rc-device-acceptance/ADB_DEVICES.txt 2>&1
+          timeout 5 adb shell getprop > build/rc-device-acceptance/DEVICE_PROPERTIES.txt 2>&1
+          timeout 5 adb logcat -d -t 3000 > build/rc-device-acceptance/LOGCAT_TAIL.txt 2>&1
           if [[ -f build/rc-device-acceptance/emulator.log ]]; then
             tail -n 1000 build/rc-device-acceptance/emulator.log > build/rc-device-acceptance/EMULATOR_LOG_TAIL.txt || true
           fi
+          exit 0
 
       - name: Upload emulator acceptance evidence
         if: always()
