@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.xuanxue.ai.MethodAudit
@@ -90,7 +91,8 @@ private fun HomeHub(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .testTag("home-root"),
             contentAlignment = Alignment.TopCenter,
         ) {
             Column(
@@ -116,8 +118,8 @@ private fun HomeHub(
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(onClick = onAudit) { Text("方法核验中心") }
-                            OutlinedButton(onClick = onLegal) { Text("开源许可") }
+                            Button(onClick = onAudit, modifier = Modifier.testTag("open-audit")) { Text("方法核验中心") }
+                            OutlinedButton(onClick = onLegal, modifier = Modifier.testTag("open-legal")) { Text("开源许可") }
                         }
                     }
                 }
@@ -187,7 +189,7 @@ private fun ModuleCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    OutlinedCard(modifier.fillMaxWidth()) {
+    OutlinedCard(modifier.fillMaxWidth().testTag("module-card-${entry.id}")) {
         Column(
             Modifier.padding(15.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp),
@@ -213,15 +215,17 @@ private fun ModuleCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            TextButton(onClick = onClick) { Text("打开") }
+            TextButton(onClick = onClick, modifier = Modifier.testTag("module-open-${entry.id}")) { Text("打开") }
         }
     }
 }
 
 @Composable
 private fun ModuleHost(page: RootPage, onBack: () -> Unit) {
-    val title = moduleEntries.firstOrNull { it.page == page }?.title ?: "模块"
-    Column(Modifier.fillMaxSize()) {
+    val entry = moduleEntries.firstOrNull { it.page == page }
+    val title = entry?.title ?: "模块"
+    val pageId = entry?.id ?: "unknown"
+    Column(Modifier.fillMaxSize().testTag("module-host-$pageId")) {
         Surface(color = MaterialTheme.colorScheme.surfaceVariant) {
             Row(
                 Modifier
@@ -229,7 +233,7 @@ private fun ModuleHost(page: RootPage, onBack: () -> Unit) {
                     .padding(horizontal = 10.dp, vertical = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                OutlinedButton(onClick = onBack) { Text("返回首页") }
+                OutlinedButton(onClick = onBack, modifier = Modifier.testTag("back-home")) { Text("返回首页") }
                 Text(
                     title,
                     modifier = Modifier.padding(top = 10.dp),
@@ -269,7 +273,8 @@ private fun AuditCenter(onBack: () -> Unit) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(paddingValues)
+                .testTag("audit-root"),
             contentAlignment = Alignment.TopCenter,
         ) {
             Column(
@@ -282,7 +287,7 @@ private fun AuditCenter(onBack: () -> Unit) {
             ) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("方法核验中心", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                    OutlinedButton(onClick = onBack) { Text("返回") }
+                    OutlinedButton(onClick = onBack, modifier = Modifier.testTag("audit-back-home")) { Text("返回") }
                 }
                 Text(
                     "这里展示的是当前仓库的工程核验成熟度，不是对术数作科学有效性背书。测试通过、书例对齐、上游一致性三者也不会被混写成同一种证据。",
