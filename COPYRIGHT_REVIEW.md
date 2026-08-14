@@ -12,6 +12,9 @@
 `app-integration-v3` 的新首页、方法核验中心、解读卡片与导航均使用 Jetpack Compose、
 系统字体、基础几何组件和项目自有文案。没有增加外部图片、字体、音频、插画或商业 App 素材。
 
+RC1 新增的 launcher icon 也是项目内独立绘制的 Android VectorDrawable：青玉底、九宫几何网格与
+朱色中心点，仅由基础路径和项目现有配色构成；没有引用第三方 logo、字体、图形素材或商业 App 图标。
+
 ### GREEN：已核实的第三方软件许可
 
 - iztro：MIT；紫微核心移植/数据生成来源，版权声明与许可文本已保留。
