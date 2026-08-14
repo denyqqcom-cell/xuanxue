@@ -11,6 +11,8 @@ import com.xuanxue.qimen.core.plate.DutyMovementResolver
 import com.xuanxue.qimen.core.plate.DutyRuntime
 import com.xuanxue.qimen.core.plate.EarthPlate
 import com.xuanxue.qimen.core.plate.EarthPlateBuilder
+import com.xuanxue.qimen.core.plate.FullPlateResolution
+import com.xuanxue.qimen.core.plate.FullPlateResolver
 import com.xuanxue.qimen.core.rule.PreflightRules
 import com.xuanxue.qimen.core.school.JuMethod
 import com.xuanxue.qimen.core.school.QimenError
@@ -30,8 +32,10 @@ data class QimenRequest(
 )
 
 enum class PlateState {
-    /** 地盘九仪及值符/值使锚点与当前落宫已验证；完整天盘、人盘、神盘仍锁定。 */
-    EARTH_PLATE_VERIFIED_FULL_PLATE_LOCKED,
+    /** 当前支持的转盘方法已能构造地/天/人/神四层。 */
+    FULL_PLATE_RESOLVED_SUPPORTED_METHOD,
+    /** 值符或值使当前落中五，缺少清晰完整来源图，因此只返回已经验证的局部层。 */
+    FULL_PLATE_LOCKED_CENTER_TARGET,
 }
 
 data class QimenChart(
@@ -49,12 +53,14 @@ data class QimenChart(
     val isWuBuYu: Boolean,
     val earthPlate: EarthPlate,
     val duty: DutyRuntime,
-    val plateState: PlateState = PlateState.EARTH_PLATE_VERIFIED_FULL_PLATE_LOCKED,
+    val fullPlate: FullPlateResolution,
+    val plateState: PlateState,
 )
 
 /**
- * v1 生成可验证的盘前数据、地盘九仪，以及值符/值使的已验证运行锚点。
- * 完整天盘九星、人盘八门、神盘八神仍被硬锁，避免把局部规则伪装成完整盘。
+ * 当前引擎先完成确定性历法/定局/地盘，再解析值符值使。
+ * 当值符和值使都不落中五时，按已由阴阳完整实例复核的转盘规则构造天盘、人盘、神盘；
+ * 若命中尚未解决的中五表示边界，则显式返回 Locked，而不是猜一个看似完整的盘。
  */
 object QimenEngine {
     fun cast(request: QimenRequest): Result<QimenChart> = runCatching {
@@ -92,6 +98,11 @@ object QimenEngine {
         val ju = JuTable.resolve(jieqi.jieqi, jieqi.dun, futou.yuan)
         val earthPlate = EarthPlateBuilder.build(jieqi.dun, ju.ju)
         val duty = DutyMovementResolver.resolve(earthPlate, xun, hourPillar, jieqi.dun)
+        val fullPlate = FullPlateResolver.resolve(earthPlate, duty, jieqi.dun)
+        val plateState = when (fullPlate) {
+            is FullPlateResolution.Resolved -> PlateState.FULL_PLATE_RESOLVED_SUPPORTED_METHOD
+            is FullPlateResolution.Locked -> PlateState.FULL_PLATE_LOCKED_CENTER_TARGET
+        }
 
         QimenChart(
             localDateTime = localDateTime,
@@ -108,6 +119,8 @@ object QimenEngine {
             isWuBuYu = PreflightRules.isWuBuYu(dayPillar.stem, hourPillar.stem),
             earthPlate = earthPlate,
             duty = duty,
+            fullPlate = fullPlate,
+            plateState = plateState,
         )
     }
 }
