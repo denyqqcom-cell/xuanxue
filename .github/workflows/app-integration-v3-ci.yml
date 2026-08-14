@@ -75,6 +75,9 @@ jobs:
           mkdir -p build/test-artifact
           cp app/build/outputs/apk/debug/app-debug.apk build/test-artifact/xuanxue-1.0.0-rc1-debug.apk
           cp app/build/outputs/apk/release/app-release-unsigned.apk build/test-artifact/xuanxue-1.0.0-rc1-release-unsigned.apk
+          cp DEVICE_ACCEPTANCE.md build/test-artifact/DEVICE_ACCEPTANCE.md
+          cp RELEASE_CANDIDATE.md build/test-artifact/RELEASE_CANDIDATE.md
+          cp PRIVACY.md build/test-artifact/PRIVACY.md
           (
             cd build/test-artifact
             sha256sum xuanxue-1.0.0-rc1-debug.apk xuanxue-1.0.0-rc1-release-unsigned.apk > SHA256SUMS.txt
@@ -92,6 +95,8 @@ jobs:
           workflow_run=${GITHUB_RUN_ID}
           version_name=1.0.0-rc1
           release_channel=rc
+          stable_application_id=com.xuanxue.app
+          debug_application_id=com.xuanxue.app.rc
           debug_apk_installable_for_device_acceptance=true
           release_apk_signed=false
           apk_contents_audited=true
