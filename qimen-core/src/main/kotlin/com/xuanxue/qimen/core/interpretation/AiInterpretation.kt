@@ -98,21 +98,11 @@ object AiEvidenceBuilder {
             facts += AiFact("duty_anchor_palace", "旬首遁仪初始宫", chart.duty.anchor.dunYiPalace.toString())
             facts += AiFact("value_star", "值符星", chart.duty.anchor.valueStar.zh)
             facts += AiFact("value_star_palace", "值符星当前落宫", chart.duty.valueStarPalace.toString())
+            facts += AiFact("value_gate", "值使门", chart.duty.anchor.valueGate.zh)
+            facts += AiFact("value_gate_home_palace", "值使门原驻来源宫", chart.duty.anchor.gateHomePalace.toString())
+            facts += AiFact("value_gate_anchor_state", "值使门锚点规则", chart.duty.anchor.gateState.name)
+            facts += AiFact("value_gate_palace", "值使门当前落宫", chart.duty.valueGatePalace.toString())
             facts += AiFact("duty_branch_steps", "值使自旬首推进时辰数", chart.duty.branchStepsFromXunHead.toString())
-
-            val gate = chart.duty.anchor.valueGate
-            val gatePalace = chart.duty.valueGatePalace
-            if (gate != null && gatePalace != null) {
-                facts += AiFact("value_gate", "值使门", gate.zh)
-                facts += AiFact("value_gate_palace", "值使门当前落宫", gatePalace.toString())
-            } else {
-                facts += AiFact(
-                    "value_gate_state",
-                    "值使门状态",
-                    "中五宫寄宫规则未验证，当前不输出值使门",
-                    provenance = "ENGINE_GUARD",
-                )
-            }
         }
 
         return AiEvidencePacket(
