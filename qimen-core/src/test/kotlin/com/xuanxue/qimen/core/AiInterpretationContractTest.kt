@@ -16,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class AiInterpretationContractTest {
@@ -41,22 +42,72 @@ class AiInterpretationContractTest {
     }
 
     @Test
-    fun remoteModeRequiresExplicitConsentPerRequest() {
-        val result = AiInterpretationGate.prepare(
-            chart = chart(),
-            question = "帮我分析",
+    fun remoteModeRequiresExplicitConsentAndPreviewFingerprint() {
+        val currentChart = chart()
+        val question = "帮我分析"
+        val preview = AiInterpretationGate.preview(
+            chart = currentChart,
+            question = question,
+            scope = AiInterpretationScope.EARTH_PLATE,
+        ).getOrThrow()
+
+        val noConsent = AiInterpretationGate.prepare(
+            chart = currentChart,
+            question = question,
             policy = AiInterpretationPolicy(
                 executionMode = AiExecutionMode.REMOTE_USER_CONFIGURED,
+                scope = AiInterpretationScope.EARTH_PLATE,
                 explicitRemoteConsent = false,
+                remoteConsentFingerprint = preview.payloadFingerprint,
             ),
         )
-        assertIs<AiInterpretationError.RemoteConsentRequired>(result.exceptionOrNull())
+        assertIs<AiInterpretationError.RemoteConsentRequired>(noConsent.exceptionOrNull())
+
+        val noFingerprint = AiInterpretationGate.prepare(
+            chart = currentChart,
+            question = question,
+            policy = AiInterpretationPolicy(
+                executionMode = AiExecutionMode.REMOTE_USER_CONFIGURED,
+                scope = AiInterpretationScope.EARTH_PLATE,
+                explicitRemoteConsent = true,
+            ),
+        )
+        assertIs<AiInterpretationError.RemoteConsentFingerprintRequired>(noFingerprint.exceptionOrNull())
+    }
+
+    @Test
+    fun consentFingerprintIsBoundToExactQuestionAndEvidence() {
+        val currentChart = chart()
+        val previewA = AiInterpretationGate.preview(
+            currentChart,
+            "这次合作是否继续？",
+            AiInterpretationScope.EARTH_PLATE,
+        ).getOrThrow()
+        val previewB = AiInterpretationGate.preview(
+            currentChart,
+            "这次合作是否立即停止？",
+            AiInterpretationScope.EARTH_PLATE,
+        ).getOrThrow()
+
+        assertNotEquals(previewA.payloadFingerprint, previewB.payloadFingerprint)
+        assertTrue(previewA.payloadFingerprint.matches(Regex("[0-9a-f]{64}")))
+        assertTrue(previewA.fieldIds.contains("earth_plate"))
+
+        val staleConsent = AiInterpretationGate.prepare(
+            chart = currentChart,
+            question = previewB.question,
+            policy = AiInterpretationPolicy(
+                executionMode = AiExecutionMode.REMOTE_USER_CONFIGURED,
+                scope = AiInterpretationScope.EARTH_PLATE,
+                explicitRemoteConsent = true,
+                remoteConsentFingerprint = previewA.payloadFingerprint,
+            ),
+        )
+        assertIs<AiInterpretationError.RemoteConsentMismatch>(staleConsent.exceptionOrNull())
     }
 
     @Test
     fun realCenterTargetChartLocksFullPlateAndAiCannotBypassIt() {
-        // 《善天道奇门遁甲讲义》同日案例给出 1995-08-13 为丙子日、阴遁八局。
-        // 丙日午时为甲午；甲午旬遁辛。阴八局辛落中五，因此值符/值使当前都在5，完整盘保持硬锁。
         val lockedChart = chartAt(1995, 8, 13, 12, 0)
         assertEquals("丙子", lockedChart.dayPillar.zh)
         assertEquals("甲午", lockedChart.hourPillar.zh)
@@ -66,6 +117,13 @@ class AiInterpretationContractTest {
             setOf(FullPlateLockReason.VALUE_STAR_IN_CENTER, FullPlateLockReason.VALUE_GATE_IN_CENTER),
             locked.reasons,
         )
+
+        val preview = AiInterpretationGate.preview(
+            chart = lockedChart,
+            question = "完整解盘",
+            scope = AiInterpretationScope.FULL_PLATE,
+        )
+        assertIs<AiInterpretationError.ScopeLocked>(preview.exceptionOrNull())
 
         val result = AiInterpretationGate.prepare(
             chart = lockedChart,
@@ -106,45 +164,51 @@ class AiInterpretationContractTest {
         assertTrue(facts.getValue("spirit_plate").value.contains("9宫=值符"))
         assertTrue(facts.values.all { it.provenance == "ENGINE_VERIFIED" })
         assertTrue(request.evidence.caveats.any { it.contains("不得重新排盘") })
+        assertTrue(request.payloadFingerprint.matches(Regex("[0-9a-f]{64}")))
     }
 
     @Test
-    fun remoteFullPlateStillRequiresPerRequestConsentBeforeEvidenceLeavesCore() {
+    fun remoteFullPlateConsentMustMatchTheExactPreview() {
         val sourceChart = chartAt(1995, 6, 11, 9, 30)
         assertIs<FullPlateResolution.Resolved>(sourceChart.fullPlate)
-
-        val denied = AiInterpretationGate.prepare(
-            chart = sourceChart,
-            question = "完整解盘",
-            policy = AiInterpretationPolicy(
-                executionMode = AiExecutionMode.REMOTE_USER_CONFIGURED,
-                scope = AiInterpretationScope.FULL_PLATE,
-                explicitRemoteConsent = false,
-            ),
-        )
-        assertIs<AiInterpretationError.RemoteConsentRequired>(denied.exceptionOrNull())
+        val question = "完整解盘"
+        val preview = AiInterpretationGate.preview(
+            sourceChart,
+            question,
+            AiInterpretationScope.FULL_PLATE,
+        ).getOrThrow()
 
         val allowed = AiInterpretationGate.prepare(
             chart = sourceChart,
-            question = "完整解盘",
+            question = question,
             policy = AiInterpretationPolicy(
                 executionMode = AiExecutionMode.REMOTE_USER_CONFIGURED,
                 scope = AiInterpretationScope.FULL_PLATE,
                 explicitRemoteConsent = true,
+                remoteConsentFingerprint = preview.payloadFingerprint,
             ),
         ).getOrThrow()
         assertEquals(AiInterpretationScope.FULL_PLATE, allowed.evidence.verifiedScope)
+        assertEquals(preview.payloadFingerprint, allowed.payloadFingerprint)
     }
 
     @Test
     fun earthPlateEvidenceUsesCoreFactsInsteadOfAskingAiToRecalculate() {
+        val currentChart = chart()
+        val question = "从已验证信息看当前局面"
+        val preview = AiInterpretationGate.preview(
+            currentChart,
+            question,
+            AiInterpretationScope.EARTH_PLATE,
+        ).getOrThrow()
         val request = AiInterpretationGate.prepare(
-            chart = chart(),
-            question = "从已验证信息看当前局面",
+            chart = currentChart,
+            question = question,
             policy = AiInterpretationPolicy(
                 executionMode = AiExecutionMode.REMOTE_USER_CONFIGURED,
                 scope = AiInterpretationScope.EARTH_PLATE,
                 explicitRemoteConsent = true,
+                remoteConsentFingerprint = preview.payloadFingerprint,
             ),
         ).getOrThrow()
 
