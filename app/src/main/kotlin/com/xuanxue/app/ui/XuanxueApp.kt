@@ -14,12 +14,14 @@ import com.xuanxue.app.ui.chart.CreateChartScreen
 import com.xuanxue.app.ui.home.HomeScreen
 import com.xuanxue.app.ui.legal.OpenSourceScreen
 import com.xuanxue.app.ui.module.ModuleIntroScreen
+import com.xuanxue.app.ui.qimen.QimenFoundationScreen
 import com.xuanxue.ziwei.core.ZiweiAstro
 
 private enum class AppScreen {
     Home,
     Create,
     Chart,
+    QimenFoundation,
     Module,
     Licenses,
 }
@@ -62,8 +64,12 @@ fun XuanxueApp() {
         AppScreen.Home -> HomeScreen(
             onNewChart = { screenName = AppScreen.Create.name },
             onOpenModule = {
-                selectedModuleId = it.id
-                screenName = AppScreen.Module.name
+                if (it.id == PracticeModules.Qimen.id) {
+                    screenName = AppScreen.QimenFoundation.name
+                } else {
+                    selectedModuleId = it.id
+                    screenName = AppScreen.Module.name
+                }
             },
             onLicenses = { screenName = AppScreen.Licenses.name },
         )
@@ -92,6 +98,10 @@ fun XuanxueApp() {
                 screenName = AppScreen.Home.name
             }
         }
+
+        AppScreen.QimenFoundation -> QimenFoundationScreen(
+            onBack = { screenName = AppScreen.Home.name },
+        )
 
         AppScreen.Module -> {
             if (selectedModule != null && selectedModule.id != PracticeModules.Ziwei.id) {

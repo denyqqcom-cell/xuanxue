@@ -56,7 +56,7 @@ fun HomeScreen(
             ) {
                 Text("五套术数，一个本地工具箱。", style = MaterialTheme.typography.headlineSmall)
                 Text(
-                    "紫微先保持可用；奇门、八字、六爻、大六壬已经进入同一 App 架构。每个模块先验证排盘规则与资料来源，再开放正式断盘。",
+                    "紫微已经可用，奇门进入基础起局阶段；八字、六爻、大六壬继续按“资料→规则→夹具→核心”的顺序推进。不会为了凑功能画出未经验证的盘。",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
@@ -66,7 +66,7 @@ fun HomeScreen(
             }
         }
 
-        SectionTitle("排盘工具", "只有通过算法与资料验证的模块才标记为可用")
+        SectionTitle("排盘工具", "完整盘与基础核心分级开放，未验证能力不会伪装成可用")
         ModuleCard(
             module = PracticeModules.Ziwei,
             onClick = onNewChart,
@@ -128,7 +128,11 @@ private fun ModuleCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    val isReady = module.stage == ModuleStage.Ready
+    val (status, action, highlighted) = when (module.stage) {
+        ModuleStage.Ready -> Triple("可用", "开始排盘", true)
+        ModuleStage.Foundation -> Triple("基础可用", "基础起局", true)
+        ModuleStage.CorpusPrep -> Triple("资料准备", "查看接入进度", false)
+    }
     OutlinedCard(modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(15.dp),
@@ -137,9 +141,9 @@ private fun ModuleCard(
             Row(modifier = Modifier.fillMaxWidth()) {
                 Text(module.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Text(
-                    if (isReady) "可用" else "资料准备",
+                    status,
                     style = MaterialTheme.typography.labelLarge,
-                    color = if (isReady) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (highlighted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Text(
@@ -147,9 +151,7 @@ private fun ModuleCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            TextButton(onClick = onClick) {
-                Text(if (isReady) "开始排盘" else "查看接入进度")
-            }
+            TextButton(onClick = onClick) { Text(action) }
         }
     }
 }

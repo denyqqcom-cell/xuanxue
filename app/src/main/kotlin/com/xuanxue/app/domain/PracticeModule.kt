@@ -2,6 +2,7 @@ package com.xuanxue.app.domain
 
 enum class ModuleStage {
     Ready,
+    Foundation,
     CorpusPrep,
 }
 
@@ -25,9 +26,9 @@ object PracticeModules {
     val Qimen = PracticeModule(
         id = "qimen",
         title = "奇门遁甲",
-        description = "起局 · 用神 · 宫盘 · 生克 · 应期",
-        stage = ModuleStage.CorpusPrep,
-        corpusRequest = "需要把本地奇门资料整理成可追溯的规则、分歧、案例与起局规范，再实现 qimen-core。",
+        description = "历法 · 旬首旬空 · 阴阳遁 · 拆补局数",
+        stage = ModuleStage.Foundation,
+        corpusRequest = "handoff/qimen 已完成第一轮工程交接；qimen-core 已接入历法、节气、旬首、五不遇时、击刑与拆补日数局。完整九宫仍等待地盘走法与门盘/神盘黄金夹具。",
     )
 
     val Bazi = PracticeModule(
