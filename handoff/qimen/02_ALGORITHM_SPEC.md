@@ -87,32 +87,39 @@ Then walk the 12 branches from 子.
 ## ALG-CAL-04  Solar terms (jieqi)
 
 **Inputs:** instant + timezone.  
-**Required:** compute 24 jieqi from **solar longitude** (or a tested astronomy library).  
+**Required:** use a tested astronomy/calendar implementation with second-level jieqi boundaries.  
 **Forbidden as encoder:** the rounded table “立春2.4 / 立秋8.7” in N01 §2.5. That table is a memory aid, not a boundary.
 
-**Output:** current jieqi name, `yinYangDun` (`YANG` if jieqi is in 冬至…芒种 inclusive set; `YIN` if 夏至…大雪), seconds-since-jieqi-start, day-index-in-jieqi 1-based.
+**Current implementation:** `JieqiClock` wraps the repository's existing MIT dependency `cn.6tail:lunar:1.7.7`. v1 intentionally supports only `Asia/Shanghai`, because the wrapped API has no explicit `ZoneId` parameter and the project must not pretend to offer timezone semantics it has not verified.
 
-**Boundary:** “交节当天” — user notes: 拆补 uses the new jieqi as soon as the instant passes the term. That is a school choice (拆补). 置闰 may keep 符头 logic across the term.
+**Output:** current jieqi name, `yinYangDun` (`YANG` if jieqi is in 冬至…芒种 inclusive set; `YIN` if 夏至…大雪), seconds-since-jieqi-start, civil-day-index-in-jieqi 1-based.
 
-**implementation_ready:** calendar library YES; wiring to ju NO until jieqi tests exist.  
-**Sources:** N01 §2.5 (approx, reject for code); N01/N02 拆补 “一进交接即用该节气之局”.  
-**MODEL_KNOWLEDGE_ONLY:** that 24 terms are defined by 15° solar longitude. Do not put this sentence into fixtures until a library + test is added.
+**Boundary:** the new jieqi takes effect at the exact jieqi instant. The civil-day index is metadata; it is **not** the default yuan resolver.
+
+**Tests:** second-level boundaries include lunar-java's published 2022 立春 / 立秋 values.  
+**implementation_ready:** YES for `Asia/Shanghai`; other zones remain unsupported.  
+**Sources:** N01 §2.5 approximate memory table (rejected for boundary code); direct source review recorded in `10_SOURCE_REVIEW_CORRECTION.md`; lunar-java v1.7.7 tests for exact boundaries.
 
 ---
 
-## ALG-JU-01  拆补 ju (default school)
+## ALG-JU-01  拆补 ju (default school: 符头定元)
 
-**Inputs:** `yinYangDun`, `dayIndexInJieqi` (1–15+), jieqi name.  
+**Inputs:** exact current jieqi, yin/yang dun, current day pillar.  
 **Steps:**
 
-1. yuan = 上 if day in 1–5; 中 if 6–10; 下 if 11–15. Days 16+ (long jieqi) → treat as 下 unless a sourced rule says otherwise. **Uncertain — see 09.**  
-2. Look up ju number in ALG-JU-TABLE.  
-3. Return `{dun, ju, yuan, method=CHAI_BU}`.
+1. When the exact jieqi instant is crossed, switch to the new jieqi immediately.  
+2. Find the nearest previous day whose stem is 甲 or 己; this is the current five-day 符头.  
+3. Determine yuan by the **branch of that 甲/己符头**:
+   - 子午卯酉 → 上元
+   - 寅申巳亥 → 中元
+   - 辰戌丑未 → 下元
+4. Look up the ju number in ALG-JU-TABLE using `{jieqi, yuan}`.
+5. Return `{dun, ju, yuan, method=CHAI_BU_FUTOU}`.
 
-**Must not** use 甲己 符头 to choose yuan in this method.
+**Important correction:** the earlier handoff elevated a simple “jieqi day 1–5 / 6–10 / 11–15” reading to the default. Direct rereading of two currently accessible sources supports immediate jieqi switching **plus** 甲/己符头定元 instead. The historical `CHAI_BU_DAYCOUNT` id is retained as unsupported so the earlier assumption cannot silently disappear.
 
-**Sources:** N01 §3.1; N02 qiju §2.4; B01 pp.66–68 internally contradicts this — default follows the “day-count” reading + user adjudication, labeled school `CHAI_BU_DAYCOUNT`.  
-**implementation_ready:** YES once jieqi day-index is exact.
+**Sources:** direct review of B01 《奇门遁甲预测学》 and 善天道《奇门遁甲讲义》, recorded in `10_SOURCE_REVIEW_CORRECTION.md`.  
+**implementation_ready:** YES for `CHAI_BU_FUTOU`.
 
 ---
 
@@ -133,7 +140,7 @@ Then walk the 12 branches from 子.
 ## ALG-JU-TABLE  24 jieqi × 3 yuan
 
 Rewrite of the mnemonic table in N01 §2.7. User checked “宫组” 1-4-7 / 2-5-8 / 3-6-9.  
-**confidence B.** Origin claimed: 烟波钓叟歌 lineage + web cross-check (百度百科 / ctext). **B22 PDF was not read this pass**, so this table is **not A** and not a golden fixture until checked against B22 or two printed editions.
+**confidence B.** Origin claimed: 烟波钓叟歌 lineage + web cross-check (百度百科 / ctext). **B22 PDF was not read this pass**, so this table is **not A** as historical-source evidence, even though the code table has internal invariants and executable tests.
 
 阳遁:
 
@@ -161,7 +168,7 @@ Rewrite of the mnemonic table in N01 §2.7. User checked “宫组” 1-4-7 / 2-
 | 霜降, 小雪 | 5 | 8 | 2 |
 | 大雪 | 4 | 7 | 1 |
 
-Invariant: each row is a rotation of one 宫组. Use this as a unit test on the table itself, not as proof the historical song matches.
+Invariant: each row is a rotation of one 宫组. Use this as a unit test on the table itself, not as proof of historical lineage.
 
 ---
 
@@ -170,51 +177,60 @@ Invariant: each row is a rotation of one 宫组. Use this as a unit test on the 
 **Inputs:** `{dun, ju}`.  
 **Steps:**
 
-1. 洛书 numbers: 1坎 2坤 3震 4巽 5中 6乾 7兑 8艮 9离.  
-2. Sequence of 九仪: 戊己庚辛壬癸丁丙乙.  
-3. Place 戊 on palace `ju`. That is the definition of “几局”.  
-4. YANG: walk the remaining 八仪 in 洛书 **forward** (notes: 顺). YIN: **backward** (逆).  
-5. 中5: 天禽 / 寄坤 is a later star rule, not an earth-yi skip. Earth still has a 戊…乙 in some palace including possibly 5.
+1. Palace numbers: 1坎 2坤 3震 4巽 5中 6乾 7兑 8艮 9离.  
+2. Fixed 九仪 sequence: 戊己庚辛壬癸丁丙乙.  
+3. Place 戊 on palace `ju`; that is the operational meaning of “几局”.  
+4. YANG: place the remaining sequence by **numeric palace order +1**, wrapping `9 → 1`.  
+5. YIN: place the remaining sequence by **numeric palace order -1**, wrapping `1 → 9`.  
+6. 中5 is a normal earth-plate location for a 奇/仪. 天禽寄宫 is a later sky-star rule and must not be used to skip palace 5 here.
 
-**implementation_ready:** PARTIAL. The walk order on 洛书 (numeric 1→9 vs 洛书邻格) is **not uniquely specified** in the notes I read. N05 used `fly=[5,6,7,8,9,1,2,3,4]` which is **not sourced** in that file. Do not copy N05 as truth.
+**Direct source check:**
 
-**Sources:** N02 §7.1; N01 §3.3.  
-**Conflicts:** see C-PLATE-WALK.
+- 善天道《奇门遁甲讲义》 directly gives the fixed sequence and “阳遁顺布、阴遁逆布”.
+- 《奇门遁甲预测学》 directly explains numeric-palace walking and supplies complete worked examples:
+  - 阳遁三局: `3-4-5-6-7-8-9-1-2`
+  - 阴遁三局: `3-2-1-9-8-7-6-5-4`
+
+The second worked example has a heading typo in the printed text but its prose says “阴遁逆排” and all nine placements match the reverse sequence; the fixture is based on the explicit rule + complete palace assignment, not the mistaken heading.
+
+**Executable fixtures:** complete 阳三局, complete 阴三局, and all 18-ju structural invariants.  
+**implementation_ready:** YES. Implemented as `EarthPlateBuilder`.  
+**Correction record:** `11_EARTH_PLATE_AND_AI_INTERPRETATION.md`.
 
 ---
 
-## ALG-PLATE-02  旬首 / 值符 / 值使
+## ALG-PLATE-02  旬首 / 值符 / 值使 initial anchors
 
-**Inputs:** hour pillar.  
-**Steps:**
+**Inputs:** hour pillar + verified earth plate.  
+**Steps supported by current sources:**
 
 1. 旬首 of hour: 甲子戊, 甲戌己, 甲申庚, 甲午辛, 甲辰壬, 甲寅癸.  
 2. 旬空: the two branches not in that 10-day xun (戌亥 / 申酉 / 午未 / 辰巳 / 寅卯 / 子丑).  
-3. Find which earth palace holds that 遁仪.  
-4. Home star of that palace = 值符星. Home gate = 值使门 (中5 has no gate — 寄, usually 坤2).  
+3. Find which earth palace holds that 旬首遁仪.  
+4. The home star of that palace is the 值符星. The corresponding home gate is the 值使门.
 
-Home stars (standard 洛书驻地, N01 §2.1):  
-1天蓬 2天芮 3天冲 4天辅 5天禽 6天心 7天柱 8天任 9天英  
+Home stars:  
+1天蓬 2天芮 3天冲 4天辅 5天禽 6天心 7天柱 8天任 9天英.
 
 Home gates:  
-1休 2死 3伤 4杜 6开 7惊 8生 9景  
+1休 2死 3伤 4杜 6开 7惊 8生 9景.
 
-**implementation_ready:** YES for the maps; depends on ALG-PLATE-01 for palace of 遁仪.
+**Current caution:** palace 5 has no ordinary eight-gate home position. Do **not** invent a gate-5 rule from memory; resolve the 中五/寄宫 case from a direct worked source before making the API total.
+
+**implementation_ready:** PARTIAL. 旬首/遁仪/旬空 are implemented; value-star/value-gate anchoring is the next code milestone.
 
 ---
 
 ## ALG-PLATE-03  Sky / gate / spirit rotation
 
 **Inputs:** earth plate, 值符星, 值使门, hour stem, hour branch, dun.  
-**Intended steps (from notes, not independently executed):**
+**Intended steps (source review still incomplete):**
 
-1. Sky: move 值符星 to the palace where **hour stem** currently sits on the earth plate; keep star cyclic order. 天禽 usually 寄坤2.  
-2. Gates: 值使 follows **hour branch**; notes also say gates always rotate clockwise regardless of dun — **conflicts with “阴逆”**.  
-3. Spirits: 小值符追大值符; YANG clockwise 值符→螣蛇→太阴→六合→白虎→玄武→九地→九天; YIN reverse. 飞宫 school uses 勾陈/太常/朱雀 names instead of 白虎/玄武.
+1. Sky: move 值符星 to the palace associated with the current hour stem under the verified earth plate / later heavenly-plate rule; preserve the star order. 中五天禽寄宫 still needs direct worked-source verification.  
+2. Gates: B01 directly gives “值使随时支，阳顺阴逆” and a worked 阳八局 sequence. An older note also contained a contradictory “八门永远顺时针” sentence, so 阴遁 still needs a named worked fixture before shipping.  
+3. Spirits: source review and fixtures still required; do not infer from mnemonic order alone.
 
-**implementation_ready:** NO for this pass. N05 explicitly stopped before these plates.
-
-**Sources:** N02 §10–11; N01 §5.3; B02 ch.12 notes on 飞宫.
+**implementation_ready:** NO for complete four-plate generation.
 
 ---
 
@@ -241,18 +257,33 @@ Home gates:
 Enumerate 60 days × 12 hours.  
 
 Book table (善天道精华 pp.25–26 per notes) lists 10 pairs. Independent generation adds 己日乙亥, 庚日丙戌.  
-**Default for App:** expose **generator output** (12 pairs), show book-10 as optional “printed table” school.
+**Default for App:** expose **generator output** (12 pairs), show book-10 only as a printed-table comparison, not as engine truth.
 
 **implementation_ready:** YES for the generator.  
 **Sources:** N01 验证1.
 
 ---
 
+## AI interpretation boundary (engineering contract, not a traditional rule)
+
+AI is an **interpretation layer**, never an alternative plate calculator.
+
+- Core provides a structured evidence packet containing only engine-produced facts.
+- `FULL_PLATE` interpretation stays locked until all four plates are independently verified.
+- Remote AI requires explicit per-request consent; core itself stores no API key and sends no network request.
+- AI may explain, compare and perform scenario reasoning, but may not silently recalculate pillars, ju, stars, gates or spirits and overwrite core output.
+- `ENGINE_VERIFIED` means “produced by current tested engine”, not “scientifically validated metaphysical conclusion”.
+
+See `11_EARTH_PLATE_AND_AI_INTERPRETATION.md`.
+
+---
+
 ## What not to encode yet
 
 - Any money / score / weather numeric formula  
-- 90 十干克应 omen strings as logic  
+- 90 十干克应 omen strings as hard logic  
 - 年家/月家/日家  
 - 飞宫  
 - True solar time  
-- N05 earth-plate walk
+- Unverified 天盘九星 / 人盘八门 / 神盘八神 rotation  
+- Full-plate AI interpretation
