@@ -12,6 +12,12 @@
 - 六爻：已进入 App 主架构；待整理起卦、装卦、纳甲、六亲、世应、动变、用神与应期规则后实现 `liuyao-core`。
 - 大六壬：已进入 App 主架构；待整理月将、天地盘、四课、三传、天将、课体与断课规则后实现 `liuren-core`。
 
+五套术数最终目标是五个互相独立、统一由 Android App 调用的 core：
+
+`ziwei-core / qimen-core / bazi-core / liuyao-core / liuren-core`
+
+UI 不直接承载术数算法，流派选择、排盘输入、结果模型和测试夹具均由各 core 自己管理。
+
 ## UI/UX v2
 
 新版界面在 `uiux-v2` 分支开发，设计原则是：
