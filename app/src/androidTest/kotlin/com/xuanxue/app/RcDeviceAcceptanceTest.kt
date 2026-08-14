@@ -1,6 +1,6 @@
 package com.xuanxue.app
 
-import android.graphics.Bitmap
+import android.os.ParcelFileDescriptor
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -8,8 +8,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import java.io.File
-import java.io.FileOutputStream
 import java.util.Calendar
 import kotlin.math.abs
 import org.junit.Assert.assertTrue
@@ -23,6 +21,9 @@ import org.junit.runner.RunWith
  * The workflow runs this class twice against the same source head:
  * - narrow + light theme + airplane mode
  * - wide + dark theme + airplane mode
+ *
+ * Screenshots are written by UiAutomation's shell identity to shared Download
+ * storage so Gradle's post-test package cleanup cannot delete the evidence.
  *
  * This closes navigation/responsive/offline smoke acceptance in automation.
  * It does not claim physical-device ergonomics, divination correctness, or
@@ -68,6 +69,7 @@ class RcDeviceAcceptanceTest {
                 .performScrollTo()
                 .performClick()
             composeRule.onNodeWithTag("module-host-$id").assertExists()
+            capture("${formFactor}-$id")
             composeRule.onNodeWithTag("back-home").performClick()
             composeRule.onNodeWithTag("home-root").assertExists()
         }
@@ -87,7 +89,7 @@ class RcDeviceAcceptanceTest {
         val expectedDatePrefix = "公历: ${now.get(Calendar.YEAR)}-${now.get(Calendar.MONTH) + 1}-${now.get(Calendar.DAY_OF_MONTH)}"
         composeRule.onNodeWithText(expectedDatePrefix, substring = true).assertExists()
 
-        capture("${formFactor}-qimen")
+        capture("${formFactor}-qimen-boundary")
     }
 
     @Test
@@ -95,11 +97,13 @@ class RcDeviceAcceptanceTest {
         composeRule.onNodeWithTag("open-audit").performClick()
         composeRule.onNodeWithTag("audit-root").assertExists()
         composeRule.onNodeWithText("方法核验中心").assertExists()
+        capture("${formFactor}-audit")
         composeRule.onNodeWithTag("audit-back-home").performClick()
 
         composeRule.onNodeWithTag("open-legal").performClick()
         composeRule.onNodeWithText("开源许可").assertExists()
         composeRule.onNodeWithText("Copyright (c) 2018 6tail", substring = true).assertExists()
+        capture("${formFactor}-legal")
 
         composeRule.activityRule.scenario.onActivity {
             it.onBackPressedDispatcher.onBackPressed()
@@ -109,17 +113,14 @@ class RcDeviceAcceptanceTest {
 
     private fun capture(name: String) {
         composeRule.waitForIdle()
-        val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val dir = File(instrumentation.targetContext.getExternalFilesDir(null), "rc-screenshots")
-        check(dir.exists() || dir.mkdirs()) { "Cannot create screenshot directory: $dir" }
-        val output = File(dir, "$name.png")
-        val bitmap = instrumentation.uiAutomation.takeScreenshot()
-            ?: error("UiAutomation screenshot returned null")
-        FileOutputStream(output).use { stream ->
-            check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)) {
-                "Failed to encode screenshot: $output"
-            }
+        val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
+        execShell(uiAutomation.executeShellCommand("mkdir -p /sdcard/Download/xuanxue-rc-screenshots"))
+        execShell(uiAutomation.executeShellCommand("screencap -p /sdcard/Download/xuanxue-rc-screenshots/$name.png"))
+    }
+
+    private fun execShell(descriptor: ParcelFileDescriptor) {
+        ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { input ->
+            input.readBytes()
         }
-        bitmap.recycle()
     }
 }
