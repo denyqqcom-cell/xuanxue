@@ -16,7 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.xuanxue.app.domain.PracticeModule
-import com.xuanxue.app.ui.components.XuanxueTopBar
+import com.xuanxue.app.ui.components.ScreenTopBar
 
 @Composable
 fun ModuleIntroScreen(
@@ -24,7 +24,7 @@ fun ModuleIntroScreen(
     onBack: () -> Unit,
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        XuanxueTopBar(title = module.title, onBack = onBack)
+        ScreenTopBar(title = module.title, onBack = onBack)
         Column(
             modifier = Modifier
                 .fillMaxSize()
