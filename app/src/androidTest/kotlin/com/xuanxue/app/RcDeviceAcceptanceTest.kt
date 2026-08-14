@@ -3,6 +3,7 @@ package com.xuanxue.app
 import android.content.ContentValues
 import android.graphics.Bitmap
 import android.os.Environment
+import android.os.SystemClock
 import android.provider.MediaStore
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -27,7 +28,10 @@ import org.junit.runner.RunWith
  *
  * Screenshots are synchronously captured from UiAutomation and persisted into
  * shared Downloads through MediaStore so post-test APK cleanup cannot erase
- * acceptance evidence or race navigation changes.
+ * acceptance evidence. A short frame-settle delay is intentional: Compose can
+ * be semantically idle before the emulator compositor has presented the new
+ * frame, and visual evidence must reflect the asserted screen rather than the
+ * preceding frame.
  *
  * This closes navigation/responsive/offline/main-path smoke acceptance in
  * automation. It does not claim physical-device ergonomics, divination
@@ -79,7 +83,7 @@ class RcDeviceAcceptanceTest {
     fun coreModuleActionsProduceStructuralResultsWithoutCrashing() {
         openModule("ziwei")
         composeRule.onNodeWithText("排盘").performScrollTo().performClick()
-        composeRule.onNodeWithText("十二宫概览 · 点击宫位查看完整星曜与限运").assertExists()
+        composeRule.onNodeWithText("十二宫概览 · 点击宫位查看完整星曜与限运").assertExists().performScrollTo()
         composeRule.onNodeWithText("命宫干支", substring = true).assertExists()
         capture("${formFactor}-ziwei-result")
         backHome()
@@ -89,13 +93,13 @@ class RcDeviceAcceptanceTest {
         composeRule.onNodeWithText("02:30").assertExists()
         composeRule.onNodeWithText("排盘").performScrollTo().performClick()
         composeRule.onNodeWithText("大运 (", substring = true).assertExists()
-        composeRule.onNodeWithText("年柱").assertExists()
+        composeRule.onNodeWithText("年柱").assertExists().performScrollTo()
         capture("${formFactor}-bazi-result")
         backHome()
 
         openModule("qimen")
         composeRule.onNodeWithText("生成当前实验局").performScrollTo().performClick()
-        composeRule.onNodeWithText("基础结果").assertExists()
+        composeRule.onNodeWithText("基础结果").assertExists().performScrollTo()
         composeRule.onNodeWithText("实验九宫（开发核对视图）").assertExists()
         capture("${formFactor}-qimen-result")
         backHome()
@@ -106,14 +110,14 @@ class RcDeviceAcceptanceTest {
         composeRule.onNodeWithText("下卦数").assertExists()
         composeRule.onNodeWithText("动爻数").assertExists()
         composeRule.onNodeWithText("起卦").performScrollTo().performClick()
-        composeRule.onNodeWithText("动爻:", substring = true).assertExists()
+        composeRule.onNodeWithText("动爻:", substring = true).assertExists().performScrollTo()
         capture("${formFactor}-liuyao-result")
         backHome()
 
         openModule("liuren")
         composeRule.onNodeWithText("夜占").performScrollTo().performClick()
         composeRule.onNodeWithText("起课").performScrollTo().performClick()
-        composeRule.onNodeWithText("三传:", substring = true).assertExists()
+        composeRule.onNodeWithText("三传:", substring = true).assertExists().performScrollTo()
         composeRule.onNodeWithText("四课").assertExists()
         composeRule.onNodeWithText("天地盘").assertExists()
         capture("${formFactor}-liuren-result")
@@ -122,7 +126,7 @@ class RcDeviceAcceptanceTest {
         openModule("huangli")
         composeRule.onNodeWithText("黄历（万年历）").assertExists()
         composeRule.onNodeWithText("干支").assertExists()
-        composeRule.onNodeWithText("宜").assertExists()
+        composeRule.onNodeWithText("宜").assertExists().performScrollTo()
         composeRule.onNodeWithText("忌").assertExists()
         capture("${formFactor}-huangli-result")
         backHome()
@@ -174,6 +178,8 @@ class RcDeviceAcceptanceTest {
     }
 
     private fun capture(name: String) {
+        composeRule.waitForIdle()
+        SystemClock.sleep(300)
         composeRule.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
