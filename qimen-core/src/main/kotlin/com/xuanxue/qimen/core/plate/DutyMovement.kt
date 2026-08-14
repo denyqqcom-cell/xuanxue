@@ -9,8 +9,8 @@ data class DutyRuntime(
     val anchor: DutyAnchor,
     /** 值符星按时干在地盘所落之宫定位；甲时以本旬遁仪代甲。 */
     val valueStarPalace: Int,
-    /** 值使按旬首时支起点，阳顺阴逆，每个时辰移动一宫。中五只记录宫数，不在此猜寄宫。 */
-    val valueGatePalace: Int?,
+    /** 值使从旬首遁仪的实际宫位起，阳顺阴逆，每个时辰按九宫数移动一宫。 */
+    val valueGatePalace: Int,
     val branchStepsFromXunHead: Int,
 )
 
@@ -35,12 +35,8 @@ object DutyMovementResolver {
             "Hour ${hourPillar.zh} is not inside resolved xun ${xun.xunShou.zh}; steps=$branchSteps"
         }
 
-        val gatePalace = if (anchor.valueGate == null) {
-            null
-        } else {
-            val signedSteps = if (dun == Dun.YANG) branchSteps else -branchSteps
-            Math.floorMod((anchor.dunYiPalace - 1) + signedSteps, 9) + 1
-        }
+        val signedSteps = if (dun == Dun.YANG) branchSteps else -branchSteps
+        val gatePalace = Math.floorMod((anchor.dunYiPalace - 1) + signedSteps, 9) + 1
 
         return DutyRuntime(
             anchor = anchor,
