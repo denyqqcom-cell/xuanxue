@@ -15,6 +15,8 @@ enum class AiExecutionMode {
 enum class AiInterpretationScope {
     PRE_PLATE,
     EARTH_PLATE,
+    /** 地盘 + 已验证的值符/值使初始锚点与当前落宫；不等于完整天盘/人盘。 */
+    DUTY_RUNTIME,
     FULL_PLATE,
 }
 
@@ -85,20 +87,41 @@ object AiEvidenceBuilder {
             AiFact("wubuyu", "五不遇时", if (chart.isWuBuYu) "是" else "否"),
         )
 
-        if (scope == AiInterpretationScope.EARTH_PLATE) {
+        if (scope == AiInterpretationScope.EARTH_PLATE || scope == AiInterpretationScope.DUTY_RUNTIME) {
             val earth = (1..9).joinToString("；") { palace ->
                 "${palace}宫=${chart.earthPlate.stemAt(palace).zh}"
             }
             facts += AiFact("earth_plate", "地盘九仪", earth)
         }
 
+        if (scope == AiInterpretationScope.DUTY_RUNTIME) {
+            facts += AiFact("duty_anchor_palace", "旬首遁仪初始宫", chart.duty.anchor.dunYiPalace.toString())
+            facts += AiFact("value_star", "值符星", chart.duty.anchor.valueStar.zh)
+            facts += AiFact("value_star_palace", "值符星当前落宫", chart.duty.valueStarPalace.toString())
+            facts += AiFact("duty_branch_steps", "值使自旬首推进时辰数", chart.duty.branchStepsFromXunHead.toString())
+
+            val gate = chart.duty.anchor.valueGate
+            val gatePalace = chart.duty.valueGatePalace
+            if (gate != null && gatePalace != null) {
+                facts += AiFact("value_gate", "值使门", gate.zh)
+                facts += AiFact("value_gate_palace", "值使门当前落宫", gatePalace.toString())
+            } else {
+                facts += AiFact(
+                    "value_gate_state",
+                    "值使门状态",
+                    "中五宫寄宫规则未验证，当前不输出值使门",
+                    provenance = "ENGINE_GUARD",
+                )
+            }
+        }
+
         return AiEvidencePacket(
             verifiedScope = scope,
             facts = facts,
             caveats = listOf(
-                "当前核心尚未验证天盘九星、人盘八门、神盘八神，AI不得自行补算这些层。",
-                "AI只能解释核心提供的结构化事实，不得覆盖或改写排盘结果。",
-                "术数解释属于传统模型的情境推演，不应表述为确定事实或保证性预测。",
+                "当前核心只验证到地盘九仪及值符/值使的局部运行事实，尚未验证完整天盘九星、人盘八门、神盘八神。",
+                "AI不得依据自身记忆补算未验证层，也不得覆盖或改写排盘结果。",
+                "ENGINE_VERIFIED只表示来自当前测试过的确定性引擎；术数解释属于传统模型的情境推演，不应表述为科学事实或保证性预测。",
             ),
         )
     }
