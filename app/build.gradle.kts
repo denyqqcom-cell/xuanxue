@@ -18,6 +18,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".rc"
+            versionNameSuffix = "-debug"
+        }
         release {
             isMinifyEnabled = false
         }
