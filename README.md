@@ -132,6 +132,6 @@ Debug APK：
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-当前 `app-integration-v3` 验证基线：run `31831719567` 在 head `2015d813170644d0f605758af2f54a4f57f1d980` 上，源码版权 Gate、core/evidence tests、Android assemble 与 APK binary audit 全部通过。
+`app-integration-v3` 的核心功能基线已在 head `2015d813170644d0f605758af2f54a4f57f1d980` 的 run `31831719567` 完整通过；随后仅更新 README 的 head `dd7cfa008cf7ed7e4370f4cf533bfd5b8c27b4db` 也由 run `31832032147` 重新执行并完整通过源码版权 Gate、core/evidence tests、Android assemble 与 APK binary audit。
 
 只有上述检查全部通过的分支才应进入合并审查。
