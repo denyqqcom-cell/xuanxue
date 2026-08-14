@@ -29,6 +29,7 @@
 - Project: https://android.googlesource.com/platform/frameworks/support
 - License: Apache License 2.0
 - Usage: Android UI、Activity、Lifecycle、DataStore、Compose 与 Material 3。
+- RC 测试侧额外使用 `androidx.test.ext:junit`、`androidx.test.espresso:espresso-core`、Compose UI Test；这些只进入 androidTest/test APK，不进入正式 release APK 的运行时功能。
 
 ## Kotlin
 
@@ -45,12 +46,21 @@
 - Copyright: Copyright (c) 2018 GitHub, Inc. and contributors
 - Distribution boundary: workflow 只引用 Action，不把其源码复制进 App；因此不把该许可混入 APK 的运行时 notices。仓库级审计仍在此记录其来源与许可。
 
+RC 设备验收还使用：
+
+- Project: https://github.com/ReactiveCircus/android-emulator-runner
+- License: Apache License 2.0
+- Usage: GitHub Actions 中启动 Android Emulator，运行 `connectedDebugAndroidTest`、飞行模式/屏幕尺寸/深浅色验收与截图采集。
+- Distribution boundary: 仅 CI/build-time 使用，不进入 APK/AAB；上游仓库元数据已核对为 Apache-2.0。
+
 已有 `actions/checkout`、`actions/setup-java`、`gradle/actions/setup-gradle` 同样属于 CI/build-time 基础设施，不属于 App 运行时依赖；若未来复制、修改或重新分发其源码，应按各自上游许可重新检查。
 
 ## 测试侧依赖
 
 `org.json:json:20240303` 当前只在 `ziwei-core` JVM 测试中使用，不作为 Android App
 运行时依赖。若未来进入发行包，必须重新独立审查其许可与分发义务。
+
+Android instrumentation 测试依赖属于 Apache-2.0 的 AndroidX 测试栈，只进入测试构建；正式 release APK 仍由现有 APK 内容审计反向确认没有测试代码/测试资源混入。
 
 ## Distribution
 
