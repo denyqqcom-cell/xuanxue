@@ -39,6 +39,7 @@ private enum class RootPage {
     LIUREN,
     HUANGLI,
     AUDIT,
+    LEGAL,
 }
 
 private data class ModuleEntry(
@@ -60,8 +61,7 @@ private val moduleEntries = listOf(
 /**
  * App 根导航。
  *
- * 旧版把六个模块硬塞在一行 Tab；这里改为首页卡片 + 独立页面，方便后续继续增加
- * 核验状态、案例工作流和 BYOK，而不是让导航宽度随功能数失控。
+ * 六术数不再硬塞进一行 Tab；首页同时承担模块发现、工程成熟度和合规入口。
  */
 @Composable
 fun XuanxueRoot() {
@@ -72,8 +72,10 @@ fun XuanxueRoot() {
         RootPage.HOME -> HomeHub(
             onOpen = { page = it },
             onAudit = { page = RootPage.AUDIT },
+            onLegal = { page = RootPage.LEGAL },
         )
         RootPage.AUDIT -> AuditCenter(onBack = { page = RootPage.HOME })
+        RootPage.LEGAL -> OpenSourceScreen(onBack = { page = RootPage.HOME })
         else -> ModuleHost(
             page = page,
             onBack = { page = RootPage.HOME },
@@ -85,6 +87,7 @@ fun XuanxueRoot() {
 private fun HomeHub(
     onOpen: (RootPage) -> Unit,
     onAudit: () -> Unit,
+    onLegal: () -> Unit,
 ) {
     Scaffold { paddingValues ->
         Column(
@@ -109,7 +112,10 @@ private fun HomeHub(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
-                    Button(onClick = onAudit) { Text("查看方法核验中心") }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(onClick = onAudit) { Text("方法核验中心") }
+                        OutlinedButton(onClick = onLegal) { Text("开源许可") }
+                    }
                 }
             }
 
