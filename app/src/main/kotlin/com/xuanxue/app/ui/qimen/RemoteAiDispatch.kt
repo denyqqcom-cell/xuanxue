@@ -81,7 +81,9 @@ object RemoteAiProfileValidator {
         if (h == "localhost" || h.endsWith(".localhost") || h.endsWith(".local")) return true
 
         val ipv4 = h.split('.').takeIf { parts ->
-            parts.size == 4 && parts.all { part -> part.toIntOrNull() in 0..255 }
+            parts.size == 4 && parts.all { part ->
+                part.toIntOrNull()?.let { octet -> octet in 0..255 } == true
+            }
         }?.map { it.toInt() }
         if (ipv4 != null) {
             val a = ipv4[0]
