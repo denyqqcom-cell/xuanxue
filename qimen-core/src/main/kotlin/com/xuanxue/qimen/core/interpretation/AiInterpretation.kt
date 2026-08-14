@@ -2,6 +2,7 @@ package com.xuanxue.qimen.core.interpretation
 
 import com.xuanxue.qimen.core.api.QimenChart
 import com.xuanxue.qimen.core.plate.FullPlateResolution
+import java.security.MessageDigest
 
 /**
  * AI 只作为解释层，不承担历法、定局或排盘计算。
@@ -27,6 +28,8 @@ data class AiInterpretationPolicy(
     val scope: AiInterpretationScope = AiInterpretationScope.EARTH_PLATE,
     /** 远程模型必须由用户在本次操作中明确同意发送数据。 */
     val explicitRemoteConsent: Boolean = false,
+    /** 必须来自本次 AiInterpretationGate.preview()；把用户同意绑定到其实际看到的 question + evidence。 */
+    val remoteConsentFingerprint: String? = null,
 )
 
 data class AiFact(
@@ -44,10 +47,21 @@ data class AiEvidencePacket(
     val caveats: List<String>,
 )
 
+data class AiOutboundPreview(
+    val question: String,
+    val evidence: AiEvidencePacket,
+    /** SHA-256 of the exact canonical payload represented by this preview. */
+    val payloadFingerprint: String,
+) {
+    val fieldIds: List<String> get() = evidence.facts.map { it.id }
+}
+
 data class AiInterpretationRequest(
     val question: String,
     val evidence: AiEvidencePacket,
     val executionMode: AiExecutionMode,
+    /** Remote adapters can log/compare this value without receiving any secret. */
+    val payloadFingerprint: String,
 )
 
 data class AiInterpretationResult(
@@ -62,6 +76,12 @@ interface AiInterpreter {
 sealed class AiInterpretationError(message: String) : IllegalStateException(message) {
     class Disabled : AiInterpretationError("AI interpretation is disabled")
     class RemoteConsentRequired : AiInterpretationError("Remote AI requires explicit user consent for this request")
+    class RemoteConsentFingerprintRequired : AiInterpretationError(
+        "Remote AI consent must be bound to the exact outbound preview",
+    )
+    class RemoteConsentMismatch : AiInterpretationError(
+        "Remote AI consent fingerprint does not match the current question/evidence payload",
+    )
     class ScopeLocked(scope: AiInterpretationScope) :
         AiInterpretationError("AI interpretation scope is not verified for this chart: $scope")
 }
@@ -157,28 +177,72 @@ object AiEvidenceBuilder {
 }
 
 object AiInterpretationGate {
+    /**
+     * Builds the exact outbound payload before any remote consent is accepted.
+     * UI should render this preview, then bind the user's confirmation to payloadFingerprint.
+     */
+    fun preview(
+        chart: QimenChart,
+        question: String,
+        scope: AiInterpretationScope,
+    ): Result<AiOutboundPreview> = runCatching {
+        val normalizedQuestion = question.trim()
+        require(normalizedQuestion.isNotEmpty()) { "question must not be blank" }
+        val evidence = AiEvidenceBuilder.build(chart, scope)
+        AiOutboundPreview(
+            question = normalizedQuestion,
+            evidence = evidence,
+            payloadFingerprint = fingerprint(normalizedQuestion, evidence),
+        )
+    }
+
     fun prepare(
         chart: QimenChart,
         question: String,
         policy: AiInterpretationPolicy,
     ): Result<AiInterpretationRequest> = runCatching {
-        when (policy.executionMode) {
-            AiExecutionMode.DISABLED -> throw AiInterpretationError.Disabled()
-            AiExecutionMode.REMOTE_USER_CONFIGURED -> {
-                if (!policy.explicitRemoteConsent) {
-                    throw AiInterpretationError.RemoteConsentRequired()
-                }
-            }
-            AiExecutionMode.LOCAL_MODEL -> Unit
+        if (policy.executionMode == AiExecutionMode.DISABLED) {
+            throw AiInterpretationError.Disabled()
         }
 
-        val normalizedQuestion = question.trim()
-        require(normalizedQuestion.isNotEmpty()) { "question must not be blank" }
+        val preview = preview(chart, question, policy.scope).getOrThrow()
+
+        if (policy.executionMode == AiExecutionMode.REMOTE_USER_CONFIGURED) {
+            if (!policy.explicitRemoteConsent) {
+                throw AiInterpretationError.RemoteConsentRequired()
+            }
+            val consentFingerprint = policy.remoteConsentFingerprint
+                ?: throw AiInterpretationError.RemoteConsentFingerprintRequired()
+            if (consentFingerprint != preview.payloadFingerprint) {
+                throw AiInterpretationError.RemoteConsentMismatch()
+            }
+        }
 
         AiInterpretationRequest(
-            question = normalizedQuestion,
-            evidence = AiEvidenceBuilder.build(chart, policy.scope),
+            question = preview.question,
+            evidence = preview.evidence,
             executionMode = policy.executionMode,
+            payloadFingerprint = preview.payloadFingerprint,
         )
+    }
+
+    private fun fingerprint(question: String, evidence: AiEvidencePacket): String {
+        val canonical = buildString {
+            appendLine("schema=${evidence.schemaVersion}")
+            appendLine("scope=${evidence.verifiedScope.name}")
+            appendLine("question=$question")
+            evidence.facts.forEachIndexed { index, fact ->
+                appendLine("fact[$index].id=${fact.id}")
+                appendLine("fact[$index].label=${fact.label}")
+                appendLine("fact[$index].value=${fact.value}")
+                appendLine("fact[$index].provenance=${fact.provenance}")
+            }
+            evidence.caveats.forEachIndexed { index, caveat ->
+                appendLine("caveat[$index]=$caveat")
+            }
+        }
+        return MessageDigest.getInstance("SHA-256")
+            .digest(canonical.toByteArray(Charsets.UTF_8))
+            .joinToString("") { byte -> "%02x".format(byte) }
     }
 }
