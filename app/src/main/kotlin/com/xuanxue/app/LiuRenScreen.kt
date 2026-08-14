@@ -3,6 +3,7 @@ package com.xuanxue.app
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -185,41 +186,65 @@ fun LiuRenResult(c: LiuRenChart) {
             }
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedCard(Modifier.weight(1f), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
-                Column(Modifier.padding(10.dp)) {
-                    Text("四课", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    c.siKe.forEachIndexed { i, k ->
-                        Row(Modifier.padding(vertical = 2.dp)) {
-                            Text("课${i + 1}", Modifier.width(36.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text("${k.zhi}(${k.dunGan})", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-                        }
-                    }
-                }
-            }
-
-            OutlinedCard(Modifier.weight(1f), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
-                Column(Modifier.padding(10.dp)) {
-                    Text("天地盘", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    LiuRenEngine.ZHI.forEachIndexed { i, z ->
-                        Row(Modifier.padding(vertical = 1.dp)) {
-                            Text(z, Modifier.width(20.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            Text(
-                                c.tianPan[i],
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (c.tianPan[i] == c.yueJiang) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        LiuRenStructurePanels(c)
 
         Text(
             "结构注：天盘月将${c.yueJiang}加时；三传为初传→中传→末传。课型名称本身不直接等同现实吉凶。",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+private fun LiuRenStructurePanels(c: LiuRenChart) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val compact = maxWidth < 560.dp
+        if (compact) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                SiKeCard(c, Modifier.fillMaxWidth())
+                TianDiPanCard(c, Modifier.fillMaxWidth())
+            }
+        } else {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                SiKeCard(c, Modifier.weight(1f))
+                TianDiPanCard(c, Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun SiKeCard(c: LiuRenChart, modifier: Modifier) {
+    OutlinedCard(modifier, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
+        Column(Modifier.padding(10.dp)) {
+            Text("四课", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            c.siKe.forEachIndexed { i, k ->
+                Row(Modifier.padding(vertical = 2.dp)) {
+                    Text("课${i + 1}", Modifier.width(36.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("${k.zhi}(${k.dunGan})", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TianDiPanCard(c: LiuRenChart, modifier: Modifier) {
+    OutlinedCard(modifier, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
+        Column(Modifier.padding(10.dp)) {
+            Text("天地盘", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+            LiuRenEngine.ZHI.forEachIndexed { i, z ->
+                Row(Modifier.padding(vertical = 1.dp)) {
+                    Text(z, Modifier.width(20.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        c.tianPan[i],
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (c.tianPan[i] == c.yueJiang) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
+        }
     }
 }
