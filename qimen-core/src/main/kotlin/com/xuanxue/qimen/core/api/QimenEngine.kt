@@ -1,12 +1,14 @@
 package com.xuanxue.qimen.core.api
 
 import com.xuanxue.qimen.core.calendar.GanzhiCalendar
-import com.xuanxue.qimen.core.calendar.JieqiStamp
 import com.xuanxue.qimen.core.calendar.JieqiClock
+import com.xuanxue.qimen.core.calendar.JieqiStamp
 import com.xuanxue.qimen.core.calendar.StemBranch
 import com.xuanxue.qimen.core.ju.FutouYuanResolver
 import com.xuanxue.qimen.core.ju.JuTable
 import com.xuanxue.qimen.core.ju.Yuan
+import com.xuanxue.qimen.core.plate.EarthPlate
+import com.xuanxue.qimen.core.plate.EarthPlateBuilder
 import com.xuanxue.qimen.core.rule.PreflightRules
 import com.xuanxue.qimen.core.school.JuMethod
 import com.xuanxue.qimen.core.school.QimenError
@@ -26,7 +28,8 @@ data class QimenRequest(
 )
 
 enum class PlateState {
-    LOCKED_UNVERIFIED,
+    /** 地盘九仪已按来源复核并有独立夹具；其余三盘仍锁定。 */
+    EARTH_PLATE_VERIFIED_FULL_PLATE_LOCKED,
 }
 
 data class QimenChart(
@@ -42,11 +45,13 @@ data class QimenChart(
     val ju: Int,
     val juMethodUsed: JuMethod,
     val isWuBuYu: Boolean,
-    val plateState: PlateState = PlateState.LOCKED_UNVERIFIED,
+    val earthPlate: EarthPlate,
+    val plateState: PlateState = PlateState.EARTH_PLATE_VERIFIED_FULL_PLATE_LOCKED,
 )
 
 /**
- * v1 只生成“可验证的盘前数据”。九宫天地人神盘仍被硬锁。
+ * v1 生成可验证的盘前数据与地盘九仪。
+ * 天盘九星、人盘八门、神盘八神仍被硬锁，避免把未复核的规则伪装成完整盘。
  */
 object QimenEngine {
     fun cast(request: QimenRequest): Result<QimenChart> = runCatching {
@@ -82,6 +87,7 @@ object QimenEngine {
         }
         val futou = FutouYuanResolver.resolve(dayPillar)
         val ju = JuTable.resolve(jieqi.jieqi, jieqi.dun, futou.yuan)
+        val earthPlate = EarthPlateBuilder.build(jieqi.dun, ju.ju)
 
         QimenChart(
             localDateTime = localDateTime,
@@ -96,6 +102,7 @@ object QimenEngine {
             ju = ju.ju,
             juMethodUsed = request.school.juMethod,
             isWuBuYu = PreflightRules.isWuBuYu(dayPillar.stem, hourPillar.stem),
+            earthPlate = earthPlate,
         )
     }
 }
