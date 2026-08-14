@@ -1,19 +1,38 @@
 NOTICE
 ======
 
-xuanxue 紫微斗数排盘引擎（ziwei-core）基于以下 MIT 开源项目移植：
+xuanxue 的 App 外壳、UI/UX 与本仓库新增业务代码采用 MIT License，版权归
+xuanxue contributors 所有。
 
-1. iztro — https://github.com/SylarLong/iztro (MIT)
-   TypeScript 紫微斗数排盘引擎。本项目的 src/star、src/astro、src/data、
-   src/utils、src/i18n 计算逻辑与数据表均移植自 iztro v2.x，保持算法与
-   输出（含 'woo' 等历史行为）1:1 对齐。数据表与 i18n 映射由
-   tools/gen_kotlin.py 从 iztro 源码自动生成。
+紫微排盘核心包含或参考以下第三方开源项目：
 
-2. lunar-java (cn.6tail:lunar) — https://github.com/6tail/lunar-java (MIT)
-   农历/干支/节气计算基础库。
+1. iztro — https://github.com/SylarLong/iztro
+   License: MIT
+   Copyright (c) 2023 All Contributors
+   ziwei-core 的排盘流程、数据表与 i18n 映射由 iztro v2.x 移植/生成。
 
-3. lunar-lite — https://github.com/SylarLong/lunar-lite (MIT)
-   iztro 的农历适配层语义参考。
+2. lunar-java — https://github.com/6tail/lunar-java
+   License: MIT
+   Copyright (c) 2018 6tail
+   作为农历、干支与节气计算的运行时依赖。
 
-本项目为纯净本地版：无网络权限、无广告、无支付、无推送、无账号体系。
-所有排盘计算在设备本地完成。
+3. lunar-lite — https://github.com/SylarLong/lunar-lite
+   License: MIT
+   Copyright (c) 2023 Sylar
+   仅作为 iztro 农历适配语义的实现参考。
+
+4. AndroidX / Jetpack Compose
+   License: Apache License 2.0
+   本 App 使用 AndroidX、Lifecycle、DataStore、Jetpack Compose 与 Material 3。
+
+5. Kotlin
+   License: Apache License 2.0
+
+第三方完整许可文本随 APK 一并打包在：
+app/src/main/assets/licenses/
+
+UI/UX 版权边界：本项目不复制任何商业命理 App 的源码、图片、图标、字体、
+截图、文案或视觉布局。新版 UI 使用 Jetpack Compose 原创实现与系统字体，
+不包含外部视觉素材。
+
+更详细的版权审计见 COPYRIGHT_REVIEW.md 与 THIRD_PARTY_NOTICES.md。

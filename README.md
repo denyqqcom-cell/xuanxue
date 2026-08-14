@@ -1,58 +1,86 @@
 # 玄学排盘（xuanxue）
 
-纯净版紫微斗数排盘 App —— **无支付、无广告、无推送、无账号、无网络权限**，所有计算在设备本地完成。
+一个以**本地计算、可验证算法、隐私优先、低权限**为核心原则的 Android 玄学排盘项目。
 
-> 灵感来源：逆向分析了一款典型命理 App（`oms.mmc.fortunetelling.gmpay.lingdongziwei2`，广东很久文化传播有限公司）后，将其"排盘核心"用开源算法重写，**剔除全部变现功能**（灵符付费、大师咨询、广告、推送、裂变深链）。
+当前 App 已实现紫微斗数排盘；奇门遁甲、八字命理、六爻、大六壬已经纳入统一 App 架构。新增模块不会在算法与资料没有验证完成前伪装成“可用”。
 
-## 功能
+## App 模块
 
-- 紫微斗数排盘（default 派别，基于《紫微斗数全书》安星法）
-- 十二宫盘面（命宫/兄弟/夫妻/子女/财帛/疾厄/迁移/仆役/官禄/田宅/福德/父母）
-- 十四主星 + 亮度（庙旺得利平不陷）+ 四化（禄权科忌）
-- 14 辅星 + 38 杂耀 + 长生12神 + 博士12神 + 岁前/将前12神
-- 五行局、命主、身主、大限、小限
-- 支持闰月修正、早晚子时（13 时辰）
-- 本地存档（无网络，隐私安全）
+- 紫微斗数：已接入 `ziwei-core`，支持十二宫、主星、辅星、杂曜、大限与小限；核心结果通过 iztro 黄金夹具验证。
+- 奇门遁甲：已进入 App 主架构；本地资料完成起局、用神、宫盘、生克、应期与流派差异整理后实现 `qimen-core`。
+- 八字命理：已进入 App 主架构；本地资料完成排盘、旺衰、格局、十神、大运流年与流派差异整理后实现 `bazi-core`。
+- 六爻：已进入 App 主架构；待整理起卦、装卦、纳甲、六亲、世应、动变、用神与应期规则后实现 `liuyao-core`。
+- 大六壬：已进入 App 主架构；待整理月将、天地盘、四课、三传、天将、课体与断课规则后实现 `liuren-core`。
+
+五套术数最终目标是五个互相独立、统一由 Android App 调用的 core：
+
+`ziwei-core / qimen-core / bazi-core / liuyao-core / liuren-core`
+
+UI 不直接承载术数算法，流派选择、排盘输入、结果模型和测试夹具均由各 core 自己管理。
+
+## UI/UX v2
+
+新版界面在 `uiux-v2` 分支开发，设计原则是：
+
+- 现代东方视觉，而不是仿古模板堆叠
+- 五门术数使用统一导航与设计系统，各自保留独立核心模型
+- 排盘摘要与详细信息分层显示
+- 不使用第三方图片、商业字体、商业 App 截图或视觉素材
+- UI 与各 core module 分离，界面重构不得改变排盘算法
 
 ## 技术栈
 
-- Kotlin 2.0 + Jetpack Compose (Material3)
-- 排盘引擎：`ziwei-core`（iztro MIT → Kotlin 移植，见 NOTICE）
-- 农历基础：`cn.6tail:lunar` (lunar-java, MIT)
+- Kotlin 2.0 + Jetpack Compose + Material 3
+- Java 17
+- Android minSdk 24 / targetSdk 35
+- `ziwei-core`：iztro（MIT）到 Kotlin 的移植
+- `cn.6tail:lunar`：农历/干支/节气基础（MIT）
 
 ## 构建
 
 ```bash
 export JAVA_HOME=/path/to/jdk17
 export ANDROID_HOME=/path/to/android-sdk
-./gradlew :ziwei-core:test    # 排盘算法黄金夹具测试（7 组对照 iztro 原版）
-./gradlew :app:assembleDebug  # 打包 APK
+./gradlew :ziwei-core:test
+./gradlew :app:assembleDebug
 ```
 
 APK 输出：`app/build/outputs/apk/debug/app-debug.apk`
 
 ## 正确性验证
 
-`ziwei-core` 的排盘算法与 iztro（TypeScript 原版，4058★）**逐字段 1:1 对齐**：
-7 组黄金夹具（阳男午时 / 阴女子时 / 闰月 / 晚子时 / 立春边界 / 现代儿童 / 深冬）
-由 iztro 原版生成，Kotlin 移植版输出完全一致（`fixtures.jsonl` 断言测试）。
+`ziwei-core` 通过黄金夹具与 iztro 原版逐字段对照。当前夹具覆盖阳男午时、阴女子时、闰月、晚子时、立春边界、现代儿童与深冬等边界场景。
 
-## 学习资料（笔记入库，原书只留书目）
+后续 `qimen-core`、`bazi-core`、`liuyao-core`、`liuren-core` 也必须先建立可复现 fixture，再允许首页状态从“资料准备”改成“可用”。
 
-按门类整理在仓库根目录，总索引见 [资料总目.md](资料总目.md)。
+## 本地资料如何进入工程
 
-| 目录 | 说明 |
-|---|---|
-| [奇门](奇门/README.md) | 精读笔记、修炼日志、qclaw |
-| [风水](风水/README.md) | 书目 |
-| [八字](八字/README.md) | 40 篇笔记 + `paipan.py` |
-| [紫薇](紫薇/README.md) | 26 篇笔记 + 学习计划 |
-| [学习资料](学习资料/README.md) | 工具脚本、重复书目 |
+本地书籍不直接进入 App。能访问本机资料的 AI 应先按照 [`LOCAL_CORPUS_HANDOFF_PROMPT.md`](LOCAL_CORPUS_HANDOFF_PROMPT.md) 生成结构化交接包。**这个提示词分别运行四次：奇门、八字、六爻、大六壬一次一门，不混合输出。**
 
-已出版扫描书（王亭之全集、图解奇门等）**不进 Git**。各目录 `书目.md` 写本机路径；E/F 重复的 32 份只记在 [学习资料/重复书目.md](学习资料/重复书目.md)。
+交接包至少拆分：
 
-## 许可证
+- 可编码排盘/起局算法
+- 流派差异与冲突
+- 经验断法
+- 可复现黄金夹具
+- 回溯/半盲/真盲案例
+- 版权与许可状态
 
-MIT。排盘算法数据表移植自 [iztro](https://github.com/SylarLong/iztro)（MIT），
-农历基础来自 [lunar-java](https://github.com/6tail/lunar-java)（MIT）。
-详见 [NOTICE](NOTICE)。
+只有通过来源审计、交叉验证和版权 Gate 的规则，才允许进入正式 core module。
+
+## 版权与开源许可
+
+本项目自有代码采用 MIT License。第三方许可与来源见：
+
+- `NOTICE`
+- `THIRD_PARTY_NOTICES.md`
+- `COPYRIGHT_REVIEW.md`
+- `app/src/main/assets/licenses/`（随 APK 打包）
+
+新版 UI/UX 为独立设计，不复制商业命理 App 的代码、视觉素材、截图、字体或长段文案。
+
+研究资料方面，已出版扫描书不进入 Git；仓库只保留书目与研究笔记。研究笔记仍需遵守“以总结和验证为主、不大段照录原文”的版权规则，具体见 `COPYRIGHT_REVIEW.md`。
+
+## 学习资料
+
+总索引见 `资料总目.md`。奇门、八字、紫微、风水分别位于仓库同名目录中。六爻与大六壬的本地资料在完成盘点后再建立对应研究目录，不提前伪造资料完整度。
