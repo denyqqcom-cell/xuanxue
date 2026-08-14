@@ -16,6 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 APP_GRADLE = ROOT / "app" / "build.gradle.kts"
 MANIFEST = ROOT / "app" / "src" / "main" / "AndroidManifest.xml"
 STRINGS = ROOT / "app" / "src" / "main" / "res" / "values" / "strings.xml"
+LAUNCHER_ICON = ROOT / "app" / "src" / "main" / "res" / "drawable" / "ic_launcher.xml"
 DEVICE_ACCEPTANCE = ROOT / "DEVICE_ACCEPTANCE.md"
 ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
 
@@ -38,6 +39,11 @@ def main() -> int:
     app_name = next((n.text or "" for n in strings_root.findall("string") if n.attrib.get("name") == "app_name"), "")
     require(app_name == "玄学排盘 RC1", "launcher label must visibly identify the RC build")
 
+    require(LAUNCHER_ICON.is_file() and LAUNCHER_ICON.stat().st_size > 0, "original launcher icon resource is missing")
+    if LAUNCHER_ICON.is_file():
+        icon_text = LAUNCHER_ICON.read_text(encoding="utf-8")
+        require("android:pathData" in icon_text and "#315D58" in icon_text, "launcher icon must remain the reviewed project vector asset")
+
     manifest_root = ET.parse(MANIFEST).getroot()
     permissions = [node.attrib.get(ANDROID_NS + "name", "") for node in manifest_root.findall("uses-permission")]
     require("android.permission.INTERNET" not in permissions, "RC1 must remain offline: INTERNET permission found")
@@ -47,6 +53,8 @@ def main() -> int:
     if app is not None:
         require(app.attrib.get(ANDROID_NS + "allowBackup") == "false", "allowBackup must remain false")
         require(app.attrib.get(ANDROID_NS + "usesCleartextTraffic") == "false", "usesCleartextTraffic must remain false")
+        require(app.attrib.get(ANDROID_NS + "icon") == "@drawable/ic_launcher", "application icon must point to reviewed ic_launcher")
+        require(app.attrib.get(ANDROID_NS + "roundIcon") == "@drawable/ic_launcher", "roundIcon must point to reviewed ic_launcher")
         exported = []
         for tag in ("activity", "activity-alias", "service", "receiver", "provider"):
             for node in app.findall(tag):
@@ -71,6 +79,7 @@ def main() -> int:
     print("network=offline")
     print("cleartext=false")
     print("backup=false")
+    print("launcher_icon=reviewed_project_vector")
     print("exported_components=MainActivity_only")
     print("device_acceptance=required_not_yet_asserted")
     return 0
