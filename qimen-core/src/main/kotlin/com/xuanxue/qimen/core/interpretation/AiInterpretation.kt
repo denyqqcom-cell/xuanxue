@@ -1,6 +1,7 @@
 package com.xuanxue.qimen.core.interpretation
 
 import com.xuanxue.qimen.core.api.QimenChart
+import com.xuanxue.qimen.core.plate.FullPlateResolution
 
 /**
  * AI 只作为解释层，不承担历法、定局或排盘计算。
@@ -15,8 +16,9 @@ enum class AiExecutionMode {
 enum class AiInterpretationScope {
     PRE_PLATE,
     EARTH_PLATE,
-    /** 地盘 + 已验证的值符/值使初始锚点与当前落宫；不等于完整天盘/人盘。 */
+    /** 地盘 + 已验证的值符/值使初始锚点与当前落宫。 */
     DUTY_RUNTIME,
+    /** 仅当 QimenEngine 已经返回 Resolved 四层盘时允许。 */
     FULL_PLATE,
 }
 
@@ -61,13 +63,18 @@ sealed class AiInterpretationError(message: String) : IllegalStateException(mess
     class Disabled : AiInterpretationError("AI interpretation is disabled")
     class RemoteConsentRequired : AiInterpretationError("Remote AI requires explicit user consent for this request")
     class ScopeLocked(scope: AiInterpretationScope) :
-        AiInterpretationError("AI interpretation scope is not verified yet: $scope")
+        AiInterpretationError("AI interpretation scope is not verified for this chart: $scope")
 }
 
 object AiEvidenceBuilder {
     fun build(chart: QimenChart, scope: AiInterpretationScope): AiEvidencePacket {
-        if (scope == AiInterpretationScope.FULL_PLATE) {
-            throw AiInterpretationError.ScopeLocked(scope)
+        val resolvedFullPlate = if (scope == AiInterpretationScope.FULL_PLATE) {
+            when (val resolution = chart.fullPlate) {
+                is FullPlateResolution.Resolved -> resolution.plate
+                is FullPlateResolution.Locked -> throw AiInterpretationError.ScopeLocked(scope)
+            }
+        } else {
+            null
         }
 
         val facts = mutableListOf(
@@ -87,14 +94,17 @@ object AiEvidenceBuilder {
             AiFact("wubuyu", "五不遇时", if (chart.isWuBuYu) "是" else "否"),
         )
 
-        if (scope == AiInterpretationScope.EARTH_PLATE || scope == AiInterpretationScope.DUTY_RUNTIME) {
+        if (scope == AiInterpretationScope.EARTH_PLATE ||
+            scope == AiInterpretationScope.DUTY_RUNTIME ||
+            scope == AiInterpretationScope.FULL_PLATE
+        ) {
             val earth = (1..9).joinToString("；") { palace ->
                 "${palace}宫=${chart.earthPlate.stemAt(palace).zh}"
             }
             facts += AiFact("earth_plate", "地盘九仪", earth)
         }
 
-        if (scope == AiInterpretationScope.DUTY_RUNTIME) {
+        if (scope == AiInterpretationScope.DUTY_RUNTIME || scope == AiInterpretationScope.FULL_PLATE) {
             facts += AiFact("duty_anchor_palace", "旬首遁仪初始宫", chart.duty.anchor.dunYiPalace.toString())
             facts += AiFact("value_star", "值符星", chart.duty.anchor.valueStar.zh)
             facts += AiFact("value_star_palace", "值符星当前落宫", chart.duty.valueStarPalace.toString())
@@ -105,14 +115,43 @@ object AiEvidenceBuilder {
             facts += AiFact("duty_branch_steps", "值使自旬首推进时辰数", chart.duty.branchStepsFromXunHead.toString())
         }
 
+        if (resolvedFullPlate != null) {
+            val sky = (1..9).mapNotNull { palace ->
+                val placements = resolvedFullPlate.sky.placementsAt(palace)
+                if (placements.isEmpty()) null else {
+                    val value = placements.joinToString("+") { "${it.star.zh}/${it.carriedStem.zh}" }
+                    "${palace}宫=$value"
+                }
+            }.joinToString("；")
+            val human = resolvedFullPlate.human.asMap().entries.joinToString("；") { (palace, gate) ->
+                "${palace}宫=${gate.zh}"
+            }
+            val spirit = resolvedFullPlate.spirit.asMap().entries.joinToString("；") { (palace, spiritValue) ->
+                "${palace}宫=${spiritValue.zh}"
+            }
+            facts += AiFact("sky_plate", "天盘九星与所携奇仪", sky)
+            facts += AiFact("human_plate", "人盘八门", human)
+            facts += AiFact("spirit_plate", "神盘八神", spirit)
+        }
+
+        val caveats = if (scope == AiInterpretationScope.FULL_PLATE) {
+            listOf(
+                "本次命盘满足当前已验证转盘方法的完整四层构造条件；其他命盘若值符或值使落中五仍会被硬锁。",
+                "AI只能解释本 evidence packet 中的结构化事实，不得重新排盘、改写核心结果或混入未选择的流派规则。",
+                "ENGINE_VERIFIED只表示来自当前测试过的确定性引擎；术数解释属于传统模型的情境推演，不应表述为科学事实或保证性预测。",
+            )
+        } else {
+            listOf(
+                "当前 evidence scope 没有包含完整四层盘；AI不得依据自身记忆补算未提供的层。",
+                "AI只能解释核心提供的结构化事实，不得覆盖或改写排盘结果。",
+                "ENGINE_VERIFIED只表示来自当前测试过的确定性引擎；术数解释属于传统模型的情境推演，不应表述为科学事实或保证性预测。",
+            )
+        }
+
         return AiEvidencePacket(
             verifiedScope = scope,
             facts = facts,
-            caveats = listOf(
-                "当前核心只验证到地盘九仪及值符/值使的局部运行事实，尚未验证完整天盘九星、人盘八门、神盘八神。",
-                "AI不得依据自身记忆补算未验证层，也不得覆盖或改写排盘结果。",
-                "ENGINE_VERIFIED只表示来自当前测试过的确定性引擎；术数解释属于传统模型的情境推演，不应表述为科学事实或保证性预测。",
-            ),
+            caveats = caveats,
         )
     }
 }
