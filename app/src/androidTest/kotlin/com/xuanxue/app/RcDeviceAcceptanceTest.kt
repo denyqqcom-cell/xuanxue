@@ -1,11 +1,7 @@
 package com.xuanxue.app
 
 import android.graphics.Bitmap
-import androidx.compose.ui.test.assertExists
-import androidx.compose.ui.test.fetchSemanticsNode
-import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onNode
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -89,7 +85,7 @@ class RcDeviceAcceptanceTest {
 
         val now = Calendar.getInstance()
         val expectedDatePrefix = "公历: ${now.get(Calendar.YEAR)}-${now.get(Calendar.MONTH) + 1}-${now.get(Calendar.DAY_OF_MONTH)}"
-        composeRule.onNode(hasText(expectedDatePrefix, substring = true)).assertExists()
+        composeRule.onNodeWithText(expectedDatePrefix, substring = true).assertExists()
 
         capture("${formFactor}-qimen")
     }
@@ -103,7 +99,7 @@ class RcDeviceAcceptanceTest {
 
         composeRule.onNodeWithTag("open-legal").performClick()
         composeRule.onNodeWithText("开源许可").assertExists()
-        composeRule.onNode(hasText("Copyright (c) 2018 6tail", substring = true)).assertExists()
+        composeRule.onNodeWithText("Copyright (c) 2018 6tail", substring = true).assertExists()
 
         composeRule.activityRule.scenario.onActivity {
             it.onBackPressedDispatcher.onBackPressed()
