@@ -33,8 +33,8 @@ run_profile() {
 
   local screenshot_count
   screenshot_count="$(adb shell "find '$remote_screens' -maxdepth 1 -type f -name '*.png' | wc -l" | tr -d '\r[:space:]')"
-  if [[ "$screenshot_count" -lt 10 ]]; then
-    echo "Expected at least 10 acceptance screenshots for $form_factor, found $screenshot_count" >&2
+  if [[ "$screenshot_count" -lt 16 ]]; then
+    echo "Expected at least 16 acceptance screenshots for $form_factor, found $screenshot_count" >&2
     adb shell "find '$remote_screens' -maxdepth 1 -type f -print" >&2 || true
     exit 1
   fi
