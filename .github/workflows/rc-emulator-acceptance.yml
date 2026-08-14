@@ -20,6 +20,8 @@ jobs:
     env:
       SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       SOURCE_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+      ANDROID_USER_HOME: ${{ runner.temp }}/android-user
+      ANDROID_AVD_HOME: ${{ runner.temp }}/android-avd
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,6 +55,7 @@ jobs:
           AVDMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager"
           test -x "$SDKMANAGER"
           test -x "$AVDMANAGER"
+          mkdir -p "$ANDROID_USER_HOME" "$ANDROID_AVD_HOME"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" "platform-tools" "emulator" "system-images;android-35;google_apis;x86_64"
           echo "$ANDROID_SDK_ROOT/platform-tools" >> "$GITHUB_PATH"
@@ -60,6 +63,8 @@ jobs:
             --name xuanxue_rc35 \
             --package "system-images;android-35;google_apis;x86_64" \
             --force
+          "$ANDROID_SDK_ROOT/emulator/emulator" -list-avds | tee build-avds.txt
+          grep -Fxq 'xuanxue_rc35' build-avds.txt
 
       - name: Boot Android emulator
         shell: bash
@@ -69,6 +74,8 @@ jobs:
           EMULATOR="$ANDROID_SDK_ROOT/emulator/emulator"
           test -x "$EMULATOR"
           command -v adb
+          "$EMULATOR" -list-avds | tee build/rc-device-acceptance/AVD_LIST.txt
+          grep -Fxq 'xuanxue_rc35' build/rc-device-acceptance/AVD_LIST.txt
           nohup "$EMULATOR" \
             -avd xuanxue_rc35 \
             -no-window \
