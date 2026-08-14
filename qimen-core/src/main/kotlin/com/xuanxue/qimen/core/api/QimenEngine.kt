@@ -7,6 +7,8 @@ import com.xuanxue.qimen.core.calendar.StemBranch
 import com.xuanxue.qimen.core.ju.FutouYuanResolver
 import com.xuanxue.qimen.core.ju.JuTable
 import com.xuanxue.qimen.core.ju.Yuan
+import com.xuanxue.qimen.core.plate.DutyMovementResolver
+import com.xuanxue.qimen.core.plate.DutyRuntime
 import com.xuanxue.qimen.core.plate.EarthPlate
 import com.xuanxue.qimen.core.plate.EarthPlateBuilder
 import com.xuanxue.qimen.core.rule.PreflightRules
@@ -28,7 +30,7 @@ data class QimenRequest(
 )
 
 enum class PlateState {
-    /** 地盘九仪已按来源复核并有独立夹具；其余三盘仍锁定。 */
+    /** 地盘九仪及值符/值使锚点与当前落宫已验证；完整天盘、人盘、神盘仍锁定。 */
     EARTH_PLATE_VERIFIED_FULL_PLATE_LOCKED,
 }
 
@@ -46,12 +48,13 @@ data class QimenChart(
     val juMethodUsed: JuMethod,
     val isWuBuYu: Boolean,
     val earthPlate: EarthPlate,
+    val duty: DutyRuntime,
     val plateState: PlateState = PlateState.EARTH_PLATE_VERIFIED_FULL_PLATE_LOCKED,
 )
 
 /**
- * v1 生成可验证的盘前数据与地盘九仪。
- * 天盘九星、人盘八门、神盘八神仍被硬锁，避免把未复核的规则伪装成完整盘。
+ * v1 生成可验证的盘前数据、地盘九仪，以及值符/值使的已验证运行锚点。
+ * 完整天盘九星、人盘八门、神盘八神仍被硬锁，避免把局部规则伪装成完整盘。
  */
 object QimenEngine {
     fun cast(request: QimenRequest): Result<QimenChart> = runCatching {
@@ -88,6 +91,7 @@ object QimenEngine {
         val futou = FutouYuanResolver.resolve(dayPillar)
         val ju = JuTable.resolve(jieqi.jieqi, jieqi.dun, futou.yuan)
         val earthPlate = EarthPlateBuilder.build(jieqi.dun, ju.ju)
+        val duty = DutyMovementResolver.resolve(earthPlate, xun, hourPillar, jieqi.dun)
 
         QimenChart(
             localDateTime = localDateTime,
@@ -103,6 +107,7 @@ object QimenEngine {
             juMethodUsed = request.school.juMethod,
             isWuBuYu = PreflightRules.isWuBuYu(dayPillar.stem, hourPillar.stem),
             earthPlate = earthPlate,
+            duty = duty,
         )
     }
 }
