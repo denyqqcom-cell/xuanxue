@@ -50,3 +50,6 @@ jobs:
         run: ./gradlew --no-daemon :ziwei-core:test
       - name: Assemble Android app
         run: ./gradlew --no-daemon :app:assembleDebug
+      - name: Audit built APK contents
+        shell: bash
+        run: bash tools/audit_apk_contents.sh app/build/outputs/apk/debug/app-debug.apk
