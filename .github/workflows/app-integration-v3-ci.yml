@@ -49,6 +49,8 @@ jobs:
             echo "$unexpected_assets" >&2
             exit 1
           fi
+      - name: Validate completed handoff packs
+        run: python3 tools/validate_handoff.py
       - name: Verify core and evidence contracts
         run: ./gradlew --no-daemon :ziwei-core:test
       - name: Run Android lint
