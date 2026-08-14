@@ -40,11 +40,25 @@ class RemoteAiDispatchTest {
     }
 
     @Test
-    fun `query parameters are rejected so secrets cannot hide in logged url`() {
-        val result = RemoteAiProfileValidator.validate(
-            RemoteAiProfile("https://api.example.com/v1/chat?token=secret", "example-model"),
-        )
-        assertIs<RemoteAiDispatchError.InvalidEndpoint>(result.exceptionOrNull())
+    fun `url credentials query and fragment are rejected`() {
+        listOf(
+            "https://user:secret@api.example.com/v1/chat",
+            "https://api.example.com/v1/chat?token=secret",
+            "https://api.example.com/v1/chat#secret",
+        ).forEach { endpoint ->
+            val result = RemoteAiProfileValidator.validate(RemoteAiProfile(endpoint, "example-model"))
+            assertIs<RemoteAiDispatchError.InvalidEndpoint>(result.exceptionOrNull(), endpoint)
+        }
+    }
+
+    @Test
+    fun `model id must be bounded and free of control line breaks`() {
+        listOf("", "model\nother", "model\rsegment", "model\tsegment", "m".repeat(201)).forEach { model ->
+            val result = RemoteAiProfileValidator.validate(
+                RemoteAiProfile("https://api.example.com/v1/chat", model),
+            )
+            assertIs<RemoteAiDispatchError.InvalidModel>(result.exceptionOrNull(), "model=$model")
+        }
     }
 
     @Test
