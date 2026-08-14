@@ -121,6 +121,10 @@ fun QimenAiScreen(
                     label = { Text("你具体想问什么？") },
                     minLines = 3,
                 )
+                Text(
+                    "你的问题文本本身会进入 AI 请求；如选择远程 AI，请不要在问题里填写姓名、电话、邮箱、证件号等不必要的个人信息。",
+                    style = MaterialTheme.typography.bodySmall,
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = scope == AiInterpretationScope.DUTY_RUNTIME,
@@ -154,7 +158,10 @@ fun QimenAiScreen(
                         Text("${fact.label}：${fact.value}", style = MaterialTheme.typography.bodySmall)
                     }
 
-                    Text("不会由核心自动发送：姓名、联系方式、设备标识、历史命盘、API Key。", fontWeight = FontWeight.SemiBold)
+                    Text(
+                        "核心不会额外附加姓名、联系方式、设备标识、历史命盘或 API Key；但你在“问题”中主动输入的文字会随本次请求发送。",
+                        fontWeight = FontWeight.SemiBold,
+                    )
                     outbound.evidence.caveats.forEach { caveat ->
                         Text("• $caveat", style = MaterialTheme.typography.bodySmall)
                     }
