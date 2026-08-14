@@ -11,6 +11,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
@@ -74,7 +75,31 @@ class AiInterpretationContractTest {
 
         assertEquals(AiInterpretationScope.EARTH_PLATE, request.evidence.verifiedScope)
         assertTrue(request.evidence.facts.any { it.id == "earth_plate" })
+        assertFalse(request.evidence.facts.any { it.id == "value_star" })
         assertTrue(request.evidence.facts.all { it.provenance == "ENGINE_VERIFIED" })
-        assertTrue(request.evidence.caveats.any { it.contains("AI不得自行补算") })
+        assertTrue(request.evidence.caveats.any { it.contains("补算未验证层") })
+    }
+
+    @Test
+    fun dutyRuntimeScopeAddsOnlyEngineResolvedDutyFacts() {
+        val request = AiInterpretationGate.prepare(
+            chart = chart(),
+            question = "只依据当前已验证的值符值使信息分析",
+            policy = AiInterpretationPolicy(
+                executionMode = AiExecutionMode.LOCAL_MODEL,
+                scope = AiInterpretationScope.DUTY_RUNTIME,
+            ),
+        ).getOrThrow()
+
+        val facts = request.evidence.facts.associateBy { it.id }
+        assertEquals(AiInterpretationScope.DUTY_RUNTIME, request.evidence.verifiedScope)
+        assertTrue("earth_plate" in facts)
+        assertTrue("value_star" in facts)
+        assertTrue("value_star_palace" in facts)
+        assertTrue("duty_branch_steps" in facts)
+        assertFalse("sky_plate" in facts)
+        assertFalse("human_plate" in facts)
+        assertFalse("spirit_plate" in facts)
+        assertTrue(request.evidence.caveats.any { it.contains("尚未验证完整天盘九星") })
     }
 }
