@@ -10,8 +10,9 @@ import com.xuanxue.ziwei.core.ZiweiAstro
 /**
  * 统一离线解释入口。
  *
- * 每个结果同时带当前仓库的核验摘要与来源 ID，避免 UI 只显示“结论”却看不到
- * 这条信息到底来自夹具、上游数据、传统启发式还是实验实现。
+ * 每个结果同时带当前仓库的核验摘要与来源 ID。事占类模块另外接收 ReadingContext，
+ * 强制把“盘面结构”和“用户现实问题”分开；没有具体事体时不自动选用神/类神，也不
+ * 输出成败、吉凶或应期。
  */
 object XuanxueAI {
 
@@ -19,9 +20,9 @@ object XuanxueAI {
     val tools: List<Map<String, Any>> = listOf(
         mapOf("name" to "bazi_interpret", "description" to "八字结构整理：四柱、五行显示权重、十神、大运时间线"),
         mapOf("name" to "ziwei_interpret", "description" to "紫微盘结构整理：命宫主星、四化、五行局"),
-        mapOf("name" to "qimen_interpret", "description" to "奇门基础事实整理：历法、局、旬首旬空；九宫实验能力不作定论"),
-        mapOf("name" to "liuyao_interpret", "description" to "六爻结构整理：世应、动爻、六亲、变卦"),
-        mapOf("name" to "liuren_interpret", "description" to "大六壬结构整理：课型、三传、天将、旬空"),
+        mapOf("name" to "qimen_interpret", "description" to "奇门基础事实整理：历法、局、旬首旬空；需具体事体后才进入取用层"),
+        mapOf("name" to "liuyao_interpret", "description" to "六爻结构整理：世应、动爻、六亲、变卦；具体取用依赖事体"),
+        mapOf("name" to "liuren_interpret", "description" to "大六壬结构整理：课型、三传、天将、旬空；类神取用依赖事体"),
         mapOf("name" to "huangli_interpret", "description" to "黄历字段整理：宜忌、吉神凶煞、冲煞"),
     )
 
@@ -30,6 +31,8 @@ object XuanxueAI {
         rawItems: List<String>,
         itemTitle: String,
         grade: EvidenceGrade,
+        context: ReadingContext? = null,
+        requireSpecificContext: Boolean = false,
         extraCaveats: List<String> = emptyList(),
     ): Reading {
         val audit = MethodAuditRegistry.byId(id)
@@ -37,12 +40,39 @@ object XuanxueAI {
         val caveats = buildList {
             addAll(audit?.limitations.orEmpty())
             addAll(extraCaveats)
+            if (requireSpecificContext) {
+                when {
+                    context == null || (context.normalizedQuestion.isEmpty() && context.normalizedKnownFacts.isEmpty()) ->
+                        add("尚未提供具体事体；当前只展示排盘/卦课结构，不进入取用、成败与应期判断。")
+                    !context.isSpecific ->
+                        add("事体描述仍过短；请补充明确问题与已知现实条件后，再进入情境推演。")
+                }
+            }
         }.distinct()
+
+        val contextItems = buildList {
+            if (context != null && (
+                    context.domain != QueryDomain.GENERAL ||
+                        context.normalizedQuestion.isNotEmpty() ||
+                        context.normalizedKnownFacts.isNotEmpty()
+                    )
+            ) {
+                add(
+                    ReadingItem(
+                        title = "事体上下文",
+                        summary = context.summary(),
+                        evidenceGrade = EvidenceGrade.USER_CONTEXT,
+                        caveat = "这是用户提供的现实条件，只用于限定分析场景，不会提高排盘算法或传统规则的证据等级。",
+                    ),
+                )
+            }
+        }
+
         return Reading(
             toolName = id,
             overall = audit?.summary.orEmpty(),
             caveats = caveats,
-            items = rawItems.map { text ->
+            items = contextItems + rawItems.map { text ->
                 ReadingItem(
                     title = itemTitle,
                     summary = text,
@@ -69,28 +99,34 @@ object XuanxueAI {
         extraCaveats = listOf("夹具证明的是 Kotlin 与 iztro 的实现一致性，不是对星曜解释作独立真值验证。"),
     )
 
-    fun qimen(c: QimenEngine.QimenChart): Reading = buildReading(
+    fun qimen(c: QimenEngine.QimenChart, context: ReadingContext = ReadingContext()): Reading = buildReading(
         id = "qimen",
         rawItems = QimenInterpreter.interpret(c),
         itemTitle = "奇门",
         grade = EvidenceGrade.SOURCE_DERIVED,
+        context = context,
+        requireSpecificContext = true,
         extraCaveats = listOf("完整九宫、值符值使、星门神盘仍按实验实现管理；离线解释层不会据此直接断成败或应期。"),
     )
 
-    fun liuyao(c: LiuYaoEngine.LiuYaoChart): Reading = buildReading(
+    fun liuyao(c: LiuYaoEngine.LiuYaoChart, context: ReadingContext = ReadingContext()): Reading = buildReading(
         id = "liuyao",
         rawItems = LiuYaoInterpreter.interpret(c),
         itemTitle = "六爻",
         grade = EvidenceGrade.TRADITIONAL_HEURISTIC,
-        extraCaveats = listOf("未提供具体事体时，只展示结构，不自动替用户选用神。"),
+        context = context,
+        requireSpecificContext = true,
+        extraCaveats = listOf("仓库尚未建立六爻多来源取用规则 handoff；当前不会根据问题类别机械映射唯一用神。"),
     )
 
-    fun liuren(c: LiuRenEngine.LiuRenChart): Reading = buildReading(
+    fun liuren(c: LiuRenEngine.LiuRenChart, context: ReadingContext = ReadingContext()): Reading = buildReading(
         id = "liuren",
         rawItems = LiuRenInterpreter.interpret(c),
         itemTitle = "六壬",
         grade = EvidenceGrade.TRADITIONAL_HEURISTIC,
-        extraCaveats = listOf("课例回归证明部分算法路径可复现，不等于全部课式已完成多来源核验。"),
+        context = context,
+        requireSpecificContext = true,
+        extraCaveats = listOf("课例回归证明部分算法路径可复现；类神、应事与应期仍需具体事体和多来源规则核验。"),
     )
 
     fun huangli(l: Lunar): Reading = buildReading(
