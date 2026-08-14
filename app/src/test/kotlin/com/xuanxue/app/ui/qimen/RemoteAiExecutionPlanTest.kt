@@ -94,10 +94,10 @@ class RemoteAiExecutionPlanTest {
     }
 
     @Test
-    fun `safe log is structural whitelist and contains no question or prompt`() {
+    fun `safe log is structural whitelist and contains no question prompt or model`() {
         val question = "这是不应该出现在日志中的问题文本"
         val outbound = preview(question)
-        val profile = RemoteAiProfile("https://api.example.com/v1/chat", "model-a")
+        val profile = RemoteAiProfile("https://api.example.com/v1/chat", "model-sensitive-name")
         val dispatch = RemoteAiDispatchGate.preview(outbound, profile).getOrThrow()
         val plan = RemoteAiExecutionPlanner.prepare(
             chart = chart,
@@ -117,22 +117,25 @@ class RemoteAiExecutionPlanTest {
         val rendered = log.toString()
 
         assertEquals("api.example.com", log.destinationHost)
-        assertEquals("model-a", log.model)
         assertEquals(16, log.dispatchFingerprintPrefix.length)
         assertFalse(rendered.contains(question))
+        assertFalse(rendered.contains("model-sensitive-name"))
         assertFalse(rendered.contains("SYSTEM"))
         assertFalse(rendered.contains("ENGINE_VERIFIED"))
         assertFalse(rendered.contains("Authorization", ignoreCase = true))
     }
 
     @Test
-    fun `credential reference is an identifier not a place to paste a secret`() {
-        RemoteAiCredentialRef("provider-profile-1")
+    fun `credential reference is a generated identifier not a place to paste a secret`() {
+        RemoteAiCredentialRef("cred_0123456789abcdef")
+        assertFailsWith<IllegalArgumentException> {
+            RemoteAiCredentialRef("provider-profile-1")
+        }
         assertFailsWith<IllegalArgumentException> {
             RemoteAiCredentialRef("Bearer secret value")
         }
         assertFailsWith<IllegalArgumentException> {
-            RemoteAiCredentialRef("key\nsecret")
+            RemoteAiCredentialRef("cred_key\nsecret")
         }
     }
 }
