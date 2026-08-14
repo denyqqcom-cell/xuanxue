@@ -35,6 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.xuanxue.ai.QueryDomain
+import com.xuanxue.ai.ReadingContext
 import com.xuanxue.qimen.QimenEngine
 import com.xuanxue.qimen.QimenEngine.QimenChart
 import java.util.Calendar
@@ -50,6 +52,16 @@ fun QimenScreen() {
     var minute by remember { mutableStateOf(37) }
     var showDatePicker by remember { mutableStateOf(false) }
     var chart by remember { mutableStateOf<QimenChart?>(null) }
+
+    var queryDomain by remember { mutableStateOf(QueryDomain.GENERAL) }
+    var question by remember { mutableStateOf("") }
+    var knownFacts by remember { mutableStateOf("") }
+
+    val readingContext = ReadingContext(
+        domain = queryDomain,
+        question = question,
+        knownFacts = knownFacts,
+    )
 
     Column(
         Modifier
@@ -80,6 +92,15 @@ fun QimenScreen() {
                 )
             }
         }
+
+        QuestionContextCard(
+            domain = queryDomain,
+            question = question,
+            knownFacts = knownFacts,
+            onDomainChange = { queryDomain = it },
+            onQuestionChange = { question = it },
+            onKnownFactsChange = { knownFacts = it },
+        )
 
         OutlinedCard(Modifier.fillMaxWidth()) {
             Column(
@@ -118,7 +139,7 @@ fun QimenScreen() {
 
         chart?.let { c ->
             QimenResult(c)
-            ReadingCard(com.xuanxue.ai.XuanxueAI.qimen(c))
+            ReadingCard(com.xuanxue.ai.XuanxueAI.qimen(c, readingContext))
         }
     }
 
