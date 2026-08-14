@@ -56,6 +56,8 @@ The App may expose three different layers, but they must never be conflated:
 2. **Selection** — 用神 / 类神 / subject-object choice, which depends on the concrete question and school.
 3. **Interpretation** — scenario reasoning, counter-evidence, timing and confidence.
 
+The current App has a `ReadingContext` gate for 奇门 / 六爻 / 大六壬. User-provided question and known facts are explicitly tagged as user context; they constrain the scenario but do not upgrade evidence maturity.
+
 If a handoff only validates layer 1, the UI must stay at layer 1. Missing layer 2/3 evidence is not permission for the model to fill gaps from memory.
 
 ## Copyright boundary
