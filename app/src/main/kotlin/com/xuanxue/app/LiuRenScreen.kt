@@ -5,9 +5,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -41,10 +39,11 @@ import java.util.Calendar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LiuRenScreen() {
-    var year by remember { mutableStateOf(2026) }
-    var month by remember { mutableStateOf(8) }
-    var day by remember { mutableStateOf(15) }
-    var hour by remember { mutableStateOf(10) }
+    val now = remember { Calendar.getInstance() }
+    var year by remember { mutableStateOf(now.get(Calendar.YEAR)) }
+    var month by remember { mutableStateOf(now.get(Calendar.MONTH) + 1) }
+    var day by remember { mutableStateOf(now.get(Calendar.DAY_OF_MONTH)) }
+    var hour by remember { mutableStateOf(now.get(Calendar.HOUR_OF_DAY)) }
     var night by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var chart by remember { mutableStateOf<LiuRenChart?>(null) }
@@ -88,7 +87,7 @@ fun LiuRenScreen() {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("公历: $year-$month-$day  $hour:00", Modifier.weight(1f))
+                    Text("公历: $year-$month-$day  ${"%02d".format(hour)}:00", Modifier.weight(1f))
                     Button(onClick = { showDatePicker = true }) { Text("选日期") }
                 }
 
