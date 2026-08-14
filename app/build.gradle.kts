@@ -37,6 +37,7 @@ android {
 }
 
 dependencies {
+    implementation("cn.6tail:lunar:1.7.7")
     implementation(project(":ziwei-core"))
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.activity:activity-compose:1.9.2")

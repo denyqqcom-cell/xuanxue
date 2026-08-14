@@ -59,4 +59,34 @@ class LiuRenEngineTest {
         println("NR5 ${c.solarDate} 三传=${c.sanChuan.chu}->${c.sanChuan.zhong}->${c.sanChuan.mo} [${c.sanChuan.fa}]")
         assertTrue(c.sanChuan.chu in LiuRenEngine.ZHI)
     }
+
+    @Test
+    fun sanHeKnown() {
+        assertEquals(listOf("申", "子", "辰"), LiuRenEngine.SAN_HE["子"])
+        assertEquals(listOf("巳", "酉", "丑"), LiuRenEngine.SAN_HE["酉"])
+        // 书例（陈公献例二）：阴日支酉 → 别责取三合局后一位丑
+        assertEquals("丑", LiuRenEngine.SAN_HE["酉"]!![1 + 1])
+        println("NR6 三合局验证 ✓")
+    }
+
+    @Test
+    fun ganHeKnown() {
+        assertEquals("己", LiuRenEngine.GAN_HE["甲"])
+        assertEquals("辛", LiuRenEngine.GAN_HE["丙"])
+        println("NR7 干五合验证 ✓")
+    }
+
+    @Test
+    fun tianJiangKnown() {
+        val c = LiuRenEngine.bySolar(2026, 8, 15, 10, 0)  // 辛日 昼占 贵人=午
+        println("NR8 天将布宫: " + LiuRenEngine.ZHI.zip(c.tianJiang).joinToString(" ") { "${it.first}${it.second}" })
+        // 贵人支所在天盘位应为贵人
+        assertEquals("贵人", c.tianJiang[c.tianPan.indexOf(c.guiRen)])
+        // 12 天将各出现一次
+        assertEquals(12, c.tianJiang.toSet().size)
+        // 夜占逆布
+        val c2 = LiuRenEngine.bySolar(2026, 8, 15, 10, 0, night = true)
+        assertEquals("贵人", c2.tianJiang[c2.tianPan.indexOf(c2.guiRen)])
+        println("NR8 夜占贵人=${c2.guiRen} ✓")
+    }
 }

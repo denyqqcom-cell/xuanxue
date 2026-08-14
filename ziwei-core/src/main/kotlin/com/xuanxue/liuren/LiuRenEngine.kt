@@ -77,6 +77,7 @@ object LiuRenEngine {
         val guiRen: String,            // 贵人（昼夜）
         val xunKong: List<String>,     // 旬空
         val ganJi: String,             // 日干寄宫
+        val tianJiang: List<String>,   // 十二天将布宫（index=地盘支序）
     )
 
     fun bySolar(year: Int, month: Int, day: Int, hour: Int, minute: Int, night: Boolean = false): LiuRenChart {
@@ -128,14 +129,18 @@ object LiuRenEngine {
         val base = (daySeq / 10) * 10
         val kong = listOf(ZHI[(base + 10) % 12], ZHI[(base + 11) % 12])
 
+        // 天将布宫（贵人加时）
+        val gr = guiRen(dayGan, night)
+        val tianJiang = tianJiangOf(tianPan, gr, night)
+
         return LiuRenChart(
             solarDate = "$year-$month-$day $hour:${"%02d".format(minute)}",
             lunarDateStr = lunar.toString(),
             yearGZ = yearGZ, monthGZ = monthGZ, dayGZ = dayGZ, hourGZ = hourGZ,
             yueJiang = yueJiang, tianPan = tianPan, siKe = siKe,
             sanChuan = sanChuan,
-            guiRen = guiRen(dayGan, night),
-            xunKong = kong, ganJi = ganJi,
+            guiRen = gr, xunKong = kong, ganJi = ganJi,
+            tianJiang = tianJiang,
         )
     }
 
@@ -149,17 +154,16 @@ object LiuRenEngine {
     // 天盘支上神（地盘支 -> 天盘支）
     private fun shangShen(tianPan: List<String>, diZhi: String): String = tianPan[ZHI.indexOf(diZhi)]
 
-    // 九宗门：贼克/比用/涉害/遥克/昴星/别责/八专/返吟/伏吟
+    // 九宗门：贼克/比用/涉害/遥克/昴星/别责/八专/返吟/伏吟（全实现）
     fun jiuZongMen(dayGan: String, dayZhi: String, ganJi: String, tianPan: List<String>, siKe: List<Ke>): SanChuan {
         val keZhis = siKe.map { it.zhi }
         val ganWx = GAN_WUXING[dayGan] ?: "木"
+        val isYangGan = dayGan in listOf("甲", "丙", "戊", "庚", "壬")
 
-        // 返吟（天地盘全冲）：天盘与地盘相冲
+        // 返吟（天地盘全冲）/ 伏吟（天地盘同）
         val isFanYin = tianPan.indices.all { tianPan[it] == chong(ZHI[it]) }
-        // 伏吟（天地盘同）
         val isFuYin = tianPan.indices.all { tianPan[it] == ZHI[it] }
 
-        // 上克下（天盘支克地盘支）与下贼上（地盘支克天盘支）——四课上神与下神
         // 四课下神：课1下=干寄宫，课2下=日支，课3下=课1上，课4下=课2上
         val lower = listOf(ganJi, dayZhi, keZhis[0], keZhis[1])
         val upper = keZhis
@@ -167,54 +171,117 @@ object LiuRenEngine {
         val shangKe = (0 until 4).filter { ke(upper[it], lower[it]) }          // 上克下
         val xiaZe = (0 until 4).filter { ke(lower[it], upper[it]) }            // 下贼上
 
-        // 三传通用：初传取上神，中传=初传上神，末传=中传上神
-        fun chuanOf(chuZhi: String): SanChuan {
+        fun chuanOf(chuZhi: String, fa: String): SanChuan {
             val zhong = shangShen(tianPan, chuZhi)
             val mo = shangShen(tianPan, zhong)
-            return SanChuan(chuZhi, zhong, mo, "三传递克")
+            return SanChuan(chuZhi, zhong, mo, fa)
         }
 
-        // 1. 贼克
-        if (shangKe.isNotEmpty() && xiaZe.isEmpty()) {
-            val chu = keZhis[shangKe.first()]
-            return chuanOf(chu).copy(fa = "贼克（上克下）")
-        }
-        if (xiaZe.isNotEmpty() && shangKe.isEmpty()) {
-            val chu = keZhis[xiaZe.first()]
-            return chuanOf(chu).copy(fa = "贼克（下贼上）")
-        }
-        // 2. 比用（多克取与日干比和者）
+        // 八专：干支寄宫同位（甲寅/乙辰/丙巳/丁未/戊巳/己未/庚申/辛戌/壬亥/癸丑 —— 干寄宫 == 日支）
+        val isBaZhuan = ganJi == dayZhi
+
+        // 1. 贼克（单克）
+        if (shangKe.size == 1 && xiaZe.isEmpty()) return chuanOf(keZhis[shangKe[0]], "贼克（上克下）")
+        if (xiaZe.size == 1 && shangKe.isEmpty()) return chuanOf(keZhis[xiaZe[0]], "贼克（下贼上）")
+
+        // 2/3. 多克：比用 → 涉害
         if (shangKe.size > 1 || xiaZe.size > 1) {
-            val candidates = if (shangKe.size >= xiaZe.size) shangKe.map { keZhis[it] } else xiaZe.map { keZhis[it] }
-            val bi = candidates.filter { ZHI_WUXING[it] == ganWx }
-            val chu = bi.firstOrNull() ?: candidates.first()
-            return chuanOf(chu).copy(fa = "比用")
+            val useShang = shangKe.size >= xiaZe.size
+            val idxs = if (useShang) shangKe else xiaZe
+            val bi = idxs.filter { ZHI_WUXING[keZhis[it]] == ganWx }   // 与日干比和
+            if (bi.size == 1) return chuanOf(keZhis[bi[0]], "比用")
+            if (bi.size > 1) {
+                // 涉害：比和者中取涉害深者；同害取孟(寅申巳亥)仲(子午卯酉)季
+                val lowerOf = { i: Int -> lower[i] }
+                fun haiShen(idx: Int): Int {
+                    val shen = keZhis[idx]
+                    val target = lowerOf(idx)
+                    var n = 0
+                    var cur = shen
+                    repeat(12) {
+                        if (ke(cur, ZHI[it]) && it != ZHI.indexOf(target)) n++  // 途中所克
+                        if (cur == target) return@repeat
+                        cur = ZHI[(ZHI.indexOf(cur) + 1) % 12]
+                    }
+                    return n
+                }
+                val ranked = bi.sortedWith(compareByDescending<Int> { haiShen(it) }
+                    .thenBy { val z = keZhis[it]; when { z in listOf("寅","申","巳","亥") -> 0; z in listOf("子","午","卯","酉") -> 1; else -> 2 } })
+                return chuanOf(keZhis[ranked[0]], "涉害")
+            }
+            // 无比和：取有克者首（比用取先见）
+            return chuanOf(keZhis[idxs[0]], "比用")
         }
-        // 3. 遥克（无贼克）：上神克日干（遥克）或日干克上神（遥贼）
-        if (shangKe.isEmpty() && xiaZe.isEmpty() && !isFanYin) {
+
+        // 4. 遥克（无贼克）：上神克日干（遥克）或日干克上神（遥贼）
+        if (shangKe.isEmpty() && xiaZe.isEmpty() && !isFanYin && !isFuYin && !isBaZhuan) {
             val yaoKe = keZhis.filter { KE_MAP[ZHI_WUXING[it] ?: ""] == ganWx }
             val yaoZe = keZhis.filter { KE_MAP[ganWx] == ZHI_WUXING[it] ?: "" }
-            val chu = (yaoKe + yaoZe).firstOrNull()
-            if (chu != null) return chuanOf(chu).copy(fa = "遥克")
+            if (yaoKe.isNotEmpty()) return chuanOf(yaoKe[0], "遥克")
+            if (yaoZe.isNotEmpty()) return chuanOf(yaoZe[0], "遥贼")
         }
-        // 4. 昴星（无贼克无遥克）：阳日取地盘酉上天盘，阴日取天盘酉下地盘
-        if (shangKe.isEmpty() && xiaZe.isEmpty()) {
-            val isYang = dayGan in listOf("甲", "丙", "戊", "庚", "壬")
-            val chu = if (isYang) tianPan[ZHI.indexOf("酉")] else ZHI[tianPan.indexOf("酉")]
-            if (chu.isNotEmpty()) return chuanOf(chu).copy(fa = "昴星")
+
+        // 5. 昴星（无贼克无遥克）
+        if (shangKe.isEmpty() && xiaZe.isEmpty() && !isFanYin && !isFuYin && !isBaZhuan) {
+            val chu = if (isYangGan) tianPan[ZHI.indexOf("酉")] else ZHI[tianPan.indexOf("酉")]
+            return chuanOf(chu, "昴星")
         }
-        // 5. 别责/八专/返吟/伏吟 简化处理
-        if (isFuYin) {
-            val chu = shangShen(tianPan, ganJi)
-            return chuanOf(chu).copy(fa = "伏吟")
+
+        // 6. 别责（无贼克无遥克无昴星条件时；阳日干合寄宫上神，阴日支三合后位）
+        if (shangKe.isEmpty() && xiaZe.isEmpty() && !isFanYin && !isFuYin && !isBaZhuan) {
+            val heGan = GAN_HE[dayGan] ?: ""                       // 干五合
+            val chu = if (isYangGan && heGan.isNotEmpty()) {
+                shangShen(tianPan, GAN_JI[heGan] ?: ganJi)
+            } else {
+                // 阴日：支三合局后一位
+                val sanHe: List<String> = SAN_HE[dayZhi] ?: listOf(dayZhi)
+                val idx = sanHe.indexOf(dayZhi)
+                val hou = sanHe[(idx + 1) % 3]
+                shangShen(tianPan, hou)
+            }
+            return chuanOf(chu, "别责")
         }
+
+        // 7. 八专：干支同位，阳日取干上神，阴日取支上神
+        if (isBaZhuan && shangKe.isEmpty() && xiaZe.isEmpty()) {
+            val chu = shangShen(tianPan, if (isYangGan) ganJi else dayZhi)
+            return chuanOf(chu, "八专")
+        }
+
+        // 8/9. 返吟/伏吟
         if (isFanYin) {
             val chu = shangShen(tianPan, ganJi)
-            return chuanOf(chu).copy(fa = "返吟")
+            return chuanOf(chu, "返吟")
         }
-        // 6. 八专（干支寄宫同位）：取干支上神
-        val chu = shangShen(tianPan, ganJi)
-        return chuanOf(chu).copy(fa = "八专")
+        if (isFuYin) {
+            val chu = shangShen(tianPan, ganJi)
+            return chuanOf(chu, "伏吟")
+        }
+
+        return chuanOf(keZhis[0], "八专")
+    }
+
+    // 干五合：甲己/乙庚/丙辛/丁壬/戊癸
+    val GAN_HE = mapOf("甲" to "己", "己" to "甲", "乙" to "庚", "庚" to "乙", "丙" to "辛",
+        "辛" to "丙", "丁" to "壬", "壬" to "丁", "戊" to "癸", "癸" to "戊")
+
+    // 支三合局：申子辰水 / 寅午戌火 / 巳酉丑金 / 亥卯未木
+    val SAN_HE = mapOf(
+        "申" to listOf("申", "子", "辰"), "子" to listOf("申", "子", "辰"), "辰" to listOf("申", "子", "辰"),
+        "寅" to listOf("寅", "午", "戌"), "午" to listOf("寅", "午", "戌"), "戌" to listOf("寅", "午", "戌"),
+        "巳" to listOf("巳", "酉", "丑"), "酉" to listOf("巳", "酉", "丑"), "丑" to listOf("巳", "酉", "丑"),
+        "亥" to listOf("亥", "卯", "未"), "卯" to listOf("亥", "卯", "未"), "未" to listOf("亥", "卯", "未"),
+    )
+
+    // 十二天将布宫：贵人加时（贵人支在天盘位起），昼顺夜逆布十二天将
+    fun tianJiangOf(tianPan: List<String>, guiRen: String, night: Boolean): List<String> {
+        val tj = MutableList(12) { "" }
+        val start = tianPan.indexOf(guiRen).let { if (it < 0) 0 else it }
+        for (i in 0 until 12) {
+            val idx = if (night) (start - i + 120) % 12 else (start + i) % 12
+            tj[idx] = TIAN_JIANG[i]
+        }
+        return tj
     }
 
     // 相克表：谁克谁（X 克 Y）
