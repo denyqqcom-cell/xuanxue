@@ -62,8 +62,13 @@ fun ReadingCard(reading: Reading) {
             }
 
             reading.items.forEach { item ->
+                val isUserContext = item.evidenceGrade == EvidenceGrade.USER_CONTEXT
                 Surface(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    color = if (isUserContext) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
                     shape = MaterialTheme.shapes.medium,
                 ) {
                     Column(
@@ -82,6 +87,13 @@ fun ReadingCard(reading: Reading) {
                         if (item.sourceIds.isNotEmpty()) {
                             Text(
                                 "来源：${item.sourceIds.joinToString(" · ")}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (item.caveat.isNotBlank()) {
+                            Text(
+                                "边界：${item.caveat}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -105,6 +117,7 @@ fun ReadingCard(reading: Reading) {
 }
 
 private fun gradeLabel(grade: EvidenceGrade): String = when (grade) {
+    EvidenceGrade.USER_CONTEXT -> "用户输入"
     EvidenceGrade.VERIFIED_FIXTURE -> "夹具核验"
     EvidenceGrade.SOURCE_DERIVED -> "来源可追溯"
     EvidenceGrade.TRADITIONAL_HEURISTIC -> "传统启发式"
