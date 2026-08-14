@@ -16,7 +16,7 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     env:
       SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       SOURCE_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
@@ -50,30 +50,38 @@ jobs:
             echo "$unexpected_assets" >&2
             exit 1
           fi
+      - name: Validate release candidate invariants
+        run: python3 tools/validate_rc.py
       - name: Validate completed handoff packs
         run: python3 tools/validate_handoff.py
       - name: Verify core and evidence contracts
         run: ./gradlew --no-daemon :ziwei-core:test
-      - name: Run Android lint
-        run: ./gradlew --no-daemon :app:lintDebug
-      - name: Assemble Android app
-        run: ./gradlew --no-daemon :app:assembleDebug
+      - name: Run Android lint for debug and release
+        run: ./gradlew --no-daemon :app:lintDebug :app:lintRelease
+      - name: Assemble Android RC variants
+        run: ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease
       - name: Audit built APK contents
         shell: bash
-        run: bash tools/audit_apk_contents.sh app/build/outputs/apk/debug/app-debug.apk
-      - name: Prepare audited test build
+        run: |
+          set -euo pipefail
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          test -s app/build/outputs/apk/release/app-release-unsigned.apk
+          bash tools/audit_apk_contents.sh app/build/outputs/apk/debug/app-debug.apk
+          bash tools/audit_apk_contents.sh app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Prepare audited RC test build
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p build/test-artifact
-          cp app/build/outputs/apk/debug/app-debug.apk build/test-artifact/xuanxue-debug.apk
+          cp app/build/outputs/apk/debug/app-debug.apk build/test-artifact/xuanxue-1.0.0-rc1-debug.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk build/test-artifact/xuanxue-1.0.0-rc1-release-unsigned.apk
           (
             cd build/test-artifact
-            sha256sum xuanxue-debug.apk > SHA256SUMS.txt
+            sha256sum xuanxue-1.0.0-rc1-debug.apk xuanxue-1.0.0-rc1-release-unsigned.apk > SHA256SUMS.txt
           )
-          if [[ -f app/build/reports/lint-results-debug.html ]]; then
-            cp app/build/reports/lint-results-debug.html build/test-artifact/lint-results-debug.html
-          fi
+          for report in app/build/reports/lint-results-debug.html app/build/reports/lint-results-release.html; do
+            if [[ -f "$report" ]]; then cp "$report" build/test-artifact/; fi
+          done
           cat > build/test-artifact/BUILD_INFO.txt <<EOF
           repository=${GITHUB_REPOSITORY}
           source_head_sha=${SOURCE_HEAD_SHA}
@@ -82,13 +90,18 @@ jobs:
           ref=${GITHUB_REF}
           event=${GITHUB_EVENT_NAME}
           workflow_run=${GITHUB_RUN_ID}
-          audited_apk=true
+          version_name=1.0.0-rc1
+          release_channel=rc
+          debug_apk_installable_for_device_acceptance=true
+          release_apk_signed=false
+          apk_contents_audited=true
           internet_permission_expected=false
+          manual_device_acceptance_required=true
           EOF
-      - name: Upload audited debug APK
+      - name: Upload audited RC artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: xuanxue-audited-debug-${{ env.SOURCE_HEAD_SHA }}
+          name: xuanxue-rc1-audited-${{ env.SOURCE_HEAD_SHA }}
           path: build/test-artifact/
           if-no-files-found: error
           retention-days: 7
