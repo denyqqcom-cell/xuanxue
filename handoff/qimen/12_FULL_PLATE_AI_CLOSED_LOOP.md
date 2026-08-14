@@ -61,9 +61,9 @@ Current outer clockwise ring:
 
 Gate cycle:
 
-`Xiu -> Sheng -> Shang -> Du -> Jing(scener y) -> Si -> Jing(alarm) -> Kai -> Xiu`
+`Xiu -> Sheng -> Shang -> Du -> Jing(scenery) -> Si -> Jing(alarm) -> Kai -> Xiu`
 
-(`QimenGate` uses distinct enum names internally for the two Chinese homophone/transliteration cases.)
+(`QimenGate` uses distinct enum names internally for 景门 and 惊门.)
 
 Validated full boards:
 
@@ -173,8 +173,9 @@ Closed-loop CI runs completed during this feature chain:
 - Sky carried-stem upgrade: `31817498953` PASS
 - First four-layer golden case: `31817686178` PASS
 - Conditional full-plate engine resolution: `31817994318` PASS
+- AI full-plate gate with a real center-locked chart, a resolved golden chart, carried-stem evidence, and per-request remote consent: `31818326823` PASS
 
-The AI full-plate gate is accepted only after its latest real locked-chart / resolved-chart / consent tests also pass CI. Record that final run here only after GitHub Actions completes successfully.
+The feature chain above is closed at the deterministic-core and AI-evidence-contract level. Later changes must add a new regression/CI closure rather than relying on these runs as blanket proof.
 
 ## 10. What remains intentionally unresolved
 
