@@ -4,6 +4,10 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val sourceHeadSha = (System.getenv("SOURCE_HEAD_SHA") ?: "local")
+    .replace(Regex("[^0-9A-Za-z._-]"), "_")
+    .take(64)
+
 android {
     namespace = "com.xuanxue.app"
     compileSdk = 35
@@ -15,6 +19,7 @@ android {
         versionCode = 1
         versionName = "1.0.0-rc1"
         buildConfigField("String", "RELEASE_CHANNEL", "\"rc\"")
+        buildConfigField("String", "SOURCE_HEAD_SHA", "\"$sourceHeadSha\"")
     }
 
     buildTypes {
