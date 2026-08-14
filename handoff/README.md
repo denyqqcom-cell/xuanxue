@@ -33,6 +33,21 @@ A module is not allowed to upgrade its App maturity merely because code compiles
 10. `09_OPEN_QUESTIONS.md` — missing evidence and unresolved implementation blockers.
 11. `HANDOFF_SUMMARY.md` — counts, readiness, largest conflicts, copyright risk and next engineering tasks.
 
+## Automated handoff gate
+
+`tools/validate_handoff.py` is run by CI for every folder that contains `HANDOFF_SUMMARY.md`. A completed pack must therefore satisfy machine-checkable minimum contracts before its rules can influence core development:
+
+- all 11 required files exist and are non-empty;
+- `03_RULES.jsonl` and `05_FIXTURES.jsonl` are valid JSONL;
+- rule/fixture IDs are non-empty and unique;
+- formal rules carry non-empty source IDs and A/B/C/D confidence;
+- fixtures carry sources and an explicit retrospective-case boolean;
+- `MODEL_KNOWLEDGE_ONLY` cannot be marked `implementation_ready=true` and cannot enter golden fixtures;
+- scans, books, images, fonts and other review-required binaries cannot be placed inside a public handoff pack;
+- the copyright gate must explicitly address App distribution.
+
+This validator checks **provenance and engineering hygiene**, not metaphysical truth. Passing it is necessary, never sufficient, for promoting a rule into production logic.
+
 ## Minimum release gates
 
 A rule can enter an App core only when all of the following are true:
