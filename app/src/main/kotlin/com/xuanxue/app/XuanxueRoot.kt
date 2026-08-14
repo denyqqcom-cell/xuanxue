@@ -58,7 +58,8 @@ fun XuanxueRoot() {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(16.dp),
-            text = { Text("奇门 AI 解盘") },
-        )
+        ) {
+            Text("奇门 AI 解盘")
+        }
     }
 }
