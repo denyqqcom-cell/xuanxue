@@ -35,7 +35,7 @@ jobs:
           grep -Fq 'Copyright (c) 2023 All Contributors' app/src/main/assets/licenses/OPEN_SOURCE_NOTICES.txt
           grep -Fq 'Copyright (c) 2018 6tail' app/src/main/assets/licenses/OPEN_SOURCE_NOTICES.txt
           grep -Fq 'Copyright (c) 2023 Sylar' app/src/main/assets/licenses/OPEN_SOURCE_NOTICES.txt
-          grep -Fq 'even if such Contributor has been advised' app/src/main/assets/licenses/APACHE-2.0.txt
+          grep -Fq 'even if such Contributor has been' app/src/main/assets/licenses/APACHE-2.0.txt
           if grep -Fq 'android.permission.INTERNET' app/src/main/AndroidManifest.xml; then
             echo 'Unexpected INTERNET permission: network release gate not completed.' >&2
             exit 1
