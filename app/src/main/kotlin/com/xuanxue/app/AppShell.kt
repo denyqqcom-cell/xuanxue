@@ -3,11 +3,14 @@ package com.xuanxue.app
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -23,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,11 +62,7 @@ private val moduleEntries = listOf(
     ModuleEntry(RootPage.HUANGLI, "huangli", "黄历", "宜忌 · 吉神凶煞 · 冲煞"),
 )
 
-/**
- * App 根导航。
- *
- * 六术数不再硬塞进一行 Tab；首页同时承担模块发现、工程成熟度和合规入口。
- */
+/** App 根导航：模块发现、工程成熟度、合规入口和响应式布局统一管理。 */
 @Composable
 fun XuanxueRoot() {
     var page by remember { mutableStateOf(RootPage.HOME) }
@@ -76,10 +76,7 @@ fun XuanxueRoot() {
         )
         RootPage.AUDIT -> AuditCenter(onBack = { page = RootPage.HOME })
         RootPage.LEGAL -> OpenSourceScreen(onBack = { page = RootPage.HOME })
-        else -> ModuleHost(
-            page = page,
-            onBack = { page = RootPage.HOME },
-        )
+        else -> ModuleHost(page = page, onBack = { page = RootPage.HOME })
     }
 }
 
@@ -90,52 +87,93 @@ private fun HomeHub(
     onLegal: () -> Unit,
 ) {
     Scaffold { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(paddingValues)
-                .padding(horizontal = 18.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            Surface(
-                color = MaterialTheme.colorScheme.primaryContainer,
-                shape = MaterialTheme.shapes.extraLarge,
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 1120.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 18.dp, vertical = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Column(
-                    modifier = Modifier.padding(20.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = MaterialTheme.shapes.extraLarge,
                 ) {
-                    Text("玄学工具箱", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text(
-                        "排盘、资料核验与解释层分开管理。能证明到哪一层，就只开放到哪一层；传统解释不会伪装成算法事实。",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(onClick = onAudit) { Text("方法核验中心") }
-                        OutlinedButton(onClick = onLegal) { Text("开源许可") }
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Text("玄学工具箱", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            "排盘、事体、资料核验与解释层分开管理。能证明到哪一层，就只开放到哪一层；传统解释不会伪装成算法事实。",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(onClick = onAudit) { Text("方法核验中心") }
+                            OutlinedButton(onClick = onLegal) { Text("开源许可") }
+                        }
+                    }
+                }
+
+                Text("排盘与历法", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                ResponsiveModuleGrid(onOpen)
+
+                OutlinedCard(Modifier.fillMaxWidth()) {
+                    Column(
+                        Modifier.padding(15.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text("本地优先", fontWeight = FontWeight.Bold)
+                        Text(
+                            "当前版本不需要账号、广告或自有服务器。离线解释只消费本机输入和排盘结果；未来若加入 BYOK，必须继续经过逐次数据预览与目标授权。",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
                     }
                 }
             }
+        }
+    }
+}
 
-            Text("排盘与历法", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            moduleEntries.forEach { entry ->
-                val audit = MethodAuditRegistry.byId(entry.id)
-                ModuleCard(entry = entry, audit = audit, onClick = { onOpen(entry.page) })
-            }
-
-            OutlinedCard(Modifier.fillMaxWidth()) {
-                Column(
-                    Modifier.padding(15.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Text("本地优先", fontWeight = FontWeight.Bold)
-                    Text(
-                        "当前版本不需要账号、广告或自有服务器。离线解释只消费本机排盘结果；未来若加入 BYOK，必须继续经过逐次数据预览与目标授权。",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+@Composable
+private fun ResponsiveModuleGrid(onOpen: (RootPage) -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxWidth()) {
+        val twoColumns = maxWidth >= 720.dp
+        if (!twoColumns) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                moduleEntries.forEach { entry ->
+                    ModuleCard(
+                        entry = entry,
+                        audit = MethodAuditRegistry.byId(entry.id),
+                        onClick = { onOpen(entry.page) },
                     )
+                }
+            }
+        } else {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                moduleEntries.chunked(2).forEach { entries ->
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        entries.forEach { entry ->
+                            ModuleCard(
+                                entry = entry,
+                                audit = MethodAuditRegistry.byId(entry.id),
+                                onClick = { onOpen(entry.page) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        if (entries.size == 1) Spacer(Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -147,8 +185,9 @@ private fun ModuleCard(
     entry: ModuleEntry,
     audit: MethodAudit?,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
+    OutlinedCard(modifier.fillMaxWidth()) {
         Column(
             Modifier.padding(15.dp),
             verticalArrangement = Arrangement.spacedBy(7.dp),
@@ -199,15 +238,26 @@ private fun ModuleHost(page: RootPage, onBack: () -> Unit) {
                 )
             }
         }
-        Box(Modifier.weight(1f)) {
-            when (page) {
-                RootPage.ZIWEI -> XuanxueApp()
-                RootPage.BAZI -> BaziScreen()
-                RootPage.QIMEN -> QimenScreen()
-                RootPage.LIUYAO -> LiuYaoScreen()
-                RootPage.LIUREN -> LiuRenScreen()
-                RootPage.HUANGLI -> HuangLiScreen()
-                else -> Unit
+        Box(
+            Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter,
+        ) {
+            Box(
+                Modifier
+                    .widthIn(max = 1120.dp)
+                    .fillMaxWidth(),
+            ) {
+                when (page) {
+                    RootPage.ZIWEI -> XuanxueApp()
+                    RootPage.BAZI -> BaziScreen()
+                    RootPage.QIMEN -> QimenScreen()
+                    RootPage.LIUYAO -> LiuYaoScreen()
+                    RootPage.LIUREN -> LiuRenScreen()
+                    RootPage.HUANGLI -> HuangLiScreen()
+                    else -> Unit
+                }
             }
         }
     }
@@ -216,25 +266,32 @@ private fun ModuleHost(page: RootPage, onBack: () -> Unit) {
 @Composable
 private fun AuditCenter(onBack: () -> Unit) {
     Scaffold { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(paddingValues)
-                .padding(horizontal = 18.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter,
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("方法核验中心", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-                OutlinedButton(onClick = onBack) { Text("返回") }
-            }
-            Text(
-                "这里展示的是当前仓库的工程核验成熟度，不是对术数作科学有效性背书。测试通过、书例对齐、上游一致性三者也不会被混写成同一种证据。",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 900.dp)
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 18.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text("方法核验中心", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                    OutlinedButton(onClick = onBack) { Text("返回") }
+                }
+                Text(
+                    "这里展示的是当前仓库的工程核验成熟度，不是对术数作科学有效性背书。测试通过、书例对齐、上游一致性三者也不会被混写成同一种证据。",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
 
-            MethodAuditRegistry.all.forEach { audit -> AuditCard(audit) }
+                MethodAuditRegistry.all.forEach { audit -> AuditCard(audit) }
+            }
         }
     }
 }
