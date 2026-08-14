@@ -16,6 +16,9 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      SOURCE_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -70,7 +73,9 @@ jobs:
           fi
           cat > build/test-artifact/BUILD_INFO.txt <<EOF
           repository=${GITHUB_REPOSITORY}
-          commit=${GITHUB_SHA}
+          source_head_sha=${SOURCE_HEAD_SHA}
+          source_base_sha=${SOURCE_BASE_SHA}
+          checked_out_sha=${GITHUB_SHA}
           ref=${GITHUB_REF}
           event=${GITHUB_EVENT_NAME}
           workflow_run=${GITHUB_RUN_ID}
@@ -80,7 +85,7 @@ jobs:
       - name: Upload audited debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: xuanxue-audited-debug-${{ github.sha }}
+          name: xuanxue-audited-debug-${{ env.SOURCE_HEAD_SHA }}
           path: build/test-artifact/
           if-no-files-found: error
           retention-days: 7
