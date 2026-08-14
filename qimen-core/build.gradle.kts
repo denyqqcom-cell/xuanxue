@@ -12,6 +12,7 @@ kotlin {
 }
 
 dependencies {
+    implementation("cn.6tail:lunar:1.7.7")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.json:json:20240303")
 }
