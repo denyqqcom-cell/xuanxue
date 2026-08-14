@@ -1,0 +1,30 @@
+name: Qimen Core CI
+
+on:
+  push:
+    branches:
+      - qimen-core-v1
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Verify qimen-core
+        run: ./gradlew --no-daemon :qimen-core:test
