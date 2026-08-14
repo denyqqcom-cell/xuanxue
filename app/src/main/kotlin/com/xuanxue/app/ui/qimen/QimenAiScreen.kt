@@ -39,7 +39,8 @@ import com.xuanxue.qimen.core.interpretation.AiOutboundPreview
  * Android 侧 AI 解盘安全入口：
  * 1) 先生成精确 evidence preview；
  * 2) 远程模式再把 consent 绑定到 payload + endpoint + model；
- * 3) 通过双层门禁后才生成 provider-neutral prompt。
+ * 3) 真正准备远程执行时重新计算两层 fingerprint，旧 preview 不能直通 transport；
+ * 4) 通过门禁后才生成 provider-neutral prompt。
  *
  * 当前仍不发 HTTP、不保存密钥、不绑定任何 AI 厂商。
  */
@@ -270,34 +271,40 @@ fun QimenAiScreen(
 
                     Button(
                         onClick = {
-                            if (mode == AiExecutionMode.REMOTE_USER_CONFIGURED) {
-                                val dispatch = dispatchPreview
-                                if (dispatch == null) {
-                                    status = "远程目标预览不存在，请重新生成数据预览。"
-                                    return@Button
+                            preparedPrompt = when (mode) {
+                                AiExecutionMode.REMOTE_USER_CONFIGURED -> {
+                                    RemoteAiExecutionPlanner.prepare(
+                                        chart = chart,
+                                        question = question,
+                                        scope = scope,
+                                        profile = RemoteAiProfile(remoteEndpoint, remoteModel),
+                                        displayedPayloadFingerprint = outbound.payloadFingerprint,
+                                        dispatchConsentFingerprint = remoteConsentFingerprint,
+                                    ).onFailure { status = it.message ?: it::class.java.simpleName }
+                                        .getOrNull()
+                                        ?.prompt
                                 }
-                                val authorized = RemoteAiDispatchGate.authorize(dispatch, remoteConsentFingerprint)
-                                if (authorized.isFailure) {
-                                    status = authorized.exceptionOrNull()?.message ?: "remote dispatch authorization failed"
-                                    return@Button
-                                }
-                            }
 
-                            val policy = AiInterpretationPolicy(
-                                executionMode = mode,
-                                scope = scope,
-                                explicitRemoteConsent = mode != AiExecutionMode.REMOTE_USER_CONFIGURED || remoteConsentFingerprint != null,
-                                remoteConsentFingerprint = if (mode == AiExecutionMode.REMOTE_USER_CONFIGURED) {
-                                    outbound.payloadFingerprint
-                                } else {
-                                    null
-                                },
-                            )
-                            preparedPrompt = QimenAiUiPreparation.preparePrompt(chart, question, policy)
-                                .onFailure { status = it.message ?: it::class.java.simpleName }
-                                .getOrNull()
+                                AiExecutionMode.LOCAL_MODEL -> {
+                                    QimenAiUiPreparation.preparePrompt(
+                                        chart = chart,
+                                        question = question,
+                                        policy = AiInterpretationPolicy(
+                                            executionMode = AiExecutionMode.LOCAL_MODEL,
+                                            scope = scope,
+                                        ),
+                                    ).onFailure { status = it.message ?: it::class.java.simpleName }
+                                        .getOrNull()
+                                }
+
+                                AiExecutionMode.DISABLED -> null
+                            }
                             if (preparedPrompt != null) {
-                                status = "已通过 payload + destination 双层门禁并生成提示词。当前仍未联网。"
+                                status = if (mode == AiExecutionMode.REMOTE_USER_CONFIGURED) {
+                                    "已重新验证 payload + destination 并生成远程执行计划提示词。当前仍未联网。"
+                                } else {
+                                    "已通过核心门禁并生成本地模型提示词。"
+                                }
                             }
                         },
                         enabled = mode != AiExecutionMode.REMOTE_USER_CONFIGURED || (
