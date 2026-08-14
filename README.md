@@ -66,7 +66,7 @@ App 不再用一行 Tab 塞六个模块，改为首页卡片式入口：
 - 紫微、八字、奇门、六壬的时辰入口支持横向滚动；
 - 六爻补齐了时间起卦的时辰选择，数字输入在窄屏改为纵向排列。
 
-真正的模拟器/真机截图与触控验收仍属于下一道 release gate，当前 CI 只证明 JVM tests 和 Android 编译通过。
+真正的模拟器/真机截图与触控验收仍属于下一道 release gate，当前 CI 只证明 JVM tests、Android 编译与 APK 内容检查通过。
 
 ## 资料工程
 
@@ -132,4 +132,6 @@ Debug APK：
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-只有核心测试、Android 编译和 APK 内容审计全部通过的分支才应进入合并审查。
+当前 `app-integration-v3` 验证基线：run `31831719567` 在 head `2015d813170644d0f605758af2f54a4f57f1d980` 上，源码版权 Gate、core/evidence tests、Android assemble 与 APK binary audit 全部通过。
+
+只有上述检查全部通过的分支才应进入合并审查。
