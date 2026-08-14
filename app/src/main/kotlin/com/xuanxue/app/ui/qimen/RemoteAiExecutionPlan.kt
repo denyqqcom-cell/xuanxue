@@ -79,12 +79,14 @@ object RemoteAiExecutionPlanner {
 }
 
 /**
- * 凭据只以引用 ID 出现在执行计划周边；真实 secret 不进入 plan、日志或持久化模型。
+ * 凭据只以系统生成的引用 ID 出现在执行计划周边；真实 secret 不进入 plan、日志或持久化模型。
  * 后续具体安全存储实现必须单独审计。
  */
 data class RemoteAiCredentialRef(val id: String) {
     init {
-        require(id.matches(Regex("^[A-Za-z0-9._-]{1,80}$"))) { "credential ref id contains unsupported characters" }
+        require(id.matches(Regex("^cred_[a-f0-9]{16,64}$"))) {
+            "credential ref must be a generated cred_<hex> identifier, not credential text"
+        }
     }
 }
 
@@ -123,7 +125,6 @@ enum class RemoteAiLogPhase {
 data class RemoteAiSafeLogEvent(
     val phase: RemoteAiLogPhase,
     val destinationHost: String,
-    val model: String,
     val dispatchFingerprintPrefix: String,
     val statusCode: Int? = null,
     val elapsedMs: Long? = null,
@@ -131,7 +132,7 @@ data class RemoteAiSafeLogEvent(
 
 object RemoteAiSafeLog {
     /**
-     * 只允许生成白名单字段日志；不接收 prompt、question、credential 或 response body。
+     * 只允许生成白名单字段日志；不接收 prompt、question、model、credential 或 response body。
      */
     fun event(
         plan: RemoteAiExecutionPlan,
@@ -143,7 +144,6 @@ object RemoteAiSafeLog {
         return RemoteAiSafeLogEvent(
             phase = phase,
             destinationHost = host,
-            model = plan.profile.model,
             dispatchFingerprintPrefix = plan.dispatchFingerprint.take(16),
             statusCode = statusCode,
             elapsedMs = elapsedMs,
