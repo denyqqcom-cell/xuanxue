@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -23,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.xuanxue.qimen.core.api.QimenChart
@@ -34,7 +36,7 @@ import com.xuanxue.qimen.core.interpretation.AiOutboundPreview
 
 /**
  * Android 侧 AI 解盘第一道交互门：先生成“本次将发送什么”的精确预览，再允许用户确认。
- * 这个组件不发 HTTP、不保存密钥，也不绑定任何模型厂商。
+ * 通过门禁后可以生成 provider-neutral 可复制提示词；仍不发 HTTP、不保存密钥、不绑定厂商。
  */
 @Composable
 fun QimenAiScreen(
@@ -47,9 +49,18 @@ fun QimenAiScreen(
     var scope by remember { mutableStateOf(AiInterpretationScope.FULL_PLATE) }
     var preview by remember { mutableStateOf<AiOutboundPreview?>(null) }
     var consent by remember { mutableStateOf(false) }
+    var preparedPrompt by remember { mutableStateOf<QimenPreparedPrompt?>(null) }
     var status by remember { mutableStateOf<String?>(null) }
 
+    fun invalidatePreparedState() {
+        preview = null
+        consent = false
+        preparedPrompt = null
+        status = null
+    }
+
     fun refreshPreview() {
+        preparedPrompt = null
         status = null
         consent = false
         preview = AiInterpretationGate.preview(chart, question, scope)
@@ -82,17 +93,26 @@ fun QimenAiScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = mode == AiExecutionMode.DISABLED,
-                        onClick = { mode = AiExecutionMode.DISABLED; preview = null; consent = false },
+                        onClick = {
+                            mode = AiExecutionMode.DISABLED
+                            invalidatePreparedState()
+                        },
                         label = { Text("关闭") },
                     )
                     FilterChip(
                         selected = mode == AiExecutionMode.LOCAL_MODEL,
-                        onClick = { mode = AiExecutionMode.LOCAL_MODEL; preview = null; consent = false },
+                        onClick = {
+                            mode = AiExecutionMode.LOCAL_MODEL
+                            invalidatePreparedState()
+                        },
                         label = { Text("本地模型") },
                     )
                     FilterChip(
                         selected = mode == AiExecutionMode.REMOTE_USER_CONFIGURED,
-                        onClick = { mode = AiExecutionMode.REMOTE_USER_CONFIGURED; preview = null; consent = false },
+                        onClick = {
+                            mode = AiExecutionMode.REMOTE_USER_CONFIGURED
+                            invalidatePreparedState()
+                        },
                         label = { Text("自定义远程 AI") },
                     )
                 }
@@ -114,8 +134,7 @@ fun QimenAiScreen(
                     value = question,
                     onValueChange = {
                         question = it
-                        preview = null
-                        consent = false
+                        invalidatePreparedState()
                     },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("你具体想问什么？") },
@@ -128,12 +147,18 @@ fun QimenAiScreen(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(
                         selected = scope == AiInterpretationScope.DUTY_RUNTIME,
-                        onClick = { scope = AiInterpretationScope.DUTY_RUNTIME; preview = null; consent = false },
+                        onClick = {
+                            scope = AiInterpretationScope.DUTY_RUNTIME
+                            invalidatePreparedState()
+                        },
                         label = { Text("值符值使") },
                     )
                     FilterChip(
                         selected = scope == AiInterpretationScope.FULL_PLATE,
-                        onClick = { scope = AiInterpretationScope.FULL_PLATE; preview = null; consent = false },
+                        onClick = {
+                            scope = AiInterpretationScope.FULL_PLATE
+                            invalidatePreparedState()
+                        },
                         label = { Text("完整四盘") },
                     )
                 }
@@ -170,7 +195,11 @@ fun QimenAiScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(
                                 checked = consent,
-                                onCheckedChange = { consent = it },
+                                onCheckedChange = {
+                                    consent = it
+                                    preparedPrompt = null
+                                    status = null
+                                },
                             )
                             Text("我确认仅将上面这一次预览的数据交给我配置的远程 AI")
                         }
@@ -188,17 +217,36 @@ fun QimenAiScreen(
                                     null
                                 },
                             )
-                            status = AiInterpretationGate.prepare(chart, question, policy)
-                                .fold(
-                                    onSuccess = {
-                                        "请求已通过核心门禁。当前仅准备请求，尚未联网，也未绑定任何 AI 厂商。"
-                                    },
-                                    onFailure = { it.message ?: it::class.java.simpleName },
-                                )
+                            preparedPrompt = QimenAiUiPreparation.preparePrompt(chart, question, policy)
+                                .onFailure { status = it.message ?: it::class.java.simpleName }
+                                .getOrNull()
+                            if (preparedPrompt != null) {
+                                status = "已通过核心门禁并生成提示词。当前仍未联网；可人工复制到任意兼容 AI，或后续交给 provider adapter。"
+                            }
                         },
                         enabled = mode != AiExecutionMode.REMOTE_USER_CONFIGURED || consent,
                     ) {
-                        Text(if (mode == AiExecutionMode.REMOTE_USER_CONFIGURED) "确认本次远程请求" else "准备本地 AI 请求")
+                        Text(if (mode == AiExecutionMode.REMOTE_USER_CONFIGURED) "确认并生成远程 AI 提示词" else "生成本地 AI 提示词")
+                    }
+                }
+            }
+        }
+
+        preparedPrompt?.let { prompt ->
+            OutlinedCard(Modifier.fillMaxWidth()) {
+                Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("4. 可复制 AI 提示词", fontWeight = FontWeight.Bold)
+                    Text(
+                        "以下内容由同一份已通过门禁的 evidence 生成。长按选择即可复制；App 本阶段不会自动发送。",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    Text("SYSTEM", fontWeight = FontWeight.SemiBold)
+                    SelectionContainer {
+                        Text(prompt.systemInstruction, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text("USER", fontWeight = FontWeight.SemiBold)
+                    SelectionContainer {
+                        Text(prompt.userContent, fontFamily = FontFamily.Monospace, style = MaterialTheme.typography.bodySmall)
                     }
                 }
             }
