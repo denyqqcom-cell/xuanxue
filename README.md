@@ -1,75 +1,93 @@
-# 玄学排盘（xuanxue）
+# 玄学工具箱（xuanxue）
 
-> 纯净版玄学排盘工具箱：**紫微斗数 + 八字排盘（含称骨）**——无支付、无广告、无推送、无账号、无网络权限，所有计算在设备本地完成。
+一个以 **本地计算、证据分级、资料可追溯** 为核心的 Android 术数工具箱。
 
-纯净版紫微斗数排盘 App —— **无支付、无广告、无推送、无账号、无网络权限**，所有计算在设备本地完成。
+当前 App 不要求账号，不包含广告、支付、推送或自有服务器；Android Manifest 也没有网络权限。
+“离线解释”只整理本机排盘结果，并把工程核验成熟度、来源索引和未解决边界一起展示。
 
-> 灵感来源：逆向分析了一款典型命理 App（`oms.mmc.fortunetelling.gmpay.lingdongziwei2`，广东很久文化传播有限公司）后，将其"排盘核心"用开源算法重写，**剔除全部变现功能**（灵符付费、大师咨询、广告、推送、裂变深链）。
+## 当前模块
 
-## 功能
+- **紫微斗数**：十二宫、主辅杂曜、亮度、四化、长生/博士/岁前/将前、大限与小限。Kotlin 核心用 7 组 fixture 与 iztro 原版做实现一致性比对。
+- **八字**：四柱、藏干、十神、纳音、大运等本地结构。历法基础来自 lunar-java；当前离线解释不再用“单一十二运”直接判身强弱或喜忌。
+- **奇门遁甲**：当前 main 引擎能生成转盘时家九宫，但 **完整九宫仍按实验能力管理**。`handoff/qimen` 已整理 17 条历法/表/映射 fixture，却没有完整九宫黄金盘；地盘走法和人盘方向仍有冲突，App 会明确显示这一状态。
+- **六爻**：纳甲、八宫、世应、六亲、六神、动爻与变卦；已有内部回归，后续仍需建立多来源 corpus/conflicts/copyright gate。
+- **大六壬**：月将加时、天地盘、四课、九宗门、三传与十二天将；已有部分书例/内部回归，但尚未达到奇门 handoff 同等级的多来源审计。
+- **黄历**：宜忌、吉神凶煞、彭祖百忌、冲煞等字段由 lunar-java 本地计算并组织展示。
 
-- 紫微斗数排盘（default 派别，基于《紫微斗数全书》安星法）
-- 八字排盘（四柱/十神/藏干/纳音/胎元命宫身宫/空亡/大运/流年，lunar-java 引擎）
-- 称骨算命（袁天罡称骨歌，公有领域古籍）
-- 奇门遁甲排盘（转盘时家奇门：节气定局/九宫盘面/值符值使/九星八门八神/马星旬空）
-- 六爻排卦（纳甲筮法：八宫64卦/纳甲/世应/六亲/六神/变卦，时间+数字起卦）
-- 大六壬排盘（袁树珊《大六壬探原》体系：月将加时/天地盘/四课/九宗门三传全实现/十二天将布宫）
-- 黄历（宜忌/吉神/凶煞/彭祖百忌/冲煞，lunar-java 本地计算）
-- 十二宫盘面（命宫/兄弟/夫妻/子女/财帛/疾厄/迁移/仆役/官禄/田宅/福德/父母）
-- 十四主星 + 亮度（庙旺得利平不陷）+ 四化（禄权科忌）
-- 14 辅星 + 38 杂耀 + 长生12神 + 博士12神 + 岁前/将前12神
-- 五行局、命主、身主、大限、小限
-- 支持闰月修正、早晚子时（13 时辰）
-- 本地存档（无网络，隐私安全）
+## 为什么有“方法核验中心”
+
+这个项目不把下面三件事混为一谈：
+
+1. **实现一致性**：例如 Kotlin 紫微输出是否与 iztro fixture 一致；
+2. **资料/课例可追溯**：规则或案例是否有明确来源与冲突记录；
+3. **传统解释**：星曜、用神、课型、吉凶等术数推演。
+
+App 首页现在直接显示每个模块的工程成熟度，并提供“方法核验中心”。离线解读卡也会同时显示 evidence grade、source IDs 与 caveats。测试通过不被包装成“预测准确率已验证”。
+
+## XuanxueAI：离线解释层
+
+`com.xuanxue.ai.XuanxueAI` 是 provider-neutral 的解释编排层，目前 **零网络**。
+
+第一版离线规则库曾存在过度机械解释的问题：例如只凭日柱十二运判断八字身强弱，或在奇门完整九宫尚没有黄金夹具时继续输出八门吉凶。本轮已纠偏：
+
+- 八字：先展示四柱、五行显示权重、十神结构、大运时间线；身强弱等待月令/根气/透藏/制化规则与夹具成熟后再开放。
+- 紫微：把主星、亮度、四化先作为盘面字段，不直接翻译成人格或确定事件。
+- 奇门：只把历法、局、旬首旬空等已工程化层作为基础；完整九宫继续显示为实验开发视图，不据此自动断成败、吉凶或应期。
+- 六爻/六壬：先展示结构，具体取用必须结合用户事体，不从一个标签自动下定论。
+- 黄历：明确属于传统历法/民俗字段，不作为科学因果预测。
+
+未来如增加 BYOK 云端 AI，必须复用同一份结构化 evidence，并先完成本次数据预览、目标授权、凭据存储和网络层审计；当前版本尚未启用。
+
+## 资料工程
+
+仓库包含学习笔记、来源索引、冲突记录和工程 handoff。它们是研发材料，不等于 App 运行时内容。
+
+奇门已建立较完整的工程交接：
+
+- `handoff/qimen/00_CORPUS_MANIFEST.md`
+- `handoff/qimen/03_RULES.jsonl`
+- `handoff/qimen/04_CONFLICTS.md`
+- `handoff/qimen/05_FIXTURES.jsonl`
+- `handoff/qimen/07_COPYRIGHT_GATE.md`
+- `handoff/qimen/HANDOFF_SUMMARY.md`
+
+研究层还包含 `奇门/qclaw` 的分析/复核工作流。其“问题分类 → 看大局 → 取用神 → 四害 → 宫盘 → 生克 → 应期 → 格局 → 独立核查”结构会用于继续改善产品的解释流程，但 qclaw 文件本身属于研究材料，不直接打包进 APK。
+
+## 版权与发行边界
+
+项目自身代码采用 MIT License。第三方软件许可与权利人单独列在：
+
+- `NOTICE`
+- `THIRD_PARTY_NOTICES.md`
+- `app/src/main/assets/licenses/`
+
+术数研究资料执行额外 corpus gate：现代出版物扫描件、OCR 全文、现代书籍长段文字、独创图解、未知许可视觉素材不会进入 App 发行包。古籍原典与现代校注/翻译/排版也分开判断。
+
+完整工程审计见 `COPYRIGHT_REVIEW.md`。这是一套工程合规措施，不构成法律意见。
 
 ## 技术栈
 
-- Kotlin 2.0 + Jetpack Compose (Material3)
-- 排盘引擎：`ziwei-core`（iztro MIT → Kotlin 移植，见 NOTICE）
-- 农历基础：`cn.6tail:lunar` (lunar-java, MIT)
+- Kotlin 2.0
+- Jetpack Compose / Material 3
+- Java / JVM 17
+- compileSdk 35 / targetSdk 35 / minSdk 24
+- `cn.6tail:lunar:1.7.7`
+- `ziwei-core`：当前承载紫微、八字、奇门、六爻、六壬及离线解释层
 
-## 构建
+## 构建与验证
 
 ```bash
 export JAVA_HOME=/path/to/jdk17
 export ANDROID_HOME=/path/to/android-sdk
-./gradlew :ziwei-core:test    # 排盘算法黄金夹具测试（7 组对照 iztro 原版）
-./gradlew :app:assembleDebug  # 打包 APK
+
+./gradlew --no-daemon :ziwei-core:test
+./gradlew --no-daemon :app:assembleDebug
 ```
 
-APK 输出：`app/build/outputs/apk/debug/app-debug.apk`
+Debug APK：
 
-## 正确性验证
+```text
+app/build/outputs/apk/debug/app-debug.apk
+```
 
-`ziwei-core` 的排盘算法与 iztro（TypeScript 原版，4058★）**逐字段 1:1 对齐**：
-7 组黄金夹具（阳男午时 / 阴女子时 / 闰月 / 晚子时 / 立春边界 / 现代儿童 / 深冬）
-由 iztro 原版生成，Kotlin 移植版输出完全一致（`fixtures.jsonl` 断言测试）。
-
-## 学习资料（笔记入库，原书只留书目）
-
-按门类整理在仓库根目录，总索引见 [资料总目.md](资料总目.md)。
-
-| 目录 | 说明 |
-|---|---|
-| [奇门](奇门/README.md) | 精读笔记、修炼日志、qclaw |
-| [风水](风水/README.md) | 书目 |
-| [八字](八字/README.md) | 40 篇笔记 + `paipan.py` |
-| [紫薇](紫薇/README.md) | 26 篇笔记 + 学习计划 |
-| [学习资料](学习资料/README.md) | 工具脚本、重复书目 |
-
-已出版扫描书（王亭之全集、图解奇门等）**不进 Git**。各目录 `书目.md` 写本机路径；E/F 重复的 32 份只记在 [学习资料/重复书目.md](学习资料/重复书目.md)。
-
-## 许可证
-
-MIT。排盘算法数据表移植自 [iztro](https://github.com/SylarLong/iztro)（MIT），
-农历基础来自 [lunar-java](https://github.com/6tail/lunar-java)（MIT）。
-详见 [NOTICE](NOTICE)。
-
-## 内置 AI 解读（XuanxueAI）
-
-- **离线规则解读（默认，零网络）**：六术数排盘结果 → 公开传统释义规则库 → 确定性解读。
-  内容均为公有领域常识性释义，不引用任何商业 App 文案。每个解读器即一个"工具"（JSON schema 已定义）。
-- **架构预留（BYOK 云端 AI，未启用）**：`com.xuanxue.ai.XuanxueAI.tools` 已注册 6 个工具；
-  将来启用需：① manifest 增加 INTERNET 权限（仅用户主动开启时联网）② 用户自带 API key（仅存本机）
-  ③ function-calling 循环（模型按需调用排盘工具后解读）。
-- 默认纯净版定位不变：无广告、无追踪、无自有服务器、数据不出设备。
+CI 会同时执行核心测试与 Android 编译；只有完整流水线通过的分支才应进入合并审查。
