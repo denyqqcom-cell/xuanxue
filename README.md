@@ -37,6 +37,20 @@ APK 输出：`app/build/outputs/apk/debug/app-debug.apk`
 7 组黄金夹具（阳男午时 / 阴女子时 / 闰月 / 晚子时 / 立春边界 / 现代儿童 / 深冬）
 由 iztro 原版生成，Kotlin 移植版输出完全一致（`fixtures.jsonl` 断言测试）。
 
+## 学习资料（笔记入库，原书只留书目）
+
+按门类整理在仓库根目录，总索引见 [资料总目.md](资料总目.md)。
+
+| 目录 | 说明 |
+|---|---|
+| [奇门](奇门/README.md) | 精读笔记、修炼日志、qclaw |
+| [风水](风水/README.md) | 书目 |
+| [八字](八字/README.md) | 40 篇笔记 + `paipan.py` |
+| [紫薇](紫薇/README.md) | 26 篇笔记 + 学习计划 |
+| [学习资料](学习资料/README.md) | 工具脚本、重复书目 |
+
+已出版扫描书（王亭之全集、图解奇门等）**不进 Git**。各目录 `书目.md` 写本机路径；E/F 重复的 32 份只记在 [学习资料/重复书目.md](学习资料/重复书目.md)。
+
 ## 许可证
 
 MIT。排盘算法数据表移植自 [iztro](https://github.com/SylarLong/iztro)（MIT），
