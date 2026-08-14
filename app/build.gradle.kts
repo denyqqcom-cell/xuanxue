@@ -10,7 +10,10 @@ android {
 
     defaultConfig {
         applicationId = "com.xuanxue.app"
-        minSdk = 24
+        // qimen-core uses java.time directly. Keep the packaged app on the platform level
+        // where java.time is native instead of silently adding desugar_jdk_libs and its
+        // additional GPLv2+Classpath-Exception compliance surface.
+        minSdk = 26
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
