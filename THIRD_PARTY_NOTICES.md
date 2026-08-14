@@ -36,6 +36,17 @@
 - License: Apache License 2.0
 - Usage: Kotlin 编译器、标准库及 Gradle 插件生态。
 
+## CI-only GitHub Actions
+
+`actions/upload-artifact@v4` 仅用于 GitHub Actions 在版权 Gate、核心测试、Android Lint、APK 构建与 APK 内容审计全部通过之后发布测试构建产物；它不会进入 Android APK。
+
+- Project: https://github.com/actions/upload-artifact
+- License: MIT
+- Copyright: Copyright (c) 2018 GitHub, Inc. and contributors
+- Distribution boundary: workflow 只引用 Action，不把其源码复制进 App；因此不把该许可混入 APK 的运行时 notices。仓库级审计仍在此记录其来源与许可。
+
+已有 `actions/checkout`、`actions/setup-java`、`gradle/actions/setup-gradle` 同样属于 CI/build-time 基础设施，不属于 App 运行时依赖；若未来复制、修改或重新分发其源码，应按各自上游许可重新检查。
+
 ## 测试侧依赖
 
 `org.json:json:20240303` 当前只在 `ziwei-core` JVM 测试中使用，不作为 Android App
