@@ -1,6 +1,9 @@
 package com.xuanxue.app
 
-import android.os.ParcelFileDescriptor
+import android.content.ContentValues
+import android.graphics.Bitmap
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -22,12 +25,13 @@ import org.junit.runner.RunWith
  * - narrow + light theme + airplane mode
  * - wide + dark theme + airplane mode
  *
- * Screenshots are written by UiAutomation's shell identity to shared Download
- * storage so Gradle's post-test package cleanup cannot delete the evidence.
+ * Screenshots are synchronously captured from UiAutomation and persisted into
+ * shared Downloads through MediaStore so post-test APK cleanup cannot erase
+ * acceptance evidence or race navigation changes.
  *
- * This closes navigation/responsive/offline smoke acceptance in automation.
- * It does not claim physical-device ergonomics, divination correctness, or
- * full-board Qimen verification.
+ * This closes navigation/responsive/offline/main-path smoke acceptance in
+ * automation. It does not claim physical-device ergonomics, divination
+ * correctness, or full-board Qimen verification.
  */
 @RunWith(AndroidJUnit4::class)
 class RcDeviceAcceptanceTest {
@@ -65,23 +69,69 @@ class RcDeviceAcceptanceTest {
     fun allSixModulesOpenAndReturnToHome() {
         val modules = listOf("ziwei", "bazi", "qimen", "liuyao", "liuren", "huangli")
         modules.forEach { id ->
-            composeRule.onNodeWithTag("module-open-$id")
-                .performScrollTo()
-                .performClick()
-            composeRule.onNodeWithTag("module-host-$id").assertExists()
+            openModule(id)
             capture("${formFactor}-$id")
-            composeRule.onNodeWithTag("back-home").performClick()
-            composeRule.onNodeWithTag("home-root").assertExists()
+            backHome()
         }
     }
 
     @Test
-    fun qimenKeepsExperimentalBoundaryContextGateAndCurrentDeviceDateVisible() {
-        composeRule.onNodeWithTag("module-open-qimen")
-            .performScrollTo()
-            .performClick()
+    fun coreModuleActionsProduceStructuralResultsWithoutCrashing() {
+        openModule("ziwei")
+        composeRule.onNodeWithText("排盘").performScrollTo().performClick()
+        composeRule.onNodeWithText("十二宫概览 · 点击宫位查看完整星曜与限运").assertExists()
+        composeRule.onNodeWithText("命宫干支", substring = true).assertExists()
+        capture("${formFactor}-ziwei-result")
+        backHome()
 
-        composeRule.onNodeWithTag("module-host-qimen").assertExists()
+        openModule("bazi")
+        composeRule.onNodeWithText("00:30").assertExists()
+        composeRule.onNodeWithText("02:30").assertExists()
+        composeRule.onNodeWithText("排盘").performScrollTo().performClick()
+        composeRule.onNodeWithText("大运 (", substring = true).assertExists()
+        composeRule.onNodeWithText("年柱").assertExists()
+        capture("${formFactor}-bazi-result")
+        backHome()
+
+        openModule("qimen")
+        composeRule.onNodeWithText("生成当前实验局").performScrollTo().performClick()
+        composeRule.onNodeWithText("基础结果").assertExists()
+        composeRule.onNodeWithText("实验九宫（开发核对视图）").assertExists()
+        capture("${formFactor}-qimen-result")
+        backHome()
+
+        openModule("liuyao")
+        composeRule.onNodeWithText("数字起卦").performScrollTo().performClick()
+        composeRule.onNodeWithText("上卦数").assertExists()
+        composeRule.onNodeWithText("下卦数").assertExists()
+        composeRule.onNodeWithText("动爻数").assertExists()
+        composeRule.onNodeWithText("起卦").performScrollTo().performClick()
+        composeRule.onNodeWithText("动爻:", substring = true).assertExists()
+        capture("${formFactor}-liuyao-result")
+        backHome()
+
+        openModule("liuren")
+        composeRule.onNodeWithText("夜占").performScrollTo().performClick()
+        composeRule.onNodeWithText("起课").performScrollTo().performClick()
+        composeRule.onNodeWithText("三传:", substring = true).assertExists()
+        composeRule.onNodeWithText("四课").assertExists()
+        composeRule.onNodeWithText("天地盘").assertExists()
+        capture("${formFactor}-liuren-result")
+        backHome()
+
+        openModule("huangli")
+        composeRule.onNodeWithText("黄历（万年历）").assertExists()
+        composeRule.onNodeWithText("干支").assertExists()
+        composeRule.onNodeWithText("宜").assertExists()
+        composeRule.onNodeWithText("忌").assertExists()
+        capture("${formFactor}-huangli-result")
+        backHome()
+    }
+
+    @Test
+    fun qimenKeepsExperimentalBoundaryContextGateAndCurrentDeviceDateVisible() {
+        openModule("qimen")
+
         composeRule.onNodeWithText("实验九宫 · 不作为已核验标准盘").assertExists()
         composeRule.onNodeWithText("事体与现实条件").assertExists()
 
@@ -111,16 +161,49 @@ class RcDeviceAcceptanceTest {
         composeRule.onNodeWithTag("home-root").assertExists()
     }
 
-    private fun capture(name: String) {
-        composeRule.waitForIdle()
-        val uiAutomation = InstrumentationRegistry.getInstrumentation().uiAutomation
-        execShell(uiAutomation.executeShellCommand("mkdir -p /sdcard/Download/xuanxue-rc-screenshots"))
-        execShell(uiAutomation.executeShellCommand("screencap -p /sdcard/Download/xuanxue-rc-screenshots/$name.png"))
+    private fun openModule(id: String) {
+        composeRule.onNodeWithTag("module-open-$id")
+            .performScrollTo()
+            .performClick()
+        composeRule.onNodeWithTag("module-host-$id").assertExists()
     }
 
-    private fun execShell(descriptor: ParcelFileDescriptor) {
-        ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { input ->
-            input.readBytes()
+    private fun backHome() {
+        composeRule.onNodeWithTag("back-home").performClick()
+        composeRule.onNodeWithTag("home-root").assertExists()
+    }
+
+    private fun capture(name: String) {
+        composeRule.waitForIdle()
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val bitmap = instrumentation.uiAutomation.takeScreenshot()
+            ?: error("UiAutomation screenshot returned null")
+        val resolver = instrumentation.targetContext.contentResolver
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, "$name.png")
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
+                Environment.DIRECTORY_DOWNLOADS + "/xuanxue-rc-screenshots",
+            )
+            put(MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+            ?: error("Unable to create MediaStore screenshot for $name")
+        try {
+            resolver.openOutputStream(uri)?.use { output ->
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, output)) {
+                    "Failed to encode screenshot $name"
+                }
+            } ?: error("Unable to open screenshot output stream for $name")
+            values.clear()
+            values.put(MediaStore.MediaColumns.IS_PENDING, 0)
+            resolver.update(uri, values, null, null)
+        } catch (t: Throwable) {
+            resolver.delete(uri, null, null)
+            throw t
+        } finally {
+            bitmap.recycle()
         }
     }
 }
