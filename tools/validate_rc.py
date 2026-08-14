@@ -35,6 +35,8 @@ def main() -> int:
     require('versionName = "1.0.0-rc1"' in gradle, "versionName must remain 1.0.0-rc1 until final acceptance")
     require(re.search(r"versionCode\s*=\s*1\b", gradle) is not None, "RC1 versionCode must be 1")
     require('buildConfigField("String", "RELEASE_CHANNEL", "\\\"rc\\\"")' in gradle, "RELEASE_CHANNEL must be rc")
+    require('applicationIdSuffix = ".rc"' in gradle, "debug RC package must use .rc applicationIdSuffix")
+    require('versionNameSuffix = "-debug"' in gradle, "debug RC package must expose -debug versionNameSuffix")
     require("storePassword" not in gradle and "keyPassword" not in gradle, "signing secrets must not be hard-coded in app/build.gradle.kts")
 
     strings_root = ET.parse(STRINGS).getroot()
@@ -84,6 +86,7 @@ def main() -> int:
 
     print("RC VALIDATION: PASS")
     print("version=1.0.0-rc1")
+    print("debug_package=com.xuanxue.app.rc")
     print("network=offline")
     print("cleartext=false")
     print("backup=false")
