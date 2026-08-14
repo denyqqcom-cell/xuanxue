@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -39,9 +38,7 @@ import com.xuanxue.bazi.BaziEngine.BaziChart
 import com.xuanxue.bazi.BaziEngine.Zhu
 import java.util.Calendar
 
-/**
- * 八字排盘页面（纯净版：无广告/无品牌/无网络）。
- */
+/** 八字排盘页面。 */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BaziScreen() {
@@ -58,46 +55,60 @@ fun BaziScreen() {
         modifier = Modifier
             .fillMaxWidth()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Text("八字排盘", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(12.dp))
 
-        // 日期选择
         OutlinedCard(modifier = Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(12.dp)) {
+            Column(
+                Modifier.padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("公历: $year-$month-$day  $hour:${"%02d".format(minute)}", Modifier.weight(1f))
                     Button(onClick = { showDatePicker = true }) { Text("选日期") }
                 }
-                Spacer(Modifier.height(8.dp))
+
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("男", "女").forEach { g ->
                         TextButton(onClick = { gender = g }) {
-                            Text(if (gender == g) "● $g" else "○ $g", color = if (gender == g) Color(0xFF1E88E5) else Color.Gray)
+                            Text(
+                                if (gender == g) "● $g" else "○ $g",
+                                color = if (gender == g) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("时辰:", Modifier.align(Alignment.CenterVertically))
+
+                Text("时辰快捷选择", fontWeight = FontWeight.SemiBold)
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
                     listOf(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22).forEach { h ->
                         TextButton(onClick = { hour = h; minute = 30 }) {
-                            Text("${hour / 2 + 1}时", color = if (hour == h) Color(0xFF1E88E5) else Color.Gray, fontSize = 12.sp)
+                            Text(
+                                "%02d:30".format(h),
+                                color = if (hour == h) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 12.sp,
+                            )
                         }
                     }
                 }
-                Spacer(Modifier.height(8.dp))
-                Button(onClick = {
-                    chart = BaziEngine.bySolar(year, month, day, hour, minute, gender)
-                }, modifier = Modifier.fillMaxWidth()) {
+
+                Button(
+                    onClick = { chart = BaziEngine.bySolar(year, month, day, hour, minute, gender) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Text("排盘")
                 }
             }
         }
 
         chart?.let { c ->
-            Spacer(Modifier.height(16.dp))
             BaziResult(c)
             ReadingCard(com.xuanxue.ai.XuanxueAI.bazi(c))
         }
@@ -105,13 +116,15 @@ fun BaziScreen() {
 
     if (showDatePicker) {
         val today = Calendar.getInstance()
-        val initMillis = remember { runCatching {
-            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
-                .parse("$year-$month-$day")?.time ?: System.currentTimeMillis()
-        }.getOrDefault(System.currentTimeMillis()) }
+        val initMillis = remember {
+            runCatching {
+                java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                    .parse("$year-$month-$day")?.time ?: System.currentTimeMillis()
+            }.getOrDefault(System.currentTimeMillis())
+        }
         val state = rememberDatePickerState(initialSelectedDateMillis = initMillis.coerceIn(
             java.text.SimpleDateFormat("yyyy", java.util.Locale.US).parse("1900")!!.time,
-            today.timeInMillis
+            today.timeInMillis,
         ))
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
@@ -119,22 +132,21 @@ fun BaziScreen() {
                 TextButton(onClick = {
                     state.selectedDateMillis?.let { ms ->
                         val cal = Calendar.getInstance().apply { timeInMillis = ms }
-                        year = cal.get(Calendar.YEAR); month = cal.get(Calendar.MONTH) + 1; day = cal.get(Calendar.DAY_OF_MONTH)
+                        year = cal.get(Calendar.YEAR)
+                        month = cal.get(Calendar.MONTH) + 1
+                        day = cal.get(Calendar.DAY_OF_MONTH)
                     }
                     showDatePicker = false
                 }) { Text("确定") }
             },
-            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("取消") } }
-        ) {
-            DatePicker(state = state)
-        }
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("取消") } },
+        ) { DatePicker(state = state) }
     }
 }
 
 @Composable
 fun BaziResult(c: BaziChart) {
-    Column {
-        // 概览
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         OutlinedCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp)) {
                 Text("农历: ${c.lunarDateStr}", fontSize = 14.sp)
@@ -143,17 +155,13 @@ fun BaziResult(c: BaziChart) {
                 Text("日空亡: ${c.dayKong}", fontSize = 14.sp)
                 Text("起运: ${c.startYunAge}岁", fontSize = 14.sp)
                 c.chengGu?.let {
-                    Text("称骨: ${it.weightText}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E88E5))
+                    Text("称骨: ${it.weightText}", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 }
             }
         }
 
-        // 四柱表
-        Spacer(Modifier.height(12.dp))
         FourZhuTable(c.fourZhu)
 
-        // 大运流年
-        Spacer(Modifier.height(12.dp))
         OutlinedCard(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp)) {
                 Text("大运 (${if (c.yunGender == 1) "阳男/阴女顺排" else "阴男/阳女逆排"})", fontWeight = FontWeight.Bold)
@@ -163,10 +171,10 @@ fun BaziResult(c: BaziChart) {
                         Column(
                             Modifier
                                 .padding(horizontal = 8.dp)
-                                .border(1.dp, Color(0xFFBDBDBD), MaterialTheme.shapes.small)
-                                .padding(8.dp)
+                                .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small)
+                                .padding(8.dp),
                         ) {
-                            Text(dy.ganZhi, fontWeight = FontWeight.Bold, color = Color(0xFF1E88E5))
+                            Text(dy.ganZhi, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             Text("${dy.startYear}-${dy.endYear}岁", fontSize = 11.sp)
                             Text("首流年 ${dy.liuNian.firstOrNull()?.first ?: ""}", fontSize = 11.sp)
                         }
@@ -175,10 +183,8 @@ fun BaziResult(c: BaziChart) {
             }
         }
 
-        // 称骨歌
         c.chengGu?.let {
             if (it.poem.isNotEmpty()) {
-                Spacer(Modifier.height(12.dp))
                 OutlinedCard(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(12.dp)) {
                         Text("称骨歌（${it.weightText}）", fontWeight = FontWeight.Bold)
@@ -193,25 +199,45 @@ fun BaziResult(c: BaziChart) {
 
 @Composable
 fun FourZhuTable(zhus: List<Zhu>) {
-    OutlinedCard(Modifier.fillMaxWidth(), border = BorderStroke(1.dp, Color(0xFFBDBDBD))) {
+    OutlinedCard(Modifier.fillMaxWidth(), border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
         Column {
-            // 表头
-            Row(Modifier.background(Color(0xFFEEEEEE)).padding(vertical = 6.dp)) {
+            Row(Modifier.background(MaterialTheme.colorScheme.surfaceVariant).padding(vertical = 6.dp)) {
                 listOf("", "年柱", "月柱", "日柱", "时柱").forEach {
-                    Text(it, Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(
+                        it,
+                        Modifier.weight(1f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                    )
                 }
             }
+
             @Composable
             fun row(label: String, values: List<String>, highlight: Boolean = false) {
                 Row(Modifier.padding(vertical = 4.dp)) {
-                    Text(label, Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontSize = 12.sp, color = Color.Gray)
-                    values.forEachIndexed { i, v ->
-                        val col = if (highlight && i == 2) Color(0xFF1E88E5) else Color.Unspecified
-                        val w = if (highlight && i == 2) FontWeight.Bold else FontWeight.Normal
-                        Text(v, Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontSize = 14.sp, color = col, fontWeight = w)
+                    Text(
+                        label,
+                        Modifier.weight(1f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    values.forEachIndexed { i, value ->
+                        val color = if (highlight && i == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                        val weight = if (highlight && i == 2) FontWeight.Bold else FontWeight.Normal
+                        Text(
+                            value,
+                            Modifier.weight(1f),
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                            fontSize = 14.sp,
+                            color = color,
+                            fontWeight = weight,
+                        )
                     }
                 }
             }
+
             row("天干", zhus.map { it.gan }, highlight = true)
             row("地支", zhus.map { it.zhi })
             row("藏干", zhus.map { it.hideGan.joinToString("") })
