@@ -21,7 +21,7 @@ class QimenSkyPlateTest {
         val earth = EarthPlateBuilder.build(Dun.YANG, 8)
         val hour = StemBranch(Stem.WU, Branch.WU)
         val duty = DutyMovementResolver.resolve(earth, XunResolver.resolve(hour), hour, Dun.YANG)
-        val plate = SkyPlateBuilder.build(duty).getOrThrow()
+        val plate = SkyPlateBuilder.build(earth, duty).getOrThrow()
 
         assertEquals(listOf(QimenStar.TIAN_CHONG), plate.starsAt(1))
         assertEquals(listOf(QimenStar.TIAN_XIN), plate.starsAt(2))
@@ -32,6 +32,36 @@ class QimenSkyPlateTest {
         assertEquals(listOf(QimenStar.TIAN_PENG), plate.starsAt(7))
         assertEquals(listOf(QimenStar.TIAN_FU), plate.starsAt(8))
         assertEquals(listOf(QimenStar.TIAN_ZHU), plate.starsAt(9))
+        assertEquals(listOf(Stem.GUI), plate.carriedStemsAt(8)) // 天辅携巽四癸
+    }
+
+    @Test
+    fun `1995 yang three source case reproduces stars and carried stems`() {
+        // 乙亥年 壬午月 癸酉日 丁巳时，甲寅旬，阳遁三局；天任值符落9。
+        val earth = EarthPlateBuilder.build(Dun.YANG, 3)
+        val hour = StemBranch(Stem.DING, Branch.SI)
+        val duty = DutyMovementResolver.resolve(earth, XunResolver.resolve(hour), hour, Dun.YANG)
+        val plate = SkyPlateBuilder.build(earth, duty).getOrThrow()
+
+        assertEquals(listOf(QimenStar.TIAN_REN), plate.starsAt(9))
+        assertEquals(listOf(Stem.GUI), plate.carriedStemsAt(9))
+        assertEquals(listOf(QimenStar.TIAN_CHONG), plate.starsAt(2))
+        assertEquals(listOf(Stem.WU), plate.carriedStemsAt(2))
+        assertEquals(listOf(QimenStar.TIAN_FU), plate.starsAt(7))
+        assertEquals(listOf(Stem.JI), plate.carriedStemsAt(7))
+        assertEquals(listOf(QimenStar.TIAN_YING), plate.starsAt(6))
+        assertEquals(listOf(Stem.DING), plate.carriedStemsAt(6))
+
+        val hosted = plate.placementsAt(1).associate { it.star to it.carriedStem }
+        assertEquals(Stem.YI, hosted[QimenStar.TIAN_RUI])
+        assertEquals(Stem.GENG, hosted[QimenStar.TIAN_QIN])
+
+        assertEquals(listOf(QimenStar.TIAN_ZHU), plate.starsAt(8))
+        assertEquals(listOf(Stem.REN), plate.carriedStemsAt(8))
+        assertEquals(listOf(QimenStar.TIAN_XIN), plate.starsAt(3))
+        assertEquals(listOf(Stem.XIN), plate.carriedStemsAt(3))
+        assertEquals(listOf(QimenStar.TIAN_PENG), plate.starsAt(4))
+        assertEquals(listOf(Stem.BING), plate.carriedStemsAt(4))
     }
 
     @Test
@@ -39,7 +69,7 @@ class QimenSkyPlateTest {
         val earth = EarthPlateBuilder.build(Dun.YIN, 8)
         val hour = StemBranch(Stem.WU, Branch.XU)
         val duty = DutyMovementResolver.resolve(earth, XunResolver.resolve(hour), hour, Dun.YIN)
-        val plate = SkyPlateBuilder.build(duty).getOrThrow()
+        val plate = SkyPlateBuilder.build(earth, duty).getOrThrow()
 
         assertEquals(listOf(QimenStar.TIAN_YING), plate.starsAt(1))
         assertEquals(listOf(QimenStar.TIAN_REN), plate.starsAt(2))
@@ -59,7 +89,7 @@ class QimenSkyPlateTest {
         val duty = DutyMovementResolver.resolve(earth, XunResolver.resolve(hour), hour, Dun.YIN)
 
         assertEquals(5, duty.valueStarPalace)
-        val result = SkyPlateBuilder.build(duty)
+        val result = SkyPlateBuilder.build(earth, duty)
         assertIs<SkyPlateError.CenterValueStarUnverified>(result.exceptionOrNull())
     }
 }
