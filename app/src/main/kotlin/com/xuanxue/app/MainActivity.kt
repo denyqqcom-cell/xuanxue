@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
                         .padding(horizontal = 8.dp, vertical = 10.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    listOf("紫微斗数" to 0, "八字排盘" to 1, "奇门遁甲" to 2).forEach { (label, idx) ->
+                    listOf("紫微斗数" to 0, "八字排盘" to 1, "奇门遁甲" to 2, "六爻排卦" to 3).forEach { (label, idx) ->
                         Text(
                             label,
                             Modifier
@@ -87,7 +87,8 @@ class MainActivity : ComponentActivity() {
                     when (page) {
                         0 -> XuanxueApp()
                         1 -> BaziScreen()
-                        else -> QimenScreen()
+                        2 -> QimenScreen()
+                        else -> LiuYaoScreen()
                     }
                 }
             }
