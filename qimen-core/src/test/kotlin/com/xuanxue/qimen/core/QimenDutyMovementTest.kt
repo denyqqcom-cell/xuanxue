@@ -4,6 +4,7 @@ import com.xuanxue.qimen.core.calendar.Branch
 import com.xuanxue.qimen.core.calendar.Dun
 import com.xuanxue.qimen.core.calendar.Stem
 import com.xuanxue.qimen.core.calendar.StemBranch
+import com.xuanxue.qimen.core.plate.DutyGateAnchorState
 import com.xuanxue.qimen.core.plate.DutyMovementResolver
 import com.xuanxue.qimen.core.plate.EarthPlateBuilder
 import com.xuanxue.qimen.core.plate.QimenGate
@@ -45,6 +46,26 @@ class QimenDutyMovementTest {
         assertEquals(5, duty.branchStepsFromXunHead)
         assertEquals(6, duty.valueStarPalace)
         assertEquals(7, duty.valueGatePalace)
+    }
+
+    @Test
+    fun `printed yin eight center-hosted case resolves tian-qin to eight and death gate to one`() {
+        // Source case: 乙亥年 甲申月 丙子日 戊戌时，甲午旬，阴遁八局；天禽值符落8，死门值使落1。
+        val earth = EarthPlateBuilder.build(Dun.YIN, 8)
+        val hour = StemBranch(Stem.WU, Branch.XU)
+        val xun = XunResolver.resolve(hour)
+
+        val duty = DutyMovementResolver.resolve(earth, xun, hour, Dun.YIN)
+
+        assertEquals("甲午", xun.xunShou.zh)
+        assertEquals(5, duty.anchor.dunYiPalace)
+        assertEquals(2, duty.anchor.gateHomePalace)
+        assertEquals(DutyGateAnchorState.CENTER_PALACE_HOSTED_KUN2, duty.anchor.gateState)
+        assertEquals(QimenStar.TIAN_QIN, duty.anchor.valueStar)
+        assertEquals(QimenGate.SI, duty.anchor.valueGate)
+        assertEquals(4, duty.branchStepsFromXunHead)
+        assertEquals(8, duty.valueStarPalace)
+        assertEquals(1, duty.valueGatePalace)
     }
 
     @Test
