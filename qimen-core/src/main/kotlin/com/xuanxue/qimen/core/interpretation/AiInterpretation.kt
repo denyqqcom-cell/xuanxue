@@ -87,7 +87,7 @@ object AiEvidenceBuilder {
 
         if (scope == AiInterpretationScope.EARTH_PLATE) {
             val earth = (1..9).joinToString("；") { palace ->
-                "$palace宫=${chart.earthPlate.stemAt(palace).zh}"
+                "${palace}宫=${chart.earthPlate.stemAt(palace).zh}"
             }
             facts += AiFact("earth_plate", "地盘九仪", earth)
         }
