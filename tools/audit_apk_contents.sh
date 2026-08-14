@@ -37,8 +37,9 @@ for pattern in \
   fi
 done
 
-# For now the only first-party packaged assets approved by the copyright gate are license files.
-unexpected_assets="$(grep '^assets/' "$entries" | grep -Ev '^assets/licenses/(APACHE-2\.0\.txt|OPEN_SOURCE_NOTICES\.txt)$' || true)"
+# First-party assets are limited to the reviewed license files. Android/Gradle may also generate
+# baseline profile assets under assets/dexopt; those are build products, not editorial content.
+unexpected_assets="$(grep '^assets/' "$entries" | grep -Ev '^(assets/licenses/(APACHE-2\.0\.txt|OPEN_SOURCE_NOTICES\.txt)|assets/dexopt/baseline\.profm?)$' || true)"
 if [[ -n "$unexpected_assets" ]]; then
   echo "Unexpected APK assets require explicit copyright review:" >&2
   echo "$unexpected_assets" >&2
