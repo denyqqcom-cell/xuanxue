@@ -54,11 +54,19 @@ class AiInterpretationContractTest {
     }
 
     @Test
-    fun fullPlateInterpretationRejectsChartsWhoseCoreResolutionIsLocked() {
-        val lockedChart = chart().copy(
-            fullPlate = FullPlateResolution.Locked(setOf(FullPlateLockReason.VALUE_STAR_IN_CENTER)),
-            plateState = PlateState.FULL_PLATE_LOCKED_CENTER_TARGET,
+    fun realCenterTargetChartLocksFullPlateAndAiCannotBypassIt() {
+        // 《善天道奇门遁甲讲义》同日案例给出 1995-08-13 为丙子日、阴遁八局。
+        // 丙日午时为甲午；甲午旬遁辛。阴八局辛落中五，因此值符/值使当前都在5，完整盘保持硬锁。
+        val lockedChart = chartAt(1995, 8, 13, 12, 0)
+        assertEquals("丙子", lockedChart.dayPillar.zh)
+        assertEquals("甲午", lockedChart.hourPillar.zh)
+        assertEquals(PlateState.FULL_PLATE_LOCKED_CENTER_TARGET, lockedChart.plateState)
+        val locked = assertIs<FullPlateResolution.Locked>(lockedChart.fullPlate)
+        assertEquals(
+            setOf(FullPlateLockReason.VALUE_STAR_IN_CENTER, FullPlateLockReason.VALUE_GATE_IN_CENTER),
+            locked.reasons,
         )
+
         val result = AiInterpretationGate.prepare(
             chart = lockedChart,
             question = "完整解盘",
@@ -73,6 +81,7 @@ class AiInterpretationContractTest {
     @Test
     fun resolvedSourceChartCanProduceFullPlateEvidenceWithoutAiRecalculating() {
         val sourceChart = chartAt(1995, 6, 11, 9, 30)
+        assertEquals(PlateState.FULL_PLATE_RESOLVED_SUPPORTED_METHOD, sourceChart.plateState)
         assertIs<FullPlateResolution.Resolved>(sourceChart.fullPlate)
 
         val request = AiInterpretationGate.prepare(
@@ -92,11 +101,39 @@ class AiInterpretationContractTest {
         assertTrue("sky_plate" in facts)
         assertTrue("human_plate" in facts)
         assertTrue("spirit_plate" in facts)
-        assertTrue(facts.getValue("sky_plate").value.contains("天任"))
-        assertTrue(facts.getValue("human_plate").value.contains("生门"))
-        assertTrue(facts.getValue("spirit_plate").value.contains("值符"))
+        assertTrue(facts.getValue("sky_plate").value.contains("9宫=天任/癸"))
+        assertTrue(facts.getValue("human_plate").value.contains("2宫=生门"))
+        assertTrue(facts.getValue("spirit_plate").value.contains("9宫=值符"))
         assertTrue(facts.values.all { it.provenance == "ENGINE_VERIFIED" })
         assertTrue(request.evidence.caveats.any { it.contains("不得重新排盘") })
+    }
+
+    @Test
+    fun remoteFullPlateStillRequiresPerRequestConsentBeforeEvidenceLeavesCore() {
+        val sourceChart = chartAt(1995, 6, 11, 9, 30)
+        assertIs<FullPlateResolution.Resolved>(sourceChart.fullPlate)
+
+        val denied = AiInterpretationGate.prepare(
+            chart = sourceChart,
+            question = "完整解盘",
+            policy = AiInterpretationPolicy(
+                executionMode = AiExecutionMode.REMOTE_USER_CONFIGURED,
+                scope = AiInterpretationScope.FULL_PLATE,
+                explicitRemoteConsent = false,
+            ),
+        )
+        assertIs<AiInterpretationError.RemoteConsentRequired>(denied.exceptionOrNull())
+
+        val allowed = AiInterpretationGate.prepare(
+            chart = sourceChart,
+            question = "完整解盘",
+            policy = AiInterpretationPolicy(
+                executionMode = AiExecutionMode.REMOTE_USER_CONFIGURED,
+                scope = AiInterpretationScope.FULL_PLATE,
+                explicitRemoteConsent = true,
+            ),
+        ).getOrThrow()
+        assertEquals(AiInterpretationScope.FULL_PLATE, allowed.evidence.verifiedScope)
     }
 
     @Test
