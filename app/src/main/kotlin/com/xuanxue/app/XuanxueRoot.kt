@@ -1,5 +1,6 @@
 package com.xuanxue.app
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,7 @@ import com.xuanxue.qimen.core.api.QimenRequest
 @Composable
 fun XuanxueRoot() {
     var showQimenAi by remember { mutableStateOf(false) }
+    BackHandler(enabled = showQimenAi) { showQimenAi = false }
 
     if (showQimenAi) {
         val qimenChartResult = remember {
