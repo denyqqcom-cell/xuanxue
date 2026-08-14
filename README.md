@@ -41,4 +41,4 @@ APK 输出：`app/build/outputs/apk/debug/app-debug.apk`
 
 MIT。排盘算法数据表移植自 [iztro](https://github.com/SylarLong/iztro)（MIT），
 农历基础来自 [lunar-java](https://github.com/6tail/lunar-java)（MIT）。
-详见 [NOTICE](NOTICE.md)。
+详见 [NOTICE](NOTICE)。
