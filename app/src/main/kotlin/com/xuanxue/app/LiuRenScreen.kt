@@ -91,6 +91,7 @@ fun LiuRenScreen() {
         chart?.let { c ->
             Spacer(Modifier.height(16.dp))
             LiuRenResult(c)
+            ReadingCard(com.xuanxue.ai.XuanxueAI.liuren(c))
         }
     }
 

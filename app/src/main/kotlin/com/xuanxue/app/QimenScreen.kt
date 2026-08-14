@@ -85,6 +85,7 @@ fun QimenScreen() {
         chart?.let { c ->
             Spacer(Modifier.height(16.dp))
             QimenResult(c)
+            ReadingCard(com.xuanxue.ai.XuanxueAI.qimen(c))
         }
     }
 

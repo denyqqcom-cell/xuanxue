@@ -186,6 +186,7 @@ fun XuanxueApp() {
                 PanGrid(a)
                 Spacer(Modifier.height(12.dp))
                 PalaceList(a)
+                ReadingCard(com.xuanxue.ai.XuanxueAI.ziwei(a))
             } else {
                 Text("输入信息后点击「排盘」", Modifier.padding(16.dp), color = Color.Gray)
             }

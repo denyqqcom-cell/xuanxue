@@ -64,3 +64,12 @@ APK 输出：`app/build/outputs/apk/debug/app-debug.apk`
 MIT。排盘算法数据表移植自 [iztro](https://github.com/SylarLong/iztro)（MIT），
 农历基础来自 [lunar-java](https://github.com/6tail/lunar-java)（MIT）。
 详见 [NOTICE](NOTICE)。
+
+## 内置 AI 解读（XuanxueAI）
+
+- **离线规则解读（默认，零网络）**：六术数排盘结果 → 公开传统释义规则库 → 确定性解读。
+  内容均为公有领域常识性释义，不引用任何商业 App 文案。每个解读器即一个"工具"（JSON schema 已定义）。
+- **架构预留（BYOK 云端 AI，未启用）**：`com.xuanxue.ai.XuanxueAI.tools` 已注册 6 个工具；
+  将来启用需：① manifest 增加 INTERNET 权限（仅用户主动开启时联网）② 用户自带 API key（仅存本机）
+  ③ function-calling 循环（模型按需调用排盘工具后解读）。
+- 默认纯净版定位不变：无广告、无追踪、无自有服务器、数据不出设备。

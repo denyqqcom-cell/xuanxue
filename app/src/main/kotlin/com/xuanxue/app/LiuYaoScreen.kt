@@ -101,6 +101,7 @@ fun LiuYaoScreen() {
         chart?.let { c ->
             Spacer(Modifier.height(16.dp))
             LiuYaoResult(c)
+            ReadingCard(com.xuanxue.ai.XuanxueAI.liuyao(c))
         }
     }
 

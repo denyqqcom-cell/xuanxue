@@ -88,6 +88,8 @@ fun HuangLiScreen() {
             "喜神: ${lunar.getDayPositionXiDesc()}    福神: ${lunar.getDayPositionFuDesc()}    财神: ${lunar.getDayPositionCaiDesc()}",
         ))
 
+        ReadingCard(com.xuanxue.ai.XuanxueAI.huangli(lunar))
+
         Spacer(Modifier.height(8.dp))
         Text("数据来源：lunar-java (MIT) 本地计算，无网络。", fontSize = 11.sp, color = Color.Gray)
     }
