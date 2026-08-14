@@ -1,0 +1,19 @@
+NOTICE
+======
+
+xuanxue 紫微斗数排盘引擎（ziwei-core）基于以下 MIT 开源项目移植：
+
+1. iztro — https://github.com/SylarLong/iztro (MIT)
+   TypeScript 紫微斗数排盘引擎。本项目的 src/star、src/astro、src/data、
+   src/utils、src/i18n 计算逻辑与数据表均移植自 iztro v2.x，保持算法与
+   输出（含 'woo' 等历史行为）1:1 对齐。数据表与 i18n 映射由
+   tools/gen_kotlin.py 从 iztro 源码自动生成。
+
+2. lunar-java (cn.6tail:lunar) — https://github.com/6tail/lunar-java (MIT)
+   农历/干支/节气计算基础库。
+
+3. lunar-lite — https://github.com/SylarLong/lunar-lite (MIT)
+   iztro 的农历适配层语义参考。
+
+本项目为纯净本地版：无网络权限、无广告、无支付、无推送、无账号体系。
+所有排盘计算在设备本地完成。
