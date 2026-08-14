@@ -4,7 +4,7 @@ package com.xuanxue.ai
  * 玄学解读引擎 — 离线规则解读（确定性，无网络）。
  *
  * 这里的“确定性”只表示同一输入会得到同一输出，不表示术数判断已经被科学验证。
- * 所有用户可见解读必须区分：实现核验、来源可追溯、传统启发式、实验性能力。
+ * 所有用户可见解读必须区分：用户输入、实现核验、来源可追溯、传统启发式、实验性能力。
  */
 interface Interpreter<T> {
     val toolName: String
@@ -13,9 +13,10 @@ interface Interpreter<T> {
 }
 
 /**
- * 证据等级只描述“这条信息在当前仓库里被核验到什么程度”，不是吉凶强弱。
+ * 证据等级只描述“这条信息在当前仓库里来自哪里/被核验到什么程度”，不是吉凶强弱。
  */
 enum class EvidenceGrade(val label: String) {
+    USER_CONTEXT("用户输入"),
     VERIFIED_FIXTURE("夹具核验"),
     SOURCE_DERIVED("来源可追溯"),
     TRADITIONAL_HEURISTIC("传统启发式"),
