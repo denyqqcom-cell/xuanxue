@@ -18,6 +18,8 @@ MANIFEST = ROOT / "app" / "src" / "main" / "AndroidManifest.xml"
 STRINGS = ROOT / "app" / "src" / "main" / "res" / "values" / "strings.xml"
 LAUNCHER_ICON = ROOT / "app" / "src" / "main" / "res" / "drawable" / "ic_launcher.xml"
 DEVICE_ACCEPTANCE = ROOT / "DEVICE_ACCEPTANCE.md"
+RELEASE_CANDIDATE = ROOT / "RELEASE_CANDIDATE.md"
+PRIVACY = ROOT / "PRIVACY.md"
 ANDROID_NS = "{http://schemas.android.com/apk/res/android}"
 
 errors: list[str] = []
@@ -63,6 +65,12 @@ def main() -> int:
         require(exported == [("activity", ".MainActivity")], f"unexpected exported Android component(s): {exported}")
 
     require(DEVICE_ACCEPTANCE.is_file() and DEVICE_ACCEPTANCE.stat().st_size > 0, "DEVICE_ACCEPTANCE.md must exist before RC builds")
+    require(RELEASE_CANDIDATE.is_file() and RELEASE_CANDIDATE.stat().st_size > 0, "RELEASE_CANDIDATE.md must exist before RC builds")
+    require(PRIVACY.is_file() and PRIVACY.stat().st_size > 0, "PRIVACY.md must exist before RC builds")
+    if PRIVACY.is_file():
+        privacy_text = PRIVACY.read_text(encoding="utf-8")
+        require("android.permission.INTERNET" in privacy_text, "privacy policy must explicitly disclose the current network-permission state")
+        require("1.0.0-rc1" in privacy_text, "privacy policy must identify the RC version it describes")
 
     forbidden_suffixes = {".jks", ".keystore", ".p12", ".pfx"}
     leaked_key_files = [str(p.relative_to(ROOT)) for p in ROOT.rglob("*") if p.is_file() and p.suffix.lower() in forbidden_suffixes]
@@ -80,6 +88,8 @@ def main() -> int:
     print("cleartext=false")
     print("backup=false")
     print("launcher_icon=reviewed_project_vector")
+    print("privacy_policy=present")
+    print("release_contract=present")
     print("exported_components=MainActivity_only")
     print("device_acceptance=required_not_yet_asserted")
     return 0
