@@ -16,7 +16,7 @@ concurrency:
 jobs:
   device-acceptance:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 40
     env:
       SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       SOURCE_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
@@ -33,6 +33,9 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Compile instrumentation acceptance tests
+        run: ./gradlew --no-daemon :app:assembleDebugAndroidTest
+
       - name: Enable KVM
         shell: bash
         run: |
@@ -40,19 +43,70 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
+          test -e /dev/kvm
 
-      - name: Run RC acceptance on Android Emulator
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          target: google_apis
-          arch: x86_64
-          cores: 2
-          ram-size: 3072M
-          disable-animations: true
-          pre-emulator-launch-script: mkdir -p build/rc-device-acceptance && echo emulator-prelaunch > build/rc-device-acceptance/PRELAUNCH.txt
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -camera-back none
-          script: bash .github/scripts/run_rc_emulator_acceptance.sh
+      - name: Install Android emulator image
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          AVDMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/avdmanager"
+          test -x "$SDKMANAGER"
+          test -x "$AVDMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "platform-tools" "emulator" "system-images;android-35;google_apis;x86_64"
+          echo no | "$AVDMANAGER" create avd \
+            --name xuanxue_rc35 \
+            --package "system-images;android-35;google_apis;x86_64" \
+            --force
+
+      - name: Boot Android emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/rc-device-acceptance
+          EMULATOR="$ANDROID_SDK_ROOT/emulator/emulator"
+          test -x "$EMULATOR"
+          nohup "$EMULATOR" \
+            -avd xuanxue_rc35 \
+            -no-window \
+            -noaudio \
+            -no-boot-anim \
+            -no-snapshot \
+            -gpu swiftshader_indirect \
+            -camera-back none \
+            -accel on \
+            > build/rc-device-acceptance/emulator.log 2>&1 &
+          echo $! > build/rc-device-acceptance/emulator.pid
+          adb wait-for-device
+          timeout 360 bash -c 'until [[ "$(adb shell getprop sys.boot_completed 2>/dev/null | tr -d "\r")" == "1" ]]; do sleep 3; done'
+          adb shell input keyevent 82 || true
+          adb shell settings put global window_animation_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global animator_duration_scale 0
+          {
+            echo "source_head_sha=${SOURCE_HEAD_SHA}"
+            echo "adb=$(adb --version | head -n 1)"
+            echo "api=$(adb shell getprop ro.build.version.sdk | tr -d '\r')"
+            echo "model=$(adb shell getprop ro.product.model | tr -d '\r')"
+            echo "boot_completed=$(adb shell getprop sys.boot_completed | tr -d '\r')"
+          } > build/rc-device-acceptance/EMULATOR_BOOT.txt
+
+      - name: Run narrow and wide RC acceptance
+        shell: bash
+        run: bash .github/scripts/run_rc_emulator_acceptance.sh
+
+      - name: Collect emulator diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p build/rc-device-acceptance
+          adb devices -l > build/rc-device-acceptance/ADB_DEVICES.txt 2>&1 || true
+          adb shell getprop > build/rc-device-acceptance/DEVICE_PROPERTIES.txt 2>&1 || true
+          adb logcat -d -t 3000 > build/rc-device-acceptance/LOGCAT_TAIL.txt 2>&1 || true
+          if [[ -f build/rc-device-acceptance/emulator.log ]]; then
+            tail -n 1000 build/rc-device-acceptance/emulator.log > build/rc-device-acceptance/EMULATOR_LOG_TAIL.txt || true
+          fi
 
       - name: Upload emulator acceptance evidence
         if: always()
@@ -62,6 +116,7 @@ jobs:
           path: |
             build/rc-device-acceptance/
             app/build/reports/androidTests/
-          if-no-files-found: warn
+            app/build/outputs/androidTest-results/
+          if-no-files-found: error
           retention-days: 7
           compression-level: 0
