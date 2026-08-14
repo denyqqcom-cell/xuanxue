@@ -1,9 +1,13 @@
 package com.xuanxue.qimen.core
 
 import com.xuanxue.qimen.core.calendar.Branch
+import com.xuanxue.qimen.core.calendar.Dun
 import com.xuanxue.qimen.core.calendar.GanzhiCalendar
+import com.xuanxue.qimen.core.calendar.Jieqi
 import com.xuanxue.qimen.core.calendar.Stem
 import com.xuanxue.qimen.core.calendar.StemBranch
+import com.xuanxue.qimen.core.ju.JuTable
+import com.xuanxue.qimen.core.ju.Yuan
 import com.xuanxue.qimen.core.rule.PreflightRules
 import com.xuanxue.qimen.core.xun.XunResolver
 import org.json.JSONObject
@@ -71,6 +75,19 @@ class QimenCoreFixtureTest {
                     if (expected.has("rollNextDay")) {
                         assertEquals(expected.getBoolean("rollNextDay"), actual.rollNextDay, fixture.getString("fixture_id"))
                     }
+                }
+                "ju_table" -> {
+                    val actual = JuTable.resolve(
+                        Jieqi.fromZh(input.getString("jieqi")),
+                        Dun.valueOf(input.getString("dun")),
+                        when (input.getString("yuan")) {
+                            "上" -> Yuan.SHANG
+                            "中" -> Yuan.ZHONG
+                            "下" -> Yuan.XIA
+                            else -> error("Unknown yuan in fixture: ${input.getString("yuan")}")
+                        },
+                    )
+                    assertEquals(expected.getInt("ju"), actual.ju, fixture.getString("fixture_id"))
                 }
             }
         }
