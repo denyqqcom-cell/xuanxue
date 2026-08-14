@@ -1,5 +1,6 @@
 package com.xuanxue.qimen.core
 
+import com.xuanxue.qimen.core.api.PlateState
 import com.xuanxue.qimen.core.api.QimenEngine
 import com.xuanxue.qimen.core.api.QimenRequest
 import com.xuanxue.qimen.core.interpretation.AiExecutionMode
@@ -7,6 +8,8 @@ import com.xuanxue.qimen.core.interpretation.AiInterpretationError
 import com.xuanxue.qimen.core.interpretation.AiInterpretationGate
 import com.xuanxue.qimen.core.interpretation.AiInterpretationPolicy
 import com.xuanxue.qimen.core.interpretation.AiInterpretationScope
+import com.xuanxue.qimen.core.plate.FullPlateLockReason
+import com.xuanxue.qimen.core.plate.FullPlateResolution
 import java.time.LocalDateTime
 import java.time.ZoneId
 import kotlin.test.Test
@@ -16,14 +19,16 @@ import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class AiInterpretationContractTest {
-    private fun chart() = QimenEngine.cast(
+    private fun chartAt(year: Int, month: Int, day: Int, hour: Int, minute: Int) = QimenEngine.cast(
         QimenRequest(
-            instantEpochMs = LocalDateTime.of(2022, 8, 8, 10, 0)
+            instantEpochMs = LocalDateTime.of(year, month, day, hour, minute)
                 .atZone(ZoneId.of("Asia/Shanghai"))
                 .toInstant()
                 .toEpochMilli(),
         ),
     ).getOrThrow()
+
+    private fun chart() = chartAt(2022, 8, 8, 10, 0)
 
     @Test
     fun disabledModeCannotPrepareRequest() {
@@ -49,9 +54,13 @@ class AiInterpretationContractTest {
     }
 
     @Test
-    fun fullPlateInterpretationStaysLockedUntilAllLayersAreVerified() {
+    fun fullPlateInterpretationRejectsChartsWhoseCoreResolutionIsLocked() {
+        val lockedChart = chart().copy(
+            fullPlate = FullPlateResolution.Locked(setOf(FullPlateLockReason.VALUE_STAR_IN_CENTER)),
+            plateState = PlateState.FULL_PLATE_LOCKED_CENTER_TARGET,
+        )
         val result = AiInterpretationGate.prepare(
-            chart = chart(),
+            chart = lockedChart,
             question = "完整解盘",
             policy = AiInterpretationPolicy(
                 executionMode = AiExecutionMode.LOCAL_MODEL,
@@ -59,6 +68,35 @@ class AiInterpretationContractTest {
             ),
         )
         assertIs<AiInterpretationError.ScopeLocked>(result.exceptionOrNull())
+    }
+
+    @Test
+    fun resolvedSourceChartCanProduceFullPlateEvidenceWithoutAiRecalculating() {
+        val sourceChart = chartAt(1995, 6, 11, 9, 30)
+        assertIs<FullPlateResolution.Resolved>(sourceChart.fullPlate)
+
+        val request = AiInterpretationGate.prepare(
+            chart = sourceChart,
+            question = "只依据完整盘面事实分析当前结构",
+            policy = AiInterpretationPolicy(
+                executionMode = AiExecutionMode.LOCAL_MODEL,
+                scope = AiInterpretationScope.FULL_PLATE,
+            ),
+        ).getOrThrow()
+
+        val facts = request.evidence.facts.associateBy { it.id }
+        assertEquals(AiInterpretationScope.FULL_PLATE, request.evidence.verifiedScope)
+        assertTrue("earth_plate" in facts)
+        assertTrue("value_star" in facts)
+        assertTrue("value_gate" in facts)
+        assertTrue("sky_plate" in facts)
+        assertTrue("human_plate" in facts)
+        assertTrue("spirit_plate" in facts)
+        assertTrue(facts.getValue("sky_plate").value.contains("天任"))
+        assertTrue(facts.getValue("human_plate").value.contains("生门"))
+        assertTrue(facts.getValue("spirit_plate").value.contains("值符"))
+        assertTrue(facts.values.all { it.provenance == "ENGINE_VERIFIED" })
+        assertTrue(request.evidence.caveats.any { it.contains("不得重新排盘") })
     }
 
     @Test
@@ -77,7 +115,7 @@ class AiInterpretationContractTest {
         assertTrue(request.evidence.facts.any { it.id == "earth_plate" })
         assertFalse(request.evidence.facts.any { it.id == "value_star" })
         assertTrue(request.evidence.facts.all { it.provenance == "ENGINE_VERIFIED" })
-        assertTrue(request.evidence.caveats.any { it.contains("补算未验证层") })
+        assertTrue(request.evidence.caveats.any { it.contains("补算未提供的层") })
     }
 
     @Test
@@ -105,6 +143,6 @@ class AiInterpretationContractTest {
         assertFalse("sky_plate" in facts)
         assertFalse("human_plate" in facts)
         assertFalse("spirit_plate" in facts)
-        assertTrue(request.evidence.caveats.any { it.contains("尚未验证完整天盘九星") })
+        assertTrue(request.evidence.caveats.any { it.contains("没有包含完整四层盘") })
     }
 }
