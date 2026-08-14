@@ -27,26 +27,31 @@ enum class QimenGate(val zh: String) {
 
 enum class DutyGateAnchorState {
     RESOLVED,
-    CENTER_PALACE_REQUIRES_HOST_RULE,
+    /** 当前支持的转盘规则中，中五寄坤二，因此中五旬首取坤二原驻死门为值使门。 */
+    CENTER_PALACE_HOSTED_KUN2,
 }
 
 data class DutyAnchor(
+    /** 旬首遁仪在地盘的实际宫位；值使随时支推进也从这里起步。 */
     val dunYiPalace: Int,
     val valueStar: QimenStar,
-    val valueGate: QimenGate?,
+    /** 值使门的原驻来源宫；中五时为寄宫坤二。 */
+    val gateHomePalace: Int,
+    val valueGate: QimenGate,
     val gateState: DutyGateAnchorState,
 )
 
 /**
- * 值符/值使的“旬首初始锚点”。
+ * 值符/值使的旬首初始锚点。
  *
- * 规则边界：
- * 1. 先在地盘找到本旬遁仪所在宫；
+ * 当前支持的转盘规则：
+ * 1. 在地盘找到本旬遁仪所在宫；
  * 2. 该宫原驻九星为值符星；
- * 3. 该宫原驻八门为值使门；
- * 4. 若遁仪落中五，八门没有原驻中门，不能在这里猜“寄坤/寄艮”，必须显式保持未决。
+ * 3. 普通八宫以同宫原驻八门为值使门；
+ * 4. 遁仪落中五时，采用已由完整阴遁实例复核的“中五寄坤二”：值符为天禽，值使取坤二死门，
+ *    但值使的时支推进起点仍是中五宫，而不是二宫。
  *
- * 这里只解析初始锚点，不负责天盘旋转或值使随时支移动。
+ * 这里只解析旬首锚点，不负责完整天盘/人盘排列。
  */
 object DutyAnchorResolver {
     private val homeStars = mapOf(
@@ -76,13 +81,18 @@ object DutyAnchorResolver {
         val palace = earthPlate.palaceOf(xun.dunYi)
             ?: error("Xun dun-yi ${xun.dunYi.zh} is missing from earth plate")
         val star = checkNotNull(homeStars[palace]) { "Missing home star for palace $palace" }
-        val gate = homeGates[palace]
+        val centerHosted = palace == 5
+        val gateHomePalace = if (centerHosted) 2 else palace
+        val gate = checkNotNull(homeGates[gateHomePalace]) {
+            "Missing home gate for resolved host palace $gateHomePalace"
+        }
         return DutyAnchor(
             dunYiPalace = palace,
             valueStar = star,
+            gateHomePalace = gateHomePalace,
             valueGate = gate,
-            gateState = if (gate == null) {
-                DutyGateAnchorState.CENTER_PALACE_REQUIRES_HOST_RULE
+            gateState = if (centerHosted) {
+                DutyGateAnchorState.CENTER_PALACE_HOSTED_KUN2
             } else {
                 DutyGateAnchorState.RESOLVED
             },
