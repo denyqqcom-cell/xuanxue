@@ -19,11 +19,15 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.xuanxue.app.domain.ModuleStage
+import com.xuanxue.app.domain.PracticeModule
+import com.xuanxue.app.domain.PracticeModules
 import com.xuanxue.app.ui.components.SectionTitle
 
 @Composable
 fun HomeScreen(
     onNewChart: () -> Unit,
+    onOpenModule: (PracticeModule) -> Unit,
     onLicenses: () -> Unit,
 ) {
     Column(
@@ -50,9 +54,9 @@ fun HomeScreen(
                 modifier = Modifier.padding(20.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                Text("把复杂的盘，先变得看得懂。", style = MaterialTheme.typography.headlineSmall)
+                Text("五套术数，一个本地工具箱。", style = MaterialTheme.typography.headlineSmall)
                 Text(
-                    "先完成准确排盘，再按宫位逐层展开星曜、大限与细节。算法留在本机，界面只负责把信息讲清楚。",
+                    "紫微先保持可用；奇门、八字、六爻、大六壬已经进入同一 App 架构。每个模块先验证排盘规则与资料来源，再开放正式断盘。",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer,
                 )
@@ -62,39 +66,43 @@ fun HomeScreen(
             }
         }
 
-        SectionTitle("排盘工具", "当前只开放已经完成算法验证的模块")
+        SectionTitle("排盘工具", "只有通过算法与资料验证的模块才标记为可用")
         ModuleCard(
-            title = "紫微斗数",
-            description = "十二宫 · 主星四化 · 大限小限",
-            status = "可用",
-            enabled = true,
+            module = PracticeModules.Ziwei,
             onClick = onNewChart,
         )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             ModuleCard(
-                title = "奇门遁甲",
-                description = "知识库已整理",
-                status = "开发中",
-                enabled = false,
+                module = PracticeModules.Qimen,
                 modifier = Modifier.weight(1f),
+                onClick = { onOpenModule(PracticeModules.Qimen) },
             )
             ModuleCard(
-                title = "八字",
-                description = "研究验证中",
-                status = "开发中",
-                enabled = false,
+                module = PracticeModules.Bazi,
                 modifier = Modifier.weight(1f),
+                onClick = { onOpenModule(PracticeModules.Bazi) },
             )
         }
-        ModuleCard(
-            title = "风水",
-            description = "暂不开放排盘入口",
-            status = "规划中",
-            enabled = false,
-        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            ModuleCard(
+                module = PracticeModules.Liuyao,
+                modifier = Modifier.weight(1f),
+                onClick = { onOpenModule(PracticeModules.Liuyao) },
+            )
+            ModuleCard(
+                module = PracticeModules.Liuren,
+                modifier = Modifier.weight(1f),
+                onClick = { onOpenModule(PracticeModules.Liuren) },
+            )
+        }
 
         Spacer(Modifier.height(2.dp))
         OutlinedCard(Modifier.fillMaxWidth()) {
@@ -104,7 +112,7 @@ fun HomeScreen(
             ) {
                 Text("隐私与版权", style = MaterialTheme.typography.titleMedium)
                 Text(
-                    "App 不申请网络权限，不含广告、支付或推送。新版界面为独立设计，不使用商业命理 App 的图片、字体、截图或文案。",
+                    "App 不申请网络权限，不含广告、支付或推送。学习资料不会直接打进发行包；规则进入核心前先做来源、许可、流派和案例验证。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -116,33 +124,31 @@ fun HomeScreen(
 
 @Composable
 private fun ModuleCard(
-    title: String,
-    description: String,
-    status: String,
-    enabled: Boolean,
+    module: PracticeModule,
     modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null,
+    onClick: () -> Unit,
 ) {
+    val isReady = module.stage == ModuleStage.Ready
     OutlinedCard(modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(15.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Row(modifier = Modifier.fillMaxWidth()) {
-                Text(title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Text(module.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                 Text(
-                    status,
+                    if (isReady) "可用" else "资料准备",
                     style = MaterialTheme.typography.labelLarge,
-                    color = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isReady) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
             Text(
-                description,
+                module.description,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            if (enabled && onClick != null) {
-                TextButton(onClick = onClick) { Text("开始排盘") }
+            TextButton(onClick = onClick) {
+                Text(if (isReady) "开始排盘" else "查看接入进度")
             }
         }
     }
