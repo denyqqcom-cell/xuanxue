@@ -1,45 +1,31 @@
-# V1.0 Release Candidate acceptance
+# V1.0 Release Candidate acceptance — historical
 
-Current train: `1.0.0-rc1`.
+This file records the RC1 promotion contract that was used before V1.0 stable promotion. The active release gate is now `RELEASE_ACCEPTANCE.md`.
 
-RC means the product surface is frozen for acceptance. It does **not** mean the divination methods are scientifically validated, and it does not upgrade any module beyond the evidence shown in the App's method-audit center.
+Historical train: `1.0.0-rc1`.
 
-## RC scope
+RC meant the product surface was frozen for acceptance. It did **not** mean the divination methods were scientifically validated, and it did not upgrade any module beyond the evidence shown in the App's method-audit center.
 
-The candidate includes six local modules: 紫微、八字、奇门、六爻、大六壬、黄历. It also includes offline `XuanxueAI` evidence/interpretation presentation, but no network provider, no account system, no ads, no payment and no push.
+## Historical RC scope
 
-`奇门` full nine-palace output remains an experimental engineering view until full-board golden fixtures and unresolved school conflicts are closed. RC acceptance therefore verifies that this limitation is visible and enforced; it does not relabel the experimental board as a verified standard chart.
+The candidate included six local modules: 紫微、八字、奇门、六爻、大六壬、黄历. It also included offline `XuanxueAI` evidence/interpretation presentation, but no network provider, no account system, no ads, no payment and no push.
 
-## Automated hard gates
+`奇门` full nine-palace output remained an experimental engineering view until full-board golden fixtures and unresolved school conflicts are closed. RC acceptance therefore verified that this limitation was visible and enforced; it did not relabel the experimental board as a verified standard chart.
 
-A source head may be called an RC build only when the same GitHub Actions run passes all of the following:
+## Historical promotion conditions
 
-1. release copyright boundary;
-2. `tools/validate_rc.py` RC metadata/security invariants;
-3. completed handoff validation;
-4. core/evidence tests;
-5. Android `lintDebug` and `lintRelease`;
-6. debug and release assembly;
-7. APK content audit on both variants;
-8. audited artifact packaging with source-head/base/checked-out provenance and SHA256 files.
+RC1 required copyright/package checks, metadata/security validation, completed handoff validation, core/evidence tests, Android lint, debug/release assembly, APK-content audit, an audited artifact, and narrow/wide device acceptance in airplane mode.
 
-The release APK generated in CI is intentionally unsigned. No keystore or signing secret may be committed to the repository. The debug APK is the installable artifact for device acceptance.
+During evidence review, the release process was strengthened further: screenshots became a required review surface, visible Android crash/ANR dialogs became fail-closed conditions, and the emulator image was changed to a lean AOSP image to remove an unrelated Pixel Launcher background ANR from acceptance evidence.
 
-## Manual hard gate
+## Stable successor
 
-`DEVICE_ACCEPTANCE.md` must be executed against the exact audited debug APK produced from the candidate source head. At minimum the result must cover a narrow phone and a wider device class, light/dark mode, airplane mode and all six module paths.
+V1.0 stable uses:
 
-Any crash/ANR, blocked primary action, clipped critical content, incorrect current-time initialization, loss of the 奇门 experimental warning, unauthorized interpretation escalation, missing notices, or unexpected network/packaged research asset is a merge blocker.
+- `versionName = 1.0.0`;
+- `RELEASE_CHANNEL = stable`;
+- launcher label `玄学排盘`;
+- stable package `com.xuanxue.app`;
+- debug acceptance package `com.xuanxue.app.debug`.
 
-## Final V1.0 promotion
-
-Only after automated gates and manual device acceptance pass on the same source head should the candidate be promoted:
-
-- change launcher label from `玄学排盘 RC1` to `玄学排盘`;
-- change `versionName` from `1.0.0-rc1` to `1.0.0`;
-- change `RELEASE_CHANNEL` from `rc` to `stable`;
-- update the RC validation gate for stable metadata;
-- rerun the full debug + release pipeline;
-- mark PR ready for review and merge only after the final head is green.
-
-Signing/distribution credentials remain outside Git. A signed store/release artifact requires a separate secret-management and signing acceptance step; an unsigned CI release APK is packaging evidence, not a production-distribution binary.
+See `RELEASE_ACCEPTANCE.md` and `tools/validate_release.py` for the current same-head release gate.
