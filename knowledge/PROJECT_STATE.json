@@ -1,8 +1,10 @@
 {
   "schema_version": "knowledge-engine-v1",
-  "phase": "K0_BOOTSTRAP",
+  "phase": "K1_CORPUS_INDEX",
   "required_domains": ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui"],
   "common_layer": "common",
-  "balance_gate": "WARN_UNTIL_K1",
-  "next_phase": "K1_CORPUS_INDEX"
+  "balance_gate": "ENFORCE",
+  "next_phase": "K2_CLAIM_EXTRACTION",
+  "k1_acceptance": "CONDITIONAL_REPORT_LEVEL",
+  "k2_blocked": true
 }
