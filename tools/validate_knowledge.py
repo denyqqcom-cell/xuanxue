@@ -11,6 +11,15 @@ LEVELS = [
     "L4_CONFLICT_MAPPED","L5_FIXTURE_VERIFIED","L6_ENGINE_VERIFIED",
     "L7_INTERPRETATION_READY","L8_FEEDBACK_VALIDATED",
 ]
+SCHEMAS = [
+    "source.schema.json",
+    "evidence.schema.json",
+    "claim.schema.json",
+    "school.schema.json",
+    "conflict.schema.json",
+    "fixture.schema.json",
+    "case.schema.json",
+]
 
 def fail(msg):
     print(f"knowledge-gate: FAIL: {msg}", file=sys.stderr)
@@ -34,7 +43,7 @@ def main():
     if ids != REQUIRED:
         fail("domain registry mismatch")
 
-    for schema in ["source.schema.json", "claim.schema.json", "conflict.schema.json", "fixture.schema.json"]:
+    for schema in SCHEMAS:
         doc = load(K / "schema" / schema)
         if doc.get("type") != "object" or not doc.get("required"):
             fail(f"schema lacks object/required contract: {schema}")
@@ -80,6 +89,7 @@ def main():
 
     print("knowledge-gate: PASS")
     print("phase=", state.get("phase"))
+    print("schemas=", SCHEMAS)
     print("levels=", {d: LEVELS[levels[d]] for d in REQUIRED})
     if min(levels.values()) < max(levels.values()):
         print("balance=DOMAIN_IMBALANCE_K1_REQUIRED")
