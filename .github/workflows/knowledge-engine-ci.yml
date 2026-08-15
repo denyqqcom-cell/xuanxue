@@ -21,6 +21,8 @@ jobs:
         run: python3 tools/validate_knowledge.py
       - name: Verify generated knowledge status is current
         run: python3 tools/generate_knowledge_status.py --check
+      - name: Test local K1 intake validator
+        run: python3 tools/test_validate_k1_intake.py
       - name: Guard knowledge tree from packaged research binaries
         shell: bash
         run: |
