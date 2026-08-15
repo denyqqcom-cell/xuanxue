@@ -1,0 +1,25 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"source.schema.json",
+  "type":"object",
+  "required":["source_id","domain","title","source_type","era","readability","copyright","local_only","status"],
+  "properties":{
+    "source_id":{"type":"string","minLength":1},
+    "domain":{"enum":["ziwei","bazi","qimen","liuyao","liuren","fengshui","common"]},
+    "title":{"type":"string","minLength":1},
+    "author":{"type":["string","null"]},
+    "source_type":{"enum":["BOOK","COURSE","ANCIENT_TEXT","ARTICLE","NOTE","CODE","CASE_COLLECTION","OTHER"]},
+    "era":{"enum":["ANCIENT","PRE_MODERN","MODERN","UNKNOWN"]},
+    "edition":{"type":["string","null"]},
+    "file_sha256":{"type":["string","null"]},
+    "pages":{"type":["integer","null"],"minimum":1},
+    "readability":{"enum":["TEXT_OK","SCAN","OCR_WEAK","OCR_FAIL","UNOPENED","METADATA_ONLY"]},
+    "school_ids":{"type":"array","items":{"type":"string"}},
+    "copyright":{"enum":["PUBLIC_DOMAIN_TEXT_ONLY","LICENSED","RESEARCH_ONLY","UNKNOWN","FORBIDDEN_TO_PACKAGE"]},
+    "local_only":{"type":"boolean"},
+    "status":{"enum":["DISCOVERED","INDEXED","PARTIALLY_READ","READ","DUPLICATE","BLOCKED"]},
+    "duplicate_of":{"type":["string","null"]},
+    "notes":{"type":"string"}
+  },
+  "additionalProperties":true
+}

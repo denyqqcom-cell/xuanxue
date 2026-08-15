@@ -1,0 +1,10 @@
+[
+  {"id":"ziwei","name":"紫微斗数","role":"domain"},
+  {"id":"bazi","name":"八字","role":"domain"},
+  {"id":"qimen","name":"奇门遁甲","role":"domain"},
+  {"id":"liuyao","name":"六爻","role":"domain"},
+  {"id":"liuren","name":"大六壬","role":"domain"},
+  {"id":"fengshui","name":"风水","role":"domain"},
+  {"id":"common","name":"公共基础","role":"shared-foundation"},
+  {"id":"huangli","name":"黄历","role":"utility"}
+]

@@ -1,0 +1,8 @@
+{
+  "schema_version": "knowledge-engine-v1",
+  "phase": "K0_BOOTSTRAP",
+  "required_domains": ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui"],
+  "common_layer": "common",
+  "balance_gate": "WARN_UNTIL_K1",
+  "next_phase": "K1_CORPUS_INDEX"
+}

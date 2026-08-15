@@ -1,0 +1,17 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"conflict.schema.json",
+  "type":"object",
+  "required":["conflict_id","domain","claim_ids","school_ids","impact","resolution_status"],
+  "properties":{
+    "conflict_id":{"type":"string","minLength":1},
+    "domain":{"enum":["ziwei","bazi","qimen","liuyao","liuren","fengshui","common"]},
+    "claim_ids":{"type":"array","minItems":2,"items":{"type":"string"}},
+    "school_ids":{"type":"array","minItems":1,"items":{"type":"string"}},
+    "impact":{"type":"string","minLength":1},
+    "resolution_status":{"enum":["OPEN","CONFIGURABLE","RESOLVED_BY_EVIDENCE","UNSUPPORTED"]},
+    "resolution":{"type":["string","null"]},
+    "notes":{"type":"string"}
+  },
+  "additionalProperties":true
+}
