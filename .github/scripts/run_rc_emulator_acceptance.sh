@@ -17,7 +17,7 @@ run_profile() {
   local density="$4"
   local night="$5"
   local out="build/rc-device-acceptance/${form_factor}"
-  local remote_screens="/sdcard/Download/xuanxue-rc-screenshots"
+  local remote_screens="/sdcard/Download/xuanxue-v1-screenshots"
 
   echo "=== ${form_factor^^} / ${theme^^} ==="
   adb shell wm size "$size"
@@ -25,7 +25,7 @@ run_profile() {
   adb shell cmd uimode night "$night"
   adb shell rm -rf "$remote_screens"
   adb shell mkdir -p "$remote_screens"
-  adb shell am force-stop com.xuanxue.app.rc 2>/dev/null || true
+  adb shell am force-stop com.xuanxue.app.debug 2>/dev/null || true
 
   ./gradlew --no-daemon :app:connectedDebugAndroidTest \
     -Pandroid.testInstrumentationRunnerArguments.class=com.xuanxue.app.RcDeviceAcceptanceTest \
@@ -64,19 +64,19 @@ run_profile narrow light 1080x1920 420 no
 run_profile wide dark 1600x1200 240 yes
 
 # connectedDebugAndroidTest may uninstall the target package during cleanup.
-# Reinstall the exact debug APK built from this source head before runtime checks.
+# Reinstall the exact stable debug APK built from this source head before runtime checks.
 test -s app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/debug/app-debug.apk >/dev/null
-adb shell pm path com.xuanxue.app.rc > build/rc-device-acceptance/PACKAGE_PATH.txt
+adb shell pm path com.xuanxue.app.debug > build/rc-device-acceptance/PACKAGE_PATH.txt
 grep -Fq 'package:' build/rc-device-acceptance/PACKAGE_PATH.txt
 
-package_dump="$(adb shell dumpsys package com.xuanxue.app.rc)"
+package_dump="$(adb shell dumpsys package com.xuanxue.app.debug)"
 if grep -Fq 'android.permission.INTERNET' <<<"$package_dump"; then
   echo 'Runtime package unexpectedly declares android.permission.INTERNET' >&2
   exit 1
 fi
-if ! grep -Fq 'versionName=1.0.0-rc1-debug' <<<"$package_dump"; then
-  echo 'Installed acceptance package is not the expected RC1 debug version.' >&2
+if ! grep -Fq 'versionName=1.0.0-debug' <<<"$package_dump"; then
+  echo 'Installed acceptance package is not the expected V1.0 stable debug version.' >&2
   exit 1
 fi
 
@@ -85,7 +85,7 @@ test "$final_airplane" = "1"
 {
   echo "internet_permission=absent"
   echo "airplane_mode=${final_airplane}"
-  echo "package=com.xuanxue.app.rc"
-  echo "version_name=1.0.0-rc1-debug"
+  echo "package=com.xuanxue.app.debug"
+  echo "version_name=1.0.0-debug"
   echo "source_head_sha=${SOURCE_HEAD_SHA}"
 } > build/rc-device-acceptance/RUNTIME_SECURITY.txt
