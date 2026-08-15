@@ -10,7 +10,7 @@ Evidence available to project-side reviewer: user-provided `K1_MASTER_REPORT.md`
 
 K2 Claim Extraction remains blocked until the local intake passes the repository-side machine contract in `tools/validate_k1_intake.py` and the accounting gaps below are reconciled.
 
-The validator implementation itself is closed-loop tested in CI. Knowledge Engine V1 CI run `31873025257` on head `c28bb377701195d1b3d61ad5ff014c19075d3a2c` passed:
+The validator implementation itself is closed-loop tested in CI. Knowledge Engine V1 CI run `31873116322` passed the exact current K1 acceptance/tooling tree:
 
 - six-domain knowledge contracts;
 - generated STATUS consistency;
