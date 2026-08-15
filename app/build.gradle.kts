@@ -17,15 +17,15 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0.0-rc1"
+        versionName = "1.0.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "RELEASE_CHANNEL", "\"rc\"")
+        buildConfigField("String", "RELEASE_CHANNEL", "\"stable\"")
         buildConfigField("String", "SOURCE_HEAD_SHA", "\"$sourceHeadSha\"")
     }
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".rc"
+            applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
         }
         release {
