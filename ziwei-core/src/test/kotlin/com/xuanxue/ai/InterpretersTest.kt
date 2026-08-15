@@ -27,6 +27,10 @@ class InterpretersTest {
         val r = XuanxueAI.ziwei(a)
         println("AI2 紫微:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
+        assertTrue(r.items.any { it.ruleId == "R-ZW-MING" })
+        assertTrue(r.text.contains("命宫") || r.text.contains("主星"))
+        assertTrue(!r.text.contains("帝星，主贵气"))
+        assertTrue(!r.text.contains("得财之机"))
     }
 
     @Test
@@ -47,6 +51,10 @@ class InterpretersTest {
         println("AI4 六爻:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
         assertTrue(r.text.contains("世爻"))
+        assertTrue(r.items.any { it.ruleId == "R-LY-SHIYING" })
+        assertTrue(!r.text.contains("主文书、长辈"))
+        assertTrue(!r.text.contains("宜静守待时"))
+        assertTrue(!r.text.contains("观变卦六亲以断吉凶趋向"))
     }
 
     @Test
@@ -55,7 +63,10 @@ class InterpretersTest {
         val r = XuanxueAI.liuren(c)
         println("AI5 六壬:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
-        assertTrue(r.text.contains("元首课") || r.text.contains("课型"))
+        assertTrue(r.text.contains("元首课") || r.text.contains("取法") || r.text.contains("课型"))
+        assertTrue(r.items.any { it.ruleId == "R-LR-FA" })
+        assertTrue(!r.text.contains("宜顺势而为"))
+        assertTrue(!r.text.contains("待填实之日应事"))
     }
 
     @Test
@@ -64,6 +75,8 @@ class InterpretersTest {
         val r = XuanxueAI.huangli(l)
         println("AI6 黄历:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
+        assertTrue(r.items.any { it.ruleId == "R-HL-YIJI" })
+        assertTrue(r.overall.contains("不是命理应期") || r.text.contains("不是命理应期"))
     }
 
     @Test

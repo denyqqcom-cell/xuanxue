@@ -1,11 +1,5 @@
 package com.xuanxue.ai
 
-import com.xuanxue.bazi.BaziEngine
-import com.xuanxue.liuyao.LiuYaoEngine
-import com.xuanxue.liuren.LiuRenEngine
-import com.xuanxue.qimen.QimenEngine
-import com.xuanxue.ziwei.core.ZiweiAstro
-
 /**
  * 玄学解读引擎 — 离线规则解读（确定性，无网络）。
  * 内容原则：星曜/格局/课型含义均为公开传统释义（公有领域常识性描述），
@@ -20,7 +14,28 @@ interface Interpreter<T> {
     fun interpret(chart: T): List<String>  // 返回解读条目（每条独立成段）
 }
 
-/** 解读条目：标题 + 结论 + 依据。layer/ruleId 供奇门等带来源的规则用。 */
+fun sourcedItem(
+    layer: String,
+    ruleId: String,
+    summary: String,
+    source: String,
+    confidence: String,
+    detail: String = "",
+): ReadingItem = ReadingItem(
+    title = "$layer · $ruleId",
+    summary = summary,
+    detail = detail,
+    layer = layer,
+    ruleId = ruleId,
+    source = source,
+    confidence = confidence,
+)
+
+const val LAYER_ALG = "算法"
+const val LAYER_SCHOOL = "门派"
+const val LAYER_EXP = "经验"
+
+/** 解读条目：标题 + 结论 + 依据。layer/ruleId 供带来源的规则用。 */
 data class ReadingItem(
     val title: String,
     val summary: String,
