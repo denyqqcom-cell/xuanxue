@@ -2,6 +2,7 @@ package com.xuanxue.qimen
 
 import com.nlf.calendar.Lunar
 import com.nlf.calendar.Solar
+import java.time.LocalDate
 
 /**
  * 转盘时家奇门排盘引擎（Kotlin 实现）。
@@ -76,6 +77,9 @@ object QimenEngine {
         val zhiShi: String,         // 值使门
         val gongs: List<Gong>,      // 九宫（1-9 顺序）
         val maXing: String,         // 马星地支
+        val juMethodUsed: String = "CHAI_BU_DAYCOUNT",
+        val jieqiDayIndex: Int = 0,
+        val yuanFutou: String = "",
     ) {
         val juText: String get() = "${if (yinYang > 0) "阳" else "阴"}遁${ju}局 $yuan"
     }
@@ -113,7 +117,23 @@ object QimenEngine {
         "巳", "酉", "丑" -> "亥"; "亥", "卯", "未" -> "巳"; else -> ""
     }
 
+    /** R-JU-001：节气日内序号 1-5 上 / 6-10 中 / 11+ 下。 */
+    fun yuanByDayCount(dayIndex: Int): String = when {
+        dayIndex <= 5 -> "上元"
+        dayIndex <= 10 -> "中元"
+        else -> "下元"
+    }
+
+    fun jieqiDayIndexOf(lunar: Lunar, jieQiName: String, year: Int, month: Int, day: Int): Int {
+        val start = lunar.jieQiTable[jieQiName] ?: return 1
+        val a = LocalDate.of(start.year, start.month, start.day)
+        val b = LocalDate.of(year, month, day)
+        val idx = (b.toEpochDay() - a.toEpochDay()).toInt() + 1
+        return if (idx >= 1) idx else 1
+    }
+
     // 定元：符头法 —— 日干支旬首定元（甲子/甲午/己卯/己酉 上元；甲寅/甲申/己巳/己亥 中元；其余 下元）
+    // 仅作门派对对照，默认起局不再使用。
     fun yuanOf(dayGZ: String): String {
         val s = seqOf(dayGZ[0].toString(), dayGZ[1].toString())
         val fuTou = s - (s % 10)  // 旬首序号
@@ -141,10 +161,12 @@ object QimenEngine {
             ?: runCatching { lunar.getPrevJieQi()?.name }.getOrNull()
             ?: "冬至"
 
-        // 定局：节气表 + 符头定元
+        // 定局：节气表 + 拆补·日数分段（handoff 默认 R-JU-001）。符头另存对照，不参与起局。
         val rule = JIE_QI_JU[jieQi] ?: JuRule(1, 1, 7, 4)
         val yinYang = rule.yinYang
-        val yuan = yuanOf(dayGZ)
+        val jieqiDayIndex = jieqiDayIndexOf(lunar, jieQi, year, month, day)
+        val yuan = yuanByDayCount(jieqiDayIndex)
+        val yuanFutou = yuanOf(dayGZ)
         val ju = when (yuan) { "上元" -> rule.shang; "中元" -> rule.zhong; else -> rule.xia }
 
         // 时旬
@@ -229,6 +251,9 @@ object QimenEngine {
             zhiFu = zhiFu, zhiShi = zhiShi,
             gongs = gongs,
             maXing = ma,
+            juMethodUsed = "CHAI_BU_DAYCOUNT",
+            jieqiDayIndex = jieqiDayIndex,
+            yuanFutou = yuanFutou,
         )
     }
 }

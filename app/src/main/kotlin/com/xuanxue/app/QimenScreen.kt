@@ -121,6 +121,11 @@ fun QimenResult(c: QimenChart) {
                 Text("四柱: ${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}", fontSize = 14.sp)
                 Text("节气: ${c.jieQi}", fontSize = 14.sp)
                 Text("局: ${c.juText}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E88E5))
+                Text(
+                    "定元: 拆补·日数分段" +
+                        if (c.jieqiDayIndex > 0) "（${c.jieQi}第${c.jieqiDayIndex}天）" else "",
+                    fontSize = 12.sp, color = Color(0xFF546E7A)
+                )
                 Text("值符: ${c.zhiFu}   值使: ${c.zhiShi}   旬首: ${c.xunShou}遁${c.dunGan}", fontSize = 14.sp)
                 Text("旬空: ${c.xunKong.joinToString("")}   马星: ${c.maXing}", fontSize = 14.sp)
             }

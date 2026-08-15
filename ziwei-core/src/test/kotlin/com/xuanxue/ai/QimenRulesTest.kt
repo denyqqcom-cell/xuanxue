@@ -70,20 +70,24 @@ class QimenRulesTest {
     fun liqiu20260807JuMethodsSplit() {
         val c = QimenEngine.bySolar(2026, 8, 7, 16, 0)
         assertEquals("立秋", c.jieQi)
-        val idx = QimenRules.jieqiDayIndex(2026, 8, 7, c.jieQi)
+        assertEquals("CHAI_BU_DAYCOUNT", c.juMethodUsed)
+        val idx = if (c.jieqiDayIndex > 0) c.jieqiDayIndex else QimenRules.jieqiDayIndex(2026, 8, 7, c.jieQi)
         assertNotNull(idx)
         val dayYuan = QimenRules.yuanByDayCount(idx)
         val dayJu = QimenRules.juOf(c.jieQi, dayYuan)
         assertNotNull(dayJu)
-        assertTrue(idx >= 1)
+        assertEquals(dayYuan, c.yuan)
+        assertEquals(dayJu, c.ju)
+        val futouJu = QimenRules.juOf(c.jieQi, c.yuanFutou.ifEmpty { QimenEngine.yuanOf(c.dayGZ) })
+        assertNotNull(futouJu)
         val r = XuanxueAI.qimen(c)
         assertTrue(r.items.any { it.ruleId == "R-JU-001" })
         assertTrue(r.text.contains("符头"))
         assertTrue(r.text.contains("日数分段"))
         assertTrue(r.text.contains("${c.ju}局"))
-        assertTrue(r.text.contains("${dayJu}局"))
-        if (c.yuan != dayYuan || c.ju != dayJu) {
-            assertNotEquals(c.ju, dayJu)
+        assertTrue(r.text.contains("${futouJu}局"))
+        if (c.yuanFutou != c.yuan || futouJu != c.ju) {
+            assertNotEquals(c.ju, futouJu)
             assertTrue(r.text.contains("两法局数不同"))
         }
     }

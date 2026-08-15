@@ -1,108 +1,128 @@
 package com.xuanxue.ai
 
 import com.xuanxue.bazi.BaziEngine
+import com.xuanxue.bazi.BaziEngine.BaziChart
 
 /**
- * 八字解读器 — 离线规则解读。
- * 内容：五行分布/日主强弱(十二运)/十神结构/格局倾向/大运走向。
- * 全部为公开传统命理常识性释义。
+ * 八字离线解读：只编译笔记里可对照的手续。
+ * 先结构后十神；十神不断性格；不自动应期；不宣称准确率。
  */
-object BaziInterpreter : Interpreter<BaziEngine.BaziChart> {
+object BaziInterpreter : Interpreter<BaziChart> {
     override val toolName = "bazi_interpret"
-    override val toolDesc = "八字四柱解读：五行、日主强弱、十神格局、大运"
+    override val toolDesc = "八字四柱解读：五行、梁氏投票身强弱、十神只列名、空亡（离线，带来源）"
 
-    // 五行对应的性格/倾向描述（传统常识性释义）
-    private val WUXING_CHAR = mapOf(
-        "金" to "性刚毅果决，重义气，喜条理",
-        "木" to "性仁和向上，有生发之气，主成长",
-        "水" to "性聪慧流动，主智慧与适应力",
-        "火" to "性热烈明快，主礼仪与表现力",
-        "土" to "性敦厚包容，主信用与承载",
+    override fun interpret(c: BaziChart): List<String> = interpretItems(c).map { it.summary }
+
+    fun reading(c: BaziChart): Reading = Reading(
+        toolName = toolName,
+        items = interpretItems(c),
+        overall = "离线规则摘录。先定日主强弱，再看十神。十神性格词典不下发。不是应期，也不宣称准确率。",
     )
 
-    // 日主五行对应的十天干特性
-    private val GAN_CHAR = mapOf(
-        "甲" to "阳木，如参天大树，主向上生长、独立担当",
-        "乙" to "阴木，如花草藤蔓，主柔韧适应、细腻婉转",
-        "丙" to "阳火，如太阳，主光明磊落、热情外放",
-        "丁" to "阴火，如灯烛，主内敛温暖、思虑细腻",
-        "戊" to "阳土，如高山城墙，主厚重稳固、诚信担当",
-        "己" to "阴土，如田园沃土，主包容滋养、善于协调",
-        "庚" to "阳金，如刀剑矿石，主刚毅果断、规则分明",
-        "辛" to "阴金，如珠玉首饰，主精致敏锐、审美细腻",
-        "壬" to "阳水，如江河大海，主奔流不息、格局开阔",
-        "癸" to "阴水，如雨露泉眼，主滋养渗透、洞察微妙",
-    )
-
-    // 十神含义（传统）
-    private val SHI_SHEN = mapOf(
-        "正官" to "循规守约，责任心强，利公职与管理",
-        "七杀" to "魄力与压力并存，有竞争性与行动力",
-        "正印" to "贵人与庇护，利学业文化，主名声",
-        "偏印" to "偏门才艺，思维独特，利专业技艺",
-        "正财" to "正当收入，勤俭务实，主稳定财源",
-        "偏财" to "流动之财，交际手腕，主机遇与魄力",
-        "食神" to "才艺表达，福气享受，主创造力",
-        "伤官" to "才华外露，锋芒锐气，主突破与个性",
-        "比肩" to "自我独立，同辈助力，主自主性",
-        "劫财" to "行动果断，竞争意识，主进取与破费",
-    )
-
-    private val GAN = "甲乙丙丁戊己庚辛壬癸"
-    private val WX = "木木火火土土金金水水"
-
-    override fun interpret(c: BaziEngine.BaziChart): List<String> {
-        val items = mutableListOf<String>()
+    fun interpretItems(c: BaziChart): List<ReadingItem> {
+        val items = mutableListOf<ReadingItem>()
         val dayGan = c.dayZhu.gan
-        val dayWx = WX[GAN.indexOf(dayGan)].toString()
+        val dayWx = BaziRules.wxOfStem(dayGan)
 
-        // 1. 日主特性
-        items.add("日主【${dayGan}】${GAN_CHAR[dayGan] ?: ""}（${dayWx}）。日支【${c.dayZhu.zhi}】为${c.dayZhu.hideGan.joinToString("、")}，十二运【${c.dayZhu.diShi}】。")
+        items += BaziRules.readingItem(
+            BaziRules.LAYER_ALG, "R-BZ-PILLAR",
+            "日主【$dayGan】属$dayWx。四柱【${c.yearZhu.gan}${c.yearZhu.zhi} ${c.monthZhu.gan}${c.monthZhu.zhi} ${c.dayZhu.gan}${c.dayZhu.zhi} ${c.timeZhu.gan}${c.timeZhu.zhi}】，日支藏干${c.dayZhu.hideGan.joinToString("、")}，日空【${c.dayKong}】。",
+            "本机 BaziEngine / lunar-java 四柱",
+            "A",
+        )
 
-        // 2. 五行分布统计（含藏干）
-        val wxCount = mutableMapOf("金" to 0, "木" to 0, "水" to 0, "火" to 0, "土" to 0)
-        c.fourZhu.forEach { zhu ->
-            val g = zhu.gan
-            val gWx = WX[GAN.indexOf(g)].toString()
-            wxCount[gWx] = (wxCount[gWx] ?: 0) + 2
-            zhu.hideGan.forEach { hg ->
-                val hWx = WX[GAN.indexOf(hg)].toString()
-                wxCount[hWx] = (wxCount[hWx] ?: 0) + 1
-            }
-        }
+        val wxCount = BaziRules.countWuXing(
+            c.fourZhu.map { it.gan },
+            c.fourZhu.flatMap { it.hideGan },
+        )
         val sorted = wxCount.entries.sortedByDescending { it.value }
-        val strongest = sorted.first()
-        val weakest = sorted.last()
-        val balance = sorted.joinToString(" ") { "${it.key}${it.value}" }
-        items.add("五行分布（含藏干计分）：$balance。最旺【${strongest.key}】${WUXING_CHAR[strongest.key] ?: ""}；最弱【${weakest.key}】。")
+        items += BaziRules.readingItem(
+            BaziRules.LAYER_ALG, "R-BZ-WUXING",
+            "五行分布（干2分、藏干1分）：${sorted.joinToString(" ") { "${it.key}${it.value}" }}。最旺【${sorted.first().key}】，最弱【${sorted.last().key}】。此为计数，不是旺衰定论。",
+            "公开干支五行表；计分权重为本机约定",
+            "B",
+        )
 
-        // 3. 日主强弱（十二运判断简单版：长生/沐浴/冠带/临官/帝旺 为旺；病/死/墓/绝 为弱；余为平）
-        val diShi = c.dayZhu.diShi
-        val strength = when (diShi) {
-            "长生", "沐浴", "冠带", "临官", "帝旺" -> "偏旺"
-            "病", "死", "墓", "绝" -> "偏弱"
-            else -> "中和"
+        val hideAll = c.fourZhu.flatMap { it.hideGan }
+        val otherStems = listOf(c.yearZhu.gan, c.monthZhu.gan, c.timeZhu.gan)
+        val vote = BaziRules.liangVote(
+            dayGan,
+            c.yearZhu.gan, c.yearZhu.zhi,
+            c.monthZhu.gan, c.monthZhu.zhi,
+            c.dayZhu.zhi,
+            c.timeZhu.gan, c.timeZhu.zhi,
+            hideAll,
+            otherStems,
+        )
+        val voteLine = vote.votes.joinToString("、") {
+            "${it.pos}${it.token}${BaziRules.kindLabel(it.kind)}${if (it.score > 0) "正" else if (it.score < 0) "负" else "平"}"
         }
-        items.add("日主十二运【${diShi}】，身${strength}。${if (strength == "偏旺") "宜泄宜克，喜财官食伤" else if (strength == "偏弱") "宜生宜扶，喜印比" else "五行趋衡，随运而行"}。")
+        items += BaziRules.readingItem(
+            BaziRules.LAYER_SCHOOL, "R-BZ-LIANG-VOTE",
+            "梁湘润复式投票（笔记04重推）：${vote.plus}正 ${vote.minus}负 → 日主$dayGan 身${vote.strength}。得令=${if (vote.deLing) "是" else "否"}，得地(支藏比劫)=${if (vote.deDi) "是" else "否"}，得党(他干比劫)=${if (vote.deDang) "是" else "否"}。地支用本气，墓库未细分。",
+            "笔记04 诸家交叉比对 · 梁湘润复式投票",
+            "B",
+            detail = voteLine,
+        )
 
-        // 4. 十神格局
-        val shiShenSet = c.fourZhu.flatMap { listOf(it.shiShenGan) + it.shiShenZhi }.toSet()
-        val shenDesc = shiShenSet.filter { SHI_SHEN.containsKey(it) }.joinToString("、") { "${it}（${SHI_SHEN[it]}）" }
-        items.add("命局十神：$shenDesc。")
-        // 财官印食重点提示
-        val keyShen = listOf("正官", "七杀", "正印", "正财", "食神")
-        val present = keyShen.filter { it in shiShenSet }
-        if (present.isNotEmpty()) {
-            items.add("重点格局倾向：${present.joinToString("、")}。")
-        } else {
-            items.add("格局以比劫/偏印为主，宜从专业技艺或合作中求发展。")
+        items += BaziRules.readingItem(
+            BaziRules.LAYER_SCHOOL, "R-BZ-DISHI",
+            "日支十二运【${c.dayZhu.diShi}】只作数据。任铁樵经笔记04转述：执着长生十二宫生死败绝不足凭，本机不用十二运单独判身强弱。",
+            "笔记04 明确否定的流行做法",
+            "B",
+        )
+
+        val yong = when (vote.strength) {
+            "偏旺" -> "扶抑方向倾向泄耗克（食伤/财/官杀）"
+            "偏弱" -> "扶抑方向倾向生扶（印/比劫）"
+            else -> "扶抑未一边倒，先看成败与流通，不自动取用"
         }
+        items += BaziRules.readingItem(
+            BaziRules.LAYER_SCHOOL, "R-BZ-YONG",
+            "日主$dayGan，身${vote.strength}。$yong。用神一词在梁氏有格局/通关/病药/专旺/调候五义，本机只标扶抑方向，不点具体用神字。调候与扶抑谁优先（梁高调候 / 任未明言）只并列，不自动选。",
+            "笔记04 用神五义；笔记39 第1步必须声明身强身弱",
+            "B",
+        )
 
-        // 5. 大运
+        val shenSet = c.fourZhu.flatMap { listOf(it.shiShenGan) + it.shiShenZhi }.filter { it.isNotBlank() }.toSet()
+        items += BaziRules.readingItem(
+            BaziRules.LAYER_ALG, "R-BZ-SHISHEN",
+            "日主$dayGan，身${vote.strength}。命局十神名目：${shenSet.joinToString("、")}。十神吉凶由用神/忌神决定，不下发性格词典，也不把正官等写成必定贵。",
+            "笔记39 铁律；笔记15 公理1 结构优先",
+            "B",
+        )
+
+        items += BaziRules.readingItem(
+            BaziRules.LAYER_SCHOOL, "R-BZ-SHENSHA",
+            "神煞不作吉凶主判。任铁樵经笔记转述反对专以神煞论命；梁湘润用作应期辅助。本机两者并列，不排神煞表。",
+            "笔记04 神煞对立",
+            "C",
+        )
+
         if (c.daYun.isNotEmpty()) {
-            val first = c.daYun.first()
-            val current = c.daYun.getOrNull(1) ?: first
-            items.add("${c.startYunAge}岁起运。${current.startYear}-${current.endYear}岁行【${current.ganZhi}】运，首年流年${current.liuNian.firstOrNull()?.first ?: ""}。")
+            val current = c.daYun.getOrNull(1) ?: c.daYun.first()
+            items += BaziRules.readingItem(
+                BaziRules.LAYER_ALG, "R-BZ-DAYUN",
+                "${c.startYunAge}岁起运。列出大运【${current.ganZhi}】（${current.startYear}-${current.endYear}岁）仅作柱名。不按「印比运=贵人」套话；应期须运干运支逐柱对照原局，本机不做应期。",
+                "笔记39 大运三问；笔记15 规则D 运限二分（观察，未升级）",
+                "C",
+            )
+        }
+
+        items += BaziRules.readingItem(
+            BaziRules.LAYER_EXP, "R-BZ-CONG",
+            "旺极从强、弱极从弱只作提醒，本机不自动改判从格。",
+            "笔记39 日主强弱口诀",
+            "C",
+        )
+
+        c.chengGu?.let { cg ->
+            items += BaziRules.readingItem(
+                BaziRules.LAYER_EXP, "R-BZ-CHENGGU",
+                "称骨【${cg.weightText}】为袁天罡称骨歌民俗算法，非子平结构推演，不参与身强弱。",
+                "公有领域歌诀；BaziEngine.ChengGu",
+                "C",
+            )
         }
 
         return items

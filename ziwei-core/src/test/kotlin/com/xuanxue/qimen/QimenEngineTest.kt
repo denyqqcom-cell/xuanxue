@@ -14,10 +14,23 @@ class QimenEngineTest {
         println("QM1 旬首=${c.xunShou} 遁干=${c.dunGan} 旬空=${c.xunKong} 值符=${c.zhiFu} 值使=${c.zhiShi} 马星=${c.maXing}")
         assertEquals("立秋", c.jieQi)
         assertEquals(-1, c.yinYang)          // 阴遁
-        assertEquals(5, c.ju)                 // 中元 5 局（对齐用户脚本）
+        assertEquals("CHAI_BU_DAYCOUNT", c.juMethodUsed)
+        assertEquals("中元", c.yuan)
+        assertEquals(5, c.ju)                 // 日数分段：立秋第6天 → 中元 5 局
         // 值符值使：用户脚本给 dunPalace 后映射（测试时打印对比，此处不断言具体值）
         println("QM1 九宫: " + c.gongs.map { "${it.palace}宫:地${it.diGan}/星${it.tianXing}/门${it.renMen}/神${it.shenPan}${if (it.isMaXing) "【马】" else ""}${if (it.isKong) "【空】" else ""}" }.joinToString(" | "))
         assertTrue(c.gongs.all { it.diGan.isNotEmpty() })
+    }
+
+    @Test
+    fun liqiuDayCountNotFutou() {
+        val c = QimenEngine.bySolar(2026, 8, 7, 16, 0)
+        assertEquals("立秋", c.jieQi)
+        assertEquals("CHAI_BU_DAYCOUNT", c.juMethodUsed)
+        assertEquals("上元", c.yuan)
+        assertEquals(2, c.ju)
+        assertEquals("下元", c.yuanFutou)
+        assertTrue(c.jieqiDayIndex >= 1)
     }
 
     @Test

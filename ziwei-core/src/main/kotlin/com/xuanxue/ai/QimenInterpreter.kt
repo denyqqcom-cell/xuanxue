@@ -76,22 +76,24 @@ object QimenInterpreter : Interpreter<QimenChart> {
             )
         }
 
-        val dayIdx = stamp?.let { QimenRules.jieqiDayIndex(it.year, it.month, it.day, c.jieQi) }
-        val dayYuan = dayIdx?.let { QimenRules.yuanByDayCount(it) }.orEmpty()
-        val dayJu = if (dayYuan.isNotEmpty()) QimenRules.juOf(c.jieQi, dayYuan) else null
-        val juSplit = dayJu != null && (dayYuan != c.yuan || dayJu != c.ju)
+        val dayIdx = if (c.jieqiDayIndex > 0) c.jieqiDayIndex else stamp?.let {
+            QimenRules.jieqiDayIndex(it.year, it.month, it.day, c.jieQi)
+        }
+        val futouYuan = c.yuanFutou.ifEmpty { QimenEngine.yuanOf(c.dayGZ) }
+        val futouJu = QimenRules.juOf(c.jieQi, futouYuan)
+        val juSplit = futouJu != null && (futouYuan != c.yuan || futouJu != c.ju)
         items += QimenRules.readingItem(
             QimenRules.LAYER_SCHOOL, "R-JU-001",
             buildString {
-                append("本机定元用符头【${c.yuan}】→ ${c.ju}局（R-JU-002 门派，非 handoff 默认）。")
-                if (dayIdx != null && dayJu != null) {
-                    append("拆补·日数分段（R-JU-001）此日为${c.jieQi}第${dayIdx}天→${dayYuan}→${dayJu}局。")
-                    if (juSplit) append("两法局数不同，只并列，不改盘面。")
+                append("本机默认拆补·日数分段（${c.juMethodUsed}）")
+                if (dayIdx != null) append("：${c.jieQi}第${dayIdx}天→${c.yuan}→${c.ju}局。")
+                else append("：${c.yuan}→${c.ju}局。")
+                if (futouJu != null) {
+                    append("符头定元（R-JU-002）为${futouYuan}→${futouJu}局。")
+                    if (juSplit) append("两法局数不同，盘面已按日数分段；符头只对照。")
                     else append("此日两法相同。")
-                    if (dayIdx > 15) append("节气长于15日，下元划分为未另有来源。")
-                } else {
-                    append("日数分段需节气日起算日，本条未能算出，故只标门派分叉。")
                 }
+                if (dayIdx != null && dayIdx > 15) append("节气长于15日，下元划分为未另有来源。")
             },
             "知识库 §3.1；qiju §2.4；B01 pp.66–68 自相矛盾见 C-JU-CHAIBU-INTERNAL",
             "B",

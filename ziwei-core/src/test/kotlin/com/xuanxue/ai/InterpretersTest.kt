@@ -18,6 +18,7 @@ class InterpretersTest {
         assertTrue(r.items.isNotEmpty())
         assertTrue(r.text.contains("日主"))
         assertTrue(r.text.contains("五行分布"))
+        assertTrue(r.items.any { it.ruleId == "R-BZ-LIANG-VOTE" })
     }
 
     @Test
