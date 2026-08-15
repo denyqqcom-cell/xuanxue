@@ -10,6 +10,16 @@ Evidence available to project-side reviewer: user-provided `K1_MASTER_REPORT.md`
 
 K2 Claim Extraction remains blocked until the local intake passes the repository-side machine contract in `tools/validate_k1_intake.py` and the accounting gaps below are reconciled.
 
+The validator implementation itself is closed-loop tested in CI. Knowledge Engine V1 CI run `31872816497` on head `ee2397ce68ead4799597426e3dbd2ab10c894d5d` passed:
+
+- six-domain knowledge contracts;
+- generated STATUS consistency;
+- positive and fail-closed negative tests for `validate_k1_intake.py`;
+- knowledge-tree copyright binary guard;
+- stable `:ziwei-core:test` regression.
+
+This proves the **validator contract and existing core** are green. It does not prove the private local intake is green until that exact intake is run through the validator on the local machine.
+
 ## Reported domain results
 
 | Domain | Reported gate | Unique | Duplicates | Book READ | Metadata self-audit |
