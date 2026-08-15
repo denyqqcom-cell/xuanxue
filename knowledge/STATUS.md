@@ -1,4 +1,4 @@
-# Knowledge Engine Status — K0_BOOTSTRAP
+# Knowledge Engine Status — K1_CORPUS_INDEX
 
 | Domain | Level | Sources | Claims | Fixtures verified | Next gate |
 |---|---|---:|---:|---:|---|
@@ -13,4 +13,4 @@
 
 紫微现有 iztro fixture 属于实现 parity 证据，不计为本 Knowledge Engine 的独立来源吸收率。
 
-Generated from `knowledge/domains/*/status.json`; balance gate = `WARN_UNTIL_K1`.
+Generated from `knowledge/domains/*/status.json`; balance gate = `ENFORCE`.
