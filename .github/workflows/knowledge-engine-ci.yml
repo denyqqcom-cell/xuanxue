@@ -19,6 +19,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Validate six-domain knowledge contracts
         run: python3 tools/validate_knowledge.py
+      - name: Verify generated knowledge status is current
+        run: python3 tools/generate_knowledge_status.py --check
       - name: Guard knowledge tree from packaged research binaries
         shell: bash
         run: |
@@ -27,10 +29,12 @@ jobs:
             echo 'Forbidden research binary detected under knowledge/' >&2
             exit 1
           fi
-      - name: Verify existing core still passes
-        uses: gradle/actions/setup-gradle@v4
-      - uses: actions/setup-java@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - run: ./gradlew --no-daemon :ziwei-core:test
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Verify existing stable core still passes
+        run: ./gradlew --no-daemon :ziwei-core:test
