@@ -27,9 +27,27 @@ fun ReadingCard(reading: Reading) {
     OutlinedCard(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp)) {
             Text("✎ 解读（离线规则）", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = Color(0xFF6D4C41))
+            if (reading.overall.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                Text(reading.overall, fontSize = 12.sp, lineHeight = 18.sp, color = Color(0xFF6D4C41))
+            }
             Spacer(Modifier.height(6.dp))
             reading.items.forEach { item ->
-                Text(item.summary, fontSize = 14.sp, lineHeight = 22.sp, modifier = Modifier.padding(bottom = 4.dp))
+                if (item.title.isNotEmpty()) {
+                    Text(item.title, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF8D6E63))
+                }
+                Text(item.summary, fontSize = 14.sp, lineHeight = 22.sp)
+                if (item.detail.isNotEmpty()) {
+                    Text(item.detail, fontSize = 12.sp, lineHeight = 18.sp, color = Color(0xFF5D4037))
+                }
+                if (item.source.isNotEmpty()) {
+                    val src = buildString {
+                        append("来源 ${item.source}")
+                        if (item.confidence.isNotEmpty()) append(" · 信心 ${item.confidence}")
+                    }
+                    Text(src, fontSize = 11.sp, color = Color(0xFF8D6E63), modifier = Modifier.padding(top = 2.dp))
+                }
+                Spacer(Modifier.height(8.dp))
             }
         }
     }

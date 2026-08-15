@@ -2,48 +2,9 @@ package com.xuanxue.ai
 
 import com.xuanxue.liuren.LiuRenEngine
 import com.xuanxue.liuren.LiuRenEngine.LiuRenChart
-import com.xuanxue.qimen.QimenEngine
-import com.xuanxue.qimen.QimenEngine.QimenChart
 import com.xuanxue.liuyao.LiuYaoEngine
 import com.xuanxue.liuyao.LiuYaoEngine.LiuYaoChart
 import com.xuanxue.ziwei.core.ZiweiAstro.Astrolabe
-
-/**
- * 奇门解读器：局/值符值使/八门吉凶/格局提示（烟波钓叟歌体系传统释义）。
- */
-object QimenInterpreter : Interpreter<QimenChart> {
-    override val toolName = "qimen_interpret"
-    override val toolDesc = "奇门遁甲盘解读：局、值符值使、八门吉凶"
-
-    private val MEN_JIXIONG = mapOf(
-        "休门" to "吉门，宜休养生息、求财谒贵",
-        "生门" to "大吉，宜求财置业、谋事进取",
-        "伤门" to "凶门，宜捕猎索债，不利谋事",
-        "杜门" to "平门，宜避世守成，主闭塞不通",
-        "景门" to "平门，宜文书献策，主虚华",
-        "死门" to "凶门，宜吊丧送葬，主停滞",
-        "惊门" to "凶门，主惊恐是非，宜防范",
-        "开门" to "大吉，宜开业出行、求名求财",
-    )
-
-    override fun interpret(c: QimenChart): List<String> {
-        val items = mutableListOf<String>()
-        items.add("时值【${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}】，节气【${c.jieQi}】，${c.juText}。")
-        items.add("值符【${c.zhiFu}】值使【${c.zhiShi}】。时旬首【${c.xunShou}】遁【${c.dunGan}】，旬空【${c.xunKong.joinToString("")}】。")
-        val men = c.gongs.mapNotNull { it.renMen.takeIf { m -> m.isNotEmpty() } }.distinct()
-        val jixiong = men.mapNotNull { MEN_JIXIONG[it]?.let { d -> "$it($d)" } }.joinToString("、")
-        items.add("八门吉凶：$jixiong。")
-        val ma = c.gongs.firstOrNull { it.isMaXing }
-        if (ma != null) {
-            items.add("马星临${ma.palace}宫，主动象，利出行变动。")
-        }
-        val kong = c.gongs.filter { it.isKong }.map { "${it.palace}宫" }
-        if (kong.isNotEmpty()) {
-            items.add("旬空落${kong.joinToString("、")}，所主之事暂缓待填实。")
-        }
-        return items
-    }
-}
 
 /**
  * 六爻解读器：世应/动爻/六亲用神（传统断语常识）。

@@ -35,6 +35,8 @@ class InterpretersTest {
         println("AI3 奇门:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
         assertTrue(r.text.contains("值符"))
+        assertTrue(r.items.any { it.ruleId.startsWith("R-") })
+        assertTrue(r.overall.contains("门派冲突只并列") || r.text.contains("门派冲突只并列"))
     }
 
     @Test

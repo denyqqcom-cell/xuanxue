@@ -20,8 +20,16 @@ interface Interpreter<T> {
     fun interpret(chart: T): List<String>  // 返回解读条目（每条独立成段）
 }
 
-/** 解读条目：标题 + 结论 + 依据 */
-data class ReadingItem(val title: String, val summary: String, val detail: String = "")
+/** 解读条目：标题 + 结论 + 依据。layer/ruleId 供奇门等带来源的规则用。 */
+data class ReadingItem(
+    val title: String,
+    val summary: String,
+    val detail: String = "",
+    val layer: String = "",
+    val ruleId: String = "",
+    val source: String = "",
+    val confidence: String = "",
+)
 
 /** 统一解读结果 */
 data class Reading(
@@ -34,6 +42,11 @@ data class Reading(
         items.forEach { it ->
             appendLine("【${it.title}】${it.summary}")
             if (it.detail.isNotEmpty()) appendLine(it.detail)
+            if (it.source.isNotEmpty()) {
+                append("来源 ${it.source}")
+                if (it.confidence.isNotEmpty()) append(" 信心 ${it.confidence}")
+                appendLine()
+            }
         }
     }
 }
