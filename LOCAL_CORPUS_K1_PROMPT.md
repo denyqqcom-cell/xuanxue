@@ -22,6 +22,7 @@
 8. 每本 source 必须给 `readability`：`TEXT_OK | SCAN | OCR_WEAK | OCR_FAIL | UNOPENED | METADATA_ONLY`；以及 `status`：`DISCOVERED | INDEXED | PARTIALLY_READ | READ | DUPLICATE | BLOCKED`。
 9. 对扫描书优先做“目录页 + 若干关键页”人工/视觉抽查，禁止为了完成率无脑全书 OCR。OCR 只是读取手段，不是可信证据本身。
 10. 若发现跨领域书籍，不要复制进当前领域；记录 `cross_domain_candidate`，交给 common 或对应领域后续处理。
+11. `knowledge-intake/` 是 **本地临时交付目录**，已经由 Git 忽略，禁止直接提交。里面可以记录真实本机路径供本地核查；后续进入公开 `knowledge/` 的 sanitized registry 必须删除/泛化用户名、盘符、私有目录和其他不必要的本机路径信息。
 
 ## 各领域必须特别标注的 school / system 候选
 
@@ -34,9 +35,11 @@
 
 ## 输出目录
 
-只生成派生文本/JSONL，写入临时交付目录：
+只生成派生文本/JSONL，写入本机临时交付目录：
 
 `knowledge-intake/<DOMAIN>/`
+
+**不要 git add / commit / push 此目录。**
 
 必须生成：
 
@@ -66,6 +69,7 @@ ID 按 canonical unique source 分配；duplicate 不获得新的 canonical ID�
 - 至少做 5 条 source 元数据反查自验收；
 - 没有现代全文/OCR/扫描页被带入交付目录；
 - 没有 `MODEL_KNOWLEDGE_ONLY` 被当作来源；
+- 没有把 `knowledge-intake/` 直接提交到 Git；
 - 输出可以被另一个 AI/开发者在没有原 PDF 的情况下理解“有什么资料、读到什么程度、还缺什么”，但不能据此重构原书全文。
 
 结束时只给：`PASS / PARTIAL / BLOCKED`，以及 blocker。不要声称“该术数已经学完”或“规则已经验证”。
