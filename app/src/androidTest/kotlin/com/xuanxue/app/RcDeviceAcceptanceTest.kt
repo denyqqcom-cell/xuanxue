@@ -21,7 +21,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 /**
- * RC1 emulator acceptance suite.
+ * V1.0 stable emulator acceptance suite.
  *
  * The workflow runs this class twice against the same source head:
  * - narrow + light theme + airplane mode
@@ -193,7 +193,7 @@ class RcDeviceAcceptanceTest {
             put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
             put(
                 MediaStore.MediaColumns.RELATIVE_PATH,
-                Environment.DIRECTORY_DOWNLOADS + "/xuanxue-rc-screenshots",
+                Environment.DIRECTORY_DOWNLOADS + "/xuanxue-v1-screenshots",
             )
             put(MediaStore.MediaColumns.IS_PENDING, 1)
         }
