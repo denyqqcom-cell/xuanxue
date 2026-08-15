@@ -1,0 +1,20 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"case.schema.json",
+  "type":"object",
+  "required":["case_id","domain","case_type","raw_input","observed_outcome","source_ids","source_locations","school_ids","leakage_risk","copyright_class"],
+  "properties":{
+    "case_id":{"type":"string","minLength":1},
+    "domain":{"enum":["ziwei","bazi","qimen","liuyao","liuren","fengshui","common"]},
+    "case_type":{"enum":["RETROSPECTIVE","HALF_BLIND","BLIND"]},
+    "raw_input":{"type":"object"},
+    "observed_outcome":{"type":"object"},
+    "source_ids":{"type":"array","minItems":1,"items":{"type":"string"}},
+    "source_locations":{"type":"array","minItems":1,"items":{"type":"string"}},
+    "school_ids":{"type":"array","minItems":1,"items":{"type":"string"}},
+    "leakage_risk":{"enum":["LOW","MEDIUM","HIGH","UNKNOWN"]},
+    "copyright_class":{"enum":["DERIVED_FACT_SAFE","RESEARCH_ONLY","REVIEW_REQUIRED"]},
+    "notes":{"type":"string"}
+  },
+  "additionalProperties":true
+}
