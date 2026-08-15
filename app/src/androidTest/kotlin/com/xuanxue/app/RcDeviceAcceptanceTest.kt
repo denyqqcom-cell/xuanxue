@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.os.Environment
 import android.os.SystemClock
 import android.provider.MediaStore
+import android.view.accessibility.AccessibilityNodeInfo
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -28,10 +29,10 @@ import org.junit.runner.RunWith
  *
  * Screenshots are synchronously captured from UiAutomation and persisted into
  * shared Downloads through MediaStore so post-test APK cleanup cannot erase
- * acceptance evidence. A short frame-settle delay is intentional: Compose can
- * be semantically idle before the emulator compositor has presented the new
- * frame, and visual evidence must reflect the asserted screen rather than the
- * preceding frame.
+ * acceptance evidence. Before every evidence capture we also walk the active
+ * accessibility tree and fail closed if Android is showing a crash/ANR dialog.
+ * This prevents a semantically passing Compose assertion from hiding a system
+ * error overlay in the final acceptance screenshot.
  *
  * This closes navigation/responsive/offline/main-path smoke acceptance in
  * automation. It does not claim physical-device ergonomics, divination
@@ -181,6 +182,8 @@ class RcDeviceAcceptanceTest {
         composeRule.waitForIdle()
         SystemClock.sleep(300)
         composeRule.waitForIdle()
+        assertNoSystemErrorDialog(name)
+
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val bitmap = instrumentation.uiAutomation.takeScreenshot()
             ?: error("UiAutomation screenshot returned null")
@@ -210,6 +213,29 @@ class RcDeviceAcceptanceTest {
             throw t
         } finally {
             bitmap.recycle()
+        }
+    }
+
+    private fun assertNoSystemErrorDialog(captureName: String) {
+        val root = InstrumentationRegistry.getInstrumentation().uiAutomation.rootInActiveWindow ?: return
+        val visibleText = mutableListOf<String>()
+        collectVisibleText(root, visibleText)
+        val errorText = visibleText.firstOrNull { text ->
+            text.contains("isn't responding", ignoreCase = true) ||
+                text.contains("is not responding", ignoreCase = true) ||
+                text.contains("keeps stopping", ignoreCase = true) ||
+                text.contains("has stopped", ignoreCase = true)
+        }
+        check(errorText == null) {
+            "System crash/ANR dialog visible before $captureName: $errorText"
+        }
+    }
+
+    private fun collectVisibleText(node: AccessibilityNodeInfo, output: MutableList<String>) {
+        node.text?.toString()?.takeIf { it.isNotBlank() }?.let(output::add)
+        node.contentDescription?.toString()?.takeIf { it.isNotBlank() }?.let(output::add)
+        for (index in 0 until node.childCount) {
+            node.getChild(index)?.let { child -> collectVisibleText(child, output) }
         }
     }
 }
