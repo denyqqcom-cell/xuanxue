@@ -6,6 +6,8 @@ import com.xuanxue.liuyao.LiuYaoEngine
 import com.xuanxue.qimen.QimenEngine
 import com.xuanxue.ziwei.core.ZiweiAstro
 import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class InterpretersTest {
@@ -14,59 +16,64 @@ class InterpretersTest {
     fun baziReading() {
         val c = BaziEngine.bySolar(1990, 5, 20, 12, 30, "男")
         val r = XuanxueAI.bazi(c)
-        println("AI1 八字:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
         assertTrue(r.text.contains("日主"))
-        assertTrue(r.text.contains("五行分布"))
+        assertTrue(r.text.contains("五行显示权重"))
+        assertTrue(r.text.contains("不能直接等同于旺衰"))
+        assertFalse(r.text.contains("喜财官食伤"))
+        assertFalse(r.text.contains("喜印比"))
     }
 
     @Test
     fun ziweiReading() {
         val a = ZiweiAstro.bySolar("1990-05-20", 6, "male")
         val r = XuanxueAI.ziwei(a)
-        println("AI2 紫微:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
+        assertTrue(r.text.contains("实现一致"))
+        assertTrue(r.text.contains("不代表"))
     }
 
     @Test
     fun qimenReading() {
         val c = QimenEngine.bySolar(2026, 8, 12, 15, 37)
         val r = XuanxueAI.qimen(c)
-        println("AI3 奇门:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
-        assertTrue(r.text.contains("值符"))
+        assertTrue(r.text.contains("九宫实验边界"))
+        assertTrue(r.text.contains("完整九宫黄金盘"))
+        assertFalse(r.text.contains("八门吉凶"))
+        assertFalse(r.text.contains("利出行变动"))
+        assertFalse(r.text.contains("暂缓待填实"))
     }
 
     @Test
     fun liuyaoReading() {
         val c = LiuYaoEngine.byNumbers(1, 1, 3, 2026, 8, 15, 10)
         val r = XuanxueAI.liuyao(c)
-        println("AI4 六爻:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
         assertTrue(r.text.contains("世爻"))
+        assertTrue(r.text.contains("不能只见六亲就自动下结论"))
     }
 
     @Test
     fun liurenReading() {
         val c = LiuRenEngine.bySolar(1949, 10, 1, 0, 0)
         val r = XuanxueAI.liuren(c)
-        println("AI5 六壬:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
-        assertTrue(r.text.contains("元首课") || r.text.contains("课型"))
+        assertTrue(r.text.contains("三传"))
+        assertTrue(r.text.contains("不单独承担现实吉凶结论"))
     }
 
     @Test
     fun huangliReading() {
         val l = com.nlf.calendar.Solar.fromYmd(2026, 8, 15).lunar
         val r = XuanxueAI.huangli(l)
-        println("AI6 黄历:\n" + r.text)
         assertTrue(r.items.isNotEmpty())
+        assertTrue(r.text.contains("传统历法/民俗"))
     }
 
     @Test
     fun toolsRegistered() {
-        assertTrue(XuanxueAI.tools.size == 6)
+        assertEquals(6, XuanxueAI.tools.size)
         assertTrue(XuanxueAI.tools.all { it["name"] != null && it["description"] != null })
-        println("AI7 工具注册表: " + XuanxueAI.tools.joinToString(", ") { it["name"] as String })
     }
 }

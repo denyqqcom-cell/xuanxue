@@ -7,6 +7,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -39,9 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.xuanxue.ziwei.core.ZiweiAstro
@@ -56,43 +54,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            var page by remember { mutableStateOf(0) }
-            Column(Modifier.fillMaxSize()) {
-                // 功能切换 Tab（纯本地，无广告/品牌）
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF263238))
-                        .padding(horizontal = 8.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    listOf("紫微斗数" to 0, "八字排盘" to 1, "奇门遁甲" to 2, "六爻排卦" to 3, "大六壬" to 4, "黄历" to 5).forEach { (label, idx) ->
-                        Text(
-                            label,
-                            Modifier
-                                .weight(1f)
-                                .clickable { page = idx }
-                                .background(
-                                    if (page == idx) Color(0xFF1E88E5) else Color.Transparent,
-                                    MaterialTheme.shapes.small
-                                )
-                                .padding(vertical = 8.dp),
-                            textAlign = TextAlign.Center,
-                            color = Color.White,
-                            fontWeight = if (page == idx) FontWeight.Bold else FontWeight.Normal
-                        )
-                    }
-                }
-                Box(Modifier.weight(1f)) {
-                    when (page) {
-                        0 -> XuanxueApp()
-                        1 -> BaziScreen()
-                        2 -> QimenScreen()
-                        3 -> LiuYaoScreen()
-                        4 -> LiuRenScreen()
-                        else -> HuangLiScreen()
-                    }
-                }
+            XuanxueTheme {
+                XuanxueRoot()
             }
         }
     }
@@ -105,12 +68,12 @@ val SHICHEN = listOf(
     "晚子时 23:00-00:00",
 )
 
-/** 命盘格子：地支方位固定。row/col 映射到 palaces 索引（寅=0…丑=11） */
+/** 命盘格子：地支方位固定。row/col 映射到 palaces 索引（寅=0…丑=11）。 */
 val PAN_LAYOUT = listOf(
-    listOf(3, 4, 5, 6),      // 巳 午 未 申
-    listOf(2, null, null, 7), // 辰    酉
-    listOf(1, null, null, 8), // 卯    戌
-    listOf(0, 11, 10, 9),     // 寅 丑 子 亥
+    listOf(3, 4, 5, 6),
+    listOf(2, null, null, 7),
+    listOf(1, null, null, 8),
+    listOf(0, 11, 10, 9),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,12 +85,13 @@ fun XuanxueApp() {
     var fixLeap by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf(false) }
     var chart by remember { mutableStateOf<Astrolabe?>(null) }
+    var selectedPalaceIndex by remember { mutableStateOf(0) }
 
     val datePickerState = rememberDatePickerState(initialSelectedDateMillis = millisOf("1990-05-20"))
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("玄学排盘 · 紫微斗数") })
+            TopAppBar(title = { Text("紫微斗数") })
         },
     ) { pad ->
         Column(
@@ -136,8 +100,8 @@ fun XuanxueApp() {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // ---- 输入区 ----
             OutlinedCard(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -146,7 +110,11 @@ fun XuanxueApp() {
                         Text(solarDate, Modifier.clickable { showDatePicker = true })
                     }
                     Text("时辰", fontWeight = FontWeight.Bold)
-                    Row(Modifier.horizontalScrollSafe()) {
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                    ) {
                         SHICHEN.forEachIndexed { i, label ->
                             FilterChip(
                                 selected = timeIndex == i,
@@ -170,25 +138,31 @@ fun XuanxueApp() {
                         )
                         Spacer(Modifier.width(8.dp))
                         Button(onClick = {
-                            chart = ZiweiAstro.bySolar(solarDate, timeIndex, gender, fixLeap)
+                            val next = ZiweiAstro.bySolar(solarDate, timeIndex, gender, fixLeap)
+                            chart = next
+                            selectedPalaceIndex = next.palaces.indexOfFirst { it.name == "命宫" }.coerceAtLeast(0)
                         }) { Text("排盘") }
                     }
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
-
-            // ---- 命盘 ----
             val a = chart
             if (a != null) {
                 HeaderInfo(a)
-                Spacer(Modifier.height(12.dp))
-                PanGrid(a)
-                Spacer(Modifier.height(12.dp))
-                PalaceList(a)
+                Text(
+                    "十二宫概览 · 点击宫位查看完整星曜与限运",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                PanGrid(
+                    a = a,
+                    selectedIndex = selectedPalaceIndex,
+                    onSelect = { selectedPalaceIndex = it },
+                )
+                PalaceDetail(a.palaces[selectedPalaceIndex.coerceIn(a.palaces.indices)])
                 ReadingCard(com.xuanxue.ai.XuanxueAI.ziwei(a))
             } else {
-                Text("输入信息后点击「排盘」", Modifier.padding(16.dp), color = Color.Gray)
+                Text("输入信息后点击「排盘」", Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -215,20 +189,24 @@ fun HeaderInfo(a: Astrolabe) {
                 "${a.gender}命 · ${a.solarDate} · ${a.time}（${a.timeRange}）",
                 fontWeight = FontWeight.Bold,
             )
-            Text("农历 ${a.lunarDate} · 干支 ${a.chineseGanZhi()}")
+            Text("农历 ${a.lunarDate} · 命宫干支 ${a.chineseGanZhi()}")
             Text("五行局：${a.fiveElementsClass}    命主：${a.soul}    身主：${a.body}")
         }
     }
 }
 
-/** 排盘结果里没有现成干支字符串，从命宫推导展示 */
+/** 这里只返回命宫的天干地支，避免把它误标成整盘“四柱干支”。 */
 fun Astrolabe.chineseGanZhi(): String {
     val soul = palaces.first { it.name == "命宫" }
-    return "${soul.heavenlyStem}${soul.earthlyBranch} 命宫"
+    return "${soul.heavenlyStem}${soul.earthlyBranch}"
 }
 
 @Composable
-fun PanGrid(a: Astrolabe) {
+fun PanGrid(
+    a: Astrolabe,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
+) {
     Column(Modifier.fillMaxWidth()) {
         PAN_LAYOUT.forEach { row ->
             Row(Modifier.fillMaxWidth()) {
@@ -236,7 +214,12 @@ fun PanGrid(a: Astrolabe) {
                     if (idx == null) {
                         Spacer(Modifier.weight(1f).aspectRatio(1f))
                     } else {
-                        PanCell(a.palaces[idx], Modifier.weight(1f).aspectRatio(1f))
+                        PanCell(
+                            p = a.palaces[idx],
+                            selected = selectedIndex == idx,
+                            onClick = { onSelect(idx) },
+                            modifier = Modifier.weight(1f).aspectRatio(1f),
+                        )
                     }
                 }
             }
@@ -245,68 +228,131 @@ fun PanGrid(a: Astrolabe) {
 }
 
 @Composable
-fun PanCell(p: ZiweiAstro.Palace, modifier: Modifier = Modifier) {
+fun PanCell(
+    p: ZiweiAstro.Palace,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val isSoul = p.name == "命宫"
-    val bg = if (isSoul) Color(0xFFE8F0FE) else if (p.isBodyPalace) Color(0xFFFEF7E0) else Color.White
+    val background = when {
+        selected -> MaterialTheme.colorScheme.tertiaryContainer
+        isSoul -> MaterialTheme.colorScheme.primaryContainer
+        p.isBodyPalace -> MaterialTheme.colorScheme.secondaryContainer
+        else -> MaterialTheme.colorScheme.surface
+    }
+    val borderColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
+    val borderWidth = if (selected) 2.dp else 1.dp
+
     Box(
         modifier
             .padding(1.dp)
-            .background(bg)
-            .border(BorderStroke(1.dp, Color(0xFFB0BEC5)))
+            .background(background)
+            .border(BorderStroke(borderWidth, borderColor))
+            .clickable(onClick = onClick)
             .padding(4.dp),
     ) {
-        Column {
-            Text(
-                p.name + if (p.isBodyPalace) "(身)" else "",
-                fontWeight = FontWeight.Bold,
-                fontSize = 12.sp,
-            )
-            Text("${p.heavenlyStem}${p.earthlyBranch}", fontSize = 10.sp, color = Color.Gray)
-            p.majorStars.forEach { s ->
+        Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    buildString {
-                        append(s.name)
-                        if (s.brightness.isNotEmpty()) append("·${s.brightness}")
-                        if (s.mutagen.isNotEmpty()) append("${s.mutagen}")
-                    },
+                    p.name + if (p.isBodyPalace) "·身" else "",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 11.sp,
-                    color = if (s.mutagen == "忌") Color(0xFFC62828) else Color(0xFF1A237E),
+                    fontSize = 12.sp,
+                )
+                Text(
+                    p.earthlyBranch,
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            p.minorStars.forEach { s ->
-                Text(s.name, fontSize = 9.sp, color = Color(0xFF4E342E))
+            Text(
+                "${p.heavenlyStem}${p.earthlyBranch}",
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (p.majorStars.isEmpty()) {
+                Text("无主星", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else {
+                p.majorStars.take(3).forEach { star ->
+                    Text(
+                        fmtStar(star),
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 10.sp,
+                        color = if (star.mutagen == "忌") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                        maxLines = 1,
+                    )
+                }
+                if (p.majorStars.size > 3) {
+                    Text("+${p.majorStars.size - 3} 主星", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
+            Spacer(Modifier.weight(1f))
             p.decadal?.let {
-                Text("大限 ${it.range[0]}-${it.range[1]}", fontSize = 9.sp, color = Color(0xFF00695C))
+                Text(
+                    "大限 ${it.range[0]}-${it.range[1]}",
+                    fontSize = 9.sp,
+                    color = MaterialTheme.colorScheme.secondary,
+                )
             }
         }
     }
 }
 
 @Composable
-fun PalaceList(a: Astrolabe) {
-    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        a.palaces.forEach { p ->
-            OutlinedCard(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(8.dp)) {
-                    Row {
-                        Text(
-                            "${p.name}（${p.heavenlyStem}${p.earthlyBranch}）",
-                            fontWeight = FontWeight.Bold,
-                        )
-                        Spacer(Modifier.weight(1f))
-                        p.decadal?.let { Text("大限 ${it.range[0]}-${it.range[1]}岁", fontSize = 11.sp) }
-                    }
-                    val all = p.majorStars + p.minorStars + p.adjectiveStars
-                    if (all.isNotEmpty()) {
-                        Text(all.joinToString("　") { fmtStar(it) }, fontSize = 12.sp, lineHeight = 18.sp)
-                    }
-                    p.ages?.let { Text("小限：${it.take(5).joinToString(", ")}…", fontSize = 10.sp, color = Color.Gray) }
-                }
+fun PalaceDetail(p: ZiweiAstro.Palace) {
+    OutlinedCard(Modifier.fillMaxWidth()) {
+        Column(
+            Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(7.dp),
+        ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(
+                    "${p.name}${if (p.isBodyPalace) "（身宫）" else ""}",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    "${p.heavenlyStem}${p.earthlyBranch}",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
+
+            p.decadal?.let {
+                Text("大限：${it.range[0]}-${it.range[1]} 岁", style = MaterialTheme.typography.bodySmall)
+            }
+
+            StarGroup("主星", p.majorStars)
+            StarGroup("辅星", p.minorStars)
+            StarGroup("杂曜", p.adjectiveStars)
+
+            p.ages?.takeIf { it.isNotEmpty() }?.let { ages ->
+                Text("小限", fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+                Text(
+                    ages.take(12).joinToString("、"),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            Text(
+                "这里先展示盘面结构与实现结果；星曜、四化、宫位不会被单独翻译成确定人格或具体事件。",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
+}
+
+@Composable
+private fun StarGroup(title: String, stars: List<Star>) {
+    if (stars.isEmpty()) return
+    Text(title, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
+    Text(
+        stars.joinToString("　") { fmtStar(it) },
+        style = MaterialTheme.typography.bodySmall,
+        lineHeight = 19.sp,
+    )
 }
 
 fun fmtStar(s: Star): String = buildString {
@@ -323,5 +369,3 @@ fun millisOf(dateStr: String): Long {
 }
 
 fun fmt(millis: Long): String = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date(millis))
-
-fun Modifier.horizontalScrollSafe(): Modifier = this

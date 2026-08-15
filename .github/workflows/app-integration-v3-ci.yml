@@ -1,0 +1,114 @@
+name: App Integration V3 CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-integration-v3-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      SOURCE_BASE_SHA: ${{ github.event.pull_request.base.sha || '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Verify release copyright boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s app/src/main/assets/licenses/OPEN_SOURCE_NOTICES.txt
+          test -s app/src/main/assets/licenses/APACHE-2.0.txt
+          grep -Fq 'Copyright (c) 2023 All Contributors' app/src/main/assets/licenses/OPEN_SOURCE_NOTICES.txt
+          grep -Fq 'Copyright (c) 2018 6tail' app/src/main/assets/licenses/OPEN_SOURCE_NOTICES.txt
+          grep -Fq 'Copyright (c) 2023 Sylar' app/src/main/assets/licenses/OPEN_SOURCE_NOTICES.txt
+          grep -Fq 'even if such Contributor has been' app/src/main/assets/licenses/APACHE-2.0.txt
+          if grep -Fq 'android.permission.INTERNET' app/src/main/AndroidManifest.xml; then
+            echo 'Unexpected INTERNET permission: network release gate not completed.' >&2
+            exit 1
+          fi
+          unexpected_assets="$(find app/src/main/assets -type f ! -path '*/licenses/APACHE-2.0.txt' ! -path '*/licenses/OPEN_SOURCE_NOTICES.txt' -print)"
+          if [[ -n "$unexpected_assets" ]]; then
+            echo 'Unexpected packaged assets require copyright review:' >&2
+            echo "$unexpected_assets" >&2
+            exit 1
+          fi
+      - name: Validate V1.0 stable invariants
+        run: python3 tools/validate_release.py
+      - name: Validate completed handoff packs
+        run: python3 tools/validate_handoff.py
+      - name: Verify core and evidence contracts
+        run: ./gradlew --no-daemon :ziwei-core:test
+      - name: Run Android lint for debug and release
+        run: ./gradlew --no-daemon :app:lintDebug :app:lintRelease
+      - name: Assemble Android V1.0 variants
+        run: ./gradlew --no-daemon :app:assembleDebug :app:assembleRelease
+      - name: Audit built APK contents
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          test -s app/build/outputs/apk/release/app-release-unsigned.apk
+          bash tools/audit_apk_contents.sh app/build/outputs/apk/debug/app-debug.apk
+          bash tools/audit_apk_contents.sh app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Prepare audited V1.0 build
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/test-artifact
+          cp app/build/outputs/apk/debug/app-debug.apk build/test-artifact/xuanxue-1.0.0-debug.apk
+          cp app/build/outputs/apk/release/app-release-unsigned.apk build/test-artifact/xuanxue-1.0.0-release-unsigned.apk
+          cp DEVICE_ACCEPTANCE.md build/test-artifact/DEVICE_ACCEPTANCE.md
+          cp RELEASE_ACCEPTANCE.md build/test-artifact/RELEASE_ACCEPTANCE.md
+          cp PRIVACY.md build/test-artifact/PRIVACY.md
+          (
+            cd build/test-artifact
+            sha256sum xuanxue-1.0.0-debug.apk xuanxue-1.0.0-release-unsigned.apk > SHA256SUMS.txt
+          )
+          for report in app/build/reports/lint-results-debug.html app/build/reports/lint-results-release.html; do
+            if [[ -f "$report" ]]; then cp "$report" build/test-artifact/; fi
+          done
+          cat > build/test-artifact/BUILD_INFO.txt <<EOF
+          repository=${GITHUB_REPOSITORY}
+          source_head_sha=${SOURCE_HEAD_SHA}
+          source_base_sha=${SOURCE_BASE_SHA}
+          checked_out_sha=${GITHUB_SHA}
+          ref=${GITHUB_REF}
+          event=${GITHUB_EVENT_NAME}
+          workflow_run=${GITHUB_RUN_ID}
+          version_name=1.0.0
+          release_channel=stable
+          stable_application_id=com.xuanxue.app
+          debug_application_id=com.xuanxue.app.debug
+          debug_apk_installable_for_device_acceptance=true
+          release_apk_signed=false
+          apk_contents_audited=true
+          internet_permission_expected=false
+          emulator_acceptance_required_same_head=true
+          screenshot_review_required_same_head=true
+          EOF
+      - name: Upload audited V1.0 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: xuanxue-v1-audited-${{ env.SOURCE_HEAD_SHA }}
+          path: build/test-artifact/
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0
