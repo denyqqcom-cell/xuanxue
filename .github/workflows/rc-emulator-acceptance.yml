@@ -59,11 +59,14 @@ jobs:
           test -x "$AVDMANAGER"
           mkdir -p "$ANDROID_USER_HOME" "$ANDROID_AVD_HOME"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" "platform-tools" "emulator" "system-images;android-35;google_apis;x86_64"
+          # AOSP/default deliberately avoids the Google Pixel Launcher, whose
+          # unrelated background ANR can overlay evidence on resource-starved
+          # CI emulators. Acceptance still fails closed on any visible crash/ANR.
+          "$SDKMANAGER" "platform-tools" "emulator" "system-images;android-35;default;x86_64"
           echo "$ANDROID_SDK_ROOT/platform-tools" >> "$GITHUB_PATH"
           echo no | "$AVDMANAGER" create avd \
             --name xuanxue_rc35 \
-            --package "system-images;android-35;google_apis;x86_64" \
+            --package "system-images;android-35;default;x86_64" \
             --force
           "$ANDROID_SDK_ROOT/emulator/emulator" -list-avds | tee build-avds.txt
           grep -Fxq 'xuanxue_rc35' build-avds.txt
