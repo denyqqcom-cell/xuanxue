@@ -6,6 +6,9 @@
   "properties":{
     "source_id":{"type":"string","minLength":1},
     "domain":{"enum":["ziwei","bazi","qimen","liuyao","liuren","fengshui","common"]},
+    "knowledge_domains":{"type":"array","minItems":1,"uniqueItems":true,"items":{"enum":["ziwei","bazi","qimen","liuyao","liuren","fengshui","common","OUT_OF_SCOPE","UNKNOWN"]}},
+    "domain_basis":{"enum":["TITLE_FILENAME","CONTENT_VERIFIED","MANUAL_VERIFIED","PROJECT_CODE_PATH","UNKNOWN"]},
+    "domain_evidence":{"type":["string","null"],"maxLength":240},
     "title":{"type":"string","minLength":1},
     "author":{"type":["string","null"]},
     "author_basis":{"enum":["FILENAME","EMBEDDED_METADATA","TITLE_PAGE","MANUAL_VERIFIED","UNKNOWN"]},
