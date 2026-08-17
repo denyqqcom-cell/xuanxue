@@ -23,6 +23,8 @@ def render() -> str:
     state = load(K / "PROJECT_STATE.json")
     local_validation_path = K / "K1_LOCAL_VALIDATION.json"
     local_validation = load(local_validation_path) if local_validation_path.exists() else None
+    lineage_state_path = K / "K2_SOURCE_LINEAGE_STATE.json"
+    lineage_state = load(lineage_state_path) if lineage_state_path.exists() else None
     levels=[]
 
     lines = [
@@ -39,7 +41,8 @@ def render() -> str:
         k1_index = local.get("k1_index_status", "PENDING")
         k2 = local.get("k2_readiness", "PENDING")
         if state.get("phase") == "K2_SOURCE_LINEAGE":
-            next_gate = "K2_SOURCE_LINEAGE"
+            reason=(lineage_state or {}).get("review_reason")
+            next_gate = "K2_LINEAGE_COVERAGE_REVIEW" if reason == "PART_VS_VARIANT_COVERAGE_REVIEW" else "K2_SOURCE_LINEAGE"
         elif state.get("semantic_routing") == "REVIEW_REQUIRED":
             next_gate = "K1_SEMANTIC_ROUTING_REVIEW"
         elif state.get("source_quality") == "REVIEW_REQUIRED":
@@ -70,6 +73,11 @@ def render() -> str:
             "",
             "同一本书的不同扫描、整洁版、排印版，以及由它派生的笔记/代码，不得按文件数计算为多个独立支持来源。",
         ]
+        if (lineage_state or {}).get("review_reason") == "PART_VS_VARIANT_COVERAGE_REVIEW":
+            lines += [
+                "",
+                "项目端复验发现第一版 lineage 把部分互补卷册/分页与真正的同内容版本都标成 `SAME_WORK_VARIANT`。当前必须完成 `K2_LINEAGE_COVERAGE_REVIEW`：互补卷册使用 `WORK_PART` 并保持可读；真正重复载体使用 `SAME_WORK_VARIANT + variant_of_source_id`。Claim Extraction 继续锁定。",
+            ]
 
     if len(set(levels)) > 1:
         lines += ["", "`ENGINE_MATURITY_IMBALANCE` 仍存在，不允许成熟域绕过其他领域继续升级。"]
@@ -84,7 +92,7 @@ def render() -> str:
         "",
         "紫微现有 iztro fixture 属于实现 parity 证据，不计为独立传统术理真值。",
         "",
-        f"Generated from `knowledge/domains/*/status.json`, `knowledge/K1_LOCAL_VALIDATION.json` and `knowledge/PROJECT_STATE.json`; balance gate = `{state['balance_gate']}`.",
+        f"Generated from `knowledge/domains/*/status.json`, `knowledge/K1_LOCAL_VALIDATION.json`, `knowledge/K2_SOURCE_LINEAGE_STATE.json` and `knowledge/PROJECT_STATE.json`; balance gate = `{state['balance_gate']}`.",
         "",
     ]
     return "\n".join(lines)
