@@ -31,6 +31,10 @@ jobs:
         run: python3 tools/test_k1_source_quality.py
       - name: Enforce K1 source quality state
         run: python3 tools/validate_k1_source_quality.py
+      - name: Test K1 semantic routing fail-closed cases
+        run: python3 tools/test_k1_semantic_routing.py
+      - name: Enforce K1 semantic routing state
+        run: python3 tools/validate_k1_semantic_routing.py
       - name: Guard knowledge tree from packaged research binaries
         shell: bash
         run: |
