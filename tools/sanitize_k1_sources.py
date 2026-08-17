@@ -12,7 +12,8 @@ DOMAINS = ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui"]
 PATH_LEAK = re.compile(r"(?i)(?:[A-Z]:[\\/]|/(?:home|Users|mnt)/)")
 HEX64 = re.compile(r"^[0-9a-fA-F]{64}$")
 SAFE_FIELDS = [
-    "source_id", "domain", "title", "author", "author_basis", "author_evidence",
+    "source_id", "domain", "knowledge_domains", "domain_basis", "domain_evidence",
+    "title", "author", "author_basis", "author_evidence",
     "source_type", "era", "edition", "file_sha256", "pages", "pages_basis",
     "readability", "school_ids", "school_basis", "school_evidence", "evidence_role",
     "copyright", "status",
@@ -51,7 +52,7 @@ def reject_path_leak(value, field: str, sid: str):
 def sanitize_row(row: dict, domain: str) -> dict:
     sid = row.get("source_id", "<unknown>")
     if row.get("domain") != domain:
-        fail(f"{sid}: domain mismatch")
+        fail(f"{sid}: registry domain mismatch")
     out = {k: row.get(k) for k in SAFE_FIELDS}
     out["local_only"] = True
     out["record_scope"] = "SANITIZED_METADATA_ONLY"
