@@ -1,6 +1,7 @@
 {
-  "schema_version":"k2-source-lineage-v1",
+  "schema_version":"k2-source-lineage-v2",
   "status":"REVIEW_REQUIRED",
+  "review_reason":"PART_VS_VARIANT_COVERAGE_REVIEW",
   "total_sources":515,
   "required_registry_counts":{
     "ziwei":148,
@@ -15,7 +16,10 @@
   "rules":[
     "one lineage disposition row per canonical source_id",
     "same underlying work or edition family must not be counted as independent corroboration",
+    "complementary volumes or page segments use WORK_PART and remain K2-eligible so unique coverage is not dropped",
+    "SAME_WORK_VARIANT must point directly to a PRIMARY_WORK or WORK_PART through variant_of_source_id",
     "secondary notes and implementation evidence never count as independent traditional textual sources",
+    "semantic OUT_OF_SCOPE is distinct from source role: out-of-scope code remains IMPLEMENTATION and SKIP",
     "OUT_OF_SCOPE and UNKNOWN semantic sources may remain non-eligible without blocking K2 lineage completion",
     "lineage uncertainty must remain UNKNOWN rather than being guessed"
   ]
