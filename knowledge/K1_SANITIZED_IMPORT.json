@@ -4,27 +4,27 @@
   "domains": {
     "ziwei": {
       "sources": 148,
-      "registry_sha256": "838cf67c0c2acee8222f8fd5818b09b53803a2dffbf0aec19ae115b6ebda1867"
+      "registry_sha256": "144c6542d2aa243a66887027a6836b740cddffe18e9de0e12096d836c616c9bd"
     },
     "bazi": {
       "sources": 168,
-      "registry_sha256": "166c0961c41f42274558016ffe42e3a426336dacbab2b4b9bb7b5fcf27305bfc"
+      "registry_sha256": "8c1bc9c24e473257be7a244d3a8e4d35065078c0da59993efca35bbf5d41c1b4"
     },
     "qimen": {
       "sources": 154,
-      "registry_sha256": "9b6fcf405a7ad4ef86b8b11a2bebdd3501d7d6b30dc3551eb28ea573711c3842"
+      "registry_sha256": "64e1ba5cb9c9f05a3afcbef27686ea4af17f06073471ce9760b2969969d48bc2"
     },
     "liuyao": {
       "sources": 7,
-      "registry_sha256": "62cd4e8196dff6cebc8b71dfd5a40b1a8715dfcd8cb4cfbe210132a84a8ff6eb"
+      "registry_sha256": "68556cd53dc34412772da9e30dda1d866338607c094c54b700b09aa6491b2afe"
     },
     "liuren": {
       "sources": 10,
-      "registry_sha256": "a94775ffffab29267b15d5e62b5161aab482f0f17e67a1ee602daa65ba04f06b"
+      "registry_sha256": "370715c60044f840c8a4580bdde2f3e6954b1176458a2966853eca1baf2e258a"
     },
     "fengshui": {
       "sources": 28,
-      "registry_sha256": "44206889daf08c7ea8175ccfb3c474651ef1d6b6d40fe3ded2c84d0f517e187e"
+      "registry_sha256": "fd236efca6beb4f11a1603bc379b1b88194b601f126f3be75567ac9f28b809cb"
     }
   },
   "total_sources": 515,
