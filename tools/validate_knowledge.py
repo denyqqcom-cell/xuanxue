@@ -14,6 +14,7 @@ LEVELS = [
 SCHEMAS = [
     "source.schema.json",
     "evidence.schema.json",
+    "claim.schema.json",
     "school.schema.json",
     "conflict.schema.json",
     "fixture.schema.json",
