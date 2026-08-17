@@ -1,10 +1,12 @@
 {
   "schema_version": "knowledge-engine-v1",
-  "phase": "K1_CORPUS_INDEX",
+  "phase": "K1_SANITIZED_IMPORT",
   "required_domains": ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui"],
   "common_layer": "common",
   "balance_gate": "ENFORCE",
   "next_phase": "K2_CLAIM_EXTRACTION",
-  "k1_acceptance": "CONDITIONAL_REPORT_LEVEL",
+  "k1_acceptance": "LOCAL_MACHINE_VALIDATED",
+  "local_accounting": "PASS",
+  "sanitized_import": "PENDING",
   "k2_blocked": true
 }
