@@ -13,12 +13,12 @@ DOMAIN_BASIS = {"TITLE_FILENAME", "CONTENT_VERIFIED", "MANUAL_VERIFIED", "PROJEC
 # High-precision routing hints only. These are not metaphysical truth rules; they prevent obvious folder-based contamination.
 # Include canonical English/code spellings and legacy mixed Chinese-pinyin filenames used by the local corpus.
 HINTS = [
-    (re.compile(r"奇门|\bqimen\b", re.I), "qimen"),
-    (re.compile(r"紫微|斗数|紫\s*wei|斗\s*shu|\bziwei\b", re.I), "ziwei"),
-    (re.compile(r"大六壬|六壬|\bliu[_-]?ren\b", re.I), "liuren"),
-    (re.compile(r"六爻|卜筮正宗|增.?卜易|火珠林|\bliu[_-]?yao\b", re.I), "liuyao"),
-    (re.compile(r"八字|子平|滴天髓|命稿|\bbazi\b", re.I), "bazi"),
-    (re.compile(r"风水|凤水|堪舆|玄空|阳宅|\bfeng[_-]?shui\b|fengshui", re.I), "fengshui"),
+    (re.compile(r"奇门|(?<![A-Za-z])qimen", re.I), "qimen"),
+    (re.compile(r"紫微|斗数|紫\s*wei|斗\s*shu|(?<![A-Za-z])ziwei", re.I), "ziwei"),
+    (re.compile(r"大六壬|六壬|(?<![A-Za-z])liu[_-]?ren", re.I), "liuren"),
+    (re.compile(r"六爻|卜筮正宗|增.?卜易|火珠林|(?<![A-Za-z])liu[_-]?yao", re.I), "liuyao"),
+    (re.compile(r"八字|子平|滴天髓|命稿|(?<![A-Za-z])bazi", re.I), "bazi"),
+    (re.compile(r"风水|凤水|堪舆|玄空|阳宅|(?<![A-Za-z])feng[_-]?shui|(?<![A-Za-z])fengshui", re.I), "fengshui"),
 ]
 OUT_OF_SCOPE_HINT = re.compile(r"梅花心易|梅花易数|铁板神数|京房易|周易.?变占|周易.?變占")
 EDITOR_ROLE = re.compile(r"(?:主编|点校|校(?:订|注|者)?|译(?:者)?|整理|编校)")
