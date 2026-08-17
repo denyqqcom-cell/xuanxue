@@ -65,3 +65,5 @@ Project acceptance requires:
 - no series is collapsed into one work solely by normalized title;
 - project-side independent review passes;
 - `claim_extraction_blocked=true` until this review is closed.
+
+The current public lineage remains a draft. Its previous one-issue result must not be interpreted as K2A acceptance because the old validator did not model part coverage.
