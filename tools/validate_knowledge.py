@@ -14,12 +14,12 @@ LEVELS = [
 SCHEMAS = [
     "source.schema.json",
     "evidence.schema.json",
-    "claim.schema.json",
     "school.schema.json",
     "conflict.schema.json",
     "fixture.schema.json",
     "case.schema.json",
     "source_lineage.schema.json",
+    "reading_coverage.schema.json",
 ]
 
 
@@ -114,6 +114,16 @@ def main():
             fail("K2 requires non-zero indexed source counts for all domains")
         if phase == "K2_SOURCE_LINEAGE" and state.get("claim_extraction_blocked") is not True:
             fail("Claim Extraction must remain blocked during K2 source-lineage stage")
+        if phase == "K2_EVIDENCE_EXTRACTION":
+            if state.get("source_lineage") != "COMPLETE":
+                fail("K2 Evidence Extraction requires completed source lineage")
+            if state.get("evidence_extraction_blocked") is not False:
+                fail("K2 Evidence Extraction lane must be open in evidence phase")
+            if state.get("claim_extraction_blocked") is not True:
+                fail("Claim Extraction must remain blocked during K2 Evidence Extraction")
+            ev_state = load(K / "K2_EVIDENCE_STATE.json")
+            if ev_state.get("source_lineage_status") != "COMPLETE" or ev_state.get("claim_extraction_blocked") is not True:
+                fail("K2_EVIDENCE_STATE must preserve completed lineage and blocked claims")
 
     forbidden_ext = {".pdf", ".epub", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".webp", ".ttf", ".otf", ".woff", ".woff2"}
     for p in K.rglob("*"):
