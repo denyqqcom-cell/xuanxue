@@ -10,4 +10,6 @@ Examples requiring remediation before K2:
 
 K2 remains blocked until every source has an explicit semantic routing decision independent of local folder placement, and filename contributor roles are separated conservatively.
 
-The next local remediation must preserve all 515 canonical records and hashes, but add semantic-domain provenance and reset ambiguous authors to UNKNOWN rather than infer.
+The next local remediation must preserve all 515 canonical records and hashes, add `knowledge_domains / domain_basis / domain_evidence`, and reset ambiguous contributor-as-author cases rather than infer.
+
+K2 must route by `knowledge_domains`, never by registry folder alone.
