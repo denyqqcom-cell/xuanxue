@@ -21,15 +21,18 @@ SCHEMAS = [
     "case.schema.json",
 ]
 
+
 def fail(msg):
     print(f"knowledge-gate: FAIL: {msg}", file=sys.stderr)
     raise SystemExit(1)
+
 
 def load(path):
     try:
         return json.loads(path.read_text(encoding="utf-8"))
     except Exception as e:
         fail(f"cannot parse {path.relative_to(ROOT)}: {e}")
+
 
 def main():
     state = load(K / "PROJECT_STATE.json")
@@ -69,8 +72,6 @@ def main():
         if not (ROOT / p).is_file():
             fail(f"qimen legacy reference missing: {p}")
 
-    # K0 may expose the imbalance, but may not hide it. From K1 onward the six domains
-    # must all reach L1 before any domain is allowed to advance beyond L2.
     if state.get("balance_gate") == "ENFORCE":
         if min(levels.values()) < 1 and max(levels.values()) > 2:
             fail("DOMAIN_IMBALANCE: a domain advanced beyond L2 while another is below L1")
@@ -79,20 +80,38 @@ def main():
     for d in ["紫微", "八字", "奇门", "六爻", "大六壬", "风水"]:
         if d not in status_text:
             fail(f"STATUS.md missing domain: {d}")
-    if "DOMAIN_IMBALANCE" not in status_text:
-        fail("K0 status must expose current domain imbalance")
 
-    forbidden_ext = {".pdf", ".epub", ".doc", ".docx", ".ttf", ".otf", ".woff", ".woff2"}
+    phase = state.get("phase", "")
+    if phase == "K0_BOOTSTRAP" and "DOMAIN_IMBALANCE" not in status_text:
+        fail("K0 status must expose DOMAIN_IMBALANCE")
+    if phase.startswith("K1_") and "ENGINE_MATURITY_IMBALANCE" not in status_text:
+        fail("K1 status must expose ENGINE_MATURITY_IMBALANCE")
+
+    if state.get("k1_acceptance") == "LOCAL_MACHINE_VALIDATED":
+        local = load(K / "K1_LOCAL_VALIDATION.json")
+        if local.get("result") != "PASS":
+            fail("LOCAL_MACHINE_VALIDATED requires K1_LOCAL_VALIDATION.result=PASS")
+        if local.get("accounting", {}).get("canonical_sources_total") != 515:
+            fail("unexpected accepted canonical source total")
+        for d in REQUIRED:
+            if local.get("domains", {}).get(d, {}).get("k1_index_status") != "PASS":
+                fail(f"local K1 index not PASS for {d}")
+
+    if state.get("sanitized_import") == "PENDING" and state.get("k2_blocked") is not True:
+        fail("K2 must remain blocked while sanitized import is pending")
+
+    forbidden_ext = {".pdf", ".epub", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".webp", ".ttf", ".otf", ".woff", ".woff2"}
     for p in K.rglob("*"):
         if p.is_file() and p.suffix.lower() in forbidden_ext:
             fail(f"copyright boundary: binary research asset under knowledge/: {p.relative_to(ROOT)}")
 
     print("knowledge-gate: PASS")
-    print("phase=", state.get("phase"))
+    print("phase=", phase)
     print("schemas=", SCHEMAS)
     print("levels=", {d: LEVELS[levels[d]] for d in REQUIRED})
     if min(levels.values()) < max(levels.values()):
-        print("balance=DOMAIN_IMBALANCE_K1_REQUIRED")
+        print("balance=ENGINE_MATURITY_IMBALANCE")
+
 
 if __name__ == "__main__":
     main()
