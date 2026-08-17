@@ -12,8 +12,10 @@ DOMAINS = ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui"]
 PATH_LEAK = re.compile(r"(?i)(?:[A-Z]:[\\/]|/(?:home|Users|mnt)/)")
 HEX64 = re.compile(r"^[0-9a-fA-F]{64}$")
 SAFE_FIELDS = [
-    "source_id", "domain", "title", "author", "source_type", "era", "edition",
-    "file_sha256", "pages", "readability", "school_ids", "copyright", "status",
+    "source_id", "domain", "title", "author", "author_basis", "author_evidence",
+    "source_type", "era", "edition", "file_sha256", "pages", "pages_basis",
+    "readability", "school_ids", "school_basis", "school_evidence", "evidence_role",
+    "copyright", "status",
 ]
 FORBIDDEN_KEYS = {"local_path", "size_bytes", "sampled_locations", "notes"}
 
