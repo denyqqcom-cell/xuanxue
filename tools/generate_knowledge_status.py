@@ -53,7 +53,7 @@ def render() -> str:
         if state.get("semantic_routing") == "REVIEW_REQUIRED":
             lines += [
                 "",
-                "本地 K1 Source Index、515 条 sanitized metadata 的结构/隐私 Gate 以及 attribution/source-quality Gate 已通过；但项目端再次抽样发现 **registry 所在目录与资料真正术数领域仍被混用，且部分文件名中的主编/校者仍被并入 author**。当前 Gate 为 `K1_SEMANTIC_ROUTING_REVIEW`，K2 继续锁定。",
+                "本地 K1 Source Index、515 条 sanitized metadata 的结构/隐私 Gate 以及 attribution/source-quality Gate 已通过；项目端最终精度复验进一步发现 **TITLE_FILENAME 路由可能被作者姓名中的术数词误触发**（典型为“紫微杨/紫微扬”），当前仍有少量高风险 source 需要回到真实文件或更强证据重新判定。当前 Gate 为 `K1_SEMANTIC_ROUTING_REVIEW`，K2 继续锁定。",
             ]
         elif state.get("source_quality") == "REVIEW_REQUIRED":
             lines += [
