@@ -6,92 +6,124 @@ Acceptance update: 2026-08-17
 
 `K1_LOCAL_INDEX = PASS`
 
-`K1_PROJECT_IMPORT = PENDING`
+`K1_SANITIZED_IMPORT_STRUCTURE = PASS`
+
+`K1_PROJECT_IMPORT = BLOCKED_ON_ATTRIBUTION_QUALITY`
 
 `K2_CLAIM_EXTRACTION = BLOCKED`
 
-The private local intake is not stored in GitHub. The project-side evidence for this update is the reported successful execution of the repository validator `tools/validate_k1_intake.py`, together with the reconciled accounting output recorded in `knowledge/K1_LOCAL_VALIDATION.json`. This closes the previous 51-file / 27-SHA accounting blockers, but does **not** yet mean that the repository has absorbed all 515 canonical source records. That final K1 step is the sanitized metadata import.
+The local corpus accounting is closed and the 515 canonical records are now present in GitHub as privacy-safe metadata. Project-side review confirmed the expected seven-file import commit and CI run, but a deeper semantic audit found that the current sanitized registries are **not yet trustworthy bibliographic metadata**. K1 therefore remains open at `K1_ATTRIBUTION_REVIEW`.
 
-## Local machine validation reported PASS
+## What passed
 
-Reported validator result:
-
-`k1-intake: PASS`
-
-Reconciled accounting:
+Local machine validation remains accepted:
 
 - scanned files: **911**
 - distinct SHA256: **542**
 - canonical sources: **515**
-- domain duplicate records: **345**
+- duplicate records: **345**
 - excluded files: **51**
-- inventory ledger rows: **911**
-- inventory ledger distinct SHA: **542**
+- six-domain K1 index verdict: **PASS**
 
-The previous 910 / 541 totals changed only because one new qimen user note appeared after the original scan and became `QM-SRC-0154`.
+Sanitized import commit `d1f54f09ec2850cc805efccc22e62ead2e5f8e0b` contains exactly:
 
-## Previous accounting blockers are closed
+- `knowledge/K1_SANITIZED_IMPORT.json`
+- six `knowledge/domains/<domain>/sources.jsonl` registries
 
-The original unexplained 51 files are now explicitly dispositioned as **51 EXCLUDED** files. They consist of 27 excluded unique hashes plus 24 additional copies of those excluded hashes.
+The manifest declares 148 / 168 / 154 / 7 / 10 / 28 sources = **515 total**. GitHub Actions run `32024210050` passed the existing structural, privacy, hash, binary-boundary and stable-core gates.
 
-The original 27-SHA gap is exactly the 27 excluded unique hashes:
+These facts prove that the import is structurally complete and privacy-safe. They do **not** prove that author, school, era, copyright or page-count metadata is correct.
 
-- `no_domain_keyword`: 14
-- `repo_meta`: 3
-- `generic_tool_or_index`: 10
+## Project-side semantic audit findings
 
-They are not missing occult books and must not be promoted into a domain merely to balance counts.
+### Blocker A — author attribution is contaminated by directory/collection context
 
-## Six-domain K1 index verdict
+Examples visible directly in the sanitized registries:
 
-| Domain | Canonical | Duplicates | K1 index | K2 readiness |
-|---|---:|---:|---|---|
-| ziwei | 148 | 62 | PASS | READY_FOR_EXTRACTION |
-| bazi | 168 | 90 | PASS | READY_FOR_EXTRACTION |
-| qimen | 154 | 184 | PASS | READY_FOR_EXTRACTION |
-| liuyao | 7 | 3 | PASS | THIN_CORPUS |
-| liuren | 10 | 4 | PASS | THIN_CORPUS |
-| fengshui | 28 | 2 | PASS | READING_REQUIRED |
+- `BZ-SRC-0003` title `八字论命苏民峰` has author `王亭之 / 苏民峰`.
+- `BZ-SRC-0009` title `韦千里 - 千里命稿` has author `王亭之 / 韦千里`.
+- `LY-SRC-0001` `六爻新大陸`, `LY-SRC-0002` `卜筮正宗`, and `LY-SRC-0003` `增刪卜易` are all attributed to `王亭之`.
+- `QM-SRC-0001` `梁湘润-奇门遁甲入门` is attributed to `王亭之 / 梁湘润`.
+- multiple Fengshui Liang Xiangrun titles are attributed to `王亭之 / 梁湘润`.
+- Liuren entries include `王亭之` in multi-person author strings even when the title itself names 袁树珊/主编/校者 instead.
 
-This distinction is intentional. A thin corpus can still have a complete K1 index. `THIN_CORPUS` and `READING_REQUIRED` are later readiness constraints; they are not reasons to invent sources or fail an otherwise honest Source Registry.
+This pattern is consistent with parent-directory or collection-context leakage into the `author` field. Parent folder ownership is not author evidence.
 
-## Domain-specific acceptance notes
+### Blocker B — sanitized records do not conform to the canonical Source enum contract
 
-- **Ziwei**: current corpus is sufficient to start source-level extraction, but 三合/钦天/历法/时辰/大限/小限 still lack adequate filename/note-title coverage; iztro remains implementation evidence, not traditional truth.
-- **Bazi**: corpus volume is large, but many primary books are scans. From格/专旺/子初/早晚子 and several school conflicts still require original-source reading rather than note-level inference.
-- **Qimen**: K1 source index now has 154 canonical records. Existing handoff remains evidence to re-audit, not authority. Full-board verification and several school branches are still unresolved.
-- **Liuyao**: the local corpus is genuinely thin. 《火珠林》 remains a cross-domain pointer instead of receiving a second LY source ID; 梅花、京房易 and mixed 卜筮 compilations are not inflated into 六爻 corpus.
-- **Liuren**: the available corpus is fully indexed but thin; two copies/editions of《大六壬探原》 remain scan-dependent.
-- **Fengshui**: K1 indexing is complete for the discoverable corpus, but actual reading is insufficient. Only 玄空飞星/三元/形势 are confirmable from filenames; 八宅/三合/罗盘/坐向 and spatial-input rules remain unsupported.
+`knowledge/schema/source.schema.json` defines canonical `era` values as:
 
-## Remaining K1 gate — sanitized import
+`ANCIENT / PRE_MODERN / MODERN / UNKNOWN`
 
-The repository still must not claim `L1_INDEXED` for the newly indexed sources until the 515 canonical records are imported as safe metadata and validated in GitHub.
+and canonical copyright values as:
 
-The official path is:
+`PUBLIC_DOMAIN_TEXT_ONLY / LICENSED / RESEARCH_ONLY / UNKNOWN / FORBIDDEN_TO_PACKAGE`.
 
-1. rerun `tools/validate_k1_intake.py` on the local intake;
-2. run `tools/sanitize_k1_sources.py` rather than copying local JSONL manually;
-3. import only the whitelisted metadata fields to `knowledge/domains/*/sources.jsonl`;
-4. strip local paths, sizes, sampled locations and notes;
-5. keep source books `local_only=true` and `packaged=false`;
-6. run `tools/validate_sanitized_k1.py --force`;
-7. run sanitization tests and stable core regression;
-8. push only the seven sanitized import files for project-side review.
+Current sanitized rows include non-canonical values such as:
 
-The dedicated handoff is `LOCAL_CORPUS_K1_SANITIZED_IMPORT_PROMPT.md`.
+- `modern`
+- `pre_1950_text_in_modern_file`
+- `modern_publication_or_scan`
+- `pre1950_text_modern_scan_or_typeset`
+- `user_owned_notes`
+- `project_or_mit_code`
 
-## Copyright and privacy boundary
+The previous `validate_sanitized_k1.py` validated counts, IDs, hashes, local-path stripping and package boundaries, but did not validate Source schema enums or attribution provenance. A green run therefore could not close this semantic gap.
 
-No original PDF, scan page, OCR body, modern long quotation, proprietary diagram/table, font, real local path or private directory may be imported. File hashes and bibliographic metadata are provenance fields; they do not authorize redistribution of the source material.
+### Blocker C — `pages` is being used for non-page extents
+
+Examples such as `_books_digest`, `_books_toc`, Markdown notes and Kotlin/code records carry large integer `pages` values. For non-paginated text/code this is likely a line/extent count, not a page count. `pages` must mean actual document pages or be null; the basis must be explicit.
+
+### Blocker D — canonical titles contain distribution noise
+
+Some titles contain download-site or contact/promotional material such as `www.*` or `更多教程加微信...`. Those strings are not bibliographic titles and must not become canonical Source identity fields.
+
+## Corrective contract
+
+K1 source metadata now distinguishes fact from inference. New provenance fields are documented in `knowledge/schema/source.schema.json`:
+
+- `author_basis` / `author_evidence`
+- `school_basis` / `school_evidence`
+- `pages_basis`
+- `evidence_role`
+
+Allowed author evidence does **not** include parent directory, neighboring file, collection folder, model memory or author-to-school inference.
+
+`evidence_role` separates:
+
+- textual source material;
+- secondary notes;
+- implementation/code evidence;
+- auxiliary indexes.
+
+This prevents CODE and prior AI notes from being counted as independent traditional-source truth in K2.
+
+## New fail-closed quality gate
+
+`tools/validate_k1_source_quality.py` now checks:
+
+- canonical era/copyright enums;
+- author attribution provenance;
+- filename-author consistency when `author_basis=FILENAME`;
+- school provenance;
+- page-count provenance;
+- evidence-role separation;
+- promotional/contact noise in canonical titles;
+- existing privacy/package boundaries.
+
+While `PROJECT_STATE.source_quality=REVIEW_REQUIRED`, CI requires the project to remain explicitly blocked and reports the defects without pretending K1 is complete. Once remediation claims `source_quality=COMPLETE`, the same validator becomes hard fail-closed and requires **zero** source-quality issues.
 
 ## Promotion rule
 
-After sanitized import is present and project-side validation passes:
+K1 project import closes only when:
 
-- all six domains may be marked at least `L1_INDEXED` for Source Registry maturity;
-- qimen may retain its higher legacy claim maturity while clearly separating K1 source coverage from claim validation;
-- `K2_CLAIM_EXTRACTION` may be opened only under domain-specific readiness constraints;
-- `THIN_CORPUS` and `READING_REQUIRED` continue to block unsupported cross-verification or interpretation claims.
+1. all 515 source records still reconcile with the accepted local index;
+2. `validate_sanitized_k1.py --force` passes;
+3. `validate_k1_source_quality.py --force` passes with zero issues;
+4. author/school/page metadata has explicit evidence or is conservatively reset to `UNKNOWN`/null;
+5. canonical Source enum values are normalized;
+6. titles are bibliographic and free of distribution/contact noise;
+7. no local paths or source bodies enter Git;
+8. stable-core regression and Knowledge Engine CI pass on the exact corrected head.
 
-Until then, `k2_blocked=true` remains correct.
+Only then may the six domains be promoted to at least `L1_INDEXED` and K2 be opened under each domain's readiness constraints.
