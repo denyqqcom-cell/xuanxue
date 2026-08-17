@@ -1,0 +1,19 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"source_lineage.schema.json",
+  "type":"object",
+  "required":["source_id","relation","parent_work_ids","independence_class","lineage_basis","k2_eligible","read_priority","review_status"],
+  "properties":{
+    "source_id":{"type":"string","minLength":1},
+    "work_id":{"type":["string","null"]},
+    "relation":{"enum":["PRIMARY_WORK","SAME_WORK_VARIANT","COMMENTARY_DERIVATIVE","SECONDARY_NOTE","IMPLEMENTATION","AUXILIARY_INDEX","OUT_OF_SCOPE","UNKNOWN"]},
+    "parent_work_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
+    "independence_class":{"enum":["PRIMARY_CANDIDATE","SAME_WORK_NOT_INDEPENDENT","DERIVATIVE_REVIEW_REQUIRED","IMPLEMENTATION_ONLY","NOT_ELIGIBLE","UNKNOWN"]},
+    "lineage_basis":{"enum":["TITLE_MATCH","CONTENT_VERIFIED","MANUAL_VERIFIED","HASH_PROVENANCE","PROJECT_CODE_PATH","UNKNOWN"]},
+    "lineage_evidence":{"type":["string","null"],"maxLength":240},
+    "k2_eligible":{"type":"boolean"},
+    "read_priority":{"enum":["P0","P1","P2","P3","SKIP"]},
+    "review_status":{"enum":["UNREVIEWED","REVIEWED","BLOCKED"]}
+  },
+  "additionalProperties":false
+}

@@ -1,0 +1,22 @@
+{
+  "schema_version":"k2-source-lineage-v1",
+  "status":"REVIEW_REQUIRED",
+  "total_sources":515,
+  "required_registry_counts":{
+    "ziwei":148,
+    "bazi":168,
+    "qimen":154,
+    "liuyao":7,
+    "liuren":10,
+    "fengshui":28
+  },
+  "public_lineage_file":"knowledge/K2_SOURCE_LINEAGE.jsonl",
+  "claim_extraction_blocked":true,
+  "rules":[
+    "one lineage disposition row per canonical source_id",
+    "same underlying work or edition family must not be counted as independent corroboration",
+    "secondary notes and implementation evidence never count as independent traditional textual sources",
+    "OUT_OF_SCOPE and UNKNOWN semantic sources may remain non-eligible without blocking K2 lineage completion",
+    "lineage uncertainty must remain UNKNOWN rather than being guessed"
+  ]
+}

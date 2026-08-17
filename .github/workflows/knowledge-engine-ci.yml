@@ -35,6 +35,10 @@ jobs:
         run: python3 tools/test_k1_semantic_routing.py
       - name: Enforce K1 semantic routing state
         run: python3 tools/validate_k1_semantic_routing.py
+      - name: Test K2 source lineage fail-closed cases
+        run: python3 tools/test_k2_source_lineage.py
+      - name: Enforce K2 source lineage state
+        run: python3 tools/validate_k2_source_lineage.py
       - name: Guard knowledge tree from packaged research binaries
         shell: bash
         run: |
