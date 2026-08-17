@@ -2,68 +2,50 @@
 
 ## Review status
 
-`REVIEW_REQUIRED`
+`PASS`
 
-Claim Extraction remains blocked.
+Accepted data head: `d942b28c01b862a404784cefdb5a8e64fc5fcb86`.
 
-## What passed
+Accepted CI run: `32043681020` — SUCCESS.
 
-The 515-row local lineage draft correctly preserved one row per K1 canonical source and already separated many important classes: textual work, commentary derivative, secondary note, implementation, auxiliary index, out-of-scope and unknown. The local review also exposed only one issue under the first K2 validator: `ZW-SRC-0087 ChengGu`.
+## What was resolved
 
-That ChengGu issue is a validator design bug, not a reason to rewrite K1 semantic routing. K1 correctly says the code is semantically outside the six governed arts, while its evidence role is still `IMPLEMENTATION_EVIDENCE`. K2 must preserve both facts: relation `IMPLEMENTATION`, `IMPLEMENTATION_ONLY`, non-eligible, SKIP.
+The first K2 lineage draft correctly separated source roles but conflated two different coverage relations: alternate carriers of the same content and complementary volumes/page segments. The remediation re-reviewed the old 97 SAME_WORK_VARIANT rows and closed the upgraded validator from 405 issues to 0.
 
-## New project-side blocker: coverage was conflated with variant identity
+Final accepted relation counts:
 
-The first K2 lineage model used `SAME_WORK_VARIANT` both for alternate carriers of the same content and for complementary volumes/page splits of one work. Those are not the same thing.
+- PRIMARY_WORK 58
+- WORK_PART 39
+- SAME_WORK_VARIANT 19
+- COMMENTARY_DERIVATIVE 6
+- SECONDARY_NOTE 159
+- IMPLEMENTATION 65
+- AUXILIARY_INDEX 67
+- OUT_OF_SCOPE 6
+- UNKNOWN 96
 
-Concrete confirmed example:
+There are 515 lineage rows and 371 non-null work IDs.
 
-- `ZW-SRC-0003` = 紫微斗数全集（一）
-- `ZW-SRC-0004` = 紫微斗数全集（三）
-- `ZW-SRC-0005` = 紫微斗数全集（二）
-- `ZW-SRC-0006` = 紫微斗数全集（五）
-- `ZW-SRC-0007` = 紫微斗数全集（六）
-- `ZW-SRC-0008` = 紫微斗数全集（四）
+## Coverage model accepted
 
-The initial lineage put all six under `WORK-000003`, made the first source `PRIMARY_WORK`, and labelled the other five `SAME_WORK_VARIANT`. These six files are complementary volumes, not alternate scans of identical coverage. If K2B later reads only one representative carrier, five volumes of unique material could be silently lost.
+- PRIMARY_WORK: complete underlying work carrier.
+- WORK_PART: complementary volume/part/page coverage. It is not another independent vote, but remains K2-eligible and must be read.
+- SAME_WORK_VARIANT: redundant/alternate carrier pointing directly to a PRIMARY_WORK or WORK_PART through `variant_of_source_id`.
+- SECONDARY_NOTE / IMPLEMENTATION / AUXILIARY_INDEX remain outside the traditional textual reading lane.
+- semantic UNKNOWN textual sources remain unresolved rather than being guessed.
 
-The same risk exists in reported large families containing 上/中/下册、卷、篇、分册、分页、全集分卷 or a full-work file mixed with split parts.
+## Project-side family checks
 
-## Corrected model
+- 《紫微斗数全集》一至六卷 are six WORK_PART rows under one work family and remain readable.
+- 八字真诀启示录 separates 火/电/雷/风 unique coverage from redundant page-split carriers.
+- ChengGu remains IMPLEMENTATION / IMPLEMENTATION_ONLY / SKIP while its K1 semantic OUT_OF_SCOPE status is preserved.
+- 六爻 thin corpus retains the three direct books plus cross-routed《火珠林》as governed textual candidates.
+- 大六壬 keeps two《大六壬探原》carriers in one work family rather than two independent votes.
 
-K2 lineage now distinguishes:
+## Decision
 
-- `PRIMARY_WORK`: complete-work carrier;
-- `WORK_PART`: complementary volume/part/page segment of the same underlying work; not an independent vote, but still K2-eligible because it contains unique coverage;
-- `SAME_WORK_VARIANT`: alternate carrier of substantially the same coverage, which must point via `variant_of_source_id` to a PRIMARY_WORK or WORK_PART;
-- `part_label`: required for WORK_PART and inherited by variants of that part.
+K2A Source Lineage is closed. `K2_SOURCE_LINEAGE_STATE.status = COMPLETE`.
 
-A titled series of genuinely separate works must not be collapsed into one `work_id` just because the series prefix matches. Conversely, different volumes of one actual work must not be split into fake independent works simply to increase source count.
+K2B Evidence Extraction is open. Claim Extraction remains blocked.
 
-## Required remediation scope
-
-Re-review all current `SAME_WORK_VARIANT` rows and every member of those work families. The starting draft contains 97 `SAME_WORK_VARIANT` rows. Each must be resolved as one of:
-
-1. true SAME_WORK_VARIANT with a direct `variant_of_source_id`;
-2. WORK_PART with a `part_label`;
-3. distinct PRIMARY_WORK with a new work_id when it is actually a separate intellectual work in a series;
-4. UNKNOWN if evidence is insufficient.
-
-The re-review must especially cover the previously reported large families such as 紫微斗数全集、命理探原/探源、八字真诀启示录、命谱、斗数四书、中州派玄空资料、甲遁真授秘录、图解奇门遁甲大全、奇门遁甲应用学、烟波钓叟歌、曾子南三元奇门讲义 and any page-split/full-text families.
-
-## Gate
-
-Do not promote `knowledge/K2_SOURCE_LINEAGE_STATE.json.status` locally.
-
-Project acceptance requires:
-
-- 515 lineage rows exactly;
-- all structural validators pass;
-- no unresolved `variant_of_source_id` relationships;
-- all WORK_PART rows have unique meaningful `part_label` within their work family;
-- no volume/part is discarded as a mere alternate carrier;
-- no series is collapsed into one work solely by normalized title;
-- project-side independent review passes;
-- `claim_extraction_blocked=true` until this review is closed.
-
-The current public lineage remains a draft. Its previous one-issue result must not be interpreted as K2A acceptance because the old validator did not model part coverage.
+The 96 semantic-UNKNOWN textual sources are a non-blocking K2A uncertainty but a mandatory K2B discovery backlog; they may not be silently dropped from the eventual all-books absorption process.
