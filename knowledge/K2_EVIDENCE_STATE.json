@@ -1,0 +1,22 @@
+{
+  "schema_version":"k2-evidence-v1",
+  "status":"WAVE1_OPEN",
+  "source_lineage_status":"COMPLETE",
+  "wave":1,
+  "claim_extraction_blocked":true,
+  "public_evidence_file":"knowledge/K2_EVIDENCE_WAVE1.jsonl",
+  "public_reading_ledger":"knowledge/K2_READING_LEDGER_WAVE1.jsonl",
+  "unique_textual_coverage_units":103,
+  "unknown_textual_resolution_backlog":96,
+  "selection_rule":"all P0 work families expanded to all unique-coverage PRIMARY_WORK/WORK_PART members; all governed Liuyao/Liuren unique textual coverage included in Wave1",
+  "required_domains":["ziwei","bazi","qimen","liuyao","liuren","fengshui"],
+  "rules":[
+    "Evidence Extraction records only what a source explicitly supports; no claim synthesis or conflict resolution in K2B",
+    "reading coverage is tracked separately from evidence count",
+    "if any member of a selected work family is P0, all PRIMARY_WORK/WORK_PART unique coverage for that work_id enters the wave",
+    "SAME_WORK_VARIANT is a backup carrier and never an independent vote",
+    "SECONDARY_NOTE, IMPLEMENTATION and AUXILIARY_INDEX do not enter traditional textual Evidence Extraction",
+    "semantic-UNKNOWN textual sources remain in a discovery backlog and must be content-reviewed before K2B can be globally complete",
+    "modern long-form text and scans remain local; public records contain only derived facts, locators and short metadata"
+  ]
+}
