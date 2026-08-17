@@ -23,11 +23,15 @@ jobs:
         run: python3 tools/generate_knowledge_status.py --check
       - name: Test local K1 intake validator
         run: python3 tools/test_validate_k1_intake.py
+      - name: Test K1 sanitization boundary
+        run: python3 tools/test_k1_sanitization.py
+      - name: Validate sanitized K1 import state
+        run: python3 tools/validate_sanitized_k1.py
       - name: Guard knowledge tree from packaged research binaries
         shell: bash
         run: |
           set -euo pipefail
-          if find knowledge -type f \( -iname '*.pdf' -o -iname '*.epub' -o -iname '*.doc' -o -iname '*.docx' -o -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' \) -print | grep -q .; then
+          if find knowledge -type f \( -iname '*.pdf' -o -iname '*.epub' -o -iname '*.doc' -o -iname '*.docx' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' \) -print | grep -q .; then
             echo 'Forbidden research binary detected under knowledge/' >&2
             exit 1
           fi
