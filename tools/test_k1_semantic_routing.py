@@ -96,6 +96,41 @@ def main():
     )
     assert not v.inspect_row(row, "ziwei"), v.inspect_row(row, "ziwei")
 
+    # Legacy mixed Chinese/pinyin filenames still carry an explicit ziwei work-title signal.
+    row = base(
+        source_id="ZW-SRC-0020",
+        domain="ziwei",
+        title="王亭之-紫wei斗shu讲义补注(上册)",
+        author="王亭之",
+        author_basis="FILENAME",
+        knowledge_domains=["ziwei"],
+        domain_evidence="title contains ziwei system token",
+    )
+    assert not v.inspect_row(row, "ziwei"), v.inspect_row(row, "ziwei")
+
+    # Code identifiers can be direct filename evidence when they explicitly name a domain.
+    row = base(
+        source_id="ZW-SRC-0130",
+        domain="ziwei",
+        title="BaziRulesTest",
+        author="UNKNOWN",
+        author_basis="UNKNOWN",
+        source_type="CODE",
+        knowledge_domains=["bazi"],
+        domain_evidence="code title/filename names bazi",
+    )
+    assert not v.inspect_row(row, "ziwei"), v.inspect_row(row, "ziwei")
+
+    # Explicitly named out-of-scope systems beyond the first two examples must remain routable.
+    row = base(
+        source_id="FS-SRC-0011",
+        domain="fengshui",
+        title="周易變占法引論",
+        knowledge_domains=["OUT_OF_SCOPE"],
+        domain_evidence="title/filename contains 周易變占",
+    )
+    assert not v.inspect_row(row, "fengshui"), v.inspect_row(row, "fengshui")
+
     print("k1-semantic-routing-tests: PASS")
 
 
