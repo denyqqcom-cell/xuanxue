@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -83,8 +84,12 @@ def main():
         expected_count = expected["domains"][domain]["sources"]
         if len(rows) != expected_count:
             fail(f"{domain}: source count {len(rows)} != expected local K1 count {expected_count}")
-        if manifest.get("domains", {}).get(domain, {}).get("sources") != expected_count:
+        manifest_row = manifest.get("domains", {}).get(domain, {})
+        if manifest_row.get("sources") != expected_count:
             fail(f"{domain}: manifest count mismatch")
+        actual_registry_sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        if manifest_row.get("registry_sha256") != actual_registry_sha:
+            fail(f"{domain}: manifest registry_sha256 mismatch")
         for row in rows:
             sid = row.get("source_id")
             if not isinstance(sid, str) or not sid.startswith(prefix):
@@ -93,7 +98,7 @@ def main():
                 fail(f"duplicate source_id across domains: {sid}")
             all_ids.add(sid)
             if row.get("domain") != domain:
-                fail(f"{sid}: domain mismatch")
+                fail(f"{sid}: registry domain mismatch")
             if row.get("record_scope") != "SANITIZED_METADATA_ONLY" or row.get("packaged") is not False:
                 fail(f"{sid}: sanitized/package boundary mismatch")
             if row.get("local_only") is not True:
