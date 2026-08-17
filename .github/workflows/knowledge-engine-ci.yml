@@ -27,6 +27,10 @@ jobs:
         run: python3 tools/test_k1_sanitization.py
       - name: Validate sanitized K1 import state
         run: python3 tools/validate_sanitized_k1.py
+      - name: Test K1 source quality fail-closed cases
+        run: python3 tools/test_k1_source_quality.py
+      - name: Enforce K1 source quality state
+        run: python3 tools/validate_k1_source_quality.py
       - name: Guard knowledge tree from packaged research binaries
         shell: bash
         run: |
