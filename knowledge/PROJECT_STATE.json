@@ -1,16 +1,18 @@
 {
   "schema_version": "knowledge-engine-v1",
-  "phase": "K2_SOURCE_LINEAGE",
+  "phase": "K2_EVIDENCE_EXTRACTION",
   "required_domains": ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui"],
   "common_layer": "common",
   "balance_gate": "ENFORCE",
-  "next_phase": "K2_EVIDENCE_EXTRACTION",
+  "next_phase": "K2_CLAIM_EXTRACTION",
   "k1_acceptance": "PROJECT_VERIFIED",
   "local_accounting": "PASS",
   "sanitized_import": "COMPLETE",
   "source_quality": "COMPLETE",
   "semantic_routing": "COMPLETE",
   "k2_blocked": false,
-  "k2_stage": "SOURCE_LINEAGE",
+  "k2_stage": "EVIDENCE_EXTRACTION",
+  "source_lineage": "COMPLETE",
+  "evidence_extraction_blocked": false,
   "claim_extraction_blocked": true
 }
