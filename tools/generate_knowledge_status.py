@@ -21,27 +21,49 @@ def load(path: Path):
 
 def render() -> str:
     state = load(K / "PROJECT_STATE.json")
+    local_validation_path = K / "K1_LOCAL_VALIDATION.json"
+    local_validation = load(local_validation_path) if local_validation_path.exists() else None
+
     lines = [
         f"# Knowledge Engine Status — {state['phase']}",
         "",
-        "| Domain | Level | Sources | Claims | Fixtures verified | Next gate |",
-        "|---|---|---:|---:|---:|---|",
+        "| Domain | Engine level | Local K1 sources | K1 index | K2 readiness | Claims | Fixtures verified | Next gate |",
+        "|---|---|---:|---|---|---:|---:|---|",
     ]
     levels = []
     for domain, label in DOMAINS:
         s = load(K / "domains" / domain / "status.json")
         levels.append(s["maturity_level"])
+        local = (local_validation or {}).get("domains", {}).get(domain, {})
+        local_sources = local.get("sources", "-")
+        k1_index = local.get("k1_index_status", "PENDING")
+        k2 = local.get("k2_readiness", "PENDING")
+        next_gate = "K1_SANITIZED_IMPORT" if state.get("sanitized_import") == "PENDING" else s["next_gate"]
         lines.append(
-            f"| {label} | {s['maturity_level']} | {s['sources_indexed']} | "
-            f"{s['claims_extracted']} | {s['fixtures_verified']} | {s['next_gate']} |"
+            f"| {label} | {s['maturity_level']} | {local_sources} | {k1_index} | {k2} | "
+            f"{s['claims_extracted']} | {s['fixtures_verified']} | {next_gate} |"
         )
+
+    if local_validation and local_validation.get("result") == "PASS":
+        lines += [
+            "",
+            "本地 K1 Source Index 已通过项目 validator 的机器验收并完成 accounting 对账；当前剩余 Gate 是 **sanitized metadata import**。在 `knowledge/domains/*/sources.jsonl` 被导入并通过仓库端验证以前，不把本地 source 数直接冒充为仓库已吸收的 `L1_INDEXED`。",
+        ]
+    else:
+        lines += [
+            "",
+            "本地 K1 Source Index 尚未完成机器验收。",
+        ]
+
     lines += [
         "",
-        "`DOMAIN_IMBALANCE` 当前是预期状态，不代表允许继续只强化奇门。K1 的目标是六域全部达到 `L1_INDEXED`；在此之前不新增任何领域的 Interpretation production rule。",
+        "`ENGINE_MATURITY_IMBALANCE` 仍然存在：奇门已有 legacy claim/fixture，而其他领域尚未进入同等 claim maturity。这不允许用模型知识补齐，也不允许绕过六域共同 Gate。",
         "",
-        "紫微现有 iztro fixture 属于实现 parity 证据，不计为本 Knowledge Engine 的独立来源吸收率。",
+        "六爻/大六壬的 `THIN_CORPUS` 与风水的 `READING_REQUIRED` 是 K2 readiness 风险，不否定其 K1 索引完整性，但会限制后续交叉验证与解释层开放。",
         "",
-        f"Generated from `knowledge/domains/*/status.json`; balance gate = `{state['balance_gate']}`.",
+        "紫微现有 iztro fixture 属于实现 parity 证据，不计为独立传统术理真值。",
+        "",
+        f"Generated from `knowledge/domains/*/status.json`, `knowledge/K1_LOCAL_VALIDATION.json` and `knowledge/PROJECT_STATE.json`; balance gate = `{state['balance_gate']}`.",
         "",
     ]
     return "\n".join(lines)
@@ -61,6 +83,7 @@ def main():
     else:
         target.write_text(expected, encoding="utf-8")
         print(target)
+
 
 if __name__ == "__main__":
     main()
