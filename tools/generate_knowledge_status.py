@@ -38,17 +38,28 @@ def render() -> str:
         local_sources = local.get("sources", "-")
         k1_index = local.get("k1_index_status", "PENDING")
         k2 = local.get("k2_readiness", "PENDING")
-        next_gate = "K1_SANITIZED_IMPORT" if state.get("sanitized_import") == "PENDING" else s["next_gate"]
+        if state.get("source_quality") == "REVIEW_REQUIRED":
+            next_gate = "K1_ATTRIBUTION_REVIEW"
+        elif state.get("sanitized_import") == "PENDING":
+            next_gate = "K1_SANITIZED_IMPORT"
+        else:
+            next_gate = s["next_gate"]
         lines.append(
             f"| {label} | {s['maturity_level']} | {local_sources} | {k1_index} | {k2} | "
             f"{s['claims_extracted']} | {s['fixtures_verified']} | {next_gate} |"
         )
 
     if local_validation and local_validation.get("result") == "PASS":
-        lines += [
-            "",
-            "本地 K1 Source Index 已通过项目 validator 的机器验收并完成 accounting 对账；当前剩余 Gate 是 **sanitized metadata import**。在 `knowledge/domains/*/sources.jsonl` 被导入并通过仓库端验证以前，不把本地 source 数直接冒充为仓库已吸收的 `L1_INDEXED`。",
-        ]
+        if state.get("source_quality") == "REVIEW_REQUIRED":
+            lines += [
+                "",
+                "本地 K1 Source Index 与 515 条 sanitized metadata 的数量/隐私/哈希结构 Gate 已通过，但项目端抽样发现 **作者归属、流派归属、页数字段语义和 Source schema 枚举**存在污染，因此 `K1_PROJECT_IMPORT` 尚未完成。当前 Gate 是 `K1_ATTRIBUTION_REVIEW`；K2 继续锁定。",
+            ]
+        else:
+            lines += [
+                "",
+                "本地 K1 Source Index 已通过项目 validator 的机器验收并完成 accounting 对账。",
+            ]
     else:
         lines += [
             "",
