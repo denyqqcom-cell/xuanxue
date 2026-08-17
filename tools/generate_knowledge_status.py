@@ -25,6 +25,8 @@ def render() -> str:
     local_validation = load(local_validation_path) if local_validation_path.exists() else None
     lineage_state_path = K / "K2_SOURCE_LINEAGE_STATE.json"
     lineage_state = load(lineage_state_path) if lineage_state_path.exists() else None
+    evidence_state_path = K / "K2_EVIDENCE_STATE.json"
+    evidence_state = load(evidence_state_path) if evidence_state_path.exists() else None
     levels=[]
 
     lines = [
@@ -43,6 +45,8 @@ def render() -> str:
         if state.get("phase") == "K2_SOURCE_LINEAGE":
             reason=(lineage_state or {}).get("review_reason")
             next_gate = "K2_LINEAGE_COVERAGE_REVIEW" if reason == "PART_VS_VARIANT_COVERAGE_REVIEW" else "K2_SOURCE_LINEAGE"
+        elif state.get("phase") == "K2_EVIDENCE_EXTRACTION":
+            next_gate = f"K2_EVIDENCE_WAVE{(evidence_state or {}).get('wave', 1)}"
         elif state.get("semantic_routing") == "REVIEW_REQUIRED":
             next_gate = "K1_SEMANTIC_ROUTING_REVIEW"
         elif state.get("source_quality") == "REVIEW_REQUIRED":
@@ -78,6 +82,15 @@ def render() -> str:
                 "",
                 "项目端复验发现第一版 lineage 把部分互补卷册/分页与真正的同内容版本都标成 `SAME_WORK_VARIANT`。当前必须完成 `K2_LINEAGE_COVERAGE_REVIEW`：互补卷册使用 `WORK_PART` 并保持可读；真正重复载体使用 `SAME_WORK_VARIANT + variant_of_source_id`。Claim Extraction 继续锁定。",
             ]
+    elif state.get("phase") == "K2_EVIDENCE_EXTRACTION":
+        lines += [
+            "",
+            "K2A Source Lineage 已由项目端验收为 `COMPLETE`。当前进入 `K2_EVIDENCE_EXTRACTION`：开始逐页/逐段读取本地文本，形成页级 Evidence 与 Reading Ledger，但仍禁止把多个 Evidence 合成为 Claim。",
+            "",
+            "Wave 1 按 work coverage 而不是文件数排程：所有 P0 work family 展开到完整 PRIMARY_WORK/WORK_PART coverage；六爻与大六壬薄 corpus 的全部 governed unique textual coverage同步进入。`claim_extraction_blocked=true` 保持。",
+            "",
+            f"当前 K2B 账面：unique textual coverage units = {(evidence_state or {}).get('unique_textual_coverage_units','?')}；semantic UNKNOWN textual backlog = {(evidence_state or {}).get('unknown_textual_resolution_backlog','?')}。UNKNOWN 不会被遗忘，后续必须经过 content review 后路由或保留有依据的 UNKNOWN。",
+        ]
 
     if len(set(levels)) > 1:
         lines += ["", "`ENGINE_MATURITY_IMBALANCE` 仍存在，不允许成熟域绕过其他领域继续升级。"]
@@ -92,7 +105,7 @@ def render() -> str:
         "",
         "紫微现有 iztro fixture 属于实现 parity 证据，不计为独立传统术理真值。",
         "",
-        f"Generated from `knowledge/domains/*/status.json`, `knowledge/K1_LOCAL_VALIDATION.json`, `knowledge/K2_SOURCE_LINEAGE_STATE.json` and `knowledge/PROJECT_STATE.json`; balance gate = `{state['balance_gate']}`.",
+        f"Generated from `knowledge/domains/*/status.json`, `knowledge/K1_LOCAL_VALIDATION.json`, `knowledge/K2_SOURCE_LINEAGE_STATE.json`, `knowledge/K2_EVIDENCE_STATE.json` and `knowledge/PROJECT_STATE.json`; balance gate = `{state['balance_gate']}`.",
         "",
     ]
     return "\n".join(lines)
