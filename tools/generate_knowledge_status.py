@@ -30,15 +30,15 @@ def render() -> str:
         "| Domain | Engine level | Local K1 sources | K1 index | K2 readiness | Claims | Fixtures verified | Next gate |",
         "|---|---|---:|---|---|---:|---:|---|",
     ]
-    levels = []
     for domain, label in DOMAINS:
         s = load(K / "domains" / domain / "status.json")
-        levels.append(s["maturity_level"])
         local = (local_validation or {}).get("domains", {}).get(domain, {})
         local_sources = local.get("sources", "-")
         k1_index = local.get("k1_index_status", "PENDING")
         k2 = local.get("k2_readiness", "PENDING")
-        if state.get("source_quality") == "REVIEW_REQUIRED":
+        if state.get("semantic_routing") == "REVIEW_REQUIRED":
+            next_gate = "K1_SEMANTIC_ROUTING_REVIEW"
+        elif state.get("source_quality") == "REVIEW_REQUIRED":
             next_gate = "K1_ATTRIBUTION_REVIEW"
         elif state.get("sanitized_import") == "PENDING":
             next_gate = "K1_SANITIZED_IMPORT"
@@ -50,21 +50,20 @@ def render() -> str:
         )
 
     if local_validation and local_validation.get("result") == "PASS":
-        if state.get("source_quality") == "REVIEW_REQUIRED":
+        if state.get("semantic_routing") == "REVIEW_REQUIRED":
             lines += [
                 "",
-                "本地 K1 Source Index 与 515 条 sanitized metadata 的数量/隐私/哈希结构 Gate 已通过，但项目端抽样发现 **作者归属、流派归属、页数字段语义和 Source schema 枚举**存在污染，因此 `K1_PROJECT_IMPORT` 尚未完成。当前 Gate 是 `K1_ATTRIBUTION_REVIEW`；K2 继续锁定。",
+                "本地 K1 Source Index、515 条 sanitized metadata 的结构/隐私 Gate 以及 attribution/source-quality Gate 已通过；但项目端再次抽样发现 **registry 所在目录与资料真正术数领域仍被混用，且部分文件名中的主编/校者仍被并入 author**。当前 Gate 为 `K1_SEMANTIC_ROUTING_REVIEW`，K2 继续锁定。",
+            ]
+        elif state.get("source_quality") == "REVIEW_REQUIRED":
+            lines += [
+                "",
+                "本地 K1 Source Index 与 515 条 sanitized metadata 的数量/隐私/哈希结构 Gate 已通过，但项目端抽样发现来源归属质量问题，因此 K2 继续锁定。",
             ]
         else:
-            lines += [
-                "",
-                "本地 K1 Source Index 已通过项目 validator 的机器验收并完成 accounting 对账。",
-            ]
+            lines += ["", "本地 K1 Source Index 已通过项目 validator 的机器验收并完成 accounting 对账。"]
     else:
-        lines += [
-            "",
-            "本地 K1 Source Index 尚未完成机器验收。",
-        ]
+        lines += ["", "本地 K1 Source Index 尚未完成机器验收。"]
 
     lines += [
         "",
