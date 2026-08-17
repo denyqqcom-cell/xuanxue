@@ -8,122 +8,65 @@ Acceptance update: 2026-08-17
 
 `K1_SANITIZED_IMPORT_STRUCTURE = PASS`
 
-`K1_PROJECT_IMPORT = BLOCKED_ON_ATTRIBUTION_QUALITY`
+`K1_ATTRIBUTION_QUALITY = PASS`
+
+`K1_SEMANTIC_ROUTING = REVIEW_REQUIRED`
+
+`K1_PROJECT_IMPORT = NOT_YET_CLOSED`
 
 `K2_CLAIM_EXTRACTION = BLOCKED`
 
-The local corpus accounting is closed and the 515 canonical records are now present in GitHub as privacy-safe metadata. Project-side review confirmed the expected seven-file import commit and CI run, but a deeper semantic audit found that the current sanitized registries are **not yet trustworthy bibliographic metadata**. K1 therefore remains open at `K1_ATTRIBUTION_REVIEW`.
+The attribution remediation commit `c3e92e3e85cb0919d30d2274c3e90ad014a48f33` successfully reduced the previous source-quality findings from 2586 to zero under `validate_k1_source_quality.py --force`. GitHub Actions run `32028311905` passed source-quality, sanitization, binary-boundary and stable-core checks.
 
-## What passed
+However, project-side sampling found a second semantic layer that the previous contract did not test: **the registry bucket is still being treated as if it were the work's actual knowledge domain, and filename-associated contributor names can still be collapsed into authorship**.
 
-Local machine validation remains accepted:
+## Confirmed examples
 
-- scanned files: **911**
-- distinct SHA256: **542**
-- canonical sources: **515**
-- duplicate records: **345**
-- excluded files: **51**
-- six-domain K1 index verdict: **PASS**
+- `BZ-SRC-0114` / `BZ-SRC-0115` are titled `梁湘润-梅花心易实战详解...` but remain under the bazi registry.
+- `BZ-SRC-0122` is `梁湘润-火珠林密本（古本）` but remains under the bazi registry. Physical location under an 八字/梁湘润 collection is not evidence that the work should feed bazi Claim Extraction.
+- `FS-SRC-0011` is `周易變占法引論[談延祚]` and `FS-SRC-0012` is `揭露铁板神数之内幕`, yet both remain routed as fengshui sources.
+- `LR-SRC-0001` / `LR-SRC-0002` titles explicitly distinguish `袁树珊撰`, `谢路军主编`, `邓同校`, while the current `author` field still joins all three names. Editor/proofreader roles are not authorship.
 
-Sanitized import commit `d1f54f09ec2850cc805efccc22e62ead2e5f8e0b` contains exactly:
+These are not cosmetic bibliography problems. If K2 routes source reading by registry folder/domain, a bazi extraction pass could ingest 梅花/火珠林, and a fengshui pass could ingest 铁板神数. That would create false cross-verification later.
 
-- `knowledge/K1_SANITIZED_IMPORT.json`
-- six `knowledge/domains/<domain>/sources.jsonl` registries
+## New semantic-routing contract
 
-The manifest declares 148 / 168 / 154 / 7 / 10 / 28 sources = **515 total**. GitHub Actions run `32024210050` passed the existing structural, privacy, hash, binary-boundary and stable-core gates.
+`knowledge/schema/source.schema.json` now defines optional routing provenance fields for the remediation pass:
 
-These facts prove that the import is structurally complete and privacy-safe. They do **not** prove that author, school, era, copyright or page-count metadata is correct.
+- `knowledge_domains`
+- `domain_basis`
+- `domain_evidence`
 
-## Project-side semantic audit findings
+The existing `domain` remains the stable registry bucket used by current IDs. It must no longer be treated as proof of semantic scope. K2 must ultimately route by `knowledge_domains`.
 
-### Blocker A — author attribution is contaminated by directory/collection context
+Allowed semantic scopes include the six official domains, `common`, `OUT_OF_SCOPE`, and `UNKNOWN`. `UNKNOWN` and `OUT_OF_SCOPE` must not be mixed with resolved in-scope domains.
 
-Examples visible directly in the sanitized registries:
+## New fail-closed gate
 
-- `BZ-SRC-0003` title `八字论命苏民峰` has author `王亭之 / 苏民峰`.
-- `BZ-SRC-0009` title `韦千里 - 千里命稿` has author `王亭之 / 韦千里`.
-- `LY-SRC-0001` `六爻新大陸`, `LY-SRC-0002` `卜筮正宗`, and `LY-SRC-0003` `增刪卜易` are all attributed to `王亭之`.
-- `QM-SRC-0001` `梁湘润-奇门遁甲入门` is attributed to `王亭之 / 梁湘润`.
-- multiple Fengshui Liang Xiangrun titles are attributed to `王亭之 / 梁湘润`.
-- Liuren entries include `王亭之` in multi-person author strings even when the title itself names 袁树珊/主编/校者 instead.
+`tools/validate_k1_semantic_routing.py` checks:
 
-This pattern is consistent with parent-directory or collection-context leakage into the `author` field. Parent folder ownership is not author evidence.
+- every source has an explicit semantic routing decision;
+- routing has provenance;
+- strong title clues are not contradicted by folder-based routing;
+- obvious out-of-scope systems are not silently promoted into one of the six domains;
+- project code routing is explicit;
+- filename contributors explicitly labeled `主编/校/译/整理` are not collapsed into `author`.
 
-### Blocker B — sanitized records do not conform to the canonical Source enum contract
+`tools/test_k1_semantic_routing.py` includes negative fixtures for `火珠林` misrouted to bazi, `铁板神数` misrouted to fengshui, missing semantic routing, and editor/proofreader names incorrectly included as authors.
 
-`knowledge/schema/source.schema.json` defines canonical `era` values as:
-
-`ANCIENT / PRE_MODERN / MODERN / UNKNOWN`
-
-and canonical copyright values as:
-
-`PUBLIC_DOMAIN_TEXT_ONLY / LICENSED / RESEARCH_ONLY / UNKNOWN / FORBIDDEN_TO_PACKAGE`.
-
-Current sanitized rows include non-canonical values such as:
-
-- `modern`
-- `pre_1950_text_in_modern_file`
-- `modern_publication_or_scan`
-- `pre1950_text_modern_scan_or_typeset`
-- `user_owned_notes`
-- `project_or_mit_code`
-
-The previous `validate_sanitized_k1.py` validated counts, IDs, hashes, local-path stripping and package boundaries, but did not validate Source schema enums or attribution provenance. A green run therefore could not close this semantic gap.
-
-### Blocker C — `pages` is being used for non-page extents
-
-Examples such as `_books_digest`, `_books_toc`, Markdown notes and Kotlin/code records carry large integer `pages` values. For non-paginated text/code this is likely a line/extent count, not a page count. `pages` must mean actual document pages or be null; the basis must be explicit.
-
-### Blocker D — canonical titles contain distribution noise
-
-Some titles contain download-site or contact/promotional material such as `www.*` or `更多教程加微信...`. Those strings are not bibliographic titles and must not become canonical Source identity fields.
-
-## Corrective contract
-
-K1 source metadata now distinguishes fact from inference. New provenance fields are documented in `knowledge/schema/source.schema.json`:
-
-- `author_basis` / `author_evidence`
-- `school_basis` / `school_evidence`
-- `pages_basis`
-- `evidence_role`
-
-Allowed author evidence does **not** include parent directory, neighboring file, collection folder, model memory or author-to-school inference.
-
-`evidence_role` separates:
-
-- textual source material;
-- secondary notes;
-- implementation/code evidence;
-- auxiliary indexes.
-
-This prevents CODE and prior AI notes from being counted as independent traditional-source truth in K2.
-
-## New fail-closed quality gate
-
-`tools/validate_k1_source_quality.py` now checks:
-
-- canonical era/copyright enums;
-- author attribution provenance;
-- filename-author consistency when `author_basis=FILENAME`;
-- school provenance;
-- page-count provenance;
-- evidence-role separation;
-- promotional/contact noise in canonical titles;
-- existing privacy/package boundaries.
-
-While `PROJECT_STATE.source_quality=REVIEW_REQUIRED`, CI requires the project to remain explicitly blocked and reports the defects without pretending K1 is complete. Once remediation claims `source_quality=COMPLETE`, the same validator becomes hard fail-closed and requires **zero** source-quality issues.
+`tools/validate_sanitized_k1.py` also now verifies that each registry's actual SHA256 matches `K1_SANITIZED_IMPORT.json`, closing a previous manifest-drift gap.
 
 ## Promotion rule
 
-K1 project import closes only when:
+K1 project import closes only when all of the following hold on one exact head:
 
-1. all 515 source records still reconcile with the accepted local index;
-2. `validate_sanitized_k1.py --force` passes;
-3. `validate_k1_source_quality.py --force` passes with zero issues;
-4. author/school/page metadata has explicit evidence or is conservatively reset to `UNKNOWN`/null;
-5. canonical Source enum values are normalized;
-6. titles are bibliographic and free of distribution/contact noise;
-7. no local paths or source bodies enter Git;
-8. stable-core regression and Knowledge Engine CI pass on the exact corrected head.
+1. 515 canonical records remain reconciled with the accepted local index;
+2. sanitized counts, source hashes, privacy boundary and manifest registry hashes pass;
+3. source attribution quality remains zero-issue;
+4. semantic routing is explicit for all 515 sources and `validate_k1_semantic_routing.py --force` reports zero issues;
+5. out-of-scope/mixed-domain works are not routed by their physical folder;
+6. editor/compiler/proofreader names are not mislabeled as authors;
+7. no original books, scans, OCR bodies or private paths enter Git;
+8. stable-core regression and Knowledge Engine CI pass.
 
-Only then may the six domains be promoted to at least `L1_INDEXED` and K2 be opened under each domain's readiness constraints.
+Until then, `k2_blocked=true` remains mandatory.
