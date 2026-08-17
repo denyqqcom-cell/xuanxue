@@ -66,26 +66,38 @@ App 不再用一行 Tab 塞六个模块，改为首页卡片式入口：
 - 紫微、八字、奇门、六壬的时辰入口支持横向滚动；
 - 六爻补齐了时间起卦的时辰选择，数字输入在窄屏改为纵向排列。
 
-真正的模拟器/真机截图与触控验收仍属于下一道 release gate，当前 CI 只证明 JVM tests、Android 编译与 APK 内容检查通过。
+## Knowledge Engine v1
+
+知识工程已进入 `K1_CORPUS_INDEX`。六个正式术数域统一治理：
+
+- 紫微 `ziwei`
+- 八字 `bazi`
+- 奇门 `qimen`
+- 六爻 `liuyao`
+- 大六壬 `liuren`
+- 风水 `fengshui`
+
+黄历作为公共历法/民俗工具，不作为第七个知识域。
+
+Knowledge Engine 使用统一的 Source / Evidence / Claim / School / Conflict / Fixture / Case 协议与 L0-L8 成熟度模型。当前 K1 本地盘点已经收到报告级结果，但项目端发现全局文件会计仍需核对，且本地私有 intake 尚未通过机器 validator，因此 **K2 Claim Extraction 仍被硬锁**。
+
+当前 K1 项目端验收见：
+
+- `knowledge/K1_ACCEPTANCE.md`
+- `tools/validate_k1_intake.py`
+- `LOCAL_CORPUS_K1_REMEDIATION_PROMPT.md`
+
+其中一个重要纠偏是：**“资料少”不等于 K1 Source Index 失败。** K1 只判断本地可发现资料是否被诚实发现、去重和索引；资料丰富度、可读性和跨来源能力属于下一阶段 readiness/maturity 问题。不能为了让六个域都显示 PASS 而人为增加来源。
 
 ## 资料工程
 
 仓库包含学习笔记、来源索引、冲突记录和工程 handoff。它们是研发材料，不等于 App 运行时内容。
 
-`handoff/README.md` 现在定义统一标准：每个新模块必须分开交付 corpus manifest、system map、algorithm spec、rules、conflicts、fixtures、cases、copyright gate、implementation handoff 和 open questions。
+`handoff/README.md` 定义统一标准：每个新模块必须分开交付 corpus manifest、system map、algorithm spec、rules、conflicts、fixtures、cases、copyright gate、implementation handoff 和 open questions。
 
-奇门已建立第一套较完整工程交接：
+奇门已建立第一套较完整工程交接，但仍不是“全书已经验证完成”。紫微、八字、六爻、大六壬、风水现在统一进入 Knowledge Engine，而不是继续各自走不同的学习标准。
 
-- `handoff/qimen/00_CORPUS_MANIFEST.md`
-- `handoff/qimen/03_RULES.jsonl`
-- `handoff/qimen/04_CONFLICTS.md`
-- `handoff/qimen/05_FIXTURES.jsonl`
-- `handoff/qimen/07_COPYRIGHT_GATE.md`
-- `handoff/qimen/HANDOFF_SUMMARY.md`
-
-八字 / 六爻 / 大六壬下一轮本地资料整理提示词见 `LOCAL_CORPUS_NEXT_PROMPT.md`。它要求三个模块分别执行，不允许用 `MODEL_KNOWLEDGE_ONLY` 补正式算法或黄金夹具。
-
-研究层还包含 `奇门/qclaw` 的分析/复核工作流。其“问题分类 → 看大局 → 取用神 → 四害 → 宫盘 → 生克 → 应期 → 格局 → 独立核查”结构会用于继续改善产品的解释流程，但 qclaw 文件本身属于研究材料，不直接打包进 APK。
+本地 `knowledge-intake/` 已被 `.gitignore` 排除；真实盘符、用户名、本机绝对路径和本地审计总账不得直接进入公开 Git。只有经过 sanitize 后的派生 registry 才能进入 `knowledge/`。
 
 ## 版权与发行边界
 
@@ -100,9 +112,9 @@ App 不再用一行 Tab 塞六个模块，改为首页卡片式入口：
 CI 现在有两层发行检查：
 
 1. **源码 Gate**：许可文本、权利人声明、Manifest 网络权限、未经审查的 `assets/`；
-2. **APK 二进制 Gate**：编译完成后直接扫描 `app-debug.apk`，阻止 PDF/EPUB/DOC/字体、研究目录、全文/OCR/scan 痕迹和未经批准的 assets 被意外打进发行包。
+2. **APK 二进制 Gate**：编译完成后直接扫描 APK，阻止 PDF/EPUB/DOC/字体、研究目录、全文/OCR/scan 痕迹和未经批准的 assets 被意外打进发行包。
 
-二进制检查脚本：`tools/audit_apk_contents.sh`。
+Knowledge Engine 另有自己的 CI：六域 schema、状态一致性、K1 intake validator 合同测试、研究二进制边界及稳定 core regression。
 
 完整工程审计见 `COPYRIGHT_REVIEW.md`。这是一套工程合规措施，不构成法律意见。
 
@@ -124,6 +136,8 @@ export ANDROID_HOME=/path/to/android-sdk
 ./gradlew --no-daemon :ziwei-core:test
 ./gradlew --no-daemon :app:assembleDebug
 bash tools/audit_apk_contents.sh app/build/outputs/apk/debug/app-debug.apk
+python3 tools/validate_knowledge.py
+python3 tools/test_validate_k1_intake.py
 ```
 
 Debug APK：
@@ -132,4 +146,4 @@ Debug APK：
 app/build/outputs/apk/debug/app-debug.apk
 ```
 
-CI 会对每个 `app-integration-v3` 变更重新执行：源码版权 Gate、core/evidence tests、Android assemble 与 APK binary audit。只有上述检查全部通过的分支才应进入合并审查。
+稳定 App 与 Knowledge Engine 使用独立 Gate。知识分支不能因为研究资料增加而降低现有 V1.0 的核心测试、隐私或版权边界。

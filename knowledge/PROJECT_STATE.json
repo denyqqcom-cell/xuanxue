@@ -1,0 +1,14 @@
+{
+  "schema_version": "knowledge-engine-v1",
+  "phase": "K1_SEMANTIC_ROUTING_COMPLETE",
+  "required_domains": ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui"],
+  "common_layer": "common",
+  "balance_gate": "ENFORCE",
+  "next_phase": "K2_CLAIM_EXTRACTION",
+  "k1_acceptance": "LOCAL_INDEX_PASS_ATTRIBUTION_PASS_ROUTING_PRECISION_REVIEW_REQUIRED",
+  "local_accounting": "PASS",
+  "sanitized_import": "COMPLETE",
+  "source_quality": "COMPLETE",
+  "semantic_routing": "COMPLETE",
+  "k2_blocked": true
+}

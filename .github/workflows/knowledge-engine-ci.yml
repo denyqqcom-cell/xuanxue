@@ -1,0 +1,54 @@
+name: Knowledge Engine V1 CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: knowledge-engine-v1-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  knowledge-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate six-domain knowledge contracts
+        run: python3 tools/validate_knowledge.py
+      - name: Verify generated knowledge status is current
+        run: python3 tools/generate_knowledge_status.py --check
+      - name: Test local K1 intake validator
+        run: python3 tools/test_validate_k1_intake.py
+      - name: Test K1 sanitization boundary
+        run: python3 tools/test_k1_sanitization.py
+      - name: Validate sanitized K1 import state
+        run: python3 tools/validate_sanitized_k1.py
+      - name: Test K1 source quality fail-closed cases
+        run: python3 tools/test_k1_source_quality.py
+      - name: Enforce K1 source quality state
+        run: python3 tools/validate_k1_source_quality.py
+      - name: Test K1 semantic routing fail-closed cases
+        run: python3 tools/test_k1_semantic_routing.py
+      - name: Enforce K1 semantic routing state
+        run: python3 tools/validate_k1_semantic_routing.py
+      - name: Guard knowledge tree from packaged research binaries
+        shell: bash
+        run: |
+          set -euo pipefail
+          if find knowledge -type f \( -iname '*.pdf' -o -iname '*.epub' -o -iname '*.doc' -o -iname '*.docx' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.ttf' -o -iname '*.otf' -o -iname '*.woff' -o -iname '*.woff2' \) -print | grep -q .; then
+            echo 'Forbidden research binary detected under knowledge/' >&2
+            exit 1
+          fi
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+      - name: Verify existing stable core still passes
+        run: ./gradlew --no-daemon :ziwei-core:test

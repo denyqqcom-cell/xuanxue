@@ -1,0 +1,11 @@
+[
+  {"level":0,"id":"L0_SOURCE_ONLY","meaning":"仅有来源或既有实现线索，尚未完成统一索引"},
+  {"level":1,"id":"L1_INDEXED","meaning":"来源完成去重、版本、可读性、版权和流派索引"},
+  {"level":2,"id":"L2_CLAIM_EXTRACTED","meaning":"来源已拆成可追溯原子命题"},
+  {"level":3,"id":"L3_CROSS_VERIFIED","meaning":"关键命题有独立来源交叉核验"},
+  {"level":4,"id":"L4_CONFLICT_MAPPED","meaning":"关键冲突与流派边界已显式建模"},
+  {"level":5,"id":"L5_FIXTURE_VERIFIED","meaning":"关键算法路径有可复现来源 fixture"},
+  {"level":6,"id":"L6_ENGINE_VERIFIED","meaning":"确定性实现通过对应 fixture 与回归"},
+  {"level":7,"id":"L7_INTERPRETATION_READY","meaning":"事体选择与解释规则达到可审计开放条件"},
+  {"level":8,"id":"L8_FEEDBACK_VALIDATED","meaning":"有独立现实反馈与规则归因的持续验证"}
+]

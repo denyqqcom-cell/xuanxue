@@ -1,0 +1,21 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"fixture.schema.json",
+  "type":"object",
+  "required":["fixture_id","domain","layer","raw_input","expected_output","source_ids","source_locations","school_id","retrospective","golden","status"],
+  "properties":{
+    "fixture_id":{"type":"string","minLength":1},
+    "domain":{"enum":["ziwei","bazi","qimen","liuyao","liuren","fengshui","common"]},
+    "layer":{"enum":["STRUCTURE","SELECTION","INTERPRETATION"]},
+    "raw_input":{"type":"object"},
+    "expected_output":{"type":"object"},
+    "source_ids":{"type":"array","minItems":1,"items":{"type":"string"}},
+    "source_locations":{"type":"array","minItems":1,"items":{"type":"string"}},
+    "school_id":{"type":"string","minLength":1},
+    "retrospective":{"type":"boolean"},
+    "golden":{"type":"boolean"},
+    "status":{"enum":["EXTRACTED","VERIFIED","CONFLICTED","REJECTED"]},
+    "notes":{"type":"string"}
+  },
+  "additionalProperties":true
+}

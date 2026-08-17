@@ -1,0 +1,76 @@
+{
+  "schema_version": "k1-local-validation-v1",
+  "validated_on": "2026-08-17",
+  "result": "PASS",
+  "validator": "tools/validate_k1_intake.py",
+  "evidence_scope": "USER_REPORTED_LOCAL_MACHINE_RUN",
+  "accounting": {
+    "scanned_files_total": 911,
+    "distinct_sha256_total": 542,
+    "canonical_sources_total": 515,
+    "duplicates_total": 345,
+    "excluded_total": 51,
+    "ledger_rows": 911,
+    "ledger_distinct_sha": 542
+  },
+  "reconciliation": {
+    "old_scanned_files_total": 910,
+    "old_distinct_sha256_total": 541,
+    "old_unexplained_files": 51,
+    "old_unexplained_sha": 27,
+    "original_51_file_gap": "51 EXCLUDED",
+    "original_27_sha_gap": "27 unique excluded hashes; reasons: no_domain_keyword=14, repo_meta=3, generic_tool_or_index=10",
+    "extra_copies_of_excluded_hashes": 24,
+    "new_after_original_scan": "one new qimen user note, canonical QM-SRC-0154"
+  },
+  "domains": {
+    "ziwei": {
+      "sources": 148,
+      "duplicates": 62,
+      "k1_index_status": "PASS",
+      "k2_readiness": "READY_FOR_EXTRACTION",
+      "coverage_gap": "三合/钦天/历法/时辰/大限/小限尚未由文件名或笔记标题覆盖；扫描/OCR失败书尚未读；iztro仅为实现候选证据"
+    },
+    "bazi": {
+      "sources": 168,
+      "duplicates": 90,
+      "k1_index_status": "PASS",
+      "k2_readiness": "READY_FOR_EXTRACTION",
+      "coverage_gap": "多数原书为扫描件；从格/专旺/子初/早晚子尚缺原书层复核；扶抑/格局/调候冲突目前主要见于笔记层"
+    },
+    "qimen": {
+      "sources": 154,
+      "duplicates": 184,
+      "k1_index_status": "PASS",
+      "k2_readiness": "READY_FOR_EXTRACTION",
+      "coverage_gap": "飞盘/年家/月家覆盖不足；既有handoff仍需原书复核；拆补/置闰未完成全量原书重算"
+    },
+    "liuyao": {
+      "sources": 7,
+      "duplicates": 3,
+      "k1_index_status": "PASS",
+      "k2_readiness": "THIN_CORPUS",
+      "coverage_gap": "本机真正六爻资料仅3本独立书+4代码；旺衰/伏神/飞神/进退神/六合六冲/旬空/应期覆盖不足；火珠林仅作跨域指针"
+    },
+    "liuren": {
+      "sources": 10,
+      "duplicates": 4,
+      "k1_index_status": "PASS",
+      "k2_readiness": "THIN_CORPUS",
+      "coverage_gap": "可发现资料已索引但总量薄；两本大六壬探原为扫描件"
+    },
+    "fengshui": {
+      "sources": 28,
+      "duplicates": 2,
+      "k1_index_status": "PASS",
+      "k2_readiness": "READING_REQUIRED",
+      "coverage_gap": "无独立学习笔记；文件名可确认仅玄空飞星/三元/形势；八宅/三合/罗盘/坐向及空间输入证据不足"
+    }
+  },
+  "constraints": [
+    "No K2 claim extraction started",
+    "No app algorithm change",
+    "No local intake committed or pushed",
+    "No source book, scan page or full OCR copied into the repository"
+  ]
+}

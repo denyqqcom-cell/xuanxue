@@ -1,0 +1,13 @@
+{
+  "domain":"qimen",
+  "legacy_source":"handoff/qimen",
+  "import_mode":"REFERENCE_ONLY",
+  "manifest":"handoff/qimen/00_CORPUS_MANIFEST.md",
+  "rules":"handoff/qimen/03_RULES.jsonl",
+  "conflicts":"handoff/qimen/04_CONFLICTS.md",
+  "fixtures":"handoff/qimen/05_FIXTURES.jsonl",
+  "copyright":"handoff/qimen/07_COPYRIGHT_GATE.md",
+  "summary":"handoff/qimen/HANDOFF_SUMMARY.md",
+  "counts":{"unique_books":30,"rules":36,"fixtures":17,"full_board_golden":0},
+  "warning":"Reference migration only. Existing handoff limitations remain in force."
+}
