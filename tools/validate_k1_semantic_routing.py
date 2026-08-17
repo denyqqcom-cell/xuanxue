@@ -54,9 +54,31 @@ def author_tokens(author: str):
     return [x.strip() for x in re.split(r"\s*(?:/|、|，|,|;|；)\s*", author) if x.strip() and x.strip() != "UNKNOWN"]
 
 
+def routing_title(row: dict) -> str:
+    """Return title text with verified author tokens removed before domain hinting.
+
+    Canonical filenames often prefix the work with an author name. Some author
+    names themselves contain domain words (for example 紫微杨/紫微扬). Those
+    tokens are bibliographic identity, not evidence that the work belongs to
+    the ziwei domain. TITLE_FILENAME routing must therefore be supported by the
+    work-title remainder, not merely by the author token.
+    """
+    title = row.get("title") if isinstance(row.get("title"), str) else ""
+    author = row.get("author")
+    if row.get("author_basis") in {"FILENAME", "EMBEDDED_METADATA", "TITLE_PAGE", "MANUAL_VERIFIED"}:
+        for token in sorted(author_tokens(author), key=len, reverse=True):
+            title = title.replace(token, " ")
+    return re.sub(r"\s+", " ", title).strip()
+
+
+def hint_domains(text: str):
+    return {domain for pattern, domain in HINTS if pattern.search(text)}
+
+
 def inspect_row(row: dict, registry_domain: str):
     sid = row.get("source_id", "<missing>")
     title = row.get("title") if isinstance(row.get("title"), str) else ""
+    semantic_title = routing_title(row)
     issues = []
 
     kd = row.get("knowledge_domains")
@@ -84,13 +106,29 @@ def inspect_row(row: dict, registry_domain: str):
     if basis == "UNKNOWN" and kd and kd != ["UNKNOWN"]:
         issues.append("resolved knowledge_domains cannot use domain_basis=UNKNOWN")
 
-    # Explicit title clues must not be contradicted by registry-folder routing.
+    # Work-title evidence must be evaluated after removing verified author names.
+    # This prevents names such as 紫微杨/紫微扬 from becoming false ziwei signals.
+    hints = hint_domains(semantic_title)
+    out_hint = bool(OUT_OF_SCOPE_HINT.search(semantic_title))
+
     if kd:
-        for pattern, expected in HINTS:
-            if pattern.search(title) and expected not in kd and "OUT_OF_SCOPE" not in kd and "UNKNOWN" not in kd:
-                issues.append(f"title strongly signals {expected} but knowledge_domains={kd}")
-        if OUT_OF_SCOPE_HINT.search(title) and "OUT_OF_SCOPE" not in kd and "UNKNOWN" not in kd:
-            issues.append(f"title strongly signals out-of-scope system but knowledge_domains={kd}")
+        for expected in hints:
+            if expected not in kd and "OUT_OF_SCOPE" not in kd and "UNKNOWN" not in kd:
+                issues.append(f"work title strongly signals {expected} but knowledge_domains={kd}")
+        if out_hint and "OUT_OF_SCOPE" not in kd and "UNKNOWN" not in kd:
+            issues.append(f"work title strongly signals out-of-scope system but knowledge_domains={kd}")
+
+    # TITLE_FILENAME is only trustworthy when the work-title remainder itself
+    # contains a matching high-precision signal. Folder placement or an author
+    # token is not positive routing evidence.
+    if basis == "TITLE_FILENAME" and kd:
+        if kd == ["OUT_OF_SCOPE"]:
+            if not out_hint:
+                issues.append("TITLE_FILENAME OUT_OF_SCOPE routing lacks matching work-title signal")
+        elif kd != ["UNKNOWN"]:
+            for resolved in [x for x in kd if x in DOMAINS]:
+                if resolved not in hints:
+                    issues.append(f"TITLE_FILENAME routing to {resolved} lacks matching work-title signal")
 
     # Project code may use registry/module path as direct routing evidence; textual books may not use folder location alone.
     if row.get("source_type") == "CODE" and basis == "PROJECT_CODE_PATH" and registry_domain not in kd:
