@@ -1,12 +1,13 @@
 {
   "schema_version": "knowledge-engine-v1",
-  "phase": "K1_SANITIZED_IMPORT",
+  "phase": "K1_ATTRIBUTION_REVIEW",
   "required_domains": ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui"],
   "common_layer": "common",
   "balance_gate": "ENFORCE",
   "next_phase": "K2_CLAIM_EXTRACTION",
-  "k1_acceptance": "LOCAL_MACHINE_VALIDATED",
+  "k1_acceptance": "LOCAL_INDEX_PASS_PROJECT_IMPORT_STRUCTURAL_PASS",
   "local_accounting": "PASS",
-  "sanitized_import": "PENDING",
+  "sanitized_import": "STRUCTURAL_PASS",
+  "source_quality": "REVIEW_REQUIRED",
   "k2_blocked": true
 }
