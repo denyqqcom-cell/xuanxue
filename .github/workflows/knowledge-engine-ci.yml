@@ -37,8 +37,8 @@ jobs:
         run: python3 tools/validate_k1_semantic_routing.py
       - name: Test K2 source lineage fail-closed cases
         run: python3 tools/test_k2_source_lineage.py
-      - name: Enforce K2 source lineage state
-        run: python3 tools/validate_k2_source_lineage.py
+      - name: Enforce accepted K2 lineage integrity
+        run: python3 tools/validate_k2_lineage_integrity.py
       - name: Test K2 evidence fail-closed cases
         run: python3 tools/test_k2_evidence.py
       - name: Enforce K2 evidence state
