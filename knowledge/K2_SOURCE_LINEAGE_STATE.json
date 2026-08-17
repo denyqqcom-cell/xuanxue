@@ -1,8 +1,23 @@
 {
   "schema_version":"k2-source-lineage-v2",
-  "status":"REVIEW_REQUIRED",
-  "review_reason":"PART_VS_VARIANT_COVERAGE_REVIEW",
+  "status":"COMPLETE",
+  "review_reason":"PROJECT_ACCEPTED_AFTER_PART_VARIANT_COVERAGE_REVIEW",
+  "accepted_head":"d942b28c01b862a404784cefdb5a8e64fc5fcb86",
+  "accepted_ci_run":32043681020,
   "total_sources":515,
+  "lineage_rows":515,
+  "distinct_work_ids":371,
+  "relation_counts":{
+    "PRIMARY_WORK":58,
+    "WORK_PART":39,
+    "SAME_WORK_VARIANT":19,
+    "COMMENTARY_DERIVATIVE":6,
+    "SECONDARY_NOTE":159,
+    "IMPLEMENTATION":65,
+    "AUXILIARY_INDEX":67,
+    "OUT_OF_SCOPE":6,
+    "UNKNOWN":96
+  },
   "required_registry_counts":{
     "ziwei":148,
     "bazi":168,
@@ -20,7 +35,7 @@
     "SAME_WORK_VARIANT must point directly to a PRIMARY_WORK or WORK_PART through variant_of_source_id",
     "secondary notes and implementation evidence never count as independent traditional textual sources",
     "semantic OUT_OF_SCOPE is distinct from source role: out-of-scope code remains IMPLEMENTATION and SKIP",
-    "OUT_OF_SCOPE and UNKNOWN semantic sources may remain non-eligible without blocking K2 lineage completion",
-    "lineage uncertainty must remain UNKNOWN rather than being guessed"
+    "OUT_OF_SCOPE and UNKNOWN semantic sources may remain non-eligible without invalidating lineage closure",
+    "lineage uncertainty remains UNKNOWN rather than being guessed"
   ]
 }
