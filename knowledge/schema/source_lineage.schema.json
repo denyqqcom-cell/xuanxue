@@ -6,7 +6,9 @@
   "properties":{
     "source_id":{"type":"string","minLength":1},
     "work_id":{"type":["string","null"]},
-    "relation":{"enum":["PRIMARY_WORK","SAME_WORK_VARIANT","COMMENTARY_DERIVATIVE","SECONDARY_NOTE","IMPLEMENTATION","AUXILIARY_INDEX","OUT_OF_SCOPE","UNKNOWN"]},
+    "relation":{"enum":["PRIMARY_WORK","WORK_PART","SAME_WORK_VARIANT","COMMENTARY_DERIVATIVE","SECONDARY_NOTE","IMPLEMENTATION","AUXILIARY_INDEX","OUT_OF_SCOPE","UNKNOWN"]},
+    "part_label":{"type":["string","null"],"maxLength":120},
+    "variant_of_source_id":{"type":["string","null"]},
     "parent_work_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
     "independence_class":{"enum":["PRIMARY_CANDIDATE","SAME_WORK_NOT_INDEPENDENT","DERIVATIVE_REVIEW_REQUIRED","IMPLEMENTATION_ONLY","NOT_ELIGIBLE","UNKNOWN"]},
     "lineage_basis":{"enum":["TITLE_MATCH","CONTENT_VERIFIED","MANUAL_VERIFIED","HASH_PROVENANCE","PROJECT_CODE_PATH","UNKNOWN"]},
