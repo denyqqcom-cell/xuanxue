@@ -1,0 +1,33 @@
+{
+  "schema_version": "k1-sanitized-import-v1",
+  "source": "LOCAL_K1_MACHINE_VALIDATED",
+  "domains": {
+    "ziwei": {
+      "sources": 148,
+      "registry_sha256": "838cf67c0c2acee8222f8fd5818b09b53803a2dffbf0aec19ae115b6ebda1867"
+    },
+    "bazi": {
+      "sources": 168,
+      "registry_sha256": "166c0961c41f42274558016ffe42e3a426336dacbab2b4b9bb7b5fcf27305bfc"
+    },
+    "qimen": {
+      "sources": 154,
+      "registry_sha256": "9b6fcf405a7ad4ef86b8b11a2bebdd3501d7d6b30dc3551eb28ea573711c3842"
+    },
+    "liuyao": {
+      "sources": 7,
+      "registry_sha256": "62cd4e8196dff6cebc8b71dfd5a40b1a8715dfcd8cb4cfbe210132a84a8ff6eb"
+    },
+    "liuren": {
+      "sources": 10,
+      "registry_sha256": "a94775ffffab29267b15d5e62b5161aab482f0f17e67a1ee602daa65ba04f06b"
+    },
+    "fengshui": {
+      "sources": 28,
+      "registry_sha256": "44206889daf08c7ea8175ccfb3c474651ef1d6b6d40fe3ded2c84d0f517e187e"
+    }
+  },
+  "total_sources": 515,
+  "privacy": "LOCAL_PATHS_STRIPPED",
+  "copyright_scope": "METADATA_ONLY"
+}
