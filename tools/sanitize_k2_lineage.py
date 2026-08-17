@@ -4,8 +4,12 @@ from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
 DOMAINS=["ziwei","bazi","qimen","liuyao","liuren","fengshui"]
-FIELDS=["source_id","work_id","relation","parent_work_ids","independence_class","lineage_basis","lineage_evidence","k2_eligible","read_priority","review_status"]
-PATH_RE=re.compile(r"(?:/home/|/mnt/|[A-Za-z]:\\)")
+FIELDS=[
+    "source_id","work_id","relation","part_label","variant_of_source_id",
+    "parent_work_ids","independence_class","lineage_basis","lineage_evidence",
+    "k2_eligible","read_priority","review_status"
+]
+PATH_RE=re.compile(r"(?:/home/|/mnt/|[A-Za-z]:\\\\)")
 
 def fail(msg):
     print(f"k2-lineage-sanitize: FAIL: {msg}",file=sys.stderr); raise SystemExit(1)
