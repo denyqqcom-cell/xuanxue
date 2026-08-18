@@ -2,9 +2,10 @@
 """Build local-only page packets for K2B Wave1.
 
 This tool never writes into the repository knowledge tree. It is intentionally a
-mechanical extraction helper: it finds the private K1 source path, extracts the
-existing text layer page-by-page for TEXT_DIRECT sources, and records honest
-blockers for sources that require page vision.
+mechanical extraction helper: it finds the private K1 source path, verifies that
+its bytes still match the canonical K1 SHA256, extracts the existing text layer
+page-by-page for TEXT_DIRECT sources, and records honest blockers for sources
+that require page vision.
 
 It does not create Evidence or Claims.
 """
@@ -79,6 +80,17 @@ def sha_text(text: str):
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def sha_file(path: Path, chunk_size=1024 * 1024):
+    digest = hashlib.sha256()
+    with path.open("rb") as fh:
+        while True:
+            chunk = fh.read(chunk_size)
+            if not chunk:
+                break
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def extract_pdf_text(path: Path):
     exe = shutil.which("pdftotext")
     if not exe:
@@ -99,17 +111,58 @@ def extract_pdf_text(path: Path):
     return pages, None, None
 
 
-def write_packet(path: Path, source_id: str, pages):
+def write_packet(path: Path, source_id: str, source_file_sha256: str, pages):
     with path.open("w", encoding="utf-8") as fh:
         for page_no, text in enumerate(pages, 1):
             row = {
                 "source_id": source_id,
+                "source_file_sha256": source_file_sha256,
                 "page": page_no,
                 "text": text,
                 "text_sha256": sha_text(text),
                 "char_count": len(text),
             }
             fh.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+
+
+def validate_plan(plan):
+    seen = set()
+    for n, item in enumerate(plan, 1):
+        sid = item.get("source_id")
+        if not isinstance(sid, str) or not sid:
+            fail(f"plan row {n}: missing source_id")
+        if sid in seen:
+            fail(f"plan contains duplicate source_id: {sid}")
+        seen.add(sid)
+        expected_hash = item.get("file_sha256")
+        if not isinstance(expected_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", expected_hash):
+            fail(f"{sid}: plan missing canonical file_sha256")
+
+
+def verify_source_identity(sid, item, private_row, local_path):
+    plan_hash = item.get("file_sha256")
+    private_hash = private_row.get("file_sha256")
+    if not isinstance(private_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", private_hash):
+        fail(f"{sid}: private K1 registry missing valid file_sha256")
+    if private_hash != plan_hash:
+        fail(f"{sid}: private K1 hash differs from official Wave1 plan")
+    actual_hash = sha_file(local_path)
+    if actual_hash != plan_hash:
+        fail(f"{sid}: local file SHA256 mismatch; expected {plan_hash}, got {actual_hash}")
+    return actual_hash
+
+
+def blocked_row(sid, lane, source_file_sha256, code, reason):
+    return {
+        "source_id": sid,
+        "source_file_sha256": source_file_sha256,
+        "execution_lane": lane,
+        "packet_status": "BLOCKED",
+        "blocker_code": code,
+        "blocker_reason": reason,
+        "packet_file": None,
+        "packet_sha256": None,
+    }
 
 
 def main():
@@ -122,56 +175,43 @@ def main():
     output_dir = ensure_local_only(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     plan = load_jsonl(args.plan)
+    validate_plan(plan)
     private = private_source_index(args.intake_root.expanduser().resolve())
 
     manifest = []
     for item in plan:
-        sid = item.get("source_id")
+        sid = item["source_id"]
         lane = item.get("execution_lane")
         if sid not in private:
-            manifest.append({
-                "source_id": sid,
-                "execution_lane": lane,
-                "packet_status": "BLOCKED",
-                "blocker_code": "FILE_MISSING",
-                "blocker_reason": "source_id not found in private K1 intake",
-                "packet_file": None,
-            })
+            manifest.append(blocked_row(
+                sid, lane, item.get("file_sha256"), "FILE_MISSING",
+                "source_id not found in private K1 intake",
+            ))
             continue
 
         src = private[sid]
         local_path = normalize_local_path(src.get("local_path"))
         if local_path is None or not local_path.is_file():
-            manifest.append({
-                "source_id": sid,
-                "execution_lane": lane,
-                "packet_status": "BLOCKED",
-                "blocker_code": "FILE_MISSING",
-                "blocker_reason": "private source path is missing or unreadable",
-                "packet_file": None,
-            })
+            manifest.append(blocked_row(
+                sid, lane, item.get("file_sha256"), "FILE_MISSING",
+                "private source path is missing or unreadable",
+            ))
             continue
 
+        actual_hash = verify_source_identity(sid, item, src, local_path)
+
         if lane == "VISUAL_REQUIRED":
-            manifest.append({
-                "source_id": sid,
-                "execution_lane": lane,
-                "packet_status": "BLOCKED",
-                "blocker_code": "VISION_UNAVAILABLE",
-                "blocker_reason": "source requires original-page visual verification; text/OCR alone is insufficient",
-                "packet_file": None,
-            })
+            manifest.append(blocked_row(
+                sid, lane, actual_hash, "VISION_UNAVAILABLE",
+                "source requires original-page visual verification; text/OCR alone is insufficient",
+            ))
             continue
 
         if lane != "TEXT_DIRECT":
-            manifest.append({
-                "source_id": sid,
-                "execution_lane": lane,
-                "packet_status": "BLOCKED",
-                "blocker_code": "ACCESS_UNAVAILABLE",
-                "blocker_reason": "source is not classified for direct text-layer extraction",
-                "packet_file": None,
-            })
+            manifest.append(blocked_row(
+                sid, lane, actual_hash, "ACCESS_UNAVAILABLE",
+                "source is not classified for direct text-layer extraction",
+            ))
             continue
 
         suffix = local_path.suffix.lower()
@@ -179,48 +219,36 @@ def main():
         if suffix == ".pdf":
             pages, code, reason = extract_pdf_text(local_path)
             if pages is None:
-                manifest.append({
-                    "source_id": sid,
-                    "execution_lane": lane,
-                    "packet_status": "BLOCKED",
-                    "blocker_code": code,
-                    "blocker_reason": reason,
-                    "packet_file": None,
-                })
+                manifest.append(blocked_row(sid, lane, actual_hash, code, reason))
                 continue
             if isinstance(expected_pages, int) and len(pages) != expected_pages:
-                manifest.append({
-                    "source_id": sid,
-                    "execution_lane": lane,
-                    "packet_status": "BLOCKED",
-                    "blocker_code": "TEXT_EXTRACTION_FAILED",
-                    "blocker_reason": f"text-layer page count {len(pages)} != registered PDF pages {expected_pages}",
-                    "packet_file": None,
-                })
+                manifest.append(blocked_row(
+                    sid, lane, actual_hash, "TEXT_EXTRACTION_FAILED",
+                    f"text-layer page count {len(pages)} != registered PDF pages {expected_pages}",
+                ))
                 continue
         else:
             try:
                 pages = [local_path.read_text(encoding="utf-8")]
             except UnicodeDecodeError:
-                manifest.append({
-                    "source_id": sid,
-                    "execution_lane": lane,
-                    "packet_status": "BLOCKED",
-                    "blocker_code": "TEXT_EXTRACTION_FAILED",
-                    "blocker_reason": "non-PDF TEXT_OK source is not UTF-8 readable",
-                    "packet_file": None,
-                })
+                manifest.append(blocked_row(
+                    sid, lane, actual_hash, "TEXT_EXTRACTION_FAILED",
+                    "non-PDF TEXT_OK source is not UTF-8 readable",
+                ))
                 continue
 
         packet_file = output_dir / f"{sid}.pages.jsonl"
-        write_packet(packet_file, sid, pages)
+        write_packet(packet_file, sid, actual_hash, pages)
+        packet_hash = sha_file(packet_file)
         manifest.append({
             "source_id": sid,
+            "source_file_sha256": actual_hash,
             "execution_lane": lane,
             "packet_status": "READY",
             "blocker_code": None,
             "blocker_reason": None,
             "packet_file": packet_file.name,
+            "packet_sha256": packet_hash,
             "page_count": len(pages),
             "total_chars": sum(len(text) for text in pages),
         })
