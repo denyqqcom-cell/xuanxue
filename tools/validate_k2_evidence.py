@@ -13,6 +13,10 @@ CLAIM_READY={"READY","CONTEXT_REQUIRED","CONFLICT_CANDIDATE","NOT_CLAIM"}
 EXECUTION_LANES={"TEXT_DIRECT","VISUAL_REQUIRED","ACCESS_REVIEW"}
 VERIFICATION_MODES={"TEXT_LAYER_FULL","VISUAL_PAGE","WHOLE_TEXT_DOCUMENT","NONE"}
 BLOCKER_CODES={"VISION_UNAVAILABLE","TEXT_EXTRACTION_FAILED","FILE_MISSING","CORRUPT_SOURCE","ACCESS_UNAVAILABLE","OTHER"}
+WAVE_STATES={"WAVE1_OPEN","WAVE1_REVIEW_REQUIRED","COMPLETE"}
+READ_STATUSES={"NOT_STARTED","PARTIAL","COMPLETE","BLOCKED"}
+EVIDENCE_ALLOWED_READ_STATUSES={"PARTIAL","COMPLETE"}
+FINAL_READ_STATUSES={"COMPLETE","BLOCKED"}
 PATH_RE=re.compile(r"(?:/home/|/mnt/|[A-Za-z]:\\\\)")
 PDF_LOC_RE=re.compile(r"(?:^|\|)pdf:p(\d+)(?:-p?(\d+))?(?:$|\|)")
 
@@ -96,6 +100,15 @@ def range_union(ranges,pages,issues,sid):
     return covered
 
 
+def validate_verification_for_reviewed_source(sid,lane,verification,issues):
+    if lane=="VISUAL_REQUIRED" and verification!="VISUAL_PAGE":
+        issues.append((sid,"VISUAL_REQUIRED reviewed source requires VISUAL_PAGE verification"))
+    if lane=="TEXT_DIRECT" and verification not in {"TEXT_LAYER_FULL","VISUAL_PAGE","WHOLE_TEXT_DOCUMENT"}:
+        issues.append((sid,"TEXT_DIRECT reviewed source requires text or visual verification"))
+    if lane=="ACCESS_REVIEW" and verification=="NONE":
+        issues.append((sid,"ACCESS_REVIEW reviewed source requires an actual verification mode"))
+
+
 def main():
     ap=argparse.ArgumentParser();ap.add_argument("--repo-root",type=Path,default=ROOT);ap.add_argument("--force",action="store_true");args=ap.parse_args()
     repo=args.repo_root.resolve();k=repo/"knowledge"
@@ -103,6 +116,8 @@ def main():
     if project.get("phase")!="K2_EVIDENCE_EXTRACTION":fail("validator only valid during K2_EVIDENCE_EXTRACTION")
     if project.get("source_lineage")!="COMPLETE" or project.get("evidence_extraction_blocked") is not False:fail("K2B requires completed lineage and open evidence lane")
     if project.get("claim_extraction_blocked") is not True or state.get("claim_extraction_blocked") is not True:fail("Claim Extraction must remain blocked during K2B")
+    wave_state=state.get("status")
+    if wave_state not in WAVE_STATES:fail(f"unsupported K2 evidence state: {wave_state}")
     sources=source_index(repo);lineage=lineage_index(repo);expected=wave1_expected(sources,lineage)
     if state.get("expected_wave1_reading_units") not in (None,len(expected)):
         fail(f"Wave1 reading-unit drift: {len(expected)} != state {state.get('expected_wave1_reading_units')}")
@@ -115,10 +130,17 @@ def main():
             fail(f"Wave1 execution-lane drift: actual={actual} expected={wanted}")
     lp=k/"K2_READING_LEDGER_WAVE1.jsonl";ep=k/"K2_EVIDENCE_WAVE1.jsonl"
     if not lp.exists() or not ep.exists():
-        if state.get("status")=="WAVE1_OPEN" and not args.force:
+        if wave_state=="WAVE1_OPEN" and not args.force:
             print("k2-evidence: WAVE1_OPEN")
-            print(f"expected_reading_units={len(expected)} evidence_rows=0 claim_extraction_blocked=true")
+            print(f"expected_reading_units={len(expected)} ledger_rows=0 evidence_rows=0 complete=0 partial=0 blocked=0 not_started={len(expected)} issues=0")
             print("execution_lanes="+json.dumps(dict(sorted(lane_counts.items())),sort_keys=True))
+            print("claim_extraction_blocked=true")
+            return
+        if wave_state=="WAVE1_OPEN" and args.force:
+            print("k2-evidence: WAVE1_OPEN")
+            print(f"expected_reading_units={len(expected)} ledger_rows=0 evidence_rows=0 complete=0 partial=0 blocked=0 not_started={len(expected)} issues=0")
+            print("execution_lanes="+json.dumps(dict(sorted(lane_counts.items())),sort_keys=True))
+            print("claim_extraction_blocked=true")
             return
         fail("Wave1 ledger/evidence files missing")
     ledger=load_jsonl(lp);evidence=load_jsonl(ep);issues=[]
@@ -137,35 +159,59 @@ def main():
         elif lane!=expected_lane:issues.append((sid,f"execution_lane mismatch: expected {expected_lane}"))
         if verification not in VERIFICATION_MODES:issues.append((sid,"invalid verification_mode"))
         status=r.get("read_status");mode=r.get("coverage_mode");pages=src.get("pages")
+        if status not in READ_STATUSES:
+            issues.append((sid,"invalid Wave1 read_status"));continue
         covered=range_union(r.get("page_ranges"),pages,issues,sid)
-        if status=="COMPLETE":
+
+        if status=="NOT_STARTED":
+            if covered:issues.append((sid,"NOT_STARTED row cannot claim reviewed pages"))
+            if r.get("pages_reviewed_count") not in {0,None}:issues.append((sid,"NOT_STARTED pages_reviewed_count must be 0/null"))
+            if r.get("evidence_count") not in {0,None}:issues.append((sid,"NOT_STARTED cannot claim evidence"))
+            if verification!="NONE":issues.append((sid,"NOT_STARTED requires verification_mode=NONE"))
+            if r.get("blocker_code") not in (None,"") or r.get("blocker_reason") not in (None,""):
+                issues.append((sid,"NOT_STARTED cannot carry blocker metadata"))
+            if r.get("review_status")!="UNREVIEWED":issues.append((sid,"NOT_STARTED row must be UNREVIEWED"))
+
+        elif status=="PARTIAL":
+            if r.get("blocker_code") not in (None,"") or r.get("blocker_reason") not in (None,""):
+                issues.append((sid,"PARTIAL row cannot carry blocker metadata"))
+            validate_verification_for_reviewed_source(sid,lane,verification,issues)
+            if not covered:issues.append((sid,"PARTIAL row requires non-empty reviewed coverage"))
+            if isinstance(pages,int):
+                if mode not in {"PDF_PAGES","DOCUMENT_PAGES"}:issues.append((sid,"paged PARTIAL source requires page coverage mode"))
+                if len(covered)>=pages:issues.append((sid,"PARTIAL coverage spans the full source; use COMPLETE"))
+            if r.get("pages_reviewed_count")!=len(covered):issues.append((sid,"PARTIAL pages_reviewed_count mismatch"))
+            if r.get("review_status")!="REVIEWED":issues.append((sid,"PARTIAL row must be REVIEWED"))
+
+        elif status=="COMPLETE":
             if r.get("blocker_code") not in (None,"") or r.get("blocker_reason") not in (None,""):
                 issues.append((sid,"COMPLETE row cannot carry blocker metadata"))
-            if lane=="VISUAL_REQUIRED" and verification!="VISUAL_PAGE":
-                issues.append((sid,"VISUAL_REQUIRED source may be COMPLETE only after VISUAL_PAGE verification"))
-            if lane=="TEXT_DIRECT" and verification not in {"TEXT_LAYER_FULL","VISUAL_PAGE","WHOLE_TEXT_DOCUMENT"}:
-                issues.append((sid,"TEXT_DIRECT COMPLETE requires full text or visual verification"))
-            if lane=="ACCESS_REVIEW" and verification=="NONE":
-                issues.append((sid,"ACCESS_REVIEW source cannot be COMPLETE without an actual verification mode"))
+            validate_verification_for_reviewed_source(sid,lane,verification,issues)
             if isinstance(pages,int):
                 if mode not in {"PDF_PAGES","DOCUMENT_PAGES"}:issues.append((sid,"paged COMPLETE source requires page coverage mode"))
                 if len(covered)!=pages or (covered and (min(covered)!=1 or max(covered)!=pages)):issues.append((sid,f"COMPLETE coverage does not span all {pages} pages"))
                 if r.get("pages_reviewed_count")!=pages:issues.append((sid,"pages_reviewed_count mismatch"))
             else:
                 if mode!="WHOLE_TEXT_DOCUMENT":issues.append((sid,"unpaged COMPLETE source requires WHOLE_TEXT_DOCUMENT"))
+            if r.get("review_status")!="REVIEWED":issues.append((sid,"COMPLETE row must be REVIEWED"))
+
         elif status=="BLOCKED":
             code=r.get("blocker_code")
             if code not in BLOCKER_CODES:issues.append((sid,"BLOCKED requires canonical blocker_code"))
             if not isinstance(r.get("blocker_reason"),str) or not r.get("blocker_reason").strip():issues.append((sid,"BLOCKED requires blocker_reason"))
             if verification!="NONE":issues.append((sid,"BLOCKED source must use verification_mode=NONE"))
             if r.get("evidence_count") not in {0,None}:issues.append((sid,"BLOCKED source cannot claim evidence_count"))
+            if covered:issues.append((sid,"BLOCKED source cannot claim reviewed coverage"))
             if code=="VISION_UNAVAILABLE" and lane!="VISUAL_REQUIRED":issues.append((sid,"VISION_UNAVAILABLE is only valid for VISUAL_REQUIRED sources"))
-        else:
-            issues.append((sid,"Wave1 submission must be COMPLETE or BLOCKED"))
-        if r.get("review_status")!="REVIEWED":issues.append((sid,"ledger row must be REVIEWED"))
+            if r.get("review_status")!="REVIEWED":issues.append((sid,"BLOCKED row must be REVIEWED"))
+
     missing=expected-set(lseen);extra=set(lseen)-expected
-    if missing:issues.append(("<global>",f"missing {len(missing)} Wave1 reading units"))
     if extra:issues.append(("<global>",f"extra {len(extra)} Wave1 reading units"))
+    if missing and wave_state!="WAVE1_OPEN":issues.append(("<global>",f"missing {len(missing)} Wave1 reading units"))
+    if wave_state!="WAVE1_OPEN":
+        nonfinal=[sid for sid,r in lseen.items() if sid in expected and r.get("read_status") not in FINAL_READ_STATUSES]
+        if nonfinal:issues.append(("<global>",f"{len(nonfinal)} Wave1 rows are not COMPLETE/BLOCKED in final-review state"))
+
     ev_seen=set();ev_count=Counter()
     for e in evidence:
         eid=e.get("evidence_id");sid=e.get("source_id")
@@ -173,7 +219,8 @@ def main():
         if eid in ev_seen:issues.append((eid,"duplicate evidence_id"));continue
         ev_seen.add(eid)
         if sid not in expected:issues.append((eid,"evidence source not selected for Wave1"));continue
-        if sid not in lseen or lseen[sid].get("read_status")!="COMPLETE":issues.append((eid,"evidence requires COMPLETE reviewed source"));continue
+        if sid not in lseen or lseen[sid].get("read_status") not in EVIDENCE_ALLOWED_READ_STATUSES:
+            issues.append((eid,"evidence requires PARTIAL or COMPLETE reviewed source"));continue
         lin=lineage[sid];src=sources[sid];ev_count[sid]+=1
         if e.get("work_id")!=lin.get("work_id"):issues.append((eid,"evidence work_id mismatch"))
         kd=src.get("knowledge_domains") or []
@@ -201,20 +248,39 @@ def main():
             a=int(m.group(1));b=int(m.group(2) or a);cov=range_union(lseen[sid].get("page_ranges"),sources[sid].get("pages"),[],sid)
             if any(p not in cov for p in range(a,b+1)):issues.append((eid,"evidence locator outside reviewed coverage"))
     for sid,r in lseen.items():
-        if r.get("evidence_count")!=ev_count[sid]:issues.append((sid,"ledger evidence_count does not match evidence rows"))
+        if sid in expected and r.get("evidence_count")!=ev_count[sid]:issues.append((sid,"ledger evidence_count does not match evidence rows"))
+
     blocked=sum(1 for r in ledger if r.get("read_status")=="BLOCKED")
     complete=sum(1 for r in ledger if r.get("read_status")=="COMPLETE")
+    partial=sum(1 for r in ledger if r.get("read_status")=="PARTIAL")
+    explicit_not_started=sum(1 for r in ledger if r.get("read_status")=="NOT_STARTED")
+    not_started=len(missing)+explicit_not_started
+
     if issues:
         sample="; ".join(f"{sid}: {msg}" for sid,msg in issues[:25])
         if not args.force:
             print("k2-evidence: REVIEW_REQUIRED")
-            print(f"expected_reading_units={len(expected)} ledger_rows={len(ledger)} evidence_rows={len(evidence)} complete={complete} blocked={blocked} issues={len(issues)}")
+            print(f"expected_reading_units={len(expected)} ledger_rows={len(ledger)} evidence_rows={len(evidence)} complete={complete} partial={partial} blocked={blocked} not_started={not_started} issues={len(issues)}")
             print(sample);return
         fail(f"{len(issues)} issue(s); {sample}")
-    print("k2-evidence: REVIEW_REQUIRED")
-    print(f"expected_reading_units={len(expected)} ledger_rows={len(ledger)} evidence_rows={len(evidence)} complete={complete} blocked={blocked} issues=0")
-    print("execution_lanes="+json.dumps(dict(sorted(lane_counts.items())),sort_keys=True))
-    print("claim_extraction_blocked=true; project review required")
+
+    if wave_state=="WAVE1_OPEN":
+        print("k2-evidence: WAVE1_OPEN")
+        print(f"expected_reading_units={len(expected)} ledger_rows={len(ledger)} evidence_rows={len(evidence)} complete={complete} partial={partial} blocked={blocked} not_started={not_started} issues=0")
+        print("execution_lanes="+json.dumps(dict(sorted(lane_counts.items())),sort_keys=True))
+        print("claim_extraction_blocked=true; incremental reviewed Evidence is allowed")
+        return
+
+    if wave_state=="WAVE1_REVIEW_REQUIRED":
+        print("k2-evidence: REVIEW_REQUIRED")
+        print(f"expected_reading_units={len(expected)} ledger_rows={len(ledger)} evidence_rows={len(evidence)} complete={complete} partial={partial} blocked={blocked} not_started={not_started} issues=0")
+        print("execution_lanes="+json.dumps(dict(sorted(lane_counts.items())),sort_keys=True))
+        print("claim_extraction_blocked=true; project review required")
+        return
+
+    print("k2-evidence: COMPLETE")
+    print(f"expected_reading_units={len(expected)} ledger_rows={len(ledger)} evidence_rows={len(evidence)} complete={complete} partial={partial} blocked={blocked} not_started={not_started} issues=0")
+    print("claim_extraction_blocked=true")
 
 
 if __name__=="__main__":main()
