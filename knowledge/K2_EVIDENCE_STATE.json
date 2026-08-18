@@ -20,6 +20,7 @@
   },
   "local_helper_role":"fetch/pull, run project-owned tests/tools, locate canonical private source bytes, mechanically expose local page packets; no tracked-file edits, Evidence normalization, commit or push",
   "ci_portability_gate":"windows-latest tools/test_k2_evidence.py",
+  "liuren_legacy_candidate_dependency":false,
   "known_environment_constraints":[
     "the current Windows helper machine does not contain the original /home/joe/knowledge-intake private registry, so canonical SHA256 search under explicit corpus roots is the supported portable fallback",
     "local helper vision backend returned 401 User not found, therefore SCAN/OCR_WEAK sources require honest VISION_UNAVAILABLE blocking until visual access is restored",
