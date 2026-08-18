@@ -4,7 +4,7 @@
 
 K2B remains `WAVE1_OPEN` and Claim Extraction remains blocked.
 
-This document records an execution-architecture failure without converting failed attempts into reading credit.
+This document records execution failures without converting them into reading credit.
 
 ## Failed execution model
 
@@ -13,9 +13,9 @@ The first operational attempt delegated whole-domain / whole-source reading to p
 Observed failures:
 
 1. the local vision backend returned HTTP 401 / `User not found`, so SCAN sources could not be visually verified;
-2. delegated agents had a 600-second hard execution limit, which was too short for complete 254–300 page books and much larger domain bundles;
+2. delegated agents had a 600-second hard execution limit, which was too short for complete 254–300 page books and larger domain bundles;
 3. six whole-domain dispatches plus seven single-source retries all timed out without accepted complete output;
-4. one Liuren attempt produced 34 provenance-valid candidate Evidence rows before timeout. They remain local candidates only and must be re-reviewed by the project-side main agent before public reuse.
+4. one Liuren attempt produced 34 provenance-valid candidate Evidence rows before timeout, but that local artifact is no longer available on the current Windows helper machine and is therefore not a Wave1 dependency.
 
 No failed dispatch is counted as COMPLETE reading coverage.
 
@@ -29,23 +29,46 @@ Wave1 is split mechanically by source readability:
 - `VISUAL_REQUIRED`: SCAN/OCR_WEAK/OCR_FAIL requires original-page visual verification; while the vision backend is unavailable these sources remain honestly BLOCKED;
 - `ACCESS_REVIEW`: any other unresolved access state remains blocked until explicitly resolved.
 
-The local AI is reduced to an execution helper. It may fetch/pull, run project-owned tools/tests, locate local source files, and expose requested page packets. It does not edit tracked files, normalize Evidence, commit, push, or decide acceptance.
+The local AI is an execution helper only. It may fetch/pull, run project-owned tools/tests, locate canonical local source bytes, and expose requested page packets. It does not edit tracked files, normalize Evidence, commit, push, or decide acceptance.
 
 ## Wave1 accounting baseline
 
-At this refactor point the official Wave1 planner is expected to produce 37 unique-coverage reading units:
+The official Wave1 planner produces 37 unique-coverage reading units:
 
 - TEXT_DIRECT: 22
 - VISUAL_REQUIRED: 15
 - ACCESS_REVIEW: 0
 
-These counts are now machine-checked against `knowledge/K2_EVIDENCE_STATE.json`; drift fails the K2 Evidence validator.
+These counts are machine-checked against `knowledge/K2_EVIDENCE_STATE.json`; drift fails the K2 Evidence validator.
+
+## Portable canonical source resolution
+
+The original Linux private intake path `/home/joe/knowledge-intake` is not present on the current Windows helper machine. That is an environment relocation, not a reason to rebuild or falsify K1 metadata.
+
+`tools/build_k2_local_page_packets.py` therefore supports two resolution modes:
+
+1. `PRIVATE_REGISTRY` — optional fast path when a private K1 `sources.jsonl` with `local_path` is available;
+2. `CANONICAL_SHA256_SEARCH` — scan explicitly supplied local corpus roots and accept a file only when its actual SHA256 equals the official canonical `file_sha256` carried in the Wave1 plan.
+
+Canonical SHA256 is the identity authority. Filename similarity is never sufficient. Archives and build trees are excluded from discovery so the fallback does not hash unrelated multi-GB artifacts.
+
+This makes the page-packet bridge portable across Linux/WSL/Windows without weakening provenance.
 
 ## Local page packets
 
-`tools/build_k2_local_page_packets.py` is the only project-owned helper for bulk text-layer exposure in this refactor.
+`tools/build_k2_local_page_packets.py` is the project-owned helper for bulk text-layer exposure.
 
-It is deliberately non-semantic:
+For READY text packets it records:
+
+- canonical `source_file_sha256`;
+- `identity_mode`;
+- page-preserving extracted text;
+- per-page `text_sha256` and `char_count`;
+- complete `packet_sha256`.
+
+`tools/show_k2_page_packet.py` is a read-only verified slice tool. It revalidates packet/page hashes and exposes at most 25 pages per call for project-side review.
+
+The helpers are deliberately non-semantic:
 
 - no Evidence extraction;
 - no Claim synthesis;
@@ -54,6 +77,12 @@ It is deliberately non-semantic:
 - no OCR substitution for required vision.
 
 Raw page text stays outside the repository under local `knowledge-intake` storage and may contain copyrighted source text.
+
+## Environment-specific tests
+
+The Windows helper previously exposed a path-separator-only failure in `test_k2_evidence.py`. Path normalization tests are now host-aware and compare canonical `Path.as_posix()` forms instead of assuming POSIX `Path.__str__` output.
+
+A missing local JDK is no longer treated as a helper-side engineering failure. The local helper reports `SKIP_ENV_NO_JDK`; the authoritative stable-core regression remains GitHub Actions with JDK 17.
 
 ## Acceptance consequence
 
