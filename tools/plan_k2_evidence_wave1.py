@@ -37,6 +37,7 @@ def main():
         rows.append(
             {
                 "source_id": sid,
+                "file_sha256": source.get("file_sha256"),
                 "work_id": lin.get("work_id"),
                 "relation": lin.get("relation"),
                 "read_priority": lin.get("read_priority"),
