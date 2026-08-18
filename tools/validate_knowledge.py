@@ -139,6 +139,8 @@ def main():
                 fail("K2_EVIDENCE_STATE canonical identity rule mismatch")
             if ev_state.get("source_resolution_modes") != ["PRIVATE_REGISTRY","CANONICAL_SHA256_SEARCH"]:
                 fail("K2_EVIDENCE_STATE source resolution modes mismatch")
+            if ev_state.get("liuren_legacy_candidate_dependency") is not False:
+                fail("unavailable Liuren candidate artifact must not remain a K2B dependency")
 
     forbidden_ext = {".pdf", ".epub", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".webp", ".ttf", ".otf", ".woff", ".woff2"}
     for p in K.rglob("*"):
