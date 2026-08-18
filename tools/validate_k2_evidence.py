@@ -104,7 +104,15 @@ def main():
     if project.get("source_lineage")!="COMPLETE" or project.get("evidence_extraction_blocked") is not False:fail("K2B requires completed lineage and open evidence lane")
     if project.get("claim_extraction_blocked") is not True or state.get("claim_extraction_blocked") is not True:fail("Claim Extraction must remain blocked during K2B")
     sources=source_index(repo);lineage=lineage_index(repo);expected=wave1_expected(sources,lineage)
+    if state.get("expected_wave1_reading_units") not in (None,len(expected)):
+        fail(f"Wave1 reading-unit drift: {len(expected)} != state {state.get('expected_wave1_reading_units')}")
     lane_counts=Counter(expected_execution_lane(sources[sid]) for sid in expected)
+    expected_lanes=state.get("expected_execution_lanes")
+    if expected_lanes is not None:
+        actual={lane:lane_counts.get(lane,0) for lane in sorted(EXECUTION_LANES)}
+        wanted={lane:int(expected_lanes.get(lane,0)) for lane in sorted(EXECUTION_LANES)}
+        if actual!=wanted:
+            fail(f"Wave1 execution-lane drift: actual={actual} expected={wanted}")
     lp=k/"K2_READING_LEDGER_WAVE1.jsonl";ep=k/"K2_EVIDENCE_WAVE1.jsonl"
     if not lp.exists() or not ep.exists():
         if state.get("status")=="WAVE1_OPEN" and not args.force:
