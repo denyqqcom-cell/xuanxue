@@ -32,6 +32,18 @@ The same run also exposed two environment-specific issues:
 
 None of these failures grants reading credit. They are execution-environment findings only.
 
+## Project-owned remediation
+
+The remediation is implemented by the project main agent in repository code, not delegated back to the local AI:
+
+- `build_k2_local_page_packets.py` now supports canonical SHA256 discovery under explicit local corpus roots;
+- private K1 `local_path` registry is optional rather than mandatory;
+- Windows/WSL path translation is host-aware;
+- `test_k2_evidence.py` is portable across Windows/POSIX;
+- GitHub Actions has a `windows-latest` helper portability job;
+- no-JDK local execution is an environment skip, while JDK17 stable-core regression remains authoritative in GitHub Actions;
+- the unavailable Liuren 34-row candidate artifact is removed as a dependency rather than reconstructed from memory.
+
 ## Accepted replacement architecture
 
 The project-side main agent owns all engineering and final knowledge normalization.
@@ -58,7 +70,7 @@ These counts are machine-checked against `knowledge/K2_EVIDENCE_STATE.json`; dri
 
 The original Linux private intake path `/home/joe/knowledge-intake` is not present on the current Windows helper machine. That is an environment relocation, not a reason to rebuild or falsify K1 metadata.
 
-`tools/build_k2_local_page_packets.py` therefore supports two resolution modes:
+`tools/build_k2_local_page_packets.py` supports two resolution modes:
 
 1. `PRIVATE_REGISTRY` — optional fast path when a private K1 `sources.jsonl` with `local_path` is available;
 2. `CANONICAL_SHA256_SEARCH` — scan explicitly supplied local corpus roots and accept a file only when its actual SHA256 equals the official canonical `file_sha256` carried in the Wave1 plan.
@@ -69,9 +81,7 @@ This makes the page-packet bridge portable across Linux/WSL/Windows without weak
 
 ## Local page packets
 
-`tools/build_k2_local_page_packets.py` is the project-owned helper for bulk text-layer exposure.
-
-For READY text packets it records:
+For READY text packets the project helper records:
 
 - canonical `source_file_sha256`;
 - `identity_mode`;
@@ -93,9 +103,9 @@ Raw page text stays outside the repository under local `knowledge-intake` storag
 
 ## Environment-specific tests
 
-The Windows path-separator failure is now fixed in project code: path normalization is host-aware and tests compare `Path.as_posix()` rather than assuming POSIX `Path.__str__` output.
+The Windows path-separator failure is fixed in project code: path normalization is host-aware and tests compare `Path.as_posix()` rather than assuming POSIX `Path.__str__` output.
 
-GitHub Actions now contains a dedicated `windows-latest` K2 helper portability job so this class of bug is tested by the project rather than delegated to the local helper.
+GitHub Actions contains a dedicated `windows-latest` K2 helper portability job so this class of bug is tested by the project rather than delegated to the local helper.
 
 A missing local JDK is not a helper-side engineering failure. The local helper reports `SKIP_ENV_NO_JDK`; the authoritative stable-core regression remains GitHub Actions with JDK 17.
 
