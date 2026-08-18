@@ -37,6 +37,29 @@ def main():
     assert v.PDF_LOC_RE.search("printed:p5|pdf:p8-p9")
     assert "VISION_UNAVAILABLE" in v.BLOCKER_CODES
 
+    # Incremental Wave1 review contract: only actually reviewed rows may emit Evidence,
+    # and each lane must use a verification mode that matches its source quality.
+    assert v.WAVE_STATES=={"WAVE1_OPEN","WAVE1_REVIEW_REQUIRED","COMPLETE"}
+    assert v.READ_STATUSES=={"NOT_STARTED","PARTIAL","COMPLETE","BLOCKED"}
+    assert v.EVIDENCE_ALLOWED_READ_STATUSES=={"PARTIAL","COMPLETE"}
+    assert v.FINAL_READ_STATUSES=={"COMPLETE","BLOCKED"}
+
+    issues=[]
+    v.validate_verification_for_reviewed_source("A","TEXT_DIRECT","TEXT_LAYER_FULL",issues)
+    assert not issues,issues
+    issues=[]
+    v.validate_verification_for_reviewed_source("A","TEXT_DIRECT","NONE",issues)
+    assert any("TEXT_DIRECT" in m for _,m in issues),issues
+    issues=[]
+    v.validate_verification_for_reviewed_source("B","VISUAL_REQUIRED","VISUAL_PAGE",issues)
+    assert not issues,issues
+    issues=[]
+    v.validate_verification_for_reviewed_source("B","VISUAL_REQUIRED","TEXT_LAYER_FULL",issues)
+    assert any("VISUAL_REQUIRED" in m for _,m in issues),issues
+    issues=[]
+    v.validate_verification_for_reviewed_source("C","ACCESS_REVIEW","NONE",issues)
+    assert any("ACCESS_REVIEW" in m for _,m in issues),issues
+
     posix=packets.normalize_local_path(r"E:\books\a.pdf",host_os="posix")
     win=packets.normalize_local_path(r"E:\books\a.pdf",host_os="nt")
     wsl_win=packets.normalize_local_path("/mnt/f/books/a.pdf",host_os="nt")
