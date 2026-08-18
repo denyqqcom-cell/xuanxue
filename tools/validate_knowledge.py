@@ -126,11 +126,19 @@ def main():
                 fail("K2B execution owner must remain PROJECT_MAIN_AGENT")
             if state.get("local_ai_role") != "EXECUTION_HELPER_ONLY":
                 fail("K2B local AI role must remain EXECUTION_HELPER_ONLY")
+            if state.get("source_identity_authority") != "CANONICAL_FILE_SHA256":
+                fail("K2B source identity authority must remain CANONICAL_FILE_SHA256")
+            if state.get("source_resolution_policy") != "PRIVATE_REGISTRY_OPTIONAL_OR_EXPLICIT_ROOT_SHA256_SEARCH":
+                fail("K2B source resolution policy mismatch")
             ev_state = load(K / "K2_EVIDENCE_STATE.json")
             if ev_state.get("source_lineage_status") != "COMPLETE" or ev_state.get("claim_extraction_blocked") is not True:
                 fail("K2_EVIDENCE_STATE must preserve completed lineage and blocked claims")
             if ev_state.get("execution_architecture") != "PROJECT_MAIN_AGENT_WITH_LOCAL_HELPER":
                 fail("K2_EVIDENCE_STATE execution architecture mismatch")
+            if ev_state.get("canonical_identity_rule") != "official K1 file_sha256 must equal actual local file SHA256; private local_path registry is optional":
+                fail("K2_EVIDENCE_STATE canonical identity rule mismatch")
+            if ev_state.get("source_resolution_modes") != ["PRIVATE_REGISTRY","CANONICAL_SHA256_SEARCH"]:
+                fail("K2_EVIDENCE_STATE source resolution modes mismatch")
 
     forbidden_ext = {".pdf", ".epub", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".webp", ".ttf", ".otf", ".woff", ".woff2"}
     for p in K.rglob("*"):
