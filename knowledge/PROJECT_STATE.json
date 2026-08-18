@@ -13,6 +13,8 @@
   "k2_blocked": false,
   "k2_stage": "EVIDENCE_EXTRACTION",
   "source_lineage": "COMPLETE",
+  "execution_owner": "PROJECT_MAIN_AGENT",
+  "local_ai_role": "EXECUTION_HELPER_ONLY",
   "evidence_extraction_blocked": false,
   "claim_extraction_blocked": true
 }
