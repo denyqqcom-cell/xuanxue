@@ -37,8 +37,6 @@ def main():
     assert v.PDF_LOC_RE.search("printed:p5|pdf:p8-p9")
     assert "VISION_UNAVAILABLE" in v.BLOCKER_CODES
 
-    # Host-aware path translation must be stable without depending on the
-    # separator chosen by Path.__str__ on the machine running the test.
     posix=packets.normalize_local_path(r"E:\books\a.pdf",host_os="posix")
     win=packets.normalize_local_path(r"E:\books\a.pdf",host_os="nt")
     wsl_win=packets.normalize_local_path("/mnt/f/books/a.pdf",host_os="nt")
@@ -64,6 +62,24 @@ def main():
         item={"source_id":"A","file_sha256":digest}
         packets.verify_private_registry_hash("A",item,private)
         assert packets.verify_local_file_hash("A",digest,sample)==digest
+
+        # Exercise the pypdf fallback without depending on a network install.
+        deps=root/"deps"
+        pkg=deps/"pypdf"
+        pkg.mkdir(parents=True)
+        (pkg/"__init__.py").write_text(
+            "class _Page:\n"
+            "    def __init__(self,t): self.t=t\n"
+            "    def extract_text(self, extraction_mode=None): return self.t\n"
+            "class PdfReader:\n"
+            "    def __init__(self,path,strict=False): self.pages=[_Page('alpha'),_Page('beta')]\n",
+            encoding="utf-8",
+        )
+        packets.configure_python_deps(deps)
+        sys.modules.pop("pypdf",None)
+        pages, reason=packets.extract_pdf_text_pypdf(sample)
+        assert pages==["alpha","beta"] and reason is None,(pages,reason)
+        sys.modules.pop("pypdf",None)
 
         packet=root/"A.pages.jsonl"
         packets.write_packet(packet,"A",digest,["p1","p2","p3"])
