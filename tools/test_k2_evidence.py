@@ -63,11 +63,11 @@ def main():
         packets.verify_private_registry_hash("A",item,private)
         assert packets.verify_local_file_hash("A",digest,sample)==digest
 
-        # Exercise the pypdf fallback without depending on a network install.
+        # Exercise the pypdf fallback without depending on PDF internals.
         deps=root/"deps"
-        pkg=deps/"pypdf"
-        pkg.mkdir(parents=True)
-        (pkg/"__init__.py").write_text(
+        pypdf_pkg=deps/"pypdf"
+        pypdf_pkg.mkdir(parents=True)
+        (pypdf_pkg/"__init__.py").write_text(
             "class _Page:\n"
             "    def __init__(self,t): self.t=t\n"
             "    def extract_text(self, extraction_mode=None): return self.t\n"
@@ -75,11 +75,28 @@ def main():
             "    def __init__(self,path,strict=False): self.pages=[_Page('alpha'),_Page('beta')]\n",
             encoding="utf-8",
         )
+
+        # Exercise the pdfminer.six fallback with its page-separator contract.
+        pdfminer_pkg=deps/"pdfminer"
+        pdfminer_pkg.mkdir(parents=True)
+        (pdfminer_pkg/"__init__.py").write_text("",encoding="utf-8")
+        (pdfminer_pkg/"high_level.py").write_text(
+            "def extract_text(path): return 'gamma\\fdelta\\f'\n",
+            encoding="utf-8",
+        )
+
         packets.configure_python_deps(deps)
         sys.modules.pop("pypdf",None)
         pages, reason=packets.extract_pdf_text_pypdf(sample)
         assert pages==["alpha","beta"] and reason is None,(pages,reason)
         sys.modules.pop("pypdf",None)
+
+        sys.modules.pop("pdfminer.high_level",None)
+        sys.modules.pop("pdfminer",None)
+        pages, reason=packets.extract_pdf_text_pdfminer(sample)
+        assert pages==["gamma","delta"] and reason is None,(pages,reason)
+        sys.modules.pop("pdfminer.high_level",None)
+        sys.modules.pop("pdfminer",None)
 
         packet=root/"A.pages.jsonl"
         packets.write_packet(packet,"A",digest,["p1","p2","p3"])
