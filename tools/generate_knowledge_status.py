@@ -83,9 +83,14 @@ def render() -> str:
                 "项目端复验发现第一版 lineage 把部分互补卷册/分页与真正的同内容版本都标成 `SAME_WORK_VARIANT`。当前必须完成 `K2_LINEAGE_COVERAGE_REVIEW`：互补卷册使用 `WORK_PART` 并保持可读；真正重复载体使用 `SAME_WORK_VARIANT + variant_of_source_id`。Claim Extraction 继续锁定。",
             ]
     elif state.get("phase") == "K2_EVIDENCE_EXTRACTION":
+        lanes=(evidence_state or {}).get("expected_execution_lanes", {})
         lines += [
             "",
             "K2A Source Lineage 已由项目端验收为 `COMPLETE`。当前进入 `K2_EVIDENCE_EXTRACTION`：开始逐页/逐段读取本地文本，形成页级 Evidence 与 Reading Ledger，但仍禁止把多个 Evidence 合成为 Claim。",
+            "",
+            "K2B 工程执行权由项目主 Agent 持有；本地 AI 仅负责拉取代码、运行项目已有工具/测试、定位本机资料和机械暴露 page packet，不再修改 tracked 文件、归纳正式 Evidence、commit 或 push。",
+            "",
+            f"Wave 1 execution lanes：TEXT_DIRECT = {lanes.get('TEXT_DIRECT','?')}；VISUAL_REQUIRED = {lanes.get('VISUAL_REQUIRED','?')}；ACCESS_REVIEW = {lanes.get('ACCESS_REVIEW','?')}。SCAN/OCR_WEAK/OCR_FAIL 没有原页视觉能力时必须诚实 BLOCKED，不得用 OCR 冒充视觉核验。",
             "",
             "Wave 1 按 work coverage 而不是文件数排程：所有 P0 work family 展开到完整 PRIMARY_WORK/WORK_PART coverage；六爻与大六壬薄 corpus 的全部 governed unique textual coverage同步进入。`claim_extraction_blocked=true` 保持。",
             "",
