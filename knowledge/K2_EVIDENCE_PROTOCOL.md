@@ -2,6 +2,26 @@
 
 K2B is the first stage that actually reads the local books. It still does **not** create or reconcile Claims.
 
+## 0. Execution ownership
+
+The project-side main agent owns K2B engineering and knowledge normalization:
+
+- repository code/schema/validator changes;
+- final Reading Ledger construction;
+- final atomic Evidence normalization;
+- Git commits/pushes and project-state transitions;
+- project review and acceptance.
+
+The local AI is a **helper only**. It may:
+
+- fetch/pull the requested branch;
+- run project-owned scripts/tests without modifying them;
+- locate private local sources;
+- mechanically expose page text packets or page metadata from local files;
+- report logs, missing files, extractor failures, or vision failures.
+
+The local AI must not design schemas, repair validators, normalize Evidence, modify tracked repository files, commit, push, or decide project acceptance.
+
 ## 1. Evidence is not a Claim
 
 An Evidence record is a faithful, atomic paraphrase of what one identifiable source location explicitly states, demonstrates, tabulates, diagrams, or records as a case.
@@ -35,11 +55,45 @@ SECONDARY_NOTE / IMPLEMENTATION / AUXILIARY_INDEX do not enter the traditional t
 
 Evidence count does not prove a book was read.
 
-Every selected unique-coverage carrier receives a reading-ledger row. For paged documents, COMPLETE requires page-range coverage of the whole carrier. If pages are unreadable, mark BLOCKED or PARTIAL rather than pretending completion.
+Every selected unique-coverage carrier receives a reading-ledger row. For paged documents, COMPLETE requires page-range coverage of the whole carrier. If pages are unreadable, mark BLOCKED rather than pretending completion.
 
 For multi-volume works, all selected WORK_PART carriers are tracked separately while sharing the same `work_id`.
 
-## 4. Wave 1 selection
+## 4. Execution lanes
+
+Wave planning assigns each selected source an execution lane from K1 readability:
+
+- `TEXT_DIRECT`: `TEXT_OK`; existing text layer may be mechanically extracted page-by-page and then reviewed by the project-side main agent.
+- `VISUAL_REQUIRED`: `SCAN`, `OCR_WEAK`, or `OCR_FAIL`; OCR/text alone is not admissible. COMPLETE requires original-page visual verification.
+- `ACCESS_REVIEW`: any other readability state; must be explicitly resolved before COMPLETE.
+
+The lane is descriptive and fail-closed. It must never be weakened just to increase completion counts.
+
+A `VISUAL_REQUIRED` source may be recorded as BLOCKED with:
+
+- `verification_mode=NONE`
+- `blocker_code=VISION_UNAVAILABLE`
+
+when the local vision backend cannot inspect the original pages. Such a source remains a valid Wave1 obligation and is not treated as read.
+
+## 5. Local page packets
+
+`tools/build_k2_local_page_packets.py` is a mechanical local-only helper.
+
+It:
+
+- reads the official Wave1 plan;
+- resolves private `source_id -> local_path` from `/home/joe/knowledge-intake/*/sources.jsonl`;
+- extracts existing PDF text layers with `pdftotext` for `TEXT_DIRECT` sources;
+- preserves page boundaries and text hashes;
+- writes raw page packets only outside the repository;
+- records `VISUAL_REQUIRED` sources as blocked rather than OCR-guessing them.
+
+It **does not** create Evidence, Claims, Git-tracked knowledge files, or project acceptance state.
+
+Raw page packets can contain copyrighted source text and therefore remain local/private.
+
+## 6. Wave 1 selection
 
 Wave 1 is balanced across all six governed arts.
 
@@ -51,7 +105,23 @@ Selection rules:
 4. Do not finish one rich domain before the other five begin.
 5. Variants are backup carriers, not new reading obligations when their target carrier is readable.
 
-## 5. Atomic evidence fields
+## 7. Reading Ledger execution fields
+
+Every public Wave1 reading row includes:
+
+- `execution_lane`: `TEXT_DIRECT | VISUAL_REQUIRED | ACCESS_REVIEW`
+- `verification_mode`: `TEXT_LAYER_FULL | VISUAL_PAGE | WHOLE_TEXT_DOCUMENT | NONE`
+- `blocker_code`: canonical machine-readable blocker or null
+- `blocker_reason`: short human-readable explanation or null
+
+Rules:
+
+- `TEXT_DIRECT + COMPLETE` requires full text/page coverage and `TEXT_LAYER_FULL`, `VISUAL_PAGE`, or `WHOLE_TEXT_DOCUMENT` verification.
+- `VISUAL_REQUIRED + COMPLETE` requires `VISUAL_PAGE` verification.
+- `BLOCKED` requires `verification_mode=NONE`, a canonical blocker code, and zero Evidence.
+- A blocked source may not emit Evidence.
+
+## 8. Atomic evidence fields
 
 Every public evidence row records:
 
@@ -72,7 +142,7 @@ Every public evidence row records:
 
 Public evidence should normally use `verbatim_quote=null`. Modern-book wording must not be copied into Git merely to prove extraction.
 
-## 6. Source location
+## 9. Source location
 
 Use stable locators such as:
 
@@ -83,20 +153,20 @@ Use stable locators such as:
 
 Do not write local filesystem paths.
 
-If a claim depends on a table or diagram spanning pages, cite the smallest page range that fully supports the normalized fact.
+If a fact depends on a table or diagram spanning pages, cite the smallest page range that fully supports the normalized fact.
 
-## 7. Evidence types
+## 10. Evidence types
 
-- EXPLICIT_RULE: source explicitly states a rule or procedure.
-- WORKED_EXAMPLE: source applies a method step by step.
-- TABLE: structured table content normalized without copying the full table.
-- DIAGRAM: information explicitly conveyed by a diagram.
-- COMMENTARY: an author/commentator's interpretation of another work or doctrine.
-- HISTORICAL_CLAIM: historical/origin/attribution statement; not treated as technical truth.
-- CASE_RECORD: reported case, observation or divination record.
-- META_METHOD: statements about methodology, limits, ethics or how to reason from a chart.
+- EXPLICIT_RULE
+- WORKED_EXAMPLE
+- TABLE
+- DIAGRAM
+- COMMENTARY
+- HISTORICAL_CLAIM
+- CASE_RECORD
+- META_METHOD
 
-## 8. Scope
+## 11. Scope
 
 Use one of:
 
@@ -104,7 +174,7 @@ STRUCTURE / ALGORITHM / SYMBOLISM / SELECTION / INTERPRETATION / TIMING / CASE /
 
 This scope is descriptive. It does not promote the evidence to a Claim.
 
-## 9. Normalization rules
+## 12. Normalization rules
 
 `normalized_fact` must:
 
@@ -117,45 +187,39 @@ This scope is descriptive. It does not promote the evidence to a Claim.
 
 Suspected printing/OCR mistakes are not silently corrected. Record the visible/source-supported fact and add a short note such as `suspected source/OCR issue; requires cross-check`.
 
-## 10. Claim readiness
+## 13. Claim readiness
 
-- READY: atomic explicit evidence suitable for later Claim synthesis.
-- CONTEXT_REQUIRED: cannot be interpreted safely without nearby context, definitions or prerequisites.
-- CONFLICT_CANDIDATE: visibly disagrees with another already observed evidence item or a known legacy rule; do not resolve yet.
-- NOT_CLAIM: useful case/history/meta information but not a normative rule.
+- READY
+- CONTEXT_REQUIRED
+- CONFLICT_CANDIDATE
+- NOT_CLAIM
 
-## 11. Unknown semantic sources
+READY means only that K2C may later consider the atomic evidence. It is not a validated rule.
+
+## 14. Unknown semantic sources
 
 K2A intentionally left 96 textual rows as semantic UNKNOWN.
 
-They are not discarded. K2B maintains a discovery backlog. Content may be opened to determine what system the work actually concerns. Until that content-based routing is established, no six-domain Evidence record may be created from it.
+They are not discarded. K2B maintains a discovery backlog. Content may be opened to determine what system the work actually concerns. Until content-based routing is established, no six-domain Evidence record may be created from it.
 
-K2B cannot be declared globally complete while these 96 sources remain completely unreviewed. They must eventually be resolved to a governed domain, OUT_OF_SCOPE, or a justified still-UNKNOWN state after content review.
+## 15. Copyright boundary
 
-## 12. Copyright boundary
+Original books, scans, screenshots, OCR text, local page packets and long quotations stay local.
 
-Original books, scans, screenshots, OCR text and long quotations stay local.
-
-Public Git may contain:
-
-- source/work identifiers;
-- page/section locators;
-- independently written atomic paraphrases;
-- short metadata;
-- derived reading coverage.
+Public Git may contain only source/work identifiers, page/section locators, independently written atomic paraphrases, short metadata, and derived reading coverage.
 
 Default `verbatim_quote` is null.
 
-## 13. Wave acceptance
-
-A local wave is not accepted merely because extraction scripts run.
+## 16. Wave acceptance
 
 Project review requires:
 
 - every selected reading unit has a ledger row;
-- COMPLETE coverage is consistent with page counts where known;
-- every evidence row points to an eligible source/work and a reviewed location;
-- no evidence comes from NOTE/CODE/AUX as traditional doctrine;
+- COMPLETE coverage matches page counts where known;
+- blocked visual sources are reported honestly and emit no Evidence;
+- every Evidence row points to an eligible COMPLETE source/work and reviewed location;
+- `VISUAL_REQUIRED` evidence is visually verified rather than OCR-derived;
+- no Evidence comes from NOTE/CODE/AUX as traditional doctrine;
 - no variant creates an extra corroboration vote;
 - all six domains have begun;
 - thin Liuyao/Liuren coverage is not starved;
