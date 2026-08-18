@@ -5,7 +5,7 @@ from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 DOMAINS=["ziwei","bazi","qimen","liuyao","liuren","fengshui"]
 PATH_RE=re.compile(r"(?:/home/|/mnt/|[A-Za-z]:\\\\)")
-LEDGER_FIELDS=["reading_id","source_id","work_id","relation","coverage_mode","page_ranges","pages_reviewed_count","read_status","evidence_count","blocker_reason","review_status"]
+LEDGER_FIELDS=["reading_id","source_id","work_id","relation","execution_lane","verification_mode","coverage_mode","page_ranges","pages_reviewed_count","read_status","evidence_count","blocker_code","blocker_reason","review_status"]
 EVIDENCE_FIELDS=["evidence_id","domain","source_id","work_id","source_location","evidence_type","scope","topic","normalized_fact","extraction_basis","claim_readiness","school_ids","verbatim_quote","review_status","copyright_class","notes"]
 
 def fail(msg):
