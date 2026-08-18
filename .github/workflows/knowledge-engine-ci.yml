@@ -1,6 +1,11 @@
 name: Knowledge Engine V1 CI
 
 on:
+  push:
+    branches:
+      - main
+      - knowledge-engine-v1
+      - knowledge-engine-v1-k2
   pull_request:
   workflow_dispatch:
 
