@@ -102,6 +102,8 @@ def main():
     print(json.dumps({
         "source_id": args.source_id,
         "source_file_sha256": meta.get("source_file_sha256"),
+        "identity_mode": meta.get("identity_mode"),
+        "text_extractor": meta.get("text_extractor"),
         "packet_sha256": actual_hash,
         "page_count": meta.get("page_count"),
         "range": {"start": args.start, "end": args.end},
