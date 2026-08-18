@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import tempfile
 import sys
 from pathlib import Path
@@ -36,20 +37,36 @@ def main():
     assert v.PDF_LOC_RE.search("printed:p5|pdf:p8-p9")
     assert "VISION_UNAVAILABLE" in v.BLOCKER_CODES
 
-    assert str(packets.normalize_local_path(r"E:\\books\\a.pdf"))=="/mnt/e/books/a.pdf"
+    # Host-aware path translation must be stable without depending on the
+    # separator chosen by Path.__str__ on the machine running the test.
+    posix=packets.normalize_local_path(r"E:\books\a.pdf",host_os="posix")
+    win=packets.normalize_local_path(r"E:\books\a.pdf",host_os="nt")
+    wsl_win=packets.normalize_local_path("/mnt/f/books/a.pdf",host_os="nt")
+    assert posix.as_posix()=="/mnt/e/books/a.pdf",posix
+    assert win.as_posix().lower()=="e:/books/a.pdf",win
+    assert wsl_win.as_posix().lower()=="f:/books/a.pdf",wsl_win
+
     assert packets.sha_text("abc")=="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
     packets.validate_plan([{"source_id":"A","file_sha256":"a"*64}])
     with tempfile.TemporaryDirectory() as td:
         root=Path(td)
-        sample=root/"sample.bin"
+        books=root/"books"
+        books.mkdir()
+        sample=books/"sample.pdf"
         sample.write_bytes(b"abc")
-        assert packets.sha_file(sample)=="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-        private={"source_id":"A","file_sha256":packets.sha_file(sample)}
-        item={"source_id":"A","file_sha256":packets.sha_file(sample)}
-        assert packets.verify_source_identity("A",item,private,sample)==packets.sha_file(sample)
+        digest=packets.sha_file(sample)
+        assert digest=="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+
+        matches=packets.discover_hash_matches([root],{digest},root/"packets-out")
+        assert matches[digest] and matches[digest][0].name=="sample.pdf",matches
+
+        private={"source_id":"A","file_sha256":digest}
+        item={"source_id":"A","file_sha256":digest}
+        packets.verify_private_registry_hash("A",item,private)
+        assert packets.verify_local_file_hash("A",digest,sample)==digest
 
         packet=root/"A.pages.jsonl"
-        packets.write_packet(packet,"A",packets.sha_file(sample),["p1","p2","p3"])
+        packets.write_packet(packet,"A",digest,["p1","p2","p3"])
         rows=show.load_packet(packet,"A")
         selected=show.select_pages(rows,2,3)
         assert [r["page"] for r in selected]==[2,3]
@@ -62,5 +79,6 @@ def main():
         raise AssertionError("local page-packet helper must reject repository-contained output")
 
     print("k2-evidence-tests: PASS")
+    print(f"host_os={os.name}")
 
 if __name__=="__main__":main()
