@@ -69,7 +69,15 @@ A source that cannot be resolved to canonical bytes is `FILE_MISSING`; no readin
 
 Evidence count does not prove a book was read.
 
-Every selected unique-coverage carrier receives a reading-ledger row. For paged documents, COMPLETE requires page-range coverage of the whole carrier. If pages are unreadable, mark BLOCKED rather than pretending completion.
+During `WAVE1_OPEN`, the project may publish reviewed coverage incrementally. A selected source may therefore be absent from the public ledger until its first project-side review, or may have a `PARTIAL` row covering only pages actually reviewed. Missing rows are counted as `NOT_STARTED`; they are not reading credit.
+
+For paged documents:
+
+- `PARTIAL` requires a non-empty, exact reviewed page range that does not yet cover the whole carrier;
+- `COMPLETE` requires page-range coverage of the whole carrier;
+- `BLOCKED` claims no reviewed coverage and must state the blocker honestly.
+
+Before Wave1 can enter final project review, every selected unique-coverage carrier must have a ledger row and every row must be `COMPLETE` or `BLOCKED`.
 
 For multi-volume works, all selected WORK_PART carriers are tracked separately while sharing the same `work_id`.
 
@@ -101,12 +109,13 @@ It resolves source bytes in this order:
 
 The second path is the supported portable fallback for Windows/WSL/Linux when the original private intake path is absent. It accepts a file only when the actual bytes hash to the official canonical `file_sha256` in the Wave1 plan.
 
-For `TEXT_DIRECT` sources the helper:
+For `TEXT_DIRECT` PDF sources the helper uses existing text layers only, in this order:
 
-- extracts existing PDF text layers with `pdftotext -layout`;
-- preserves page boundaries;
-- records canonical source SHA256, per-page text SHA256, character counts, and full packet SHA256;
-- writes raw page packets only outside the repository.
+1. system `pdftotext -layout` when available;
+2. `pypdf` from an optional repository-external Python dependency directory;
+3. `pdfminer.six` as a second text-layer fallback for PDFs that pypdf cannot decode.
+
+None of these paths performs OCR. The helper preserves page boundaries and records canonical source SHA256, extractor provenance, per-page text SHA256, character counts, and full packet SHA256. Raw page packets are written only outside the repository.
 
 For `VISUAL_REQUIRED` sources the helper verifies canonical bytes but does not OCR-substitute visual review; if vision is unavailable it records `VISION_UNAVAILABLE`.
 
@@ -137,10 +146,15 @@ Every public Wave1 reading row includes:
 
 Rules:
 
+- `NOT_STARTED` claims no reviewed pages and no Evidence.
+- `PARTIAL` is allowed only during `WAVE1_OPEN`; it requires exact non-empty reviewed coverage, the appropriate verification mode, and an `evidence_count` matching Evidence already normalized from that reviewed range.
 - `TEXT_DIRECT + COMPLETE` requires full text/page coverage and `TEXT_LAYER_FULL`, `VISUAL_PAGE`, or `WHOLE_TEXT_DOCUMENT` verification.
-- `VISUAL_REQUIRED + COMPLETE` requires `VISUAL_PAGE` verification.
-- `BLOCKED` requires `verification_mode=NONE`, a canonical blocker code, and zero Evidence.
+- `VISUAL_REQUIRED + PARTIAL/COMPLETE` requires `VISUAL_PAGE` verification for every reviewed page.
+- `BLOCKED` requires `verification_mode=NONE`, a canonical blocker code, zero reviewed coverage, and zero Evidence.
 - A blocked source may not emit Evidence.
+- A source whose reviewed ranges cover the full document must use `COMPLETE`, not `PARTIAL`.
+
+READY page packets are only access artifacts. They never automatically create `PARTIAL` or `COMPLETE` reading credit; reading credit begins only after project-side review.
 
 ## 9. Atomic evidence fields
 
@@ -162,6 +176,8 @@ Every public evidence row records:
 - `copyright_class`
 
 Public evidence should normally use `verbatim_quote=null`. Modern-book wording must not be copied into Git merely to prove extraction.
+
+During `WAVE1_OPEN`, Evidence may be emitted from a project-reviewed `PARTIAL` source as well as a `COMPLETE` source, but its locator must be entirely inside the recorded reviewed coverage. This enables honest source-by-source/page-by-page progress without pretending the remainder of the book was read.
 
 ## 10. Source location
 
@@ -233,15 +249,20 @@ Default `verbatim_quote` is null.
 
 ## 17. Wave acceptance
 
-Project review requires:
+`WAVE1_OPEN` is an execution state, not an acceptance state. It may contain only the subset already reviewed by the project-side main agent; missing selected units remain `NOT_STARTED`.
+
+Before promotion to `WAVE1_REVIEW_REQUIRED`, project review requires:
 
 - every selected reading unit has a ledger row;
+- every row is `COMPLETE` or honestly `BLOCKED`;
 - COMPLETE coverage matches page counts where known;
 - blocked visual sources are reported honestly and emit no Evidence;
-- every Evidence row points to an eligible COMPLETE source/work and reviewed location;
+- every Evidence row points to an eligible `PARTIAL` or `COMPLETE` source/work and a locator inside reviewed coverage;
 - `VISUAL_REQUIRED` evidence is visually verified rather than OCR-derived;
 - no Evidence comes from NOTE/CODE/AUX as traditional doctrine;
 - no variant creates an extra corroboration vote;
 - all six domains have begun;
 - thin Liuyao/Liuren coverage is not starved;
 - no Claim files are created during K2B.
+
+Final `COMPLETE` promotion still requires project-side review after `WAVE1_REVIEW_REQUIRED`; no local helper may promote the wave state.
