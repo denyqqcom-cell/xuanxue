@@ -12,8 +12,10 @@ Resolution order:
 
 PDF text extraction order:
 1. system `pdftotext -layout` when available;
-2. `pypdf` fallback, optionally loaded from an external --python-deps-dir.
+2. `pypdf` fallback, optionally loaded from an external --python-deps-dir;
+3. `pdfminer.six` fallback for text layers that pypdf cannot decode.
 
+All extractors are text-layer readers only. This tool never performs OCR.
 It does not create Evidence or Claims.
 """
 
@@ -246,6 +248,28 @@ def extract_pdf_text_pypdf(path: Path):
     return pages, None
 
 
+def extract_pdf_text_pdfminer(path: Path):
+    """Read an existing PDF text layer with pdfminer.six, preserving pages.
+
+    pdfminer.six ships predefined CMaps that can decode some CJK PDFs that
+    pypdf cannot. This remains a text-layer-only path and never performs OCR.
+    """
+    try:
+        module = importlib.import_module("pdfminer.high_level")
+    except Exception as e:
+        return None, f"pdfminer unavailable: {type(e).__name__}: {e}"
+    try:
+        text = module.extract_text(str(path))
+    except Exception as e:
+        return None, f"pdfminer extraction failed: {type(e).__name__}: {e}"
+    if not isinstance(text, str):
+        return None, "pdfminer extraction failed: extract_text did not return str"
+    pages = text.split("\f")
+    if pages and pages[-1] == "":
+        pages.pop()
+    return pages, None
+
+
 def extract_pdf_text(path: Path):
     """Extract a page-preserving existing text layer without OCR.
 
@@ -257,19 +281,27 @@ def extract_pdf_text(path: Path):
     if pages is not None:
         if any(page.strip() for page in pages):
             return pages, "PDFTOTEXT_LAYOUT", None, None
-        reasons.append("pdftotext returned no extractable text")
+        reasons.append("pdftotext: returned no extractable text")
     elif reason:
-        reasons.append(reason)
+        reasons.append(f"pdftotext: {reason}")
 
     pages, reason = extract_pdf_text_pypdf(path)
     if pages is not None:
         if any(page.strip() for page in pages):
             return pages, "PYPDF_TEXT_LAYER", None, None
-        reasons.append("pypdf returned no extractable text")
+        reasons.append("pypdf: returned no extractable text")
     elif reason:
-        reasons.append(reason)
+        reasons.append(f"pypdf: {reason}")
 
-    return None, None, "TEXT_EXTRACTION_FAILED", "; ".join(reasons)[:500]
+    pages, reason = extract_pdf_text_pdfminer(path)
+    if pages is not None:
+        if any(page.strip() for page in pages):
+            return pages, "PDFMINER_TEXT_LAYER", None, None
+        reasons.append("pdfminer: returned no extractable text")
+    elif reason:
+        reasons.append(f"pdfminer: {reason}")
+
+    return None, None, "TEXT_EXTRACTION_FAILED", "; ".join(reasons)[:800]
 
 
 def write_packet(path: Path, source_id: str, source_file_sha256: str, pages):
@@ -367,7 +399,7 @@ def main():
     )
     ap.add_argument(
         "--python-deps-dir", type=Path,
-        help="optional local-only dependency dir (e.g. pypdf installed with pip --target)",
+        help="optional local-only dependency dir (pypdf/pdfminer installed with pip --target)",
     )
     ap.add_argument("--output-dir", type=Path, required=True)
     args = ap.parse_args()
