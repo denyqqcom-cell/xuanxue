@@ -5,6 +5,7 @@ from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_evidence as v
 import build_k2_local_page_packets as packets
+import show_k2_page_packet as show
 
 
 def main():
@@ -39,12 +40,20 @@ def main():
     assert packets.sha_text("abc")=="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
     packets.validate_plan([{"source_id":"A","file_sha256":"a"*64}])
     with tempfile.TemporaryDirectory() as td:
-        sample=Path(td)/"sample.bin"
+        root=Path(td)
+        sample=root/"sample.bin"
         sample.write_bytes(b"abc")
         assert packets.sha_file(sample)=="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
         private={"source_id":"A","file_sha256":packets.sha_file(sample)}
         item={"source_id":"A","file_sha256":packets.sha_file(sample)}
         assert packets.verify_source_identity("A",item,private,sample)==packets.sha_file(sample)
+
+        packet=root/"A.pages.jsonl"
+        packets.write_packet(packet,"A",packets.sha_file(sample),["p1","p2","p3"])
+        rows=show.load_packet(packet,"A")
+        selected=show.select_pages(rows,2,3)
+        assert [r["page"] for r in selected]==[2,3]
+        assert show.MAX_PAGES_PER_CALL==25
     try:
         packets.ensure_local_only(packets.ROOT / "knowledge-intake-test")
     except SystemExit:
