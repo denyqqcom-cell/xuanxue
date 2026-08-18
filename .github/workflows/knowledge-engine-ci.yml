@@ -69,5 +69,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Verify K2 local helper on Windows paths
+      - name: Install portable K2 PDF fallback
+        run: python -m pip install -r tools/k2_helper_requirements.txt
+      - name: Verify K2 local helper on Windows paths and PDF fallback
         run: python tools/test_k2_evidence.py
