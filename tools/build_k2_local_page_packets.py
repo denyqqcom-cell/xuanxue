@@ -8,14 +8,18 @@ TEXT_DIRECT sources, and records honest blockers for VISUAL_REQUIRED sources.
 
 Resolution order:
 1. optional private K1 intake registry (fast path);
-2. canonical SHA256 discovery under explicit --search-root paths (portable
-   fallback when the private intake registry is unavailable on this machine).
+2. canonical SHA256 discovery under explicit --search-root paths.
+
+PDF text extraction order:
+1. system `pdftotext -layout` when available;
+2. `pypdf` fallback, optionally loaded from an external --python-deps-dir.
 
 It does not create Evidence or Claims.
 """
 
 import argparse
 import hashlib
+import importlib
 import json
 import os
 import re
@@ -33,7 +37,7 @@ DISCOVERY_EXTENSIONS = {
 }
 SKIP_DIR_NAMES = {
     ".git", ".gradle", "build", "node_modules", "__pycache__",
-    "K2_WAVE1_PAGE_PACKETS",
+    "K2_WAVE1_PAGE_PACKETS", "K2_PYTHON_DEPS",
 }
 
 
@@ -67,11 +71,7 @@ def ensure_local_only(path: Path):
 
 
 def normalize_local_path(raw, host_os=None):
-    """Translate Windows<->WSL drive paths without assuming the current host.
-
-    The returned Path is suitable for the active host when host_os is omitted.
-    Tests may pass host_os explicitly and compare Path.as_posix().
-    """
+    """Translate Windows<->WSL drive paths without assuming the current host."""
     if not isinstance(raw, str) or not raw.strip():
         return None
     value = raw.strip()
@@ -92,6 +92,23 @@ def normalize_local_path(raw, host_os=None):
         return Path(f"{drive.upper()}:/{rest}")
 
     return Path(value).expanduser()
+
+
+def configure_python_deps(raw):
+    """Expose an external, local-only Python dependency directory.
+
+    This is deliberately outside the repository so helper dependencies do not
+    become knowledge artifacts or require global machine installation.
+    """
+    if raw is None:
+        return None
+    path = ensure_local_only(normalize_local_path(str(raw)))
+    if not path.is_dir():
+        return path
+    value = str(path)
+    if value not in sys.path:
+        sys.path.insert(0, value)
+    return path
 
 
 def private_source_index(intake_root):
@@ -163,12 +180,7 @@ def iter_discovery_files(root: Path, output_dir: Path):
 
 
 def discover_hash_matches(search_roots, target_hashes, output_dir):
-    """Find exact canonical bytes by SHA256 under user-supplied roots.
-
-    Only research/document extensions are scanned; archives and build trees are
-    intentionally skipped so a missing private registry does not force hashing
-    unrelated multi-GB archives.
-    """
+    """Find exact canonical bytes by SHA256 under user-supplied roots."""
     targets = set(target_hashes)
     matches = {h: [] for h in targets}
     seen_paths = set()
@@ -195,10 +207,10 @@ def discover_hash_matches(search_roots, target_hashes, output_dir):
     return matches
 
 
-def extract_pdf_text(path: Path):
+def extract_pdf_text_pdftotext(path: Path):
     exe = shutil.which("pdftotext")
     if not exe:
-        return None, "TEXT_EXTRACTION_FAILED", "pdftotext is not installed"
+        return None, "pdftotext is not installed"
     proc = subprocess.run(
         [exe, "-layout", str(path), "-"],
         stdout=subprocess.PIPE,
@@ -207,12 +219,57 @@ def extract_pdf_text(path: Path):
     )
     if proc.returncode != 0:
         err = proc.stderr.decode("utf-8", errors="replace").strip()
-        return None, "TEXT_EXTRACTION_FAILED", err[:240] or f"pdftotext exit {proc.returncode}"
+        return None, err[:240] or f"pdftotext exit {proc.returncode}"
     text = proc.stdout.decode("utf-8", errors="replace")
     pages = text.split("\f")
     if pages and pages[-1] == "":
         pages.pop()
-    return pages, None, None
+    return pages, None
+
+
+def extract_pdf_text_pypdf(path: Path):
+    try:
+        module = importlib.import_module("pypdf")
+    except Exception as e:
+        return None, f"pypdf unavailable: {type(e).__name__}: {e}"
+    try:
+        reader = module.PdfReader(str(path), strict=False)
+        pages = []
+        for page in reader.pages:
+            try:
+                text = page.extract_text(extraction_mode="layout")
+            except TypeError:
+                text = page.extract_text()
+            pages.append(text or "")
+    except Exception as e:
+        return None, f"pypdf extraction failed: {type(e).__name__}: {e}"
+    return pages, None
+
+
+def extract_pdf_text(path: Path):
+    """Extract a page-preserving existing text layer without OCR.
+
+    Returns (pages, extractor_name, blocker_code, blocker_reason).
+    """
+    reasons = []
+
+    pages, reason = extract_pdf_text_pdftotext(path)
+    if pages is not None:
+        if any(page.strip() for page in pages):
+            return pages, "PDFTOTEXT_LAYOUT", None, None
+        reasons.append("pdftotext returned no extractable text")
+    elif reason:
+        reasons.append(reason)
+
+    pages, reason = extract_pdf_text_pypdf(path)
+    if pages is not None:
+        if any(page.strip() for page in pages):
+            return pages, "PYPDF_TEXT_LAYER", None, None
+        reasons.append("pypdf returned no extractable text")
+    elif reason:
+        reasons.append(reason)
+
+    return None, None, "TEXT_EXTRACTION_FAILED", "; ".join(reasons)[:500]
 
 
 def write_packet(path: Path, source_id: str, source_file_sha256: str, pages):
@@ -277,12 +334,21 @@ def resolve_source(sid, item, private, hash_matches):
     return None, expected_hash, None
 
 
-def blocked_row(sid, lane, source_file_sha256, code, reason, identity_mode=None):
+def blocked_row(
+    sid,
+    lane,
+    source_file_sha256,
+    code,
+    reason,
+    identity_mode=None,
+    text_extractor=None,
+):
     return {
         "source_id": sid,
         "source_file_sha256": source_file_sha256,
         "identity_mode": identity_mode,
         "execution_lane": lane,
+        "text_extractor": text_extractor,
         "packet_status": "BLOCKED",
         "blocker_code": code,
         "blocker_reason": reason,
@@ -299,11 +365,17 @@ def main():
         "--search-root", type=Path, action="append", default=[],
         help="repeatable local corpus root used for canonical SHA256 discovery",
     )
+    ap.add_argument(
+        "--python-deps-dir", type=Path,
+        help="optional local-only dependency dir (e.g. pypdf installed with pip --target)",
+    )
     ap.add_argument("--output-dir", type=Path, required=True)
     args = ap.parse_args()
 
     output_dir = ensure_local_only(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    configure_python_deps(args.python_deps_dir)
+
     plan = load_jsonl(args.plan)
     validate_plan(plan)
     private = private_source_index(args.intake_root)
@@ -311,13 +383,19 @@ def main():
     target_hashes = {item["file_sha256"] for item in plan}
     search_roots = [normalize_local_path(str(p)) for p in args.search_root]
     search_roots = [p for p in search_roots if p is not None]
-    hash_matches = discover_hash_matches(search_roots, target_hashes, output_dir) if search_roots else {h: [] for h in target_hashes}
+    hash_matches = (
+        discover_hash_matches(search_roots, target_hashes, output_dir)
+        if search_roots
+        else {h: [] for h in target_hashes}
+    )
 
     manifest = []
     for item in plan:
         sid = item["source_id"]
         lane = item.get("execution_lane")
-        local_path, actual_hash, identity_mode = resolve_source(sid, item, private, hash_matches)
+        local_path, actual_hash, identity_mode = resolve_source(
+            sid, item, private, hash_matches
+        )
         if local_path is None:
             manifest.append(blocked_row(
                 sid, lane, item.get("file_sha256"), "FILE_MISSING",
@@ -343,21 +421,26 @@ def main():
 
         suffix = local_path.suffix.lower()
         expected_pages = item.get("pages")
+        text_extractor = None
         if suffix == ".pdf":
-            pages, code, reason = extract_pdf_text(local_path)
+            pages, text_extractor, code, reason = extract_pdf_text(local_path)
             if pages is None:
-                manifest.append(blocked_row(sid, lane, actual_hash, code, reason, identity_mode))
+                manifest.append(blocked_row(
+                    sid, lane, actual_hash, code, reason, identity_mode, text_extractor
+                ))
                 continue
             if isinstance(expected_pages, int) and len(pages) != expected_pages:
                 manifest.append(blocked_row(
                     sid, lane, actual_hash, "TEXT_EXTRACTION_FAILED",
                     f"text-layer page count {len(pages)} != registered PDF pages {expected_pages}",
                     identity_mode=identity_mode,
+                    text_extractor=text_extractor,
                 ))
                 continue
         else:
             try:
                 pages = [local_path.read_text(encoding="utf-8")]
+                text_extractor = "UTF8_DIRECT"
             except (UnicodeDecodeError, OSError):
                 manifest.append(blocked_row(
                     sid, lane, actual_hash, "TEXT_EXTRACTION_FAILED",
@@ -374,6 +457,7 @@ def main():
             "source_file_sha256": actual_hash,
             "identity_mode": identity_mode,
             "execution_lane": lane,
+            "text_extractor": text_extractor,
             "packet_status": "READY",
             "blocker_code": None,
             "blocker_reason": None,
@@ -391,12 +475,18 @@ def main():
     ready = sum(1 for row in manifest if row["packet_status"] == "READY")
     blocked = len(manifest) - ready
     identity_counts = {}
+    extractor_counts = {}
     for row in manifest:
         mode = row.get("identity_mode") or "UNRESOLVED"
         identity_counts[mode] = identity_counts.get(mode, 0) + 1
+        extractor = row.get("text_extractor")
+        if extractor:
+            extractor_counts[extractor] = extractor_counts.get(extractor, 0) + 1
+
     print("k2-local-page-packets: PASS")
     print(f"plan_units={len(plan)} ready={ready} blocked={blocked} output={output_dir}")
     print("identity_modes=" + json.dumps(identity_counts, ensure_ascii=False, sort_keys=True))
+    print("text_extractors=" + json.dumps(extractor_counts, ensure_ascii=False, sort_keys=True))
     print(f"manifest={manifest_path}")
 
 
