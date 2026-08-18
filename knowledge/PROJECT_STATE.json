@@ -15,6 +15,8 @@
   "source_lineage": "COMPLETE",
   "execution_owner": "PROJECT_MAIN_AGENT",
   "local_ai_role": "EXECUTION_HELPER_ONLY",
+  "source_identity_authority": "CANONICAL_FILE_SHA256",
+  "source_resolution_policy": "PRIVATE_REGISTRY_OPTIONAL_OR_EXPLICIT_ROOT_SHA256_SEARCH",
   "evidence_extraction_blocked": false,
   "claim_extraction_blocked": true
 }
