@@ -122,9 +122,15 @@ def main():
                 fail("K2 Evidence Extraction lane must be open in evidence phase")
             if state.get("claim_extraction_blocked") is not True:
                 fail("Claim Extraction must remain blocked during K2 Evidence Extraction")
+            if state.get("execution_owner") != "PROJECT_MAIN_AGENT":
+                fail("K2B execution owner must remain PROJECT_MAIN_AGENT")
+            if state.get("local_ai_role") != "EXECUTION_HELPER_ONLY":
+                fail("K2B local AI role must remain EXECUTION_HELPER_ONLY")
             ev_state = load(K / "K2_EVIDENCE_STATE.json")
             if ev_state.get("source_lineage_status") != "COMPLETE" or ev_state.get("claim_extraction_blocked") is not True:
                 fail("K2_EVIDENCE_STATE must preserve completed lineage and blocked claims")
+            if ev_state.get("execution_architecture") != "PROJECT_MAIN_AGENT_WITH_LOCAL_HELPER":
+                fail("K2_EVIDENCE_STATE execution architecture mismatch")
 
     forbidden_ext = {".pdf", ".epub", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".webp", ".ttf", ".otf", ".woff", ".woff2"}
     for p in K.rglob("*"):
