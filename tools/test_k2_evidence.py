@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import tempfile
 import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
@@ -36,6 +37,14 @@ def main():
 
     assert str(packets.normalize_local_path(r"E:\\books\\a.pdf"))=="/mnt/e/books/a.pdf"
     assert packets.sha_text("abc")=="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    packets.validate_plan([{"source_id":"A","file_sha256":"a"*64}])
+    with tempfile.TemporaryDirectory() as td:
+        sample=Path(td)/"sample.bin"
+        sample.write_bytes(b"abc")
+        assert packets.sha_file(sample)=="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        private={"source_id":"A","file_sha256":packets.sha_file(sample)}
+        item={"source_id":"A","file_sha256":packets.sha_file(sample)}
+        assert packets.verify_source_identity("A",item,private,sample)==packets.sha_file(sample)
     try:
         packets.ensure_local_only(packets.ROOT / "knowledge-intake-test")
     except SystemExit:
