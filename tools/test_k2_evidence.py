@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_evidence as v
+import build_k2_local_page_packets as packets
 
 
 def main():
@@ -32,6 +33,16 @@ def main():
     assert v.PATH_RE.search("/home/user/book.pdf")
     assert v.PDF_LOC_RE.search("printed:p5|pdf:p8-p9")
     assert "VISION_UNAVAILABLE" in v.BLOCKER_CODES
+
+    assert str(packets.normalize_local_path(r"E:\\books\\a.pdf"))=="/mnt/e/books/a.pdf"
+    assert packets.sha_text("abc")=="ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+    try:
+        packets.ensure_local_only(packets.ROOT / "knowledge-intake-test")
+    except SystemExit:
+        pass
+    else:
+        raise AssertionError("local page-packet helper must reject repository-contained output")
+
     print("k2-evidence-tests: PASS")
 
 if __name__=="__main__":main()
