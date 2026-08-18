@@ -51,7 +51,21 @@ SAME_WORK_VARIANT is normally a backup carrier. It may be consulted if the prima
 
 SECONDARY_NOTE / IMPLEMENTATION / AUXILIARY_INDEX do not enter the traditional textual evidence lane.
 
-## 3. Reading coverage is a first-class artifact
+## 3. Canonical source identity is byte identity
+
+K2B reading credit must attach to the exact K1 canonical source bytes.
+
+The authoritative identity test is:
+
+`official K1 file_sha256 == actual local file SHA256`
+
+A private K1 registry containing `local_path` is only an optional resolution aid. When that registry is unavailable on another machine, project-owned tooling may search explicitly supplied local corpus roots and resolve a source by canonical SHA256.
+
+Filename similarity, title similarity, directory placement, page count, or visual resemblance cannot substitute for SHA256 identity.
+
+A source that cannot be resolved to canonical bytes is `FILE_MISSING`; no reading credit is granted.
+
+## 4. Reading coverage is a first-class artifact
 
 Evidence count does not prove a book was read.
 
@@ -59,7 +73,7 @@ Every selected unique-coverage carrier receives a reading-ledger row. For paged 
 
 For multi-volume works, all selected WORK_PART carriers are tracked separately while sharing the same `work_id`.
 
-## 4. Execution lanes
+## 5. Execution lanes
 
 Wave planning assigns each selected source an execution lane from K1 readability:
 
@@ -76,24 +90,31 @@ A `VISUAL_REQUIRED` source may be recorded as BLOCKED with:
 
 when the local vision backend cannot inspect the original pages. Such a source remains a valid Wave1 obligation and is not treated as read.
 
-## 5. Local page packets
+## 6. Local page packets
 
 `tools/build_k2_local_page_packets.py` is a mechanical local-only helper.
 
-It:
+It resolves source bytes in this order:
 
-- reads the official Wave1 plan;
-- resolves private `source_id -> local_path` from `/home/joe/knowledge-intake/*/sources.jsonl`;
-- extracts existing PDF text layers with `pdftotext` for `TEXT_DIRECT` sources;
-- preserves page boundaries and text hashes;
-- writes raw page packets only outside the repository;
-- records `VISUAL_REQUIRED` sources as blocked rather than OCR-guessing them.
+1. optional `PRIVATE_REGISTRY` fast path from a private K1 intake registry;
+2. `CANONICAL_SHA256_SEARCH` under explicit user-supplied corpus roots.
+
+The second path is the supported portable fallback for Windows/WSL/Linux when the original private intake path is absent. It accepts a file only when the actual bytes hash to the official canonical `file_sha256` in the Wave1 plan.
+
+For `TEXT_DIRECT` sources the helper:
+
+- extracts existing PDF text layers with `pdftotext -layout`;
+- preserves page boundaries;
+- records canonical source SHA256, per-page text SHA256, character counts, and full packet SHA256;
+- writes raw page packets only outside the repository.
+
+For `VISUAL_REQUIRED` sources the helper verifies canonical bytes but does not OCR-substitute visual review; if vision is unavailable it records `VISION_UNAVAILABLE`.
 
 It **does not** create Evidence, Claims, Git-tracked knowledge files, or project acceptance state.
 
 Raw page packets can contain copyrighted source text and therefore remain local/private.
 
-## 6. Wave 1 selection
+## 7. Wave 1 selection
 
 Wave 1 is balanced across all six governed arts.
 
@@ -105,7 +126,7 @@ Selection rules:
 4. Do not finish one rich domain before the other five begin.
 5. Variants are backup carriers, not new reading obligations when their target carrier is readable.
 
-## 7. Reading Ledger execution fields
+## 8. Reading Ledger execution fields
 
 Every public Wave1 reading row includes:
 
@@ -121,7 +142,7 @@ Rules:
 - `BLOCKED` requires `verification_mode=NONE`, a canonical blocker code, and zero Evidence.
 - A blocked source may not emit Evidence.
 
-## 8. Atomic evidence fields
+## 9. Atomic evidence fields
 
 Every public evidence row records:
 
@@ -142,7 +163,7 @@ Every public evidence row records:
 
 Public evidence should normally use `verbatim_quote=null`. Modern-book wording must not be copied into Git merely to prove extraction.
 
-## 9. Source location
+## 10. Source location
 
 Use stable locators such as:
 
@@ -155,7 +176,7 @@ Do not write local filesystem paths.
 
 If a fact depends on a table or diagram spanning pages, cite the smallest page range that fully supports the normalized fact.
 
-## 10. Evidence types
+## 11. Evidence types
 
 - EXPLICIT_RULE
 - WORKED_EXAMPLE
@@ -166,7 +187,7 @@ If a fact depends on a table or diagram spanning pages, cite the smallest page r
 - CASE_RECORD
 - META_METHOD
 
-## 11. Scope
+## 12. Scope
 
 Use one of:
 
@@ -174,7 +195,7 @@ STRUCTURE / ALGORITHM / SYMBOLISM / SELECTION / INTERPRETATION / TIMING / CASE /
 
 This scope is descriptive. It does not promote the evidence to a Claim.
 
-## 12. Normalization rules
+## 13. Normalization rules
 
 `normalized_fact` must:
 
@@ -187,7 +208,7 @@ This scope is descriptive. It does not promote the evidence to a Claim.
 
 Suspected printing/OCR mistakes are not silently corrected. Record the visible/source-supported fact and add a short note such as `suspected source/OCR issue; requires cross-check`.
 
-## 13. Claim readiness
+## 14. Claim readiness
 
 - READY
 - CONTEXT_REQUIRED
@@ -196,13 +217,13 @@ Suspected printing/OCR mistakes are not silently corrected. Record the visible/s
 
 READY means only that K2C may later consider the atomic evidence. It is not a validated rule.
 
-## 14. Unknown semantic sources
+## 15. Unknown semantic sources
 
 K2A intentionally left 96 textual rows as semantic UNKNOWN.
 
 They are not discarded. K2B maintains a discovery backlog. Content may be opened to determine what system the work actually concerns. Until content-based routing is established, no six-domain Evidence record may be created from it.
 
-## 15. Copyright boundary
+## 16. Copyright boundary
 
 Original books, scans, screenshots, OCR text, local page packets and long quotations stay local.
 
@@ -210,7 +231,7 @@ Public Git may contain only source/work identifiers, page/section locators, inde
 
 Default `verbatim_quote` is null.
 
-## 16. Wave acceptance
+## 17. Wave acceptance
 
 Project review requires:
 
