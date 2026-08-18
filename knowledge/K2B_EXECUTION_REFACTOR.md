@@ -19,6 +19,19 @@ Observed failures:
 
 No failed dispatch is counted as COMPLETE reading coverage.
 
+## Windows helper report: second execution failure
+
+A later Windows helper run successfully reproduced the official planner result (`37 = 22 TEXT_DIRECT + 15 VISUAL_REQUIRED`) and kept the worktree clean, but page-packet construction returned `ready=0 / blocked=37 / FILE_MISSING=37`.
+
+The cause was architectural: the helper machine did not contain the original Linux private K1 intake registry (`/home/joe/knowledge-intake/*/sources.jsonl`), so the earlier builder could not resolve `source_id -> local_path` and never reached the canonical byte identity check.
+
+The same run also exposed two environment-specific issues:
+
+- a POSIX-only `Path.__str__` assertion in `test_k2_evidence.py` failed on Windows;
+- local Gradle could not start because the helper machine had no Java/JDK.
+
+None of these failures grants reading credit. They are execution-environment findings only.
+
 ## Accepted replacement architecture
 
 The project-side main agent owns all engineering and final knowledge normalization.
@@ -80,9 +93,15 @@ Raw page text stays outside the repository under local `knowledge-intake` storag
 
 ## Environment-specific tests
 
-The Windows helper previously exposed a path-separator-only failure in `test_k2_evidence.py`. Path normalization tests are now host-aware and compare canonical `Path.as_posix()` forms instead of assuming POSIX `Path.__str__` output.
+The Windows path-separator failure is now fixed in project code: path normalization is host-aware and tests compare `Path.as_posix()` rather than assuming POSIX `Path.__str__` output.
 
-A missing local JDK is no longer treated as a helper-side engineering failure. The local helper reports `SKIP_ENV_NO_JDK`; the authoritative stable-core regression remains GitHub Actions with JDK 17.
+GitHub Actions now contains a dedicated `windows-latest` K2 helper portability job so this class of bug is tested by the project rather than delegated to the local helper.
+
+A missing local JDK is not a helper-side engineering failure. The local helper reports `SKIP_ENV_NO_JDK`; the authoritative stable-core regression remains GitHub Actions with JDK 17.
+
+## Liuren candidate policy
+
+The missing 34-row Liuren candidate artifact is no longer an input dependency. It must not be reconstructed from memory. Liuren Evidence will be re-extracted from verified canonical page packets.
 
 ## Acceptance consequence
 
