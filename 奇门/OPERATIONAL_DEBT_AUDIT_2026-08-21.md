@@ -28,14 +28,14 @@
 
 ### OD-03 阳遁内外盘事实性错误
 
-旧 `qimen-overview`、`qimen-yingqi`：阳遁内盘写成 `1、3、4、9`，外盘 `2、6、7、8`。
+旧 `qimen-overview`、`qimen-yingqi`、`qimen-basics` 曾残留阳遁内盘 `1、3、4、9` 等错误。
 
-项目已校正版：
+当前校正版：
 
 - 阳遁内 `1、8、3、4`，外 `9、2、7、6`；
 - 阴遁反转。
 
-处理：两技能已直接修正。
+处理：overview / yingqi / basics 已修正；bigpicture 保留同一校正版。
 
 状态：CORRECTED。
 
@@ -47,13 +47,11 @@
 
 状态：CORRECTED。
 
-### OD-05 善天道“前五/后五”与基础天干阴阳混名
+### OD-05 “前五/后五”与基础天干阴阳混名
 
-旧：把 `甲乙丙丁戊` 称“五阳干”，`己庚辛壬癸` 称“五阴干”。
+旧资料把 `甲乙丙丁戊` 称“五阳”，`己庚辛壬癸` 称“五阴”，容易与基础干支阴阳 `甲丙戊庚壬 / 乙丁己辛癸` 混淆。
 
-风险：与基础天干阴阳 `甲丙戊庚壬 / 乙丁己辛癸` 混淆。
-
-处理：将前五/后五保留为善天道特定主客分组，并标 `TERMINOLOGY_CONFLICT`，不再冒充基础干支阴阳事实。
+处理：当前统一称 `FIRST_FIVE_GROUP / LAST_FIVE_GROUP`，作为特定主客方法分组；若原书确实使用“五阳/五阴”则保留原词并标 `TERMINOLOGY_CONFLICT`。
 
 状态：CORRECTED / SOURCE WORDING STILL TO VERIFY PAGE-VISUALLY WHEN REVISITED。
 
@@ -93,40 +91,56 @@
 
 状态：MIGRATED。
 
-### OD-10 固定全局优先级、凶格计分、旺衰折扣等
+### OD-10 固定全局优先级、凶格计分、旺衰折扣
 
 旧：`开门>值符>生门>星神`、凶格>=3分、大凶相乘、旺相全额/休囚减半、逢空=方向待定。
 
 处理：`CURRENT_METHOD_CONSTRAINTS.md` 全局降级/废弃；`qimen-overview` 执行入口同步迁移。
 
-状态：OVERRIDDEN；legacy KB remains historical debt。
+状态：OVERRIDDEN；legacy monolith remains historical debt。
+
+### OD-11 基础技能混淆“结构事实”与“传统象意”
+
+继续深查 `qimen-basics` 又发现：
+
+- 把天干相生写成仅“阴生阳/阳生阴”、相克写成“阳克阳/阴克阴”，若作完整生克规则则错误；
+- 把“10天干 × 12地支 = 60种组合”当作六十甲子成因，混淆笛卡尔积与干支同步循环；
+- 十二长生直接映射外遇、疾病、老年旺极而折；
+- 地支刑冲合害直接翻译固定吉凶；
+- 八神类象直接贴车祸、死亡、盗窃等现实事件；
+- 五脏/人体类象容易被误当医学事实；
+- “神助”层写得像客观因果机制。
+
+处理：`qimen-basics` 已重写成 `STRUCTURE / SOURCE TRADITION / CURRENT PROJECT CONSTRAINT` 三层，修复六十甲子与生克基础表述，把人体、人格、吉凶类象降回 SOURCE/CANDIDATE。
+
+状态：MIGRATED + CORRECTED。
+
+### OD-12 “看大局”技能仍在发固定行动命令
+
+旧 `qimen-bigpicture`：
+
+- 伏吟=利主/守成；
+- 反吟=利客/出击；
+- 星门俱伏吟=极凶；
+- 天显时格可把伏吟直接反转为吉；
+- 反吟婚姻破裂、久病逢之死等高风险古断可直接进入运行；
+- 日干/时干生克未先绑定 Role Map。
+
+处理：改为 Big Picture Feature Map。伏吟/反吟只先识别结构；主客、动静、快慢、天显例外均作为 METHOD/SOURCE 候选；高风险断语失去直接运行资格。
+
+状态：MIGRATED。
+
+### OD-13 VISUAL_REQUIRED 的执行瓶颈以前只有“诚实阻塞”，没有可用视觉交接
+
+旧本地 helper 能正确对 VISUAL_REQUIRED 返回 `VISION_UNAVAILABLE`，但无法把 canonical SCAN 转成主审可逐页查看的图像，因此“不可假读”做到了，“如何真读”还没打通。
+
+处理：新增 `build_k2_visual_page_packet.py`、独立依赖与 Windows fail-closed 测试；只渲染 canonical PDF 原页，不 OCR，不赋 Reading Credit；新增 `K2_VISUAL_PAGE_HANDOFF_PROTOCOL.md`。
+
+状态：IMPLEMENTED / CI PORTABILITY TEST REQUIRED ON CURRENT HEAD。
 
 ---
 
 ## 二、尚未逐文件迁移的知识债务
-
-以下文件仍可能含确定性古断、未验证吉凶、旧 Role Map 或高风险现实推断。入口层已通过 `CURRENT_METHOD_CONSTRAINTS.md` 约束它们，但文件本体尚未全部重写。
-
-### P1 — qimen-basics
-
-已观察风险：
-
-- 传统天干合化象意直接写成人格/婚恋现实结论；
-- 十二状态直接映射“外遇、事业兴旺、老年旺极而折”等；
-- “前五/后五”主客术语与基础阴阳潜在混淆；
-- 五脏等传统映射容易被误当医学事实。
-
-处理计划：保留基础结构，所有象意改 SOURCE；高风险现实结论增加非经验支持边界。
-
-### P1 — qimen-bigpicture
-
-已观察风险：
-
-- 伏吟“利主”、反吟“利客”等写成固定动作建议；
-- 星门俱伏吟“极凶”等传统标签可越过事类；
-- 健康/婚姻等场景存在直接高风险断语。
-
-处理计划：改为大局 feature map，不自动行动策略。
 
 ### P1 — qimen-gexia
 
@@ -182,11 +196,7 @@
 - “查>=3条新闻再看盘”；
 - 若干“必得利/大凶”等书本断语。
 
-本轮选择**不直接重写整份 monolith**，原因：
-
-1. 它同时承担历史记录、来源摘记、错误修正轨迹；
-2. 大规模无差别重写容易丢失 provenance；
-3. 当前更安全的方式是建立 authoritative overlay，并逐技能迁移。
+本轮仍选择**不直接无差别重写整份 monolith**，因为它同时承担历史记录、来源摘记与错误修正轨迹。当前更安全的方式是 authoritative overlay + 逐技能迁移。
 
 因此，运行时以 `CURRENT_METHOD_CONSTRAINTS.md` 为上位约束；旧知识库继续作为历史 SOURCE / migration backlog。
 
@@ -198,25 +208,25 @@
 
 ### 1. 自省不能只写日志，要下沉到执行层
 
-过去多次在修炼日志里已经认识到“不要盲信、不要机械”，但 QClaw 的 Agent Instruction 仍要求固定八步、明确吉凶、古籍师傅优先。
-
-这说明：
+过去日志已经多次写“不要盲信、不要机械”，但运行协议仍会要求固定步骤、固定吉凶、古籍权威优先。
 
 **认知升级而运行协议不升级 = 实际上没有升级。**
 
-### 2. 纠错不能只纠“玄学知识”，还要纠普通逻辑和基础事实
+### 2. 纠错不能只纠玄学口决，还要纠普通逻辑和基础事实
 
-本轮最值得警惕的不是某个门派口诀，而是：
+本轮连续抓到：
 
-- 九宫数字顺序被当成五行相生；
-- 火土关系写错；
-- 内外盘宫位已经在日志纠正，却在两个运行技能继续错。
+- 九宫数字顺序被当五行相生；
+- 火土、水土基础关系写错；
+- 10×12 被误写成 60 种干支组合；
+- 内外盘已在日志校正但运行技能继续错；
+- 基础天干阴阳与门派主客分组混名。
 
-这说明旧系统存在“修炼日志修过，执行文件没同步”的长期结构病。
+这说明“玄学难验证”不能成为基础逻辑错误的遮羞布。越是术数体系，越要先把普通可核对事实做对。
 
-### 3. 新理论的首要创新不是更会断，而是更难作弊
+### 3. 新理论当前最大的价值仍不是“更准”，而是“更难事后作弊”
 
-`受约束情境推演法 v0.2-alpha` 当前最大的价值不是提高准确率——这还没有证据——而是减少：
+`受约束情境推演法 v0.2-alpha` 目前没有资格宣称提高预测准确率。它当前真正可辩护的增量是减少：
 
 - 反馈后换用神；
 - 反馈后换方法；
@@ -224,16 +234,22 @@
 - 叙事后见；
 - 外部信息倒算。
 
-如果未来实验表明这些约束并不能带来更好或更可校准的预测，该理论也应被降级。
+若未来实验显示这些约束并没有带来更可复现、更可校准或更优于基线的结果，该理论也应被降级。
+
+### 4. “不可假读”之后还必须解决“怎样真读”
+
+仅仅让 VISUAL_REQUIRED fail closed 是底线，不是完成。真正的工程闭环还需要：canonical hash → 原页渲染 → 主审逐页视觉阅读 → page accounting → Evidence。
+
+因此视觉渲染 helper 只解决 transport，不获得任何语义权力。
 
 ---
 
 ## 五、下一步顺序
 
-在梁湘润 `QM-SRC-0001` 原始视觉页尚未进入当前执行环境时，不得伪造 57/57 Reading Credit。
+在梁湘润 `QM-SRC-0001` 原始 canonical PDF 尚未进入可访问的本地视觉交接路径时，不得伪造 57/57 Reading Credit。
 
-等待视觉源期间，正确的内部顺序是：
+当前正确顺序：
 
-`高优先级运行债务清理 -> CI -> 梁书视觉源可达 -> 57/57 Visual Reading -> Atomic Evidence -> Book Distillate -> Method Delta -> Prospective Tests`
+`当前 HEAD CI -> canonical 梁书本地解析 -> 57页原页 render packet -> 主审 57/57 visual reading -> Atomic Evidence -> Book Distillate -> Method Delta -> Prospective Tests`
 
-本文件会随下一轮运行债务清理继续更新，不因本轮修了几个入口文件就宣布“旧系统已全部纠正”。
+与此同时，剩余 P1/P2 runtime debt 继续逐项清理，不因本轮已经修正 basics/bigpicture 就宣布“旧系统已全部纠正”。
