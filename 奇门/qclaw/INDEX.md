@@ -19,10 +19,10 @@
 | `qimen-bigpicture` | 伏吟/反吟、日时、内外盘等 SOURCE/CANDIDATE |
 | `qimen-yongshen` | Role Map 候选来源；反馈前冻结 |
 | `qimen-sihai` | 空亡/入墓/击刑/门迫结构识别，不自动吉凶打折 |
-| `qimen-gongpan` | 星门神奇仪宫资料与关系候选 |
+| `qimen-gongpan` | 星门神奇仪宫资料与关系候选；仍有 P1 runtime debt |
 | `qimen-shengke` | 宫间关系与主客候选，不跨方法族自动执行 |
 | `qimen-yingqi` | 应期方法族；禁止结果后挑应期 |
-| `qimen-gexia` | 格局来源库；格名不是自动结论 |
+| `qimen-gexia` | Pattern Registry：结构/来源/适用域/经验支持分离；格名不是自动结论 |
 | `qimen-qiju` | 起局候选体系；校准/盘式/时间族必须反馈前冻结 |
 | `qimen-cases` | 案例用于理解方法与失败模式，不直接证明准确率 |
 | `qimen-yange` | 歌诀/传统文本来源层 |
@@ -40,6 +40,7 @@
 → Structural Lookup
 → Eligible Feature Set
 → 关系推演
+→ Pattern Registry（只调用已冻结范围内的结构）
 → 竞争解释
 → 应期冻结
 → Frozen Prediction
@@ -99,6 +100,12 @@
 **“某些传统体系常用的 Role / Feature / Pattern 候选”**。
 
 真实解盘必须结合问题域、方法层、方法族、Role Map、关系、适用边界和竞争证据，不能直接从速查表跳到结论。
+
+`qimen-gexia` 进一步强制把“格局”拆成：
+
+`STEM_PAIR_PATTERN / COMPOSITE_PATTERN / STRUCTURAL_STATE / TIME_CONFIGURATION / METHOD_SPECIFIC_PATTERN`
+
+同一底层结构不得因为挂了多个格名就重复计票。
 
 ---
 
@@ -161,6 +168,8 @@
 
 任何 Agent 都没有“身份更高，所以结论天然更真”的权限。
 
+`qimen-gexia` 已实际保留 legacy 内部冲突，例如朱雀投江与小格的互斥干对，不再静默选一个版本。
+
 ---
 
 ## 八、当前验证等级
@@ -213,12 +222,14 @@
 - Prospective Test Plan；
 - 十八局 p32-p49 source fixture index；
 - 作者/题名页内 provenance；
-- QClaw v2.1 Method-Layer / Prospective Registry 对齐。
+- QClaw v2.1 Method-Layer / Prospective Registry 对齐；
+- `qimen-gexia` Pattern Registry runtime migration。
 
 当前尚未完成、也不得虚标完成：
 
 - 十八局 sparse anchors 的 `ANCHORS_VERIFIED`；
 - 十八局实现对照的 `IMPLEMENTATION_CHECKED`；
+- `qimen-gongpan` P1 runtime migration；
 - Test A-G 的真实前瞻实验；
 - 任何经验有效性结论。
 
@@ -249,9 +260,9 @@ Git 只保存冻结协议元数据与 hashes；详细私人 case packet 留在 G
 - 不在反馈后换盘、校准、方法层、用神、八神体系、时间族、格局、应期；
 - 不把现实新闻的贡献算回奇门本体；
 - 不用 HOUR_OMEN / 仪式材料事后救标准盘；
-- 不把 source fixture 通过当成预测有效；
+- 不把 source fixture / pattern registry contract 通过当成预测有效；
 - 不在高风险领域把术数当专业结论。
 
 ---
 
-*QClaw Index v2.1 | 2026-08-21 | 与 QM-SRC-0001 Method Delta / Source Fixture Gate / Prospective Case Gate 对齐。*
+*QClaw Index v2.1 | 2026-08-21 | 与 QM-SRC-0001 Method Delta / Source Fixture Gate / Prospective Case Gate / Pattern Registry 对齐。*
