@@ -60,6 +60,10 @@ jobs:
         run: python3 tools/test_k2_per_book_completion.py
       - name: Enforce aggregate per-book completion
         run: python3 tools/validate_k2_per_book_completion.py
+      - name: Test verified source metadata fail-closed cases
+        run: python3 tools/test_k2_verified_source_metadata.py
+      - name: Enforce verified source metadata
+        run: python3 tools/validate_k2_verified_source_metadata.py
       - name: Guard knowledge tree from packaged research binaries
         shell: bash
         run: |
