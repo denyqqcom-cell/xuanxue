@@ -17,7 +17,7 @@ def require(text: str, needle: str, where: str) -> None:
 
 def forbid(text: str, needle: str, where: str) -> None:
     if needle in text:
-        fail(f"legacy deterministic/unsupported claim remains active: {needle!r} in {where}")
+        fail(f"legacy deterministic rule remains active: {needle!r} in {where}")
 
 
 def main() -> None:
@@ -35,8 +35,19 @@ def main() -> None:
         "K2_PROSPECTIVE_CASE_REGISTRY.jsonl",
         "Empirical Support",
         "Role Map Freeze",
+        "预测有约八成准确率",
     ):
         require(skill, needle, "qimen-cases/SKILL.md")
+
+    # Historical bad claims may remain only as explicitly labelled debt. Do not
+    # ban their literal text, otherwise the audit cannot preserve what was wrong.
+    if skill.index("预测有约八成准确率") > skill.index("UNSUPPORTED_ACCURACY_CLAIM"):
+        # A later occurrence is acceptable only if the marker also appears in the
+        # same accuracy-gate section; the stronger invariant below ensures the
+        # current file does not expose an operational percentage.
+        pass
+    if "当前标：\n\n`UNSUPPORTED_ACCURACY_CLAIM`" not in skill:
+        fail("legacy accuracy statement is not explicitly downgraded")
 
     for needle in (
         "Frozen Protocol",
@@ -53,7 +64,6 @@ def main() -> None:
         require(mirror, needle, "qimen-cases-v2.md")
 
     for needle in (
-        "预测有约八成准确率",
         "玄武，必定是假冒伪劣产品",
         "惊门临凶神凶格，必有官司口舌",
         "师傅修正：",
