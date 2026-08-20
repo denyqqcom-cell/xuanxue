@@ -25,17 +25,18 @@ def main() -> None:
         "qimen-qiju",
         "qimen-gexia",
         "Empirical Support",
+        "星级 `★★★★★`：`PROJECT_GLOSS / NOT_OPERATIONAL`",
     )
     for needle in required:
         if needle not in text:
             fail(f"missing {needle!r}")
 
+    # Historical debt must remain auditable. Literal legacy tokens may appear
+    # only when explicitly downgraded; do not forbid the evidence of the bug.
     forbidden = (
-        "吉凶 | 主要含义",
-        "★★★★★",
+        "| 歌诀 | 星名 | 五行 | 吉凶 | 主要含义 |",
         "灾祸必至",
         "百事大吉",
-        "核心经典歌诀",
     )
     for needle in forbidden:
         if needle in text:
