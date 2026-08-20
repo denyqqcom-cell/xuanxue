@@ -19,11 +19,11 @@
 | `qimen-bigpicture` | 伏吟/反吟、日时、内外盘等 SOURCE/CANDIDATE |
 | `qimen-yongshen` | Role Map 候选来源；反馈前冻结 |
 | `qimen-sihai` | 空亡/入墓/击刑/门迫结构识别，不自动吉凶打折 |
-| `qimen-gongpan` | 星门神奇仪宫资料与关系候选；仍有 P1 runtime debt |
+| `qimen-gongpan` | Component / Relation Registry：结构、象意、状态、Role、关系分层；八神/旺衰系统需冻结 |
 | `qimen-shengke` | 宫间关系与主客候选，不跨方法族自动执行 |
 | `qimen-yingqi` | 应期方法族；禁止结果后挑应期 |
 | `qimen-gexia` | Pattern Registry：结构/来源/适用域/经验支持分离；格名不是自动结论 |
-| `qimen-qiju` | 起局候选体系；校准/盘式/时间族必须反馈前冻结 |
+| `qimen-qiju` | 起局候选体系；仍有 P2 migration debt |
 | `qimen-cases` | 案例用于理解方法与失败模式，不直接证明准确率 |
 | `qimen-yange` | 歌诀/传统文本来源层 |
 
@@ -36,11 +36,12 @@
 → 问题域
 → Method Layer / Method Family
 → 起局校准 + 盘式 + 时间族 + 八神体系
+→ State-System Freeze（若使用九星/八门旺衰）
 → Role Map
 → Structural Lookup
 → Eligible Feature Set
-→ 关系推演
-→ Pattern Registry（只调用已冻结范围内的结构）
+→ Component / Relation Analysis
+→ Pattern Registry
 → 竞争解释
 → 应期冻结
 → Frozen Prediction
@@ -55,83 +56,64 @@
 - 哪些是不同流派共享结构；
 - 哪些只是项目推演；
 - 哪些只是可重复查表；
+- 哪些算法本身存在版本/来源冲突；
 - 哪些真正有前瞻经验支持；
 - 哪些规则应该被删掉。
 
 ---
 
-## 三、文献引用的正确含义
+## 三、文献引用、查表与经验支持必须分开
 
-引用次数、古籍年代、作者名气都不等于现实有效性。
+```text
+SOURCE CONSENSUS != EMPIRICAL SUPPORT
+SOURCE FIDELITY != LOOKUP DETERMINISM != EMPIRICAL SUPPORT
+```
 
-多个来源同意一条规则时，只能先说：
-
-`SOURCE CONSENSUS ↑`
-
-不能直接写：
-
-`EMPIRICAL SUPPORT ↑`
-
-后者需要独立、结果未知、反馈前冻结的验证。
-
-同时再加一条：
-
-`SOURCE FIDELITY / LOOKUP DETERMINISM != EMPIRICAL SUPPORT`
-
-代码把十八局表复刻得再准确，也不能替代现实前瞻验证。
+引用次数、作者名气、古籍年代、程序复刻成功都不能替代未知结果的前瞻验证。
 
 ---
 
 ## 四、旧“速查表”的降级
 
-旧版索引曾直接写：
+旧版直接写过：求财=生门、击刑=大凶、青龙回首=大吉、吉星+吉门+吉神=大吉等。
 
-- 求财=生门；
-- 健康=天芮/死门；
-- 官讼=惊门/庚；
-- 空亡=事情不实；
-- 入墓=停滞；
-- 击刑=大凶；
-- 门迫=吉门不吉、凶门更凶；
-- 青龙回首=大吉等。
+当前统一改读为：
 
-这些现在统一改读为：
+**“某些传统体系中的 Role / Feature / Pattern / Symbolism 候选”。**
 
-**“某些传统体系常用的 Role / Feature / Pattern 候选”**。
-
-真实解盘必须结合问题域、方法层、方法族、Role Map、关系、适用边界和竞争证据，不能直接从速查表跳到结论。
-
-`qimen-gexia` 进一步强制把“格局”拆成：
+`qimen-gexia` 进一步拆成：
 
 `STEM_PAIR_PATTERN / COMPOSITE_PATTERN / STRUCTURAL_STATE / TIME_CONFIGURATION / METHOD_SPECIFIC_PATTERN`
 
-同一底层结构不得因为挂了多个格名就重复计票。
+`qimen-gongpan` 进一步拆成：
+
+`STRUCTURAL_METADATA / SOURCE_SYMBOLISM / STATE_FEATURE / ROLE_BINDING / RELATION / CONTEXTUAL_INFERENCE`
+
+同一底层结构不得因为挂了多个格名或多个象意标签就重复计票。
 
 ---
 
-## 五、Method-Layer Gate
+## 五、Method / Deity / State-System Gates
 
-当前至少区分：
+当前至少冻结：
 
-- `STANDARD_PLATE`
-- `TIME_FAMILY_VARIANT`
-- `HOUR_OMEN`
-- `RITUAL_AUXILIARY`
-
-一个层的 miss 不得由另一个层结果后救援。
-
-同时显式记录：
-
+- `method_layer`
 - `setup_calibration`
 - `seasonal_alignment`
 - `time_family`
 - `layout_method`
 - `deity_system`
+- `star_state_system`
+- `door_state_system`
 - `hour_omen_family`
 - `ritual_layer`
 - `bureau_table_source`
 
-梁书勾陈/朱雀与现代常见白虎/玄武体系暂作平行 `deity_system`，不得静默混合。
+一个方法层的 miss 不得由另一个层结果后救援。
+
+梁书勾陈/朱雀与现代常见白虎/玄武体系作平行 `deity_system`，不得静默混合。
+
+旧 gongpan 对天蓬旺相状态在同一文件中出现互相矛盾的两套示例，因此 `star_state_system` 也必须像起局法一样事前冻结；不能结果后选择更贴合的一套。
 
 ---
 
@@ -142,39 +124,31 @@
 | 阳遁 | **1、8、3、4** | **9、2、7、6** |
 | 阴遁 | **9、2、7、6** | **1、8、3、4** |
 
-历史技能中出现过阳遁内盘 `1、3、4、9` 的错误；当前已修正。
-
-传统“内快外慢”语义仍是待验证候选，不代表固定时间系数。
+传统“内快外慢”仍只是候选语义，不是固定时间系数。
 
 ---
 
-## 七、冲突裁决已废弃旧权威链
-
-旧版：
-
-`徒弟分析 -> 师傅古籍核查 -> 师傅有古籍依据则以师傅为准`
-
-这个规则现已 **DEPRECATED**。
-
-当前冲突处理：
+## 七、冲突裁决
 
 ```text
-先查是否同一 object / layer / method family / setup / layout / time family / deity system / application context
-→ 若不同：CONTEXT_SPLIT_REQUIRED
-→ 若相同且冲突：CONFLICT_CANDIDATE
-→ 形成可前瞻区分的竞争假设
-→ 用结果审计决定 KEEP/NARROW/REVISE/DEPRECATE/REJECT
+先查 object / layer / method family / setup / layout / time family / deity system / state system / application context
+→ 不同：CONTEXT_SPLIT_REQUIRED
+→ 相同且冲突：CONFLICT_CANDIDATE
+→ 建立反馈前可区分的竞争假设
+→ Outcome Audit 决定 KEEP / NARROW / REVISE / DEPRECATE / REJECT
 ```
 
-任何 Agent 都没有“身份更高，所以结论天然更真”的权限。
+任何 Agent、作者或古籍都没有身份上的天然真值权限。
 
-`qimen-gexia` 已实际保留 legacy 内部冲突，例如朱雀投江与小格的互斥干对，不再静默选一个版本。
+已保留的真实 legacy 冲突包括：
+
+- gexia：朱雀投江两套干对；小格两套干对；
+- gongpan：天蓬旺相状态两套相反示例；
+- deity system：勾陈/朱雀 vs 白虎/玄武。
 
 ---
 
 ## 八、当前验证等级
-
-统一生命周期：
 
 `CANDIDATE -> TESTABLE -> PROVISIONAL -> SUPPORTED`
 
@@ -182,54 +156,40 @@
 
 `SUPPORTED/PROVISIONAL -> NARROWED -> DEPRECATED -> REJECTED`
 
-`>=3` 独立前瞻案例只是一项进入 PROVISIONAL 的最低信号，不再称“已验证门槛”。
-
-同时检查：
-
-- 是否预注册；
-- 是否独立；
-- 基础概率；
-- 失败样本；
-- 选择偏差；
-- 新闻/背景污染；
-- 负对照；
-- 适用域外表现。
+`>=3` 只是一项最低信号，不是验证魔数。
 
 ---
 
 ## 九、当前原创方法论
 
-见：
+见：`奇门/理论创新_受约束情境推演法_v0.2-alpha.md`
 
-`奇门/理论创新_受约束情境推演法_v0.2-alpha.md`
+当前最可辩护的增量不是“已经更准”，而是：
 
-当前核心不是创造更多吉凶表，而是：
-
-**先压缩结果后的解释自由度，再允许情境推演。**
-
-梁湘潤《奇門遁甲入門》的 57/57 视觉阅读已经完成，并推动了 Method-Layer Gate、setup calibration、deity-system context、source fixture 与 prospective registry。它不是终点，也没有被当成新圣经。
+**更少允许反馈后换轨，更容易暴露模型真正失败。**
 
 ---
 
 ## 十、当前工程阶段
 
-`QM-SRC-0001 / WORK-000217` 当前已完成：
+已完成：
 
-- canonical 57/57 `VISUAL_PAGE` review；
+- `QM-SRC-0001` canonical 57/57 `VISUAL_PAGE`；
 - 32 条 REVIEWED Atomic Evidence；
 - REVIEWED Book Distillate；
-- Method Delta；
-- Prospective Test Plan；
-- 十八局 p32-p49 source fixture index；
-- 作者/题名页内 provenance；
-- QClaw v2.1 Method-Layer / Prospective Registry 对齐；
-- `qimen-gexia` Pattern Registry runtime migration。
+- Method Delta + Prospective Test Plan；
+- 十八局 source fixture index；
+- Prospective Case Registry；
+- `qimen-gexia` Pattern Registry migration；
+- `qimen-gongpan` Component / Relation Registry migration；
+- gexia/gongpan runtime-contract CI gates。
 
-当前尚未完成、也不得虚标完成：
+尚未完成：
 
-- 十八局 sparse anchors 的 `ANCHORS_VERIFIED`；
-- 十八局实现对照的 `IMPLEMENTATION_CHECKED`；
-- `qimen-gongpan` P1 runtime migration；
+- 十八局 `ANCHORS_VERIFIED`；
+- 十八局 `IMPLEMENTATION_CHECKED`；
+- `qimen-qiju` P2 migration；
+- old cases reclassification；
 - Test A-G 的真实前瞻实验；
 - 任何经验有效性结论。
 
@@ -237,32 +197,31 @@
 
 ## 十一、Prospective Registry
 
-未知结果的正式测试使用：
+未知结果正式测试使用：
 
 - `knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`
 - `knowledge/K2_PROSPECTIVE_CASE_REGISTRY.jsonl`
 
-Git 只保存冻结协议元数据与 hashes；详细私人 case packet 留在 Git 外。
+详细私人 case packet 留在 Git 外；Git 保存冻结元数据与 hashes。
 
-结果后换起局、校准、方法层、时间族、八神体系、Role Map、feature、竞争分支、应期或 auxiliary policy，必须新建模型版本/`case_id`，不得覆盖原记录。
+结果后改变 setup、method layer、time family、deity system、state system、Role Map、feature、分支、应期或 auxiliary policy，都必须新建模型版本/`case_id`。
 
-污染案例保留，不得为了命中率删除。
+污染案例保留，不得删掉以美化命中率。
 
 ---
 
 ## 十二、执行底线
 
 - 不因书名权威而盲信；
-- 不因案例“很像”就称验证；
+- 不因案例像就称验证；
 - 不因叙事连贯就称预测正确；
-- 不因一个失败就造全局补丁；
-- 不因一个成功就升级规则；
-- 不在反馈后换盘、校准、方法层、用神、八神体系、时间族、格局、应期；
-- 不把现实新闻的贡献算回奇门本体；
-- 不用 HOUR_OMEN / 仪式材料事后救标准盘；
-- 不把 source fixture / pattern registry contract 通过当成预测有效；
+- 不因单次失败造全局补丁；
+- 不因单次成功升级规则；
+- 不在反馈后换盘、校准、方法层、时间族、八神体系、旺衰系统、用神、格局、应期；
+- 不把 source fixture / runtime contract 通过当成预测有效；
+- 不把传统犯罪/疾病象意当真实人物或医学事实；
 - 不在高风险领域把术数当专业结论。
 
 ---
 
-*QClaw Index v2.1 | 2026-08-21 | 与 QM-SRC-0001 Method Delta / Source Fixture Gate / Prospective Case Gate / Pattern Registry 对齐。*
+*QClaw Index v2.1 | 2026-08-21 | Method-Layer / Prospective Registry / Pattern Registry / Component-Relation Registry aligned*

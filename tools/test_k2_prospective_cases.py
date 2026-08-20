@@ -19,6 +19,8 @@ BASE={
     "time_family":"HOUR",
     "layout_method":"ROTATING_PLATE",
     "deity_system":"GOUCHEN_ZHUQUE",
+    "star_state_system":"NOT_APPLICABLE",
+    "door_state_system":"NOT_APPLICABLE",
     "hour_omen_family":"NONE",
     "ritual_layer":"EXCLUDED_BY_DEFAULT",
     "bureau_table_source":"LIANG_18_BUREAU",
@@ -29,7 +31,7 @@ BASE={
     "auxiliary_information_policy":"NONE",
     "outcome_unknown_at_freeze":True,
     "eligible_for_scoring":True,
-    "freeze_timestamp":"2026-08-21T02:30:00+08:00",
+    "freeze_timestamp":"2026-08-21T03:10:00+08:00",
     "status":"FROZEN",
     "outcome_class":None,
     "contamination_flags":[],
@@ -50,7 +52,7 @@ def expect_fail(rows,needle):
 def main():
     expect_ok([copy.deepcopy(BASE)])
     r=copy.deepcopy(BASE);r["question_fingerprint_sha256"]="ABC";expect_fail([r],"question_fingerprint_sha256")
-    r=copy.deepcopy(BASE);r["freeze_timestamp"]="2026-08-21T02:30:00";expect_fail([r],"offset-aware")
+    r=copy.deepcopy(BASE);r["freeze_timestamp"]="2026-08-21T03:10:00";expect_fail([r],"offset-aware")
     r=copy.deepcopy(BASE);r["status"]="RESOLVED";r["outcome_class"]="MISS";expect_ok([r])
     r=copy.deepcopy(BASE);r["status"]="RESOLVED";r["outcome_class"]=None;expect_fail([r],"RESOLVED requires")
     r=copy.deepcopy(BASE);r["outcome_unknown_at_freeze"]=False;expect_fail([r],"requires outcome_unknown_at_freeze=true")
@@ -58,6 +60,10 @@ def main():
     r=copy.deepcopy(BASE);r["status"]="RESOLVED";r["outcome_class"]="CONTAMINATED";expect_fail([r],"requires contamination flag")
     r=copy.deepcopy(BASE);r["status"]="RESOLVED";r["outcome_class"]="HIT";r["contamination_flags"]=["AUXILIARY_CONTAMINATION"];expect_fail([r],"cannot remain eligible_for_scoring")
     r=copy.deepcopy(BASE);r["layout_method"]="/home/user/private";expect_fail([r],"local filesystem path leaked")
+    r=copy.deepcopy(BASE);del r["star_state_system"];expect_fail([r],"missing fields")
+    r=copy.deepcopy(BASE);r["star_state_system"]="";expect_fail([r],"star_state_system must be non-empty")
+    r=copy.deepcopy(BASE);r["star_state_system"]="CONTEXT_REQUIRED";expect_fail([r],"cannot leave star_state_system=CONTEXT_REQUIRED")
+    r=copy.deepcopy(BASE);r["door_state_system"]="CONTEXT_REQUIRED";expect_fail([r],"cannot leave door_state_system=CONTEXT_REQUIRED")
     expect_fail([copy.deepcopy(BASE),copy.deepcopy(BASE)],"duplicate case_id")
     r=copy.deepcopy(BASE);r["unexpected"]=1;expect_fail([r],"unexpected fields")
     print("k2-prospective-case-tests: PASS")

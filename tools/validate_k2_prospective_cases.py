@@ -11,10 +11,11 @@ PATH_RE=re.compile(r"(?:/home/|/mnt/|[A-Za-z]:\\\\)")
 ALLOWED_TOP={
     "case_id","domain","question_fingerprint_sha256","question_domain","method_family",
     "method_layer","setup_calibration","seasonal_alignment","time_family","layout_method",
-    "deity_system","hour_omen_family","ritual_layer","bureau_table_source","role_map_sha256",
-    "eligible_features_sha256","competing_branches_sha256","timing_protocol_sha256",
-    "auxiliary_information_policy","outcome_unknown_at_freeze","eligible_for_scoring",
-    "freeze_timestamp","status","outcome_class","contamination_flags","review_status"
+    "deity_system","star_state_system","door_state_system","hour_omen_family","ritual_layer",
+    "bureau_table_source","role_map_sha256","eligible_features_sha256","competing_branches_sha256",
+    "timing_protocol_sha256","auxiliary_information_policy","outcome_unknown_at_freeze",
+    "eligible_for_scoring","freeze_timestamp","status","outcome_class","contamination_flags",
+    "review_status"
 }
 METHOD_LAYERS={"STANDARD_PLATE","TIME_FAMILY_VARIANT","HOUR_OMEN","RITUAL_AUXILIARY"}
 SETUP={"PINGQI","DINGQI","SOURCE_DEFINED_OTHER","NOT_APPLICABLE"}
@@ -34,6 +35,10 @@ CONTAM={
 HASH_FIELDS={
     "question_fingerprint_sha256","role_map_sha256","eligible_features_sha256",
     "competing_branches_sha256","timing_protocol_sha256"
+}
+FREE_TEXT_REQUIRED={
+    "question_domain","method_family","layout_method","star_state_system","door_state_system",
+    "hour_omen_family","bureau_table_source"
 }
 
 
@@ -79,7 +84,7 @@ def validate_rows(rows):
         if not isinstance(r.get("case_id"),str) or not r.get("case_id","").strip():issues.append((cid,"case_id must be non-empty string"))
         for f in HASH_FIELDS:
             if not HEX64.match(r.get(f) or ""):issues.append((cid,f"{f} must be lowercase sha256"))
-        for f in ("question_domain","method_family","layout_method","hour_omen_family","bureau_table_source"):
+        for f in FREE_TEXT_REQUIRED:
             if not isinstance(r.get(f),str) or not r.get(f,"").strip():issues.append((cid,f"{f} must be non-empty string"))
         if r.get("method_layer") not in METHOD_LAYERS:issues.append((cid,"invalid method_layer"))
         if r.get("setup_calibration") not in SETUP:issues.append((cid,"invalid setup_calibration"))
@@ -104,6 +109,9 @@ def validate_rows(rows):
             issues.append((cid,"scored FROZEN/RESOLVED row requires outcome_unknown_at_freeze=true"))
         if r.get("method_layer")=="RITUAL_AUXILIARY" and r.get("eligible_for_scoring") is not False:
             issues.append((cid,"RITUAL_AUXILIARY must be ineligible for scoring"))
+        if st in {"FROZEN","RESOLVED"} and r.get("eligible_for_scoring"):
+            for f in ("star_state_system","door_state_system"):
+                if r.get(f)=="CONTEXT_REQUIRED":issues.append((cid,f"scored frozen model cannot leave {f}=CONTEXT_REQUIRED; use an explicit system or NOT_APPLICABLE"))
         if out=="CONTAMINATED" and not flags:
             issues.append((cid,"CONTAMINATED outcome requires contamination flag"))
         if flags and st=="RESOLVED" and out=="HIT" and r.get("eligible_for_scoring"):
