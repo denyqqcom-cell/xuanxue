@@ -1,6 +1,6 @@
 # QM-SRC-0001 Visual Review Session
 
-Status: IN_PROGRESS / VISUAL_REVIEW_20_OF_57
+Status: VISUAL_REVIEW_COMPLETE / 57_OF_57 / CLOSURE_PENDING_CI
 
 Start date: 2026-08-21
 
@@ -8,100 +8,120 @@ Start date: 2026-08-21
 
 - source_id: `QM-SRC-0001`
 - work_id: `WORK-000217`
-- registered title: `梁湘润-奇门遁甲入门`
+- page-verified title: `奇门遁甲入门`
+- page-verified author: `梁湘润`
 - registered pages: `57`
 - readability: `SCAN`
 - execution lane: `VISUAL_REQUIRED`
 - canonical SHA256: `0cbf020b76f866d3c2dc70001d16aa5cee9ce8405a4a725ce643c12ef701f7cf`
 - copyright boundary: `FORBIDDEN_TO_PACKAGE / local_only`
 
-The uploaded PDF was re-hashed in the main-review environment and matched the canonical SHA256 exactly; PDF page count was also verified as 57.
+The uploaded PDF was re-hashed in the main-review environment and matched the canonical SHA256 exactly; PDF page count was verified as 57. Page-internal visual evidence on p1-p2 directly supports the title and author. Edition/publication metadata remains unclaimed unless stronger internal evidence is available.
 
-Page-internal visual evidence on p1-p2 now directly supports the registered title `奇门遁甲入门` and author `梁湘润`. Edition/publication details remain unverified until stronger internal pages are reviewed.
-
-## Pre-reading gates
+## Review integrity
 
 - Pre-Book Retrospective: DONE
-- Prediction Protocol Freeze: ACTIVE as an anti-hindsight execution constraint, not as a frozen theory
-- Theory lifecycle remains open: KEEP / NARROW / REVISE / SPLIT / DEPRECATE / REJECT
-- OCR/text extraction does not count as visual reading
-- OCR may be used only as a navigation/checking aid after visual inspection
-- render-packet readiness does not count as Reading Credit
+- original-page visual inspection: DONE p1-p57
+- OCR/text extraction as substitute: NOT USED
+- OCR assistance: limited secondary navigation/checking only after visual inspection on selected difficult pages; original page images remained authoritative
+- modern copyrighted text copied into Evidence: NO; Evidence is paraphrased and `verbatim_quote=null`
+- Prediction Protocol Freeze: ACTIVE as anti-hindsight constraint, not Theory Freeze
 
-## Current page accounting
+## Final page accounting
 
 - registered_pages: 57
-- rendered_pages_visible_to_main_reviewer: 20
-- visually_reviewed_pages: 20
-- accepted_blank_or_nonsemantic_pages: 0
-- higher_dpi_rerender_required: 0
-- unreadable_or_obscured_pages: 0
-- reading_credit_granted: true (partial only)
-- reading_status: `PARTIAL`
-- reviewed_range: `pdf:p1-p20`
-- atomic_evidence_count: 14
+- visually_reviewed_pages: 57
+- reviewed_range: `pdf:p1-p57`
+- verification_mode: `VISUAL_PAGE`
+- reading_status: `COMPLETE`
+- atomic_evidence_count: 32
+- Book Distillate: CREATED / REVIEWED
+- Method Delta: CREATED / PROVISIONAL
+- Prospective Test Plan: CREATED / PREREGISTRATION CANDIDATE
+- source closure: PENDING aggregate validators/tests + exact-head CI
 
-No page beyond p20 is credited yet.
+No claim extraction is enabled by this completion.
 
-## Working distillation after p1-p20
+## Full-book distillation summary
 
-This section is a provisional analytical layer, not the final Book Distillate and not source Evidence.
+### A. The source is internally heterogeneous
 
-### 1. Source criticism appears inside the book itself
+The book contains at least six different evidence/method layers:
 
-The preface explicitly warns that transmitted 奇门 texts are not fully consistent and may contain copying/editorial errors or later additions. This supports the project rule that provenance and source fidelity cannot be collapsed into truth.
+1. source criticism / traditional history;
+2. 三元 and standard plate setup;
+3. 九星 seasonal/task interpretation;
+4. 九星十二时辰应克;
+5. 年家/月家/日家/时家 variants and 18 bureau lookup tables;
+6. ritual/符咒/反闭/步斗/六戊/禁敌 materials.
 
-### 2. The book is a mixed corpus, not one homogeneous predictive doctrine
+The project must not flatten these into one universal rule pool.
 
-The contents combine historical/intellectual framing, `烟波钓叟` mnemonic material, 三元 setup rules, `阴符经`, 九星 doctrine, year/month/day/hour systems, and ritual/符法/步斗 material. Later normalization must preserve these layers instead of treating every page as the same kind of operational rule.
+### B. Setup choice is a first-order degree of freedom
 
-### 3. Setup-method choice is already a major epistemic fork
+The book explicitly distinguishes 平气/定气 and 正授/超神/置闰/接气. These choices must be declared before outcome feedback. If multiple variants are compared, all must be preregistered and scored separately.
 
-The book distinguishes 正授、超神、置闰、接气 and discusses the relation of 符首 to节气. It also states that using 定气 instead of 平气 changes the calculation/judgment. This strengthens the need to freeze setup/time-family choices before outcome feedback; otherwise method selection itself becomes a hindsight degree of freedom.
+### C. Deity-system conflict is real
 
-### 4. A concrete lineage conflict has emerged in the 八神 list
-
-The book's `定神` list uses:
+The source uses:
 
 `值符 / 螣蛇 / 太阴 / 六合 / 勾陈 / 朱雀 / 九地 / 九天`
 
-This differs from the modern project baseline that commonly uses 白虎、玄武 in those positions. This is recorded as a `CONFLICT_CANDIDATE`; it must not be silently harmonized into one universal list.
+This conflicts with the modern 白虎/玄武 baseline. The project records a `CONFLICT_CANDIDATE` and adds `deity_system` as an explicit context field rather than silently harmonizing the systems.
 
-### 5. 九星 treatment is context-sensitive inside the source
+### D. 九星 is not source-internally reducible to one fixed label
 
-The 九星 section does not use only one global good/bad label. It additionally conditions星的状态 by旺相休囚 and gives different seasonal/task-specific宜忌 for出行、用兵、婚嫁、上任、营造、经商等. This is compatible with the project's move away from `symbol -> fixed verdict`, but the source's prescriptions still remain traditional claims rather than empirical support.
+The book has rough吉凶 categories but also conditions star use by season, task and旺相休囚. Therefore fixed labels are insufficient as verdicts even on the book's own terms.
 
-### 6. The mnemonic layer contains strong deterministic wording
+### E. The 18 bureau tables are structurally valuable but not empirical proof
 
-`烟波钓叟` compresses many structural rules and outcome prescriptions into mnemonic verse. That makes it useful as a rule-index carrier but high-risk for mechanical application. Any later operationalization must expand object, method family, condition, exception and task context before use.
+The阳遁/阴遁 lookup tables are visually explicit and mechanically auditable. They can reduce implementation drift after a method is frozen. Their reproducibility is `Lookup Determinism`, not predictive validity.
 
-## Inherited-model relations observed so far
+### F. Hour-omen doctrine must be isolated
 
-- `SUPPORTS`: source criticism; context-sensitive star usage; separating setup family from later interpretation.
-- `NARROWS`: the idea that a fixed star/gate label is sufficient for judgment.
-- `CONFLICT_CANDIDATE`: 八神 list (`勾陈/朱雀` vs modern `白虎/玄武`).
-- `CONTEXT_SPLIT_REQUIRED`: 正授 / 超神 / 置闰 / 接气 and 平气 / 定气 selection.
-- `NOT_EMPIRICAL_SUPPORT`: traditional吉凶、宜忌、歌诀 and star prescriptions.
+`九星十二时辰应克` maps star/hour combinations to concrete future events and timing. It is too distinct to be used as an undeclared extra signal; it becomes a separate prospectively testable method family.
 
-No theory component is promoted to `SUPPORTED` from this partial reading alone.
+### G. Ritual material is default-excluded
 
-## Review order for next batch
+The final pages contain incantations,符,禹罡/步斗,六戊,博奕胜负 and禁敌 methods. These are preserved as source evidence but excluded from operational prediction scoring and from claims of empirical efficacy.
 
-1. Continue p21-p57 in order, including all tables, diagrams, blank-looking pages and ritual sections.
-2. Create additional Atomic Evidence only from newly visually reviewed pages.
-3. Track whether later chapters resolve, preserve or deepen the 八神 and setup-method conflicts.
-4. Keep ritual/禁禳/步斗 material separate from predictive algorithm evidence.
-5. After 57/57, create exactly one REVIEWED Book Distillate, then Conflict/Anti-pattern Review, Method Delta and prospective test plan.
-6. Run aggregate validators/tests and exact-head CI before CLOSED / ACCEPTED.
+## Strongest theory deltas
 
-## Strong-counterevidence gate
+- add `Method-Layer Gate`;
+- add `setup_calibration` and `seasonal_alignment`;
+- add `deity_system`;
+- elevate `time_family` to first-class context;
+- add separate `hour_omen_family`;
+- set `ritual_layer = EXCLUDED_BY_DEFAULT`;
+- distinguish `Lookup Determinism` from `Predictive Validity`;
+- demote year/month/day/hour hierarchy to testable candidate;
+- strengthen Symbol-to-Verdict Gate.
 
-A passage or method in this book does not overturn the current framework merely because it comes from 梁湘润 or contradicts another author. Theory change requires, as applicable:
+## What remains unresolved
 
-- same object/layer/method family/setup/time family/application context, or an explicit reason they should be compared;
-- internally coherent rule definition;
-- a prospective, falsifiable prediction path;
-- no dependence on feedback-after-the-fact role/method/factor switching;
-- no hidden prior/background information credited to the 奇门 rule itself.
+- which setup calibration performs better;
+- whether either deity system has prospective advantage;
+- whether 九星 conditional rules outperform fixed labels;
+- whether 九星十二时辰应克 beats base rates;
+- whether year/month/day/hour hierarchy has stable predictive meaning;
+- historical truth of the lineage/reduction narrative;
+- any supernatural efficacy of ritual material.
 
-Until those conditions are met, tension remains `CONFLICT_CANDIDATE`, `NARROWS`, or `CONTEXT_REQUIRED` rather than automatic truth replacement.
+These are test obligations, not doctrinal conclusions.
+
+## Closure chain status
+
+`canonical bytes` ✅
+→ `Pre-Book Retrospective` ✅
+→ `original-page visual packet / visibility` ✅
+→ `main-reviewer full visual reading` ✅ 57/57
+→ `Atomic Evidence` ✅ 32
+→ `Book Distillate` ✅ REVIEWED
+→ `Conflict / Anti-pattern Review` ✅ inside distillate
+→ `Method Delta` ✅
+→ `Prospective Test Plan` ✅
+→ `aggregate validators/tests` ⏳
+→ `exact-head CI` ⏳
+→ `CLOSED` ⏳
+
+The source is fully read, but project closure must wait for validators and exact-head CI. PR #9 remains Draft / unmerged unless the user explicitly requests otherwise.
