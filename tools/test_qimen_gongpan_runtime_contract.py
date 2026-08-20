@@ -53,14 +53,15 @@ def main() -> None:
     ):
         require(audit, needle, "SOURCE_LAYER_AUDIT.md")
 
+    # Forbid old rules only in their former active forms. Historical migration notes are allowed to name them.
     for needle in (
-        "星+门+神+卦+格局五位一体",
-        "吉星+吉门+吉神 | 大吉",
-        "凶星+凶门 | 大凶",
-        "吉星旺则大吉，凶星旺则大凶",
-        "时干生日干→风水无害，即使星门神格局不好",
-        "时干克日干→风水不利，即使星门神格局再好",
-        "《奇门遁甲应用学》佚名",
+        "**核心原则**：星+门+神+卦+格局五位一体",
+        "| 吉星+吉门+吉神 | 大吉 |",
+        "| 凶星+凶门 | 大凶 |",
+        "| 旺 | 最强 | 吉星旺则大吉，凶星旺则大凶 |",
+        "1. 时干生日干→风水无害，即使星门神格局不好",
+        "2. 时干克日干→风水不利，即使星门神格局再好",
+        "> **文献来源**：《奇门遁甲应用学》佚名",
     ):
         forbid(skill, needle, "SKILL.md")
 
