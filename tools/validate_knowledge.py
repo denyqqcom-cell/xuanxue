@@ -21,6 +21,7 @@ SCHEMAS = [
     "case.schema.json",
     "source_lineage.schema.json",
     "reading_coverage.schema.json",
+    "book_distillate.schema.json",
 ]
 
 
