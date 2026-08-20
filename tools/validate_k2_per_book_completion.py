@@ -31,6 +31,13 @@ def fail(msg):
     raise SystemExit(1)
 
 
+def display_path(path):
+    try:
+        return str(path.relative_to(ROOT))
+    except ValueError:
+        return str(path)
+
+
 def load_jsonl(path):
     rows = []
     if not path.exists():
@@ -51,9 +58,9 @@ def load_jsonl(path):
 def validate_shard_rows(kind, path, rows):
     source_id = path.stem
     if not rows:
-        fail(f"empty {kind} shard: {path.relative_to(ROOT)}")
+        fail(f"empty {kind} shard: {display_path(path)}")
     if kind in {"ledger", "distillate"} and len(rows) != 1:
-        fail(f"{kind} shard must contain exactly one row: {path.relative_to(ROOT)}")
+        fail(f"{kind} shard must contain exactly one row: {display_path(path)}")
     for row in rows:
         if row.get("source_id") != source_id:
             fail(
