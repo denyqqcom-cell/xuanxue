@@ -106,3 +106,6 @@ jobs:
         run: python tools/validate_k2_python_deps.py --python-deps-dir "$env:K2_PYTHON_DEPS"
       - name: Verify K2 local helper on Windows paths and PDF fallback
         run: python tools/test_k2_evidence.py
+      - name: Verify K2 VISUAL_REQUIRED page renderer on Windows
+        shell: pwsh
+        run: python tools/test_k2_visual_page_packet.py --python-deps-dir "$env:K2_PYTHON_DEPS"
