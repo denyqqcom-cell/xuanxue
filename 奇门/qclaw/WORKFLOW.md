@@ -1,20 +1,31 @@
-# 奇门受约束情境推演工作流 v2.1
+# 奇门受约束情境推演工作流 v2.2
 
 > 本模板用于保存一次解盘从原始输入到冻结预测、辅助信息增量与结果审计的全过程。
 >
 > 上位约束：`奇门/CURRENT_METHOD_CONSTRAINTS.md`、`knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`、`qimen-overview/SKILL.md`、`_AGENT_INSTRUCTIONS.md`。
 
-## 一、核心变化
+## 一、核心链
 
-旧工作流按固定八步输出，并要求每一步都必须明确吉凶、最终必须给成败与应期。这会在证据不足时制造确定性，也容易让不同书的规则在同一盘中无限叠加。
+```text
+Reality Baseline
+-> Question Domain
+-> Method-Layer Freeze
+-> Setup / Time / Deity Freeze
+-> State-System Freeze
+-> Role Map Freeze
+-> Structural Lookup
+-> Eligible Feature Set
+-> Component / Relation Analysis
+-> Pattern Registry
+-> Competing Branches
+-> Timing Freeze
+-> Frozen Prediction
+-> Prospective Registry
+-> Auxiliary Ablation
+-> Outcome Audit
+```
 
-v2.1 改为：
-
-`Reality Baseline -> Question Domain -> Method-Layer Freeze -> Setup/Time/Deity Freeze -> Role Map -> Structural Lookup -> Eligible Features -> Relational Inference -> Competing Branches -> Timing Freeze -> Frozen Prediction -> Auxiliary Ablation -> Outcome Audit`
-
-新增原则：**一个方法层的 miss 不得由另一个方法层在结果后救援。**
-
----
+原则：一个方法层的 miss 不得由另一层结果后救援；一个 state system 的 miss 也不得通过结果后切换旺衰算法修补。
 
 ## 二、推荐案例目录
 
@@ -36,15 +47,10 @@ YYYYMMDD_问题关键词_时分/
 └── final_case_summary.md
 ```
 
-旧 `claw_问题分类 / 看大局 / 取用神 / 查四害 / 析宫盘 / 看生克 / 格局详解` 文件可为兼容历史案例继续存在，但新案例不再强制按这些文件拆分。
-
----
-
 ## 三、_META.md
 
 ```markdown
 # Case Metadata
-
 - case_id:
 - question_raw:
 - question_normalized:
@@ -59,41 +65,29 @@ YYYYMMDD_问题关键词_时分/
 - created_at:
 ```
 
-原始输入与初始已知事实不得在结果后覆盖。若案例涉及私人信息，Git 仓库只保存哈希与粗粒度研究元数据。
-
----
+原始输入与已知事实不得在结果后覆盖。私人信息不进入 tracked registry。
 
 ## 四、Reality Baseline
 
 ```markdown
 # Reality Baseline
-
 ## Object existence
 ...
-
 ## Known facts
 ...
-
 ## Unknown target
 ...
-
 ## Time horizon
 ...
-
 ## Base-rate considerations
 ...
-
 ## Safety / professional-boundary notes
 ...
 ```
 
 这里不做盘面吉凶判断。
 
----
-
 ## 五、Question / Method-Layer Freeze
-
-先冻结问题域与主方法层：
 
 ```markdown
 # Question / Method Layer
@@ -105,17 +99,11 @@ YYYYMMDD_问题关键词_时分/
 - eligible_for_scoring: true/false
 ```
 
-规则：
+- `RITUAL_AUXILIARY` 默认不评分；
+- A/B 必须反馈前建立独立 `case_id`；
+- STANDARD_PLATE miss 后不得临时切 HOUR_OMEN 或其他 time family 救援。
 
-- `RITUAL_AUXILIARY` 默认 `eligible_for_scoring=false`；
-- 若比较多个方法层，A/B 都必须在反馈前建立独立 `case_id`；
-- 不允许标准盘 miss 后临时调用 HOUR_OMEN、年/月/日家或仪式层补救。
-
-输出：`claw_01_method_family.md`
-
----
-
-## 六、Setup / Layout / Time / Deity Freeze
+## 六、Setup / Layout / Time / Deity / State-System Freeze
 
 ```markdown
 # Setup Freeze
@@ -127,6 +115,8 @@ YYYYMMDD_问题关键词_时分/
 - layout_method:
 - time_family: YEAR / MONTH / DAY / HOUR / NOT_APPLICABLE
 - deity_system: GOUCHEN_ZHUQUE / BAIHU_XUANWU / SOURCE_DEFINED_OTHER / NOT_APPLICABLE
+- star_state_system:
+- door_state_system:
 - hour_omen_family:
 - ritual_layer: EXCLUDED_BY_DEFAULT / RESEARCH_ONLY
 - bureau_table_source:
@@ -135,17 +125,18 @@ YYYYMMDD_问题关键词_时分/
 - frozen_at:
 ```
 
-若比较不同起局法、节气校准、八神体系或时间族，必须并行冻结独立模型，而不是结果后挑一套。
+### State-System rules
 
-输出：`claw_02_setup_freeze.md`
+- 如果本模型不使用九星/八门季节状态，写 `NOT_APPLICABLE`；
+- 如果要使用，必须写明确 source/method identifier；
+- 可评分的 FROZEN model 不得把 `star_state_system` 或 `door_state_system` 留成 `CONTEXT_REQUIRED`；
+- 不同系统需 A/B 独立冻结；
+- 结果后换 state system 不得修补原预测。
 
----
-
-## 七、Role Map
+## 七、Role Map Freeze
 
 ```markdown
 # Role Map
-
 | Role | Symbol / Palace | Basis | Alternative |
 |---|---|---|---|
 | 求测者 | ... | SOURCE_DEFINED / METHOD_DEFINED / CONTEXT_INFERRED | ... |
@@ -155,19 +146,11 @@ YYYYMMDD_问题关键词_时分/
 role_map_sha256:
 ```
 
-反馈后换用神必须在 Outcome Audit 标记为 `POST_FEEDBACK_ROLE_SWITCH`，不能覆盖原 Role Map。
-
----
+反馈后换用神标 `POST_FEEDBACK_ROLE_SWITCH`。
 
 ## 八、Structural Lookup
 
-此步骤只负责可机械核验的结构输入，例如：
-
-- 阴阳遁与局数；
-- 值符、值使；
-- 宫位与九星/八门/八神位置；
-- source-defined bureau table lookup；
-- 旬空、马星等结构。
+只负责可机械核验的结构：阴阳遁、局数、值符值使、星门神宫位置、旬空马星、source-defined bureau lookup 等。
 
 ```markdown
 # Structural Lookup
@@ -180,59 +163,44 @@ role_map_sha256:
 - self_check:
 ```
 
-必须牢记：
-
-`Source Fidelity != Lookup Determinism != Predictive Validity`
-
-排盘正确只说明结构执行正确，不说明预测有效。
-
-输出：`claw_04_structural_lookup.md`
-
----
+`Source Fidelity != Lookup Determinism != Predictive Validity`。
 
 ## 九、Eligible Feature Set
 
 ```markdown
 # Eligible Feature Set
-
 IN:
 - ...
-
 OUT:
 - ...
-
 Priority rule within this method family:
 - NONE / ...
-
 Reason:
 ...
-
 eligible_features_sha256:
 ```
 
-未进入 IN 的信息，结果后不得补入救援。
+未进入 IN 的信息，结果后不得补入救援。仪式、符咒、博奕、禁敌默认 OUT。
 
-仪式、符咒、博奕、禁敌材料默认 OUT。
+## 十、Component / Relation Analysis
 
----
+宫盘至少区分：
 
-## 十、Relational Inference
+`STRUCTURAL_METADATA / SOURCE_SYMBOLISM / STATE_FEATURE / ROLE_BINDING / RELATION / CONTEXTUAL_INFERENCE`
 
 ```markdown
 # Relational Inference
-
 ## Primary relations
 ...
-
 ## State features
+- star_state_system:
+- door_state_system:
 - 空亡：结构 + 作用对象 + 当前解释
 - 入墓：结构 + 作用对象 + 当前解释
 - 击刑：结构 + 作用对象 + 当前解释
 - 门迫：结构 + 作用对象 + 当前解释
-
 ## Contrary evidence
 ...
-
 ## Source / Inference split
 - SOURCE:
 - INFERENCE:
@@ -240,23 +208,25 @@ eligible_features_sha256:
 - CONTAMINATION:
 ```
 
-不使用“有四害所以自动打折”“有大凶格所以直接判败”等固定裁决。
+禁止固定星门神加总、旺衰乘数和“四害自动打折”。
 
-九星等来源固定吉凶标签只能作为候选 prior；必须经过季节、事项、状态、角色与其他关系后解释。
+## 十一、Pattern Registry
 
----
+格局由 `qimen-gexia` 处理，至少区分：
 
-## 十一、Competing Branches
+`STEM_PAIR_PATTERN / COMPOSITE_PATTERN / STRUCTURAL_STATE / TIME_CONFIGURATION / METHOD_SPECIFIC_PATTERN`
+
+进入本次预测的 Pattern 必须已在 Eligible Feature Set 中，且结构/来源/适用域可说明。同一底层结构不得因多个格名重复计票。
+
+## 十二、Competing Branches
 
 ```markdown
 # Competing Interpretation Branches
-
-## H1 — 主分支
+## H1
 - assumptions:
 - evidence:
 - predicted observation:
 - failure_condition:
-
 ## H2
 - assumptions:
 - evidence:
@@ -266,15 +236,12 @@ eligible_features_sha256:
 competing_branches_sha256:
 ```
 
-存在真实多解时，保留多解比强行造确定性更合格。
+存在真实多解时保留多解，不用叙事连贯性冒充证据。
 
----
-
-## 十二、Timing Freeze
+## 十三、Timing Freeze
 
 ```markdown
 # Timing Freeze
-
 - prediction_horizon:
 - resolution_target:
 - timing_method_family:
@@ -285,20 +252,12 @@ competing_branches_sha256:
 - timing_protocol_sha256:
 ```
 
-内外盘分组使用：
+内外盘当前结构：阳遁内 `1、8、3、4`、外 `9、2、7、6`；阴遁反转。“内快外慢”不是固定天数系数。
 
-- 阳遁内 `1、8、3、4`；外 `9、2、7、6`；
-- 阴遁内 `9、2、7、6`；外 `1、8、3、4`。
-
-“内快外慢”仍是传统候选语义，不是固定天数系数。
-
----
-
-## 十三、Frozen Prediction
+## 十四、Frozen Prediction
 
 ```markdown
 # Frozen Prediction
-
 ## Protocol
 - case_id:
 - question_fingerprint_sha256:
@@ -310,6 +269,8 @@ competing_branches_sha256:
 - layout_method:
 - time_family:
 - deity_system:
+- star_state_system:
+- door_state_system:
 - hour_omen_family:
 - ritual_layer:
 - bureau_table_source:
@@ -339,64 +300,48 @@ competing_branches_sha256:
 - immutable_after_outcome_feedback: true
 ```
 
-若信息不足，可输出 `INSUFFICIENT_EVIDENCE`；若方法不适用，可输出 `OUT_OF_SCOPE`。禁止为了格式完整硬造答案。
+信息不足可 `INSUFFICIENT_EVIDENCE`；方法不适用可 `OUT_OF_SCOPE`；无法评分可 `UNSCORABLE`。
 
-正式前瞻案例的冻结字段应同步到 `K2_PROSPECTIVE_CASE_REGISTRY.jsonl`。
+正式前瞻案例同步到 `K2_PROSPECTIVE_CASE_REGISTRY.jsonl`。
 
----
-
-## 十四、Auxiliary Context Ablation
-
-只在需要时创建：
+## 十五、Auxiliary Context Ablation
 
 ```markdown
 # Augmented Prediction
-
 ## Frozen method-only reference
 ...
-
 ## Added information
 - news:
 - user background:
 - external omen:
 - other method:
-
 ## Augmentation delta
 - what changed:
 - why:
-
 ## Attribution
 method-only contribution:
 auxiliary contribution:
 ```
 
-任何辅助信息进入后，都不得回写成原 method-only 预测的“本来就看到了”。
+辅助信息不能回写成原 method-only “本来就看到了”。
 
----
-
-## 十五、Outcome Audit
+## 十六、Outcome Audit
 
 ```markdown
 # Outcome Audit
-
 ## Actual outcome
 ...
-
 ## Frozen score
 - outcome_class: HIT / PARTIAL / MISS / UNRESOLVED / CONTAMINATED
 - exact_hit:
 - within_window:
 - unscorable:
-
-## Competing branch score
-...
-
 ## Error class
 INPUT_ERROR / PAIPAN_ERROR / ROLE_MAP_ERROR / METHOD_FAMILY_ERROR /
 METHOD_LAYER_ERROR / SETUP_CALIBRATION_ERROR / DEITY_SYSTEM_ERROR /
-FEATURE_SELECTION_ERROR / INTERPRETATION_ERROR / TIMING_ERROR /
-BASE_RATE_ERROR / AUXILIARY_CONTAMINATION / UNSPECIFIED_MODEL_FAILURE
-
+STATE_SYSTEM_ERROR / FEATURE_SELECTION_ERROR / INTERPRETATION_ERROR /
+TIMING_ERROR / BASE_RATE_ERROR / AUXILIARY_CONTAMINATION /
+UNSPECIFIED_MODEL_FAILURE
 ## Post-feedback changes observed
 - role_switch:
 - factor_switch:
@@ -404,74 +349,54 @@ BASE_RATE_ERROR / AUXILIARY_CONTAMINATION / UNSPECIFIED_MODEL_FAILURE
 - method_layer_switch:
 - setup_calibration_switch:
 - deity_system_switch:
+- star_state_system_switch:
+- door_state_system_switch:
 - time_family_switch:
 - timing_rule_switch:
 - external_information_added:
-
 ## Contamination flags
 ...
-
 ## Rule lifecycle decision
 KEEP / NARROW / REVISE / SPLIT / DEPRECATE / REJECT
 ```
 
-成功与失败都要保留。污染案例不能删除；只能标记为不能支持 clean model。
+成功与失败都保留。污染案例不能删除。
 
----
+## 十七、Prospective Registry Gate
 
-## 十六、Prospective Registry Gate
+正式未知结果测试必须遵守 `knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`。结果后任何冻结字段变化都必须产生新 `case_id`，不得覆盖原记录。
 
-未知结果的正式测试必须遵守：
-
-`knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`
-
-Git 中只保存机器可审计的冻结元数据和哈希，不保存不必要的私人信息。
-
-结果后任何冻结字段变化都必须产生新 `case_id`，不得覆盖原记录。
-
----
-
-## 十七、final_case_summary.md
+## 十八、final_case_summary.md
 
 ```markdown
 # Final Case Summary
-
 ## 原问题
 ...
-
 ## 冻结协议
 ...
-
 ## 冻结预测
 ...
-
 ## 辅助信息增量
 ...
-
 ## 实际结果
 ...
-
 ## 评分与污染状态
 ...
-
 ## 最大误差来源
 ...
-
 ## 对当前理论的影响
 ...
 ```
 
----
+## 十九、文献引用与方法权威
 
-## 十八、文献引用与方法权威
+- 原书断语：SOURCE；
+- 项目转译：INFERENCE；
+- 前瞻结果：EMPIRICAL_SUPPORT；
+- 新闻/背景/外应：CONTAMINATION/AUXILIARY。
 
-- 原书断语：标 SOURCE；
-- 项目转译：标 INFERENCE；
-- 前瞻结果：进入 EMPIRICAL_SUPPORT；
-- 新闻/背景/外应：标 CONTAMINATION/AUXILIARY。
-
-多个古籍同意一条规则，只说明传统来源之间有共识，不自动证明现实有效。
+多个古籍一致只说明 SOURCE consensus，不自动证明现实有效。
 
 ---
 
-*Workflow v2.1 | 2026-08-21 | 纳入 QM-SRC-0001 Method-Layer / Deity-System / Prospective Registry Gate*
+*Workflow v2.2 | 2026-08-21 | 加入 State-System Freeze / Component-Relation / Pattern Registry Gate*
