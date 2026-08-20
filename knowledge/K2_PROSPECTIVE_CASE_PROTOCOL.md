@@ -1,33 +1,29 @@
 # K2 Prospective Case Protocol
 
-Status: ACTIVE / v1.1
+Status: ACTIVE / v1.2
 
-Purpose: turn the current anti-hindsight method constraints into a machine-auditable preregistration layer before real outcome feedback arrives.
-
-This protocol is for research bookkeeping. It does not assert that Qimen has predictive validity.
+Purpose: turn anti-hindsight method constraints into a machine-auditable preregistration layer before real outcome feedback arrives. This protocol is research bookkeeping, not a claim that Qimen has predictive validity.
 
 ## 1. Why a tracked registry is needed
 
-A prose workflow can still drift in execution. Historical failures show that post-feedback freedom can enter through:
+Historical failures show post-feedback freedom can enter through:
 
-- changing setup/calibration after seeing the result;
+- changing setup method or calibration after seeing the result;
+- changing solar-term alignment or day/子时 boundary;
 - changing Role Map or eligible features;
-- switching between time families, deity systems, or auxiliary methods;
-- changing star/door state algorithms when different source systems disagree;
+- switching time families, deity systems, star/door state algorithms, or auxiliary methods;
 - adding news/background after the fact while crediting the gain to the original method;
 - retaining only successful stories and silently losing misses.
 
-The registry therefore records compact hashes plus the main frozen context keys. Detailed case notes may remain local/private; the tracked registry must not contain unnecessary personal information.
+The registry stores compact frozen metadata and hashes. Detailed/private case notes stay outside Git.
 
-## 2. Registry file
-
-Tracked registry:
+## 2. Registry
 
 `knowledge/K2_PROSPECTIVE_CASE_REGISTRY.jsonl`
 
-One row = one frozen model run. Parallel A/B variants for the same question must use different `case_id` values and must be frozen before outcome feedback.
+One row = one frozen model run. Parallel A/B variants for the same question require different `case_id` values and must be frozen before outcome feedback.
 
-The registry may be empty when no eligible prospective case has been run yet. Empty is more truthful than fabricating a case merely to exercise the schema.
+The registry may be empty. Empty is more truthful than fabricating a case merely to exercise the schema.
 
 ## 3. Required fields
 
@@ -39,8 +35,10 @@ Each row must contain exactly:
 - `question_domain`
 - `method_family`
 - `method_layer`
+- `setup_method`
 - `setup_calibration`
 - `seasonal_alignment`
+- `time_boundary_system`
 - `time_family`
 - `layout_method`
 - `deity_system`
@@ -62,9 +60,9 @@ Each row must contain exactly:
 - `contamination_flags`
 - `review_status`
 
-Hashes point to the exact local/private frozen artifacts. They are not hashes of book pages or copyrighted text.
+Hashes point to exact local/private frozen artifacts, not book pages.
 
-## 4. Method-layer fields
+## 4. Main context fields
 
 `method_layer`:
 
@@ -72,6 +70,16 @@ Hashes point to the exact local/private frozen artifacts. They are not hashes of
 - `TIME_FAMILY_VARIANT`
 - `HOUR_OMEN`
 - `RITUAL_AUXILIARY`
+
+`setup_method` is a non-empty source/method/version identifier, for example:
+
+- `FUTOU_ZHIRUN`
+- `CHAIBU_SOLAR_TERM`
+- `MAOSHAN_SOLAR_TERM`
+- `SOURCE_DEFINED_OTHER`
+- `NOT_APPLICABLE`
+
+This field freezes the algorithm family. It does not assert that any named method is correct.
 
 `setup_calibration`:
 
@@ -88,6 +96,15 @@ Hashes point to the exact local/private frozen artifacts. They are not hashes of
 - `JIEQI`
 - `SOURCE_DEFINED_OTHER`
 - `NOT_APPLICABLE`
+
+`time_boundary_system` is a non-empty identifier for civil-day / 子时 boundary handling, such as:
+
+- `CIVIL_MIDNIGHT`
+- `ZI_START_23`
+- `SOURCE_DEFINED_OTHER`
+- `NOT_APPLICABLE`
+
+If competing boundary rules generate different plates, use separate A/B cases. The registry does not choose which rule is metaphysically correct.
 
 `time_family`:
 
@@ -113,43 +130,35 @@ A `RITUAL_AUXILIARY` row must always set `eligible_for_scoring=false`.
 
 ## 5. State-system fields
 
-The qimen-gongpan migration exposed an important loophole: the legacy corpus contains incompatible九星旺相休囚 assignments. A model could otherwise change the state algorithm after seeing the outcome.
+Every row freezes:
 
-Therefore every row now also freezes:
+- `star_state_system`
+- `door_state_system`
 
-`star_state_system`
+If a model does not use star/door seasonal state, write `NOT_APPLICABLE`.
 
-and
-
-`door_state_system`.
-
-These are non-empty source/method identifiers, for example a versioned source-specific system name. If a model does not use star/door seasonal states, write:
-
-`NOT_APPLICABLE`.
-
-Do not write `CONTEXT_REQUIRED` in a scored `FROZEN/RESOLVED` model. Unresolved state-system choice means the scoring model is not ready; either resolve it before freeze, omit those state features and use `NOT_APPLICABLE`, or run explicit A/B models with different case IDs.
-
-This field does not claim one state system is correct. It only prevents outcome-driven switching.
+A scored `FROZEN/RESOLVED` model may not leave either field as `CONTEXT_REQUIRED`. If the state algorithm is unresolved, resolve it before freeze, remove those features and use `NOT_APPLICABLE`, or run explicit A/B models.
 
 ## 6. Freeze semantics
 
-Before `status=FROZEN`, the following must already be fixed:
+Before `status=FROZEN`, already fixed:
 
 - question target and horizon;
-- method layer and method family;
-- setup calibration / seasonal alignment;
+- method layer/family;
+- setup method, setup calibration and seasonal alignment;
+- time-boundary system;
 - time family / layout / deity system;
 - star-state and door-state systems if used;
 - Role Map;
-- eligible feature set;
-- competing interpretation branches;
+- eligible feature set / patterns;
+- competing branches;
 - timing protocol;
-- auxiliary-information policy;
-- observable success/failure criteria in the local frozen artifact.
+- auxiliary policy;
+- observable success/failure criteria in local artifact.
 
-`outcome_unknown_at_freeze` must be `true` for any row that will later count toward empirical support.
+`outcome_unknown_at_freeze=true` is required for any row later contributing to empirical support.
 
-Changing a frozen field after feedback creates a new `case_id`; it may not overwrite the original row and may not repair the original score.
+Changing a frozen field after feedback creates a new `case_id`; it cannot repair the original score.
 
 ## 7. Status lifecycle
 
@@ -161,7 +170,7 @@ or
 
 `PREREGISTERED/FROZEN -> VOID`
 
-`RESOLVED` requires one outcome class:
+`RESOLVED` outcome:
 
 - `HIT`
 - `PARTIAL`
@@ -169,9 +178,9 @@ or
 - `UNRESOLVED`
 - `CONTAMINATED`
 
-A non-`RESOLVED` row must have `outcome_class=null`.
+Non-RESOLVED row has `outcome_class=null`.
 
-`VOID` is for unusable trials such as invalid input, outcome known before freeze, or protocol corruption. It is not a euphemism for a miss.
+`VOID` is for unusable trials such as invalid input, known outcome before freeze, or corrupted protocol. It is not a euphemism for a miss.
 
 ## 8. Auxiliary information and contamination
 
@@ -181,7 +190,7 @@ A non-`RESOLVED` row must have `outcome_class=null`.
 - `ALLOWED_AFTER_FREEZE`
 - `PRE_EXPOSED`
 
-Allowed contamination flags:
+Contamination flags:
 
 - `AUXILIARY_CONTAMINATION`
 - `PRIOR_SOCIAL_INFORMATION`
@@ -194,59 +203,42 @@ Allowed contamination flags:
 - `INVALID_INPUT_ACCEPTED_POST_HOC`
 - `OTHER`
 
-A contaminated trial remains in the registry. It is not deleted just because it cannot support the clean model.
+A contaminated trial remains in the registry.
 
-Changing `star_state_system` or `door_state_system` after feedback is a model/factor switch and must not repair the old score.
+Changing `setup_method`, `time_boundary_system`, `star_state_system` or `door_state_system` after feedback is a model/method/factor switch and must not repair the old score.
 
-## 9. Source fidelity is separate
-
-A prospective case may use a source-defined bureau table or implementation fixture, but the following remain distinct:
+## 9. Source fidelity remains separate
 
 `Source Fidelity != Lookup Determinism != Empirical Support`
 
-Passing `K2_SOURCE_FIXTURES` means the implementation reproduces selected source anchors. Passing qimen runtime-contract tests means the execution documents reject known legacy loopholes. Only resolved prospective cases can later contribute to empirical support.
+Passing source fixtures or runtime contracts means the implementation follows selected source/contract constraints. Only qualified resolved prospective cases may contribute to Empirical Support.
 
 ## 10. Privacy / copyright boundary
 
-The tracked registry must not contain:
-
-- raw private conversations;
-- names, phone numbers, addresses, account identifiers, medical details, or other unnecessary personal data;
-- local filesystem paths;
-- copied book passages or table transcriptions.
-
-Use hashes and coarse research metadata instead. Detailed private case packets stay outside Git.
+Tracked registry must not contain raw private conversations, identifying personal data, local filesystem paths, or copied book passages/tables. Use hashes and coarse research metadata.
 
 ## 11. Validation ownership
 
-Project-side validators may reject malformed or hindsight-permissive rows.
+A local helper may generate hashes/run validators but must not create synthetic cases, decide outcome labels, alter frozen protocols, grant empirical support, or commit/push unless separately delegated.
 
-A local helper may generate hashes or run validators, but it must not:
-
-- create synthetic cases to make counts look better;
-- decide outcome labels;
-- change a frozen protocol after feedback;
-- grant empirical support;
-- commit/push unless explicitly delegated in a separate execution task.
-
-## 12. Relationship to current theory
-
-This protocol operationalizes, but does not freeze forever, the current chain:
+## 12. Current theory chain
 
 `Reality Baseline`
 -> `Question Domain`
 -> `Method-Layer Freeze`
--> `Time Family + Setup Calibration + Seasonal Alignment Freeze`
+-> `Setup Method + Calibration + Seasonal Alignment Freeze`
+-> `Time-Boundary + Time-Family Freeze`
 -> `Deity-System / Layout Context Freeze`
 -> `State-System Freeze`
 -> `Role Map Freeze`
 -> `Bureau / Structural Lookup`
 -> `Eligible Feature Set`
--> `Contextual Relation Weaving`
+-> `Component / Relation Weaving`
+-> `Pattern Registry`
 -> `Competing Branches`
 -> `Frozen Prediction`
 -> `Auxiliary Ablation`
 -> `Outcome Audit`
 -> `Rule Lifecycle Update`
 
-The protocol may itself be revised if prospective use exposes new loopholes.
+The protocol itself remains revisable when new loopholes appear.

@@ -14,8 +14,10 @@ BASE={
     "question_domain":"TEST_DOMAIN",
     "method_family":"TEST_FAMILY",
     "method_layer":"STANDARD_PLATE",
+    "setup_method":"CHAIBU_SOLAR_TERM",
     "setup_calibration":"PINGQI",
-    "seasonal_alignment":"ZHENGSHOU",
+    "seasonal_alignment":"JIEQI",
+    "time_boundary_system":"ZI_START_23",
     "time_family":"HOUR",
     "layout_method":"ROTATING_PLATE",
     "deity_system":"GOUCHEN_ZHUQUE",
@@ -60,10 +62,10 @@ def main():
     r=copy.deepcopy(BASE);r["status"]="RESOLVED";r["outcome_class"]="CONTAMINATED";expect_fail([r],"requires contamination flag")
     r=copy.deepcopy(BASE);r["status"]="RESOLVED";r["outcome_class"]="HIT";r["contamination_flags"]=["AUXILIARY_CONTAMINATION"];expect_fail([r],"cannot remain eligible_for_scoring")
     r=copy.deepcopy(BASE);r["layout_method"]="/home/user/private";expect_fail([r],"local filesystem path leaked")
-    r=copy.deepcopy(BASE);del r["star_state_system"];expect_fail([r],"missing fields")
-    r=copy.deepcopy(BASE);r["star_state_system"]="";expect_fail([r],"star_state_system must be non-empty")
-    r=copy.deepcopy(BASE);r["star_state_system"]="CONTEXT_REQUIRED";expect_fail([r],"cannot leave star_state_system=CONTEXT_REQUIRED")
-    r=copy.deepcopy(BASE);r["door_state_system"]="CONTEXT_REQUIRED";expect_fail([r],"cannot leave door_state_system=CONTEXT_REQUIRED")
+    for f in ("setup_method","time_boundary_system","star_state_system","door_state_system"):
+        r=copy.deepcopy(BASE);del r[f];expect_fail([r],"missing fields")
+        r=copy.deepcopy(BASE);r[f]="";expect_fail([r],f"{f} must be non-empty")
+        r=copy.deepcopy(BASE);r[f]="CONTEXT_REQUIRED";expect_fail([r],f"cannot leave {f}=CONTEXT_REQUIRED")
     expect_fail([copy.deepcopy(BASE),copy.deepcopy(BASE)],"duplicate case_id")
     r=copy.deepcopy(BASE);r["unexpected"]=1;expect_fail([r],"unexpected fields")
     print("k2-prospective-case-tests: PASS")
