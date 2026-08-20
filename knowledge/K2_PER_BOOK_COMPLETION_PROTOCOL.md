@@ -62,7 +62,9 @@ The explicit `--force` aggregation is important: an informational `REVIEW_REQUIR
 
 For source work **started on or after 2026-08-21**, a book may be declared `COMPLETE / CLOSED / ACCEPTED` only when all applicable gates are closed:
 
-`canonical bytes -> Pre-Book Retrospective -> full reading -> Atomic Evidence -> Book Distillate -> conflict/anti-pattern review -> Method Delta -> prospective test plan -> provenance corrections -> aggregate validators/tests -> CI -> project acceptance`
+`canonical bytes -> Pre-Book Retrospective -> source-appropriate full reading -> Atomic Evidence -> Book Distillate -> conflict/anti-pattern review -> Method Delta -> prospective test plan -> provenance corrections -> aggregate validators/tests -> CI -> project acceptance`
+
+For `VISUAL_REQUIRED`, “source-appropriate full reading” specifically means original-page visual review. A local render packet may precede that review, but packet creation is transport, not Reading Credit.
 
 Earlier accepted books remain valid accepted history and are not retroactively invalidated solely because the Pre-Book Retrospective gate did not yet exist.
 
@@ -102,3 +104,17 @@ The retrospective must review relevant historical failures, theory drafts, prosp
 - criteria that are insufficient to force a theory change.
 
 This gate exists to prevent K2 from becoming passive rule accumulation. It does not weaken source fidelity or Evidence requirements, and it does not allow project inference to be rewritten as source Evidence.
+
+## 8. VISUAL_REQUIRED handoff gate
+
+`knowledge/K2_VISUAL_PAGE_HANDOFF_PROTOCOL.md` governs SCAN / VISUAL_REQUIRED transport.
+
+`tools/build_k2_visual_page_packet.py` may resolve canonical local bytes and render every PDF page to local-only PNG images. A successful result is only `READY_FOR_VISUAL_REVIEW` and must record `review_credit_granted=false`.
+
+Rendered pages, original PDFs and visual packets remain outside the repository. The main reviewer must still inspect every registered page before `pages_reviewed_count` can reach the source page count or Reading can become COMPLETE.
+
+For VISUAL_REQUIRED, the expanded closure segment is:
+
+`canonical bytes -> local visual packet -> main-reviewer page-by-page visual review -> Atomic Evidence`
+
+Rendering removes an access bottleneck; it does not lower the epistemic bar.
