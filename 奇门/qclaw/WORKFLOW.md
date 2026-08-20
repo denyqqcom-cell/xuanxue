@@ -1,230 +1,389 @@
-# 奇门遁甲解盘工作流模板
+# 奇门受约束情境推演工作流 v2.0
 
-> **本文件是案例输出的模板参考。**  
-> 每个案例在 `F:\奇门遁甲\生成内容\` 下新建文件夹，按以下模板输出。
+> 本模板用于保存一次解盘从原始输入到冻结预测、辅助信息增量与结果审计的全过程。
+>
+> 上位约束：`奇门/CURRENT_METHOD_CONSTRAINTS.md`、`qimen-overview/SKILL.md`、`_AGENT_INSTRUCTIONS.md`。
 
----
+## 一、核心变化
 
-## 一、案例文件夹结构
+旧工作流按固定八步输出，并要求每一步都必须明确吉凶、最终必须给成败与应期。这会在证据不足时制造确定性，也容易让不同书的规则在同一盘中无限叠加。
 
-```
-YYYYMMDD_问题关键词_时分\
-├── _META.md                        ← 元数据（原始输入，创建后不可修改）
-├── claw_问题分类_YYYYMMDD.md       ← 徒弟步骤①
-├── claw_看大局_YYYYMMDD.md         ← 徒弟步骤②
-├── claw_取用神_YYYYMMDD.md         ← 徒弟步骤③
-├── claw_查四害_YYYYMMDD.md         ← 徒弟步骤④
-├── claw_析宫盘_YYYYMMDD.md         ← 徒弟步骤⑤
-├── claw_看生克_YYYYMMDD.md         ← 徒弟步骤⑥
-├── claw_定应期_YYYYMMDD.md         ← 徒弟步骤⑦
-├── claw_格局详解_YYYYMMDD.md       ← 徒弟步骤⑧
-├── claw_完整断局_YYYYMMDD.md       ← ★ 徒弟→师傅交接文件
-├── workbuddy_核查报告_YYYYMMDD.md  ← 师傅核查输出
-├── 最终结论_YYYYMMDD.md            ← 汇总输出
-└── 追加Q_序号_问题_YYYYMMDD.md     ← 用户追问（按需创建）
-```
+v2.0 改为：
+
+`Reality Baseline -> Method Freeze -> Role Map -> Eligible Features -> Relational Inference -> Competing Branches -> Timing Freeze -> Frozen Prediction -> Auxiliary Ablation -> Outcome Audit`
+
+单次预测中可以灵活推演，但反馈前必须冻结自由度。
 
 ---
 
-## 二、_META.md 模板
+## 二、推荐案例目录
+
+```text
+YYYYMMDD_问题关键词_时分/
+├── _META.md
+├── claw_00_reality_baseline.md
+├── claw_01_method_family.md
+├── claw_02_setup_freeze.md
+├── claw_03_role_map.md
+├── claw_04_eligible_features.md
+├── claw_05_relational_inference.md
+├── claw_06_competing_branches.md
+├── claw_07_timing_freeze.md
+├── claw_FROZEN_PREDICTION_YYYYMMDD.md
+├── claw_AUGMENTED_PREDICTION_YYYYMMDD.md      # 可选
+├── claw_OUTCOME_AUDIT_YYYYMMDD.md             # 结果已知后
+└── final_case_summary.md
+```
+
+旧 `claw_问题分类 / 看大局 / 取用神 / 查四害 / 析宫盘 / 看生克 / 格局详解` 文件可为兼容历史案例继续存在，但新案例不再强制按这些文件拆分。
+
+---
+
+## 三、_META.md
 
 ```markdown
-# 案例元数据
-- 案例编号：YYYYMMDD-001
-- 事体：[事体描述]
-- 求测时间：[YYYY年MM月DD日 HH时]
-- 排盘数据：
-  [完整排盘信息]
-- 用户原始输入：
-  [原文保留]
-- 创建时间：[YYYY-MM-DD HH:MM]
-- 状态：分析中
+# Case Metadata
+
+- case_id:
+- question_raw:
+- question_normalized:
+- prediction_time:
+- location:
+- plate_source:
+- known_facts_before_prediction:
+- outcome_unknown_at_freeze: true/false
+- auxiliary_information_policy: NONE / ALLOWED_AFTER_FREEZE / PRE_EXPOSED
+- created_at:
 ```
+
+原始输入与初始已知事实不得在结果后覆盖。
 
 ---
 
-## 三、徒弟步骤文件模板
-
-每个 `claw_步骤名_YYYYMMDD.md` 使用统一格式：
+## 四、Reality Baseline
 
 ```markdown
-# [步骤名称]
+# Reality Baseline
 
-## 排盘信息
-[当前局的关键数据]
+## Object existence
+...
 
-## 分析过程
-[基于 qimen-* 知识的详细分析]
+## Known facts
+...
 
-## 本步结论
-[明确结论]
+## Unknown target
+...
 
-## 下步衔接
-[引出下一步方向]
+## Time horizon
+...
+
+## Base-rate considerations
+...
+
+## Safety / professional-boundary notes
+...
 ```
+
+这里不做盘面吉凶判断。
 
 ---
 
-## 四、claw_完整断局 模板（核心交接文件）
+## 五、Method Freeze
 
 ```markdown
-# 徒弟完整断局报告
+# Method Family
+- question_domain:
+- method_family:
+- alternative_method_family:
+- reason:
 
-## 一、事体概述
-[一句话总结]
-
-## 二、排盘摘要
-- 局数：[阴/阳遁 第X局]
-- 值符值使：[X落X宫]
-- 日干：[X落X宫，旺衰]
-- 时干：[X落X宫，旺衰]
-- 用神：[X落X宫，旺衰]
-
-## 三、八步分析结论汇总
-
-### ① 问题分类
-[一句话]
-
-### ② 大局判断
-[一句话]
-
-### ③ 用神选取
-- 日干（本人）：[X落X宫]
-- 时干（事体）：[X落X宫]
-- 事项用神：[X落X宫]
-- 选取理由：[一句话]
-
-### ④ 四害检查
-- 空亡：[有/无]
-- 入墓：[有/无]
-- 击刑：[有/无]
-- 门迫：[有/无]
-- 四害影响：[一句话]
-
-### ⑤ 宫盘分析
-[星+门+神综合判断]
-
-### ⑥ 生克关系
-[主客+五行生克]
-
-### ⑦ 应期判断
-- 应期：[具体时间]
-- 依据：[方法+理由]
-
-### ⑧ 格局详解
-[格局+影响]
-
-## 四、综合判断
-[成败倾向 + 关键转折 + 最终应期]
-
-## 五、分析依据
-- 技能文件：[使用的 qimen-* 列表]
-- 知识来源：善天道讲义体系
+# Setup Freeze
+- setup_method:
+- yin_yang_dun:
+- ju_number:
+- layout_method:
+- time_family:
+- school_context:
+- plate_self_check:
+- frozen_at:
 ```
+
+若比较多个方法，A/B 都必须在反馈前建立。
 
 ---
 
-## 五、workbuddy_核查报告 模板
+## 六、Role Map
 
 ```markdown
-# 师傅核查报告
+# Role Map
 
-## 基本信息
-- 案例文件夹：[路径]
-- 核查时间：[YYYY-MM-DD HH:MM]
-- 交接文件：claw_完整断局_YYYYMMDD.md
-- 核查依据：qmdj-* skills（金函玉镜古籍体系）
-
-## 逐项核查结果
-
-| 序号 | 核查项 | 结果 | 说明 |
-|------|--------|------|------|
-| ① | 流程完整性 | ✅/❌ | [说明] |
-| ② | 用神准确性 | ✅/❌ | [说明] |
-| ③ | 格局完备性 | ✅/❌ | [说明] |
-| ④ | 旺衰判断 | ✅/❌ | [说明] |
-| ⑤ | 应期合理性 | ✅/❌ | [说明] |
-| ⑥ | 古籍补充 | ✅/— | [说明] |
-
-## 修正内容（如有）
-### 修正1：[标题]
-- 徒弟结论：[原文]
-- 师傅修正：[修正内容]
-- 古籍依据：> 《书名》·卷·页码
-  [引用原文]
-
-## 存疑项（如有）
-### 存疑1：[标题]
-- 徒弟观点：[原文]
-- 师傅观点：[原文]
-- 存疑原因：[说明]
-
-## 古籍补充（如有）
-### 补充1：[标题]
-- 古籍依据：> 《书名》·卷·页码
-  [引用原文]
-- 与事体关系：[说明]
-
-## 总评
-- 核查结果：[✅ 通过 / ⚠️ 有条件通过 / ❌ 需重新分析]
-- 修正数量：[X项]
-- 存疑数量：[X项]
-- 补充数量：[X项]
+| Role | Symbol / Palace | Basis | Alternative |
+|---|---|---|---|
+| 求测者 | ... | SOURCE_DEFINED / METHOD_DEFINED / CONTEXT_INFERRED | ... |
+| 事件 | ... | ... | ... |
+| 对方 | ... | ... | ... |
 ```
+
+反馈后换用神必须在 Outcome Audit 标记为 `POST_FEEDBACK_ROLE_SWITCH`，不能覆盖原 Role Map。
 
 ---
 
-## 六、最终结论 模板
+## 七、Eligible Feature Set
 
 ```markdown
-# 最终结论
+# Eligible Feature Set
 
-## 事体
-[事体描述]
+IN:
+- ...
 
-## 排盘摘要
-[关键排盘信息]
+OUT:
+- ...
 
-## 徒弟分析
-[综合判断摘要]
+Priority rule within this method family:
+- NONE / ...
 
-## 师傅核查
-[核查结果概要]
-
-## 修正与补充
-[如有]
-
-## 最终判断
-[合并后的最终结论：成败倾向 + 关键转折 + 应期]
-
-## 存疑项
-[如有，两种观点并列]
-
-## 文献依据
-[所有引用的古籍出处]
+Reason:
+...
 ```
+
+未进入 IN 的信息，结果后不得补入救援。
 
 ---
 
-## 七、追加问答 模板
+## 八、Relational Inference
 
 ```markdown
-# 追加问 Q[序号]：[问题关键词]
+# Relational Inference
 
-## 用户追问
-[用户的新问题原文]
+## Primary relations
+...
 
-## 追加分析
-[分析内容]
+## State features
+- 空亡：结构 + 作用对象 + 当前解释
+- 入墓：结构 + 作用对象 + 当前解释
+- 击刑：结构 + 作用对象 + 当前解释
+- 门迫：结构 + 作用对象 + 当前解释
 
-## 追加结论
-[结论]
+## Contrary evidence
+...
 
-## 师傅核查
-[核查结果]
+## Source / Inference split
+- SOURCE:
+- INFERENCE:
+- EMPIRICAL_SUPPORT:
+- CONTAMINATION:
+```
+
+不使用“有四害所以自动打折”“有大凶格所以直接判败”等固定裁决。
+
+---
+
+## 九、Competing Branches
+
+```markdown
+# Competing Interpretation Branches
+
+## H1 — 主分支
+- assumptions:
+- evidence:
+- predicted observation:
+- failure_condition:
+
+## H2
+- assumptions:
+- evidence:
+- predicted observation:
+- failure_condition:
+```
+
+存在真实多解时，保留多解比强行造确定性更合格。
+
+---
+
+## 十、Timing Freeze
+
+```markdown
+# Timing Freeze
+
+- prediction_horizon:
+- resolution_target:
+- timing_method_family:
+- eligible_timing_features:
+- main_window:
+- scoring_tolerance:
+
+## Reasoning chain
+1. ...
+2. ...
+3. ...
+
+## Alternative timing window
+...
+```
+
+内外盘分组使用：
+
+- 阳遁内 `1、8、3、4`；外 `9、2、7、6`；
+- 阴遁内 `9、2、7、6`；外 `1、8、3、4`。
+
+“内快外慢”仍是传统候选语义，不是固定天数系数。
+
+---
+
+## 十一、Frozen Prediction
+
+```markdown
+# Frozen Prediction
+
+## Protocol
+- question_domain:
+- method_family:
+- setup_method:
+- layout_method:
+- time_family:
+- role_map_version:
+- eligible_features_version:
+- timing_method:
+
+## Main prediction
+- outcome/direction:
+- time_window:
+- observable_success_criteria:
+- observable_failure_criteria:
+
+## Alternatives
+...
+
+## Confidence split
+- source_fidelity:
+- applicability:
+- empirical_support:
+
+## Auxiliary information
+NOT USED / PRE_EXPOSED
+
+## Freeze
+- timestamp:
+- immutable_after_outcome_feedback: true
+```
+
+若信息不足，可输出 `INSUFFICIENT_EVIDENCE`；若方法不适用，可输出 `OUT_OF_SCOPE`。禁止为了格式完整硬造答案。
+
+---
+
+## 十二、Auxiliary Context Ablation
+
+只在需要时创建：
+
+```markdown
+# Augmented Prediction
+
+## Frozen method-only reference
+...
+
+## Added information
+- news:
+- user background:
+- external omen:
+- other method:
+
+## Augmentation delta
+- what changed:
+- why:
+
+## New practical conclusion
+...
+
+## Attribution
+method-only contribution:
+auxiliary contribution:
 ```
 
 ---
 
-*工作流模板 v1.0 | 2026-03-27*
-*完整规范见：`F:\奇门遁甲\CONDUCT.md`*
+## 十三、Outcome Audit
+
+```markdown
+# Outcome Audit
+
+## Actual outcome
+...
+
+## Frozen score
+- exact_hit:
+- within_window:
+- miss:
+- unscorable:
+
+## Competing branch score
+...
+
+## Error class
+INPUT_ERROR / PAIPAN_ERROR / ROLE_MAP_ERROR / METHOD_FAMILY_ERROR /
+FEATURE_SELECTION_ERROR / INTERPRETATION_ERROR / TIMING_ERROR /
+BASE_RATE_ERROR / AUXILIARY_CONTAMINATION / UNSPECIFIED_MODEL_FAILURE
+
+## Post-feedback changes observed
+- role_switch:
+- factor_switch:
+- method_switch:
+- timing_rule_switch:
+- external_information_added:
+
+## Rule lifecycle decision
+KEEP / NARROW / REVISE / SPLIT / DEPRECATE / REJECT
+
+## Why
+...
+```
+
+成功与失败都要记录。成功案例必须讨论基础概率与污染，失败案例不得自动用“体系天花板”解释。
+
+---
+
+## 十四、final_case_summary.md
+
+```markdown
+# Final Case Summary
+
+## 原问题
+...
+
+## 冻结协议
+...
+
+## 冻结预测
+...
+
+## 辅助信息增量
+...
+
+## 实际结果
+...
+
+## 评分
+...
+
+## 最大误差来源
+...
+
+## 对当前理论的影响
+...
+```
+
+这是用于跨案例学习的核心摘要，不再使用“徒弟→师傅天然权威”的固定交接结构。
+
+---
+
+## 十五、文献引用与方法权威
+
+- 原书断语：标 SOURCE；
+- 项目转译：标 INFERENCE；
+- 前瞻结果：进入 EMPIRICAL_SUPPORT；
+- 新闻/背景/外应：标 CONTAMINATION/AUXILIARY。
+
+多个古籍同意一条规则，只说明传统来源之间有共识，不自动证明现实有效。
+
+---
+
+*Workflow v2.0 | 2026-08-21 | 受约束情境推演版*
