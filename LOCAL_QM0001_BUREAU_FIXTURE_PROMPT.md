@@ -8,15 +8,16 @@ You are the local execution helper. Do not redesign schemas, do not modify track
 
 ## A. Sync and provenance
 
-1. `git fetch` the repository and fast-forward/switch to the latest `k2-qm0001-liang-retrospective`.
-2. Report exact `HEAD`.
-3. Verify tracked worktree state. Do not delete unrelated untracked files.
-4. Locate the local canonical PDF for:
+1. `git fetch` the repository.
+2. Switch to `k2-qm0001-liang-retrospective` and fast-forward to the **latest remote branch head**.
+3. Report the exact resulting `HEAD` SHA. Do not require an old hard-coded SHA from a previous chat turn unless the wrapper prompt explicitly supplies a newer expected SHA.
+4. Verify tracked worktree state. Do not delete unrelated untracked files.
+5. Locate the local canonical PDF for:
    - source_id: `QM-SRC-0001`
    - title: `梁湘潤《奇門遁甲入門》`
    - expected SHA256: `0cbf020b76f866d3c2dc70001d16aa5cee9ce8405a4a725ce643c12ef701f7cf`
    - expected PDF pages: `57`
-5. If SHA256 or page count mismatches, STOP with `CANONICAL_MISMATCH`.
+6. If SHA256 or page count mismatches, STOP with `CANONICAL_MISMATCH`.
 
 ## B. Render-only visual packet
 
@@ -99,7 +100,8 @@ The JSONL may contain local paths because it must remain outside Git.
 - no claim that code or tables predict reality;
 - no Reading Credit;
 - no silent correction of suspected source typos;
-- no replacing 勾陳/朱雀 or other source terminology with modern equivalents.
+- no replacing 勾陳/朱雀 or other source terminology with modern equivalents;
+- no changing Prospective Case Registry or granting empirical support.
 
 ## F. Return format
 
