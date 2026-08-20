@@ -64,6 +64,8 @@ jobs:
         run: python3 tools/test_qimen_execution_freeze_contract.py
       - name: Test Qimen qiju runtime contract
         run: python3 tools/test_qimen_qiju_runtime_contract.py
+      - name: Test Qimen cases runtime contract
+        run: python3 tools/test_qimen_cases_runtime_contract.py
       - name: Test Qimen gexia runtime contract
         run: python3 tools/test_qimen_gexia_runtime_contract.py
       - name: Test Qimen gongpan runtime contract
