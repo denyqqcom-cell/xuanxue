@@ -4,7 +4,7 @@
 
 ## ⚠️ 当前运行入口（2026-08-21 起）
 
-旧知识库与 `qclaw` 技能保留大量历史书证、案例和早期规则，但其中仍有部分“书证=真值”、固定优先级、单案例过度泛化和旧版机械断法。
+旧知识库与 `qclaw` 技能保留大量历史书证、案例和早期规则，其中仍有部分“书证=真值”、固定优先级、单案例过度泛化和旧版机械断法。
 
 后续学习与解盘必须先读取：
 
@@ -105,60 +105,69 @@ FRAME
 
 即：
 
-```text
-定境
-→ 冻结
-→ 织关系
-→ 立判别
-→ 受反证
-→ 做减法
-```
+`定境 → 冻结 → 织关系 → 立判别 → 受反证 → 做减法`
 
-底层执行仍由 `CURRENT_METHOD_CONSTRAINTS.md` 展开为 Baseline Firewall、Method/Setup/Role/Feature Freeze、Branch-Discrimination、Prospective Registry、Outcome Audit 等可审计步骤。
+底层执行由 `CURRENT_METHOD_CONSTRAINTS.md` 展开为 Baseline Firewall、Method/Setup/Role/Feature Freeze、Branch-Discrimination、Prospective Registry、Outcome Audit 等可审计步骤。
 
-重点已经从“解释更多符号”进一步变成：
-
-**预测前减少自由度，结果后先认分，再用反证和消融删掉多余东西。**
+重点不是解释更多符号，而是：**预测前减少自由度，结果后先认分，再用反证和消融删掉多余东西。**
 
 ---
 
 ## 🔬 当前验证纪律
 
 - SOURCE ≠ INFERENCE ≠ EMPIRICAL_SUPPORT ≠ CONTAMINATION。
-- 书本案例默认用于理解方法、发现边界与生成假设，不直接证明准确率。
+- 书本案例用于理解方法、发现边界与生成假设，不直接证明准确率。
 - 单个 HIT/MISS 只能生成 `CASE_LESSON_CANDIDATE`，不能直接生成跨问题全局规则。
 - contaminated / outcome-known retrospective 不折算成“0.5 次真验证”；Empirical Support credit 默认为 0。
 - `PARTIAL` 是预注册 outcome class，不是“半次验证”。
-- 新闻、人物背景、外应和其他术数属于辅助通道；验证时必须与 method-only 输出分离。
-- validator/CI PASS 不保证 oracle 正确；implementation 与 expected 必须尽量独立，并有 wrong-input negative controls。
-- 任何“必吉、必凶、必发财、必伤灾”等断语，除非明确限定为“原书断语”，否则不得作为项目事实直接输出。
+- 新闻、人物背景、外应和其他术数属于辅助通道；验证时与 method-only 输出分离。
+- validator/CI PASS 不保证 oracle 正确；implementation 与 expected 尽量独立，并有 wrong-input negative controls。
+- 任何“必吉、必凶、必发财、必伤灾”等断语，除非明确限定为原书断语，否则不得作为项目事实直接输出。
 - 高风险领域不得以术数替代专业判断。
 
 ---
 
 ## 🔧 工具与技能
 
-`qclaw/` 中的技能是持续迁移中的历史资产。调用前必须遵守 `CURRENT_METHOD_CONSTRAINTS.md`，不能因为某个 `SKILL.md` 使用“严格优先级”“大凶”“必”等措辞，就绕过 K2 的证据与适用域约束。
+`qclaw/` 中的技能是持续迁移中的历史资产。调用前必须遵守 `CURRENT_METHOD_CONSTRAINTS.md`。
 
-已知旧技能中的事实性错误应直接修正；属于流派差异或未验证理论的内容则保留来源，但降级为 SOURCE/CANDIDATE，而不是静默改成另一家说法。
+已知旧技能中的事实性错误应直接修正；属于流派差异或未验证理论的内容保留来源，但降级为 SOURCE/CANDIDATE，而不是静默改成另一家说法。
 
 ---
 
-## 📌 当前研究锚点，不再写“下一本书”
+## 📌 当前研究锚点
 
-`QM-SRC-0001 / WORK-000217 / 梁湘润《奇门遁甲入门》` 当前状态：
+### QM-SRC-0001 / 梁湘润《奇门遁甲入门》
+
+阅读/蒸馏：
 
 - 57/57 原页视觉阅读：COMPLETE；
 - 32 Atomic Evidence：REVIEWED；
 - Book Distillate：REVIEWED；
-- 十八局 18/18 table bodies：已主审定位；
-- 36 sparse anchors：`ANCHORS_VERIFIED`；
-- 原错误 one-bureau-shift / p35-p36 scan order / Yin1→p49 已转成 negative controls；
-- 下一步是 production `QimenEngine` implementation comparison，而不是继续堆新书。
+- Reading / Distillation：CLOSED；
+- Empirical validity：OPEN / UNVALIDATED。
 
-当前不预先指定“下一本必读书”。原因：过去容易把持续学习误解成持续增加文献数量。完成必要的 Test F implementation integrity 后，应尽快进入 clean unknown-outcome prospective trials，再根据真实暴露的问题决定下一本书读什么。
+十八局 Test F：
 
-文献学习仍持续，但采用问题驱动：
+- 18/18 table bodies：主审定位；
+- 36 Jiazi sparse anchors：main-reviewed；
+- 18 fixture rows：`IMPLEMENTATION_CHECKED`，**仅限 tracked Jiazi sparse-anchor scope**；
+- production comparison commit `86e0b37d31549c0b2c16154ab1b8b81d83ebe454`；
+- CI #282：stable core + wrong-bureau/permuted controls PASS；
+- bureau-5 实际暴露并修正一个 `CENTER_CHIEF_DOOR_IDENTITY` 实现缺口。
+
+这不代表 full star/door/deity rotation 已正确，也不代表预测有效。
+
+### 下一阶段不是“下一本书”
+
+当前优先：
+
+1. 让 `IMPLEMENTATION_CHECKED` status commit 自身通过 exact-head CI；
+2. 启动 clean unknown-outcome prospective trials；
+3. 只并行做少量 full-plate negative-control / center-host research；
+4. 由真实 prospective/implementation failure 决定下一轮具体读哪一来源。
+
+文献学习继续采用问题驱动：
 
 `现实/实现暴露问题 -> 找对应来源 -> 原页学习 -> 产生候选 -> 前瞻/负对照 -> 留下或删除`
 
