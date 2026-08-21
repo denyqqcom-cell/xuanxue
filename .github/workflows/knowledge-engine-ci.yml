@@ -66,6 +66,10 @@ jobs:
         run: python3 tools/test_k2_work_family_distillates.py
       - name: Enforce work-family distillation
         run: python3 tools/validate_k2_work_family_distillates.py
+      - name: Test prospective validation fail-closed cases
+        run: python3 tools/test_k2_prospective_validation.py
+      - name: Enforce prospective validation contracts
+        run: python3 tools/validate_k2_prospective_validation.py
       - name: Test isolated K2 dependency health gate
         run: python3 tools/test_k2_python_deps.py
       - name: Test K2 evidence fail-closed cases
