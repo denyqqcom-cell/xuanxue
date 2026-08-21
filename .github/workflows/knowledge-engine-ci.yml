@@ -58,6 +58,10 @@ jobs:
         run: python3 tools/test_k2_segment_evidence.py
       - name: Enforce segment-bound evidence
         run: python3 tools/validate_k2_segment_evidence.py
+      - name: Test deep reading ledger fail-closed cases
+        run: python3 tools/test_k2_deep_reading.py
+      - name: Enforce deep reading ledger
+        run: python3 tools/validate_k2_deep_reading.py
       - name: Test isolated K2 dependency health gate
         run: python3 tools/test_k2_python_deps.py
       - name: Test K2 evidence fail-closed cases
