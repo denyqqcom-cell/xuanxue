@@ -29,12 +29,14 @@ PDF p1 页眉可直接看到题名：
 
 当前只能安全升级：
 
-- title: `PAGE_VERIFIED`
-- `山枫道人`: `PAGE_VERIFIED_HEADER_ATTRIBUTION`
+- title: `PAGE_VERIFIED_IN_TARGETED_REVIEW`；
+- `山枫道人`: `PAGE_VERIFIED_HEADER_ATTRIBUTION`。
 
 不能仅凭页眉把 `山枫道人` 直接升级为正式作者，也不能继续把文件名中的“善天道”自动当作者名。
 
 这暴露一个旧 K1 元数据风险：`filename attribution != author identity`。
+
+由于 `K2_VERIFIED_SOURCE_METADATA.jsonl` 只接收已有正式 `COMPLETE` reading row 的来源，本次 targeted review 不写入该 registry。CI 曾正确拒绝过一次越级写入；该失败本身被保留为流程审计证据。
 
 ---
 
@@ -74,7 +76,46 @@ PDF p3 原页把时辰明确拆成：
 
 ---
 
-## 3. p4：超神 / 接气获得 source-specific 方向证据
+## 3. 独立现代来源对照：QM-SRC-0021 p25 并不采用同一“表述对象”
+
+为了避免只在一份教材内部推演，回到已经正式 `COMPLETE / TEXT_LAYER_FULL` 的独立来源：
+
+`QM-SRC-0021 / WORK-000027 / 幺学声《奇门遁甲预测学》`。
+
+本轮只对 PDF p25 做 supplemental original-page visual check，不增加新的 Reading credit。
+
+该页在“十二地支配时辰”中把子时直接写为：
+
+`23:00-1:00`
+
+并依次列出丑时 `1:00-3:00`、寅时 `3:00-5:00` ……亥时 `21:00-23:00`。
+
+这里没有像 `QM-SRC-0027 p3` 那样把同一个子时拆成“早子 0:00-1:00 / 晚子 23:00-24:00”两行，也没有在该页展示晚子时独立切换 hour-stem day-basis 的表格。
+
+当前分类：
+
+`CROSS_SOURCE_BOUNDARY_REPRESENTATION_DIFFERENCE`
+
+但必须控制结论强度：
+
+- `QM-SRC-0021 p25` 直接证明的是**时支区间表述**：子时为连续 `23:00-1:00`；
+- 它并没有在这一页明确说明 `23:00` 是否换完整日柱；
+- 因此不能把它直接写成 `CIVIL_MIDNIGHT` 的 worked-rule witness；
+- 更不能据此宣布它与 `QM-SRC-0027 p3` 在完整 day-boundary algorithm 上已经形成可执行矛盾。
+
+换言之，现在已经能确定：
+
+`same label “子时” != same documented boundary representation`
+
+但仍不能确定：
+
+`different representation == different complete calendar/day-pillar rollover algorithm`。
+
+这正是需要继续找 worked plate / 日柱例证的原因。
+
+---
+
+## 4. p4：超神 / 接气获得 source-specific 方向证据
 
 PDF p4 把上、中、下三元与子午卯酉 / 寅申巳亥 / 辰戌丑未分组，并列出符头。
 
@@ -95,7 +136,7 @@ PDF p4 把上、中、下三元与子午卯酉 / 寅申巳亥 / 辰戌丑未分�
 
 ---
 
-## 4. p4 仍不能关闭“拆补法”算法缺口
+## 5. p4 仍不能关闭“拆补法”算法缺口
 
 本页虽然明确偏好“拆补法”，但没有把以下两个竞争 executable models 充分拆开：
 
@@ -110,7 +151,7 @@ PDF p4 把上、中、下三元与子午卯酉 / 寅申巳亥 / 辰戌丑未分�
 
 ---
 
-## 5. 八神：同一 32 页载体内部已经混入两套词汇层
+## 6. 八神：同一 32 页载体内部已经混入两套词汇层
 
 p1-p2 / p10-p11 的基础列表使用现代常见序列：
 
@@ -138,7 +179,7 @@ p1-p2 / p10-p11 的基础列表使用现代常见序列：
 
 ---
 
-## 6. p25-p26：五不遇时的“规则定义”与“列举表”存在张力，但不能再武断叫“漏列”
+## 7. p25-p26：五不遇时的“规则定义”与“列举表”存在张力，但不能再武断叫“漏列”
 
 来源先定义五不遇时为：
 
@@ -162,7 +203,7 @@ p1-p2 / p10-p11 的基础列表使用现代常见序列：
 
 ---
 
-## 7. 高风险断语继续隔离
+## 8. 高风险断语继续隔离
 
 p26-p32 大量把固定用神、吉凶、婚姻、疾病、刑事、求财等直接连接到具体现实结论。
 
@@ -178,7 +219,7 @@ p26-p32 大量把固定用神、吉凶、婚姻、疾病、刑事、求财等直
 
 ---
 
-## 8. 对现有 Setup Registry 的实际影响
+## 9. 对现有 Setup Registry 的实际影响
 
 ### QJ-01 超神 / 接气
 
@@ -194,33 +235,39 @@ p26-p32 大量把固定用神、吉凶、婚姻、疾病、刑事、求财等直
 
 ### QJ-04 子时边界
 
-`SOURCE_BOUNDARY_WITNESS_FOUND`
+`SOURCE_BOUNDARY_WITNESS_FOUND / CROSS_SOURCE_REPRESENTATION_DIFFERENCE`
 
-p3 提供真正的 23:00 / 0:00 split-zi witness，并显示晚子时的 hour-stem day-basis 发生变化。
+目前已有两种页级表示：
+
+- `QM-SRC-0027 p3`：早子 / 晚子拆分，且晚子 hour-stem day-basis 明显变化；
+- `QM-SRC-0021 p25`：子时作为连续 `23:00-1:00` 时支区间。
 
 但仍：
 
+`FULL_DAY_ROLLOVER_ALGORITHM_UNRESOLVED`
+
 `EXECUTABLE_FULL-PLATE_CONTROL_NOT_READY`
 
-因为没有找到同页或邻页的 23:00 边界 worked plate 来独立核对完整日柱 / 局 / 星门神。
+因为第二个来源没有在该页直接给出 23:00 后完整日柱处理，第一个来源也没有紧邻的边界 worked plate 去核对完整局盘。
 
 ---
 
-## 9. 下一步判别实验
+## 10. 下一步判别实验
 
-AQ-004 下一步不再问“有没有人说 23 点换日”，而要找能区分算法对象的原页：
+AQ-004 下一步不再问“有没有人说 23 点换日”，也不再满足于单纯的子时区间表。要找能区分算法对象的原页：
 
-1. 明确 22:xx 与 23:xx 的日干支 / 时干支变化；
-2. 或给出 23:00-00:59 的 worked plate；
+1. 明确同一 civil date 的 `22:xx -> 23:xx -> 00:xx` 日干支 / 时干支变化；
+2. 或给出 `23:00-00:59` 的 worked plate；
 3. 同时能确认所用 setup family；
-4. 最好允许并行生成 `CIVIL_MIDNIGHT` 与 source-defined split-zi 两个模型；
-5. deliberate wrong-boundary model 必须在 source oracle 上失分，才算真正 negative control。
+4. 最好允许并行生成 `CIVIL_MIDNIGHT`、`ZI_START_23` 与 source-defined split-zi 三个模型；
+5. deliberate wrong-boundary model 必须在独立 source oracle 上失分，才算真正 negative control；
+6. 如果两个来源只是“文字分段方式不同”但生成同一完整盘，应归为 representation difference，而不是虚构 algorithm conflict。
 
 在找到这种 witness 之前，不为“完成 AQ-004”制造伪边界测试。
 
 ---
 
-## 10. 本轮方法论教训
+## 11. 本轮方法论教训
 
 这次还有一个流程层错误：研究起点是 targeted source attack，但导航时顺手把 32 页 text layer 全部读了。
 
