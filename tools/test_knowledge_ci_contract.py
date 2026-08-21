@@ -44,6 +44,8 @@ def main():
     require(text, "python3 tools/validate_k2_segment_evidence.py")
     require(text, "python3 tools/test_k2_deep_reading.py")
     require(text, "python3 tools/validate_k2_deep_reading.py")
+    require(text, "python3 tools/test_k2_work_family_distillates.py")
+    require(text, "python3 tools/validate_k2_work_family_distillates.py")
 
     print("knowledge-ci-contract-tests: PASS")
 
