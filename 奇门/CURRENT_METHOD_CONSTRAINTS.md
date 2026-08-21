@@ -1,6 +1,6 @@
 # 奇门当前方法约束层（2026-08-21）
 
-状态：**ACTIVE / AUTHORITATIVE OVERLAY / v2.5**
+状态：**ACTIVE / AUTHORITATIVE OVERLAY / v2.6**
 
 适用范围：后续奇门学习、解盘、技能调用、案例复盘与前瞻验证。本文件约束旧版《奇门遁甲知识库》及尚未完全迁移的 `qclaw` 内容。
 
@@ -74,6 +74,12 @@ bureau_table_source
 
 日界/子时规则是模型变量。结果后切换日界不能修补原预测。
 
+当前进一步区分：
+
+`TIME-BRANCH INTERVAL != HOUR-STEM DAY-BASIS != DAY-PILLAR ROLLOVER`
+
+看到“子时从23点开始”不能自动推出“完整日柱23点换日”；看到晚子时使用下一日干组的时干，也不能自动推出全部 setup 对象都已经切日。不同对象必须由各自 source witness 约束。
+
 ### 4.3 Deity-System Gate
 
 梁书勾陈/朱雀体系与现代常见白虎/玄武体系平行保存：
@@ -82,6 +88,8 @@ bureau_table_source
 - 不互借象意；
 - 不假设天然同义；
 - 比较时反馈前独立冻结。
+
+早期 source witness 还出现 `朱/白` 同时占据不同位置的结构，因此现有 enum 只用于 anti-post-hoc freeze，不代表历史谱系已经解决。
 
 ## 五、State-System Gate
 
@@ -95,6 +103,12 @@ door_state_system
 旧 `qimen-gongpan` 同一文件对天蓬状态曾出现相反示例。使用九星/八门旺相休囚时必须绑定明确 source/method system；不使用写 `NOT_APPLICABLE`；竞争系统反馈前 A/B。结果后切换 state system 不能修补原 score。
 
 这只是反后见约束，不表示任何一套旺衰算法已被证明正确。
+
+当前新增对象分离：
+
+`STAR/DOOR STATE CLASSIFICATION != PREDICTIVE EFFECT-SIZE`
+
+即使来源对旺相休囚分类一致，也不能自动恢复“旺相全额、休囚减半”之类数值权重。
 
 ## 六、Baseline Firewall
 
@@ -206,6 +220,8 @@ Role Map 必须标明角色来源：`SOURCE_DEFINED / METHOD_DEFINED / CONTEXT_I
 
 情境化不等于自由发挥。推演越灵活，越需要反馈前冻结；叙事越漂亮，越不能拿叙事本身当证据。
 
+详细的场景化运行规范见：`奇门/CONTEXT_REASONING_PROTOCOL.md`。
+
 ## 十二、星门神奇仪宫的使用原则
 
 星、门、神、奇仪、宫位、旺衰、生克、空墓刑迫、伏吟反吟、格局都先视为候选信息层，而非自动 verdict。
@@ -283,7 +299,9 @@ Outcome：`HIT / PARTIAL / MISS / UNRESOLVED / CONTAMINATED`。
 - Baseline Firewall 是否能减少辅助信息误归因；
 - 哪些当前 context keys 可以通过 ablation 合并或删除；
 - `Outcome-to-Rule Firewall` 是否能减少单案例补丁复发；
-- Validation Independence 是否能显著降低“实现与 oracle 共错”的概率。
+- Validation Independence 是否能显著降低“实现与 oracle 共错”的概率；
+- Context Compression 是否真的让具体问题的 role/meaning/branch 空间更窄；
+- CONTEXT_FROZEN_RELATIONAL 是否能在 matched prospective 中优于更简单 SOURCE_RESTRICTED baseline。
 
 ## 十九、执行优先级
 
@@ -355,3 +373,98 @@ Outcome：`HIT / PARTIAL / MISS / UNRESOLVED / CONTAMINATED`。
 - `NO-OP`：只是提醒，不继续增加 schema/Gate。
 
 不把“记录了更多反省”本身当成能力增长。
+
+## 二十一、Context Compression Gate
+
+本节专门约束“活断”不要退化成自由发挥。
+
+详细协议：`奇门/CONTEXT_REASONING_PROTOCOL.md`。
+
+### 21.1 情境先定义现实问题空间
+
+至少拆：
+
+`QUESTION_DOMAIN / ACTORS / TARGET / TIME_HORIZON / DECISION_OR_OUTCOME_SPACE / KNOWN_CONSTRAINTS`
+
+再进入 Role Map 和盘面关系。
+
+问题没有结果空间或时间窗口时，优先追问/`UNSCORABLE`，而不是用应期/象意替用户补造目标。
+
+### 21.2 情境越具体，解释空间应越窄
+
+工作不变量：
+
+`richer context -> same or fewer eligible meanings / role alternatives / branches`
+
+若加入背景后反而需要更多象意、更多分支、更多例外才能解释，标：
+
+`CONTEXT_EXPANSION_FLAG / NARRATIVE_RESCUE_RISK`
+
+并进入 compression review。
+
+### 21.3 个性化适配的边界
+
+允许适配：现实角色、目标、时间、行动选项、约束、Role Map context basis、结果评分。
+
+不允许适配：结果后改 method/setup/time/deity/state、结果后扩大象意、因用户期待结果而改权重。
+
+`Personalize the problem model, not the desired answer.`
+
+### 21.4 关系命题优于标签堆叠
+
+盘面因素应转成：
+
+`ROLE -> FEATURE/STATE -> RELATION -> CONTEXTUAL PROPOSITION -> OBSERVABLE DISCRIMINATOR -> FAILURE CONDITION`
+
+不能继续以“星门神各念一句书本断语”冒充场景推演。
+
+## 二十二、Theory - Validation - Landing Gate
+
+任何新理论主张必须分别通过三层，不得跨层借 credit。
+
+### T — Theory
+
+明确：claim、适用域、来源/推断、rival model、失败条件。
+
+只完成 T，最多 `CANDIDATE / TESTABLE`。
+
+### V — Validation
+
+按对象选择：
+
+- Source Fidelity；
+- Implementation Fidelity；
+- wrong/permuted/shuffled negative control；
+- clean prospective；
+- baseline / ablation / calibration。
+
+`SOURCE PASS` 不等于 `PROSPECTIVE PASS`。
+
+### L — Landing
+
+进入 runtime/App/解盘之前检查：
+
+- method/profile 是否显式；
+- unresolved 是否 fail closed；
+- source-specific 是否被误升 global default；
+- UI/Interpreter 是否隐藏关键模型选择；
+- CI 是否覆盖 shipped path；
+- evidence boundary 是否在产品输出中保留。
+
+因此：
+
+`THEORY READY != VALIDATION READY != SHIPPED READY`
+
+且：
+
+`SHIPPED != VALIDATED`。
+
+## 二十三、全链路复盘与全覆盖
+
+深度闭关期的历史误区、优化路径与当前 coverage 现实分别见：
+
+- `奇门/FULL_CHAIN_RETROSPECTIVE_2026-08-21.md`
+- `奇门/K2_FULL_COVERAGE_MASTER_PLAN.md`
+- `奇门/BOOK_ROTATION_CYCLE.md`
+
+这些文件约束研究节奏，但不因为流程更完整就提高预测 Empirical Support。
