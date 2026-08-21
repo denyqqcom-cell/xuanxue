@@ -43,7 +43,9 @@ operational_status = SOURCE_ONLY / CANDIDATE / TESTABLE / CONTEXT_REQUIRED / NOT
 notes
 ```
 
-只有 `PAGE_VERIFIED` 才能说“当前原页核验到该文本”。旧 skill 自己写过的引用不能反向证明原典。
+只有 `PAGE_VERIFIED` 才能说“当前原页核验到该文本/归因”。旧 skill 自己写过的引用不能反向证明原典。
+
+同时注意：`PAGE_VERIFIED` 只说明当前 witness 原页真的这样写，不自动证明历史作者身份、年代或版本目录学判断为真。
 
 ## 三、旧《烟波钓叟歌》归因的当前状态
 
@@ -51,14 +53,33 @@ legacy skill 把整份内容统一归因于：
 
 `《笺元遁甲句解烟波钓叟歌》宋·赵普撰，明刊本`
 
-当前拆成：
+这实际上把至少四个不同 claim 捆成了一句：
 
-- 书名/版本/撰者：`LEGACY_ATTRIBUTION`，等待对应 K2 source/page visual provenance；
-- 阴阳遁数字歌诀：`LEGACY_TRANSCRIPTION / SOURCE_CANDIDATE`；
+`work title + person attribution + dynasty attribution + edition attribution`
+
+2026-08-21 对 canonical `QM-SRC-0024` 做 targeted original-page review 后，当前必须拆开：
+
+- **书名 witness**：`PAGE_VERIFIED`。PDF p5 原页可见题名对应 `箋元遁甲句解煙波釣叟歌`；
+- **赵普 attribution witness**：`PAGE_VERIFIED_WITNESS_ATTRIBUTION`。同页相邻竖栏可见“大宋……同中書門下平章事趙普……”的署名/归因语境；
+- **赵普历史作者身份**：仍不可由这一页单独证明，保持 `HISTORICAL_AUTHORSHIP_UNRESOLVED`；
+- **“明刊本”版本判断**：本轮尚未用可靠 colophon/catalog witness 完成核验，保持 `EDITION_UNRESOLVED`；
+- **台湾国家图书馆扫描 carrier**：当前视觉可见馆藏扫描水印，可作为 carrier provenance 线索，但不等于版本年代证明。
+
+因此，不再把“赵普撰，明刊本”作为一个不可拆的 `LEGACY_ATTRIBUTION`，也不把本轮 p5 核验夸大成“赵普历史著作已证实”。
+
+详细 targeted review：
+
+`knowledge/K2_VISUAL_REVIEW_SESSIONS/QM-SRC-0024_TARGETED_PROVENANCE.md`
+
+旧 skill 里的其他内容仍按以下层级处理：
+
+- 阴阳遁数字歌诀：`LEGACY_TRANSCRIPTION / SOURCE_CANDIDATE`，等待逐句回到 canonical witness；
 - 九星固定吉凶、八门固定吉凶、九遁适合事项：多为 `MODERN_GLOSS / SOURCE_MIXED`，不得自动说成古歌原文；
 - 星级 `★★★★★`：`PROJECT_GLOSS / NOT_OPERATIONAL`；
 - “一蓬二任三冲……”等教学速背：`TEACHING_MNEMONIC`，除非回到具体原页核验，不称原典句；
 - “青龙回首/飞鸟跌穴”干对、格局大吉大凶等：转交 `qimen-gexia` Pattern Registry，不由歌诀技能裁决。
+
+**本轮 targeted provenance review 不等于 `QM-SRC-0024` 全书 Reading COMPLETE。** p1-p12 只进行了结构/归因目标下的视觉检查；未来正式 K2 阅读仍须按页/意义单元完成。
 
 ## 四、阴阳遁数字公式
 
@@ -113,6 +134,16 @@ legacy skill 保存了两组数字公式，例如：
 
 九星、八门、格局的“吉/凶”若来自传统文本，只是 `SOURCE_SYMBOLISM / SOURCE_CLAIM`。现实解盘仍要经过 Role Map、状态、关系、method context、竞争证据与前瞻测试。
 
+### 5.5 书名、署名、时代、版本不得打包升级
+
+本轮 `QM-SRC-0024` p5 说明：一个 filename/bibliographic label 可能同时暗含多个不同 claim。
+
+必须允许它们各自有不同证据状态：
+
+`TITLE_WITNESS / PERSON_ATTRIBUTION_WITNESS / HISTORICAL_AUTHORSHIP / EDITION_WITNESS`
+
+不要因为其中一项被原页看到，就把整串元数据全部升级。
+
 ## 六、旧文件中的格局干对冲突如何处理
 
 legacy yange 曾把某些格局直接写成“甲/丙”组合，而当前 `qimen-gexia` 又保存了以隐藏甲/遁仪语境表达的其他干对版本。
@@ -133,13 +164,22 @@ legacy yange 曾把某些格局直接写成“甲/丙”组合，而当前 `qime
 ## 七、文本核验等级
 
 ### `PAGE_VERIFIED`
-主审直接看到 canonical 原页并核对该句/表。
+主审直接看到 canonical 原页并核对该句/表/归因表达。
+
+### `PAGE_VERIFIED_WITNESS_ATTRIBUTION`
+原页明确把某人/身份与该文本放在归因位置；只证明该 witness 的署名/归因状态，不自动证明历史作者身份。
 
 ### `LEGACY_ATTRIBUTION`
 旧技能/旧笔记声称来源如此，但当前尚未回原页复核。
 
 ### `ATTRIBUTION_UNRESOLVED`
 连来源作品/版本/页码都不能可靠确定。
+
+### `HISTORICAL_AUTHORSHIP_UNRESOLVED`
+存在 witness-level 署名/归因，但尚无足够目录学/版本/传承证据把它升级成历史作者事实。
+
+### `EDITION_UNRESOLVED`
+文件名、旧笔记或馆藏描述暗示版本，但当前尚未用可靠原页 colophon / catalog witness 核实。
 
 ### `SOURCE_INCONSISTENCY`
 同一来源/同一 legacy artifact 内部出现实质矛盾。
@@ -163,6 +203,8 @@ legacy yange 曾把某些格局直接写成“甲/丙”组合，而当前 `qime
 ## 九、禁止事项
 
 - 不把 legacy 引用自动升级为 PAGE_VERIFIED；
+- 不把 witness-level 人名归因自动升级成历史作者事实；
+- 不因为 title page 验证一个字段就连带升级 edition/era；
 - 不把现代释义塞进古籍原文名下；
 - 不因为多书同引就说“古法已验证”；
 - 不静默修正异文；
@@ -172,13 +214,15 @@ legacy yange 曾把某些格局直接写成“甲/丙”组合，而当前 `qime
 
 ## 十、后续阅读任务
 
-对《笺元遁甲句解烟波钓叟歌》等 canonical source 的正式 K2 阅读，按 source lineage 与实际 execution lane 进行逐页/逐单元核验。届时：
+对 `QM-SRC-0024 / 《笺元遁甲句解烟波钓叟歌》` 的正式 K2 阅读，按 source lineage 与实际 execution lane 逐页/逐意义单元核验。届时：
 
 - 保留原典文本与现代解释分层；
-- 记录版本 witness；
+- 记录 title/person/edition 等 witness 独立状态；
 - 发现异文不静默合并；
-- 只有主审实际核验的页面获得 Reading/Evidence credit。
+- 只有主审实际核验的页面获得 Reading/Evidence credit；
+- 重点检查会改变排盘的歌诀是否有足够 method context；
+- 不因为本轮已确认赵普 witness attribution 就预设全书其他 legacy transcription 正确。
 
 ---
 
-*Yange v2.0 | 2026-08-21 | 从“歌诀大全”迁移为 provenance / variant / method-context registry。*
+*Yange v2.0 | 2026-08-21 | 从“歌诀大全”迁移为 provenance / variant / method-context registry；本轮新增 QM-SRC-0024 p5 witness-level attribution 校准，版本号不升级。*
