@@ -47,6 +47,11 @@ def main():
     require(text, "python3 tools/test_k2_work_family_distillates.py")
     require(text, "python3 tools/validate_k2_work_family_distillates.py")
 
+    # Candidate theories may not obtain empirical credit without a
+    # pre-outcome freeze and fail-closed prospective validation contract.
+    require(text, "python3 tools/test_k2_prospective_validation.py")
+    require(text, "python3 tools/validate_k2_prospective_validation.py")
+
     print("knowledge-ci-contract-tests: PASS")
 
 
