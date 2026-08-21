@@ -1,0 +1,271 @@
+# K2 Cognitive Audit：认知偏差与纠偏登记
+
+版本：2026-08-22
+阶段：K2B / Deep Closure
+状态：ACTIVE
+
+本文件记录项目自身已经暴露出的认知偏差、方法风险与纠偏动作。它不是对古籍真伪的裁决，也不是 Claim 文件。
+
+原则：**错误不删除，误区不美化，修正必须留下来路。**
+
+## A01 实现锚定偏差 / IMPLEMENTATION_ANCHORING
+
+### 旧路径
+
+先有代码、旧 handoff 或既有盘面结构，再寻找书证支持。
+
+### 已观察风险
+
+旧 qimen handoff 曾在“独立重读 PDF = 0”的情况下形成 36 条规则、17 个 fixtures，并对部分排盘结构作工程判断。
+
+### 纠偏
+
+以后代码只能作为待检假设：
+
+`SOURCE -> READING -> EVIDENCE -> STRUCTURE -> BOUNDARY -> HYPOTHESIS -> IMPLEMENTATION`
+
+### 状态
+
+`CORRECTION_ACTIVE`
+
+---
+
+## A02 摘要替代原书 / NOTE_SUBSTITUTION
+
+### 旧路径
+
+把用户笔记、handoff、摘要或提取产物当成原书本身。
+
+### 风险
+
+摘要天然会丢失：上下文、例外、术语原貌、图表关系、作者自限、内部矛盾。
+
+### 纠偏
+
+Reading Credit 只来自真实 source review；packet READY、OCR 成功、笔记完整都不等于 COMPLETE。
+
+### 状态
+
+`CORRECTION_ACTIVE`
+
+---
+
+## A03 符号字典化 / SYMBOL_DICTIONARY_REDUCTION
+
+### 旧路径
+
+把门、星、神、奇仪压成固定吉凶或固定人格/事件词典。
+
+### 风险
+
+失去问题域、对象、角色、宫位关系、旺衰、生克、时间与流派上下文。
+
+### 纠偏
+
+符号只作为候选特征，必须进入场景对象关系中解释。
+
+### 状态
+
+`CORRECTION_ACTIVE`
+
+---
+
+## A04 文本支持膨胀为现实有效 / TEXT_TO_TRUTH_INFLATION
+
+### 旧路径
+
+来源重复、作者自称验证、案例很多，容易被感知为“规则更真”。
+
+### 纠偏
+
+严格拆分：
+
+- SOURCE_CREDIT
+- STRUCTURAL_CREDIT
+- METHOD_CREDIT
+- EMPIRICAL_CREDIT
+
+前三者不能自动升级到第四者。
+
+### 状态
+
+`HARD_GATE`
+
+---
+
+## A05 回顾性命中偏差 / RETROSPECTIVE_HIT_BIAS
+
+### 旧路径
+
+结果已知后仍允许补选规则、调整用神、改解释路径，再把新解释算作原判断命中。
+
+### 纠偏
+
+使用：
+
+`FROZEN_INTERPRETATION_PATH`
+`ELIGIBLE_RULE_SET_FREEZE`
+`FAILURE_LOG`
+
+反馈后新增解释只能记录为“事后解释”，不能回写为事前预测。
+
+### 状态
+
+`HARD_GATE`
+
+---
+
+## A06 Movement 变量塌缩 / MOVEMENT_VARIABLE_COLLAPSE
+
+### 旧路径
+
+用“阳顺阴逆”等总口诀覆盖所有移动对象。
+
+### 新认识
+
+QM-SRC-0022 的完整阅读已迫使项目拆分 movement：
+
+`object × temporal_context × anchor × cadence × direction × path × center_policy × school_context`
+
+### 状态
+
+`MODEL_REFACTORED`
+
+---
+
+## A07 Ontology 扁平化 / ONTOLOGY_FLATTENING
+
+### 旧路径
+
+看到“神”字就归入同一 gods 集合；看到相似现代名称就直接同义化。
+
+### 风险
+
+八神、九头神、神煞、神遁/鬼遁以及功能身份可能属于不同 ontology 层。
+
+### 纠偏
+
+保留 source-local term；跨源只建立显式 relation，不静默改名。
+
+### 状态
+
+`MODEL_REFACTORED`
+
+---
+
+## A08 伪冲突 / FALSE_CONTRADICTION
+
+### 旧路径
+
+两句话方向不同就直接判定冲突。
+
+### 风险
+
+实际可能是 object、layer、trigger、cadence、temporal_context、relative_order 不同。
+
+### 纠偏
+
+冲突前先拆：
+
+`object / layer / trigger / cadence / direction / relative_order / application_context`
+
+无法确定时使用 `CONTEXT_REQUIRED`。
+
+### 状态
+
+`CORRECTION_ACTIVE`
+
+---
+
+## A09 重复来源票数膨胀 / LINEAGE_VOTE_INFLATION
+
+### 旧路径
+
+按 PDF 文件数或书名数计算“多来源一致”。
+
+### 风险
+
+上下册、同一讲义变体、重印、摘录、派生本可能并不独立。
+
+### 纠偏
+
+任何跨源共识先过 Source Lineage；没有独立性，不增加 independent evidence credit。
+
+### 状态
+
+`HARD_GATE`
+
+---
+
+## A10 权威与年代偏差 / AUTHORITY_ANTIQUITY_BIAS
+
+### 旧路径
+
+古籍更早、作者更有名、传统流传更久，容易被心理上赋予更高有效性。
+
+### 纠偏
+
+年代和作者只能影响 provenance/historical credit，不直接增加 empirical credit。
+
+### 状态
+
+`CORRECTION_ACTIVE`
+
+---
+
+## A11 统一理论冲动 / PREMATURE_UNIFICATION
+
+### 旧路径
+
+遇到流派差异时倾向尽快找一个“正确版本”。
+
+### 风险
+
+过早统一会抹掉适用条件，造成错误普适化。
+
+### 纠偏
+
+竞争规则长期并存，直到对象、场景、来源与前瞻测试足以支持缩并。
+
+### 状态
+
+`CORRECTION_ACTIVE`
+
+---
+
+## A12 协议自指漂移 / SELF_REFERENTIAL_STATE_DRIFT
+
+### 事件
+
+K2 Deep Closure 首版把创建前的 exact HEAD 与 CI run 直接写入长期协议。文件一提交，文中的“当前 HEAD”立即变旧。
+
+### 反省
+
+这是工程层面的同类认知错误：把动态事实误当稳定真理。
+
+### 纠偏
+
+Stable Contract 与 Runtime Fact 分离；每次执行前 fresh read，而不是让长期协议保存“当前”。
+
+### 状态
+
+`FIXED_2026-08-22`
+
+---
+
+# 每书复盘最小问题集
+
+每完成一本书或一个 work family，PROJECT_MAIN_AGENT 必须回答：
+
+1. 这本书真正增加了什么结构理解？
+2. 哪些只是重复传统说法？
+3. 哪些规则的边界原先被我忽略？
+4. 哪些旧认知被推翻、降级或拆分？
+5. 哪些冲突其实不是同一个对象？
+6. 哪些内容完全不能从本书获得 reality/empirical credit？
+7. 有哪些规则最容易产生 hindsight freedom？
+8. 如果要验证，怎样在反馈前冻结？
+9. 什么结果会迫使我承认该假设失败？
+10. 当前模型是否因为这本书变得更可约束，而不是仅仅更复杂？
+
+如果第 9 问无法回答，该理论当前不可证伪，只能保留为来源描述或解释性假设。
