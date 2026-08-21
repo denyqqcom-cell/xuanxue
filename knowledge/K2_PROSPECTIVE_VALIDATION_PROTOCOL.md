@@ -29,6 +29,12 @@
 
 `HYPOTHESIS -> TEST PLAN -> BATCH PREREGISTRATION -> PRE-OUTCOME CASE FREEZE -> OUTCOME -> BATCH REVIEW -> MODEL UPDATE`
 
+仅靠 ID 引用仍不足以防止中间合同被悄悄改写，因此正式记录还必须形成 hash-bound provenance chain：
+
+`PLAN --plan_sha256--> BATCH --batch_sha256--> FREEZE --freeze_record_sha256--> OUTCOME`
+
+同时 Outcome 继续引用 `frozen_payload_sha256`。任一上游合同发生变化，当前下游记录必须失配并触发 Gate；历史若确需修改，只能留下新的 Git 历史与新的测试版本，不能把旧结果伪装成原先就采用了新规则。
+
 单个命中案例永远不能直接升级 Empirical Credit。
 
 ## 3. TEST PLAN 合同
@@ -61,7 +67,7 @@
 
 Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
-- `plan_id`；
+- `plan_id` 及该 Plan 的 canonical `plan_sha256`；
 - model / comparator 版本引用；
 - sampling rule；
 - planned case count 或明确 stopping rule；
@@ -81,7 +87,7 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
 `knowledge/K2_PROSPECTIVE_FREEZES.jsonl`
 
-每条 Freeze 必须属于一个已经 PREREGISTERED 的 batch，并发生在结果未知时。至少固定：
+每条 Freeze 必须属于一个已经 PREREGISTERED 的 batch，并保存该 Batch 的 `batch_sha256`，发生在结果未知时。至少固定：
 
 `QUESTION DEFINITION`
 → `ASKED OBJECT`
@@ -99,7 +105,7 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
 `movement_object / temporal_context / anchor / cadence / direction / path / center_policy / school_context`
 
-Freeze 的 payload 必须生成 canonical SHA256。Outcome 只能引用这个 hash，不能把结果出现后的新解释写回 Freeze。
+Freeze 的 payload 必须生成 canonical SHA256。Outcome 只能引用这个 hash 与完整 Freeze record hash，不能把结果出现后的新解释写回 Freeze。
 
 ## 6. OUTCOME 合同
 
@@ -110,6 +116,7 @@ Freeze 的 payload 必须生成 canonical SHA256。Outcome 只能引用这个 ha
 Outcome 只允许：
 
 - 引用既有 Freeze；
+- 绑定完整 `freeze_record_sha256` 与 `frozen_payload_sha256`；
 - 记录实际结果的匿名化/结构化表示；
 - 按事前规则标记 SUCCESS / PARTIAL / FAIL / ABSTAIN / UNEVALUABLE；
 - 记录事后才想到的新解释，但必须显式标记为 `post_hoc`；
