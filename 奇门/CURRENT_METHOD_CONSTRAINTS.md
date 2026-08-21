@@ -1,0 +1,470 @@
+# 奇门当前方法约束层（2026-08-21）
+
+状态：**ACTIVE / AUTHORITATIVE OVERLAY / v2.6**
+
+适用范围：后续奇门学习、解盘、技能调用、案例复盘与前瞻验证。本文件约束旧版《奇门遁甲知识库》及尚未完全迁移的 `qclaw` 内容。
+
+> 这不是新的“圣经”。它是一组当前有效、可被反例修改、缩窄、压缩或废弃的认识论与执行约束。
+
+当前原创研究方向：`奇门/理论创新_反证情境压缩法_v0.3-alpha.md`。它仍是未验证草案，不享有高于 Evidence/现实结果的权威。
+
+## 一、认识论分层
+
+每个关键判断必须区分：
+
+- **SOURCE**：某书、某门派、某作者明确提出的规则或案例；
+- **INFERENCE**：项目基于当前问题作出的情境转译、关系推演或抽象；
+- **EMPIRICAL_SUPPORT**：结果未知时已冻结、结果后可核验的独立支持；
+- **CONTAMINATION**：新闻、既知结果、求测者背景、外应、其他术数、搜索资料等可能帮助答案但妨碍归因的信息。
+
+`Source Fidelity != Lookup Determinism != Applicability != Empirical Support`
+
+书证再多，只提高来源可追溯/共识；fixture、回归测试或 runtime contract 通过，只说明对应的来源复刻或执行约束更可靠，不代表预测现实有效。
+
+## 二、已撤销的全局硬规则
+
+以下旧规则不得再直接运行：
+
+- 固定 `开门 > 值符 > 生门 > 星神`；
+- `逢空 = 方向待定` 或其他单一固定翻译；
+- `凶格>=3分直接大凶`、凶格相乘；
+- `旺相=全额 / 休囚=减半 / 四害自动折扣`；
+- `>=3次独立案例 = 已验证`；
+- 强制先查若干新闻再把结论归因于奇门本体。
+
+若仍有研究价值，只能作为 `CANDIDATE / UNVERIFIED_HEURISTIC`，另行预注册测试。
+
+## 三、Method-Layer Gate
+
+新案例先冻结主方法层：
+
+- `STANDARD_PLATE`
+- `TIME_FAMILY_VARIANT`
+- `HOUR_OMEN`
+- `RITUAL_AUXILIARY`
+
+一个方法层的 miss 不得由另一个层结果后救援。需要比较时，反馈前并行建立独立 A/B case。`RITUAL_AUXILIARY` 默认 `eligible_for_scoring=false`。
+
+## 四、Setup / Time / Layout / Deity Gate
+
+起局是一组会改变结构结果的模型选择。至少显式记录：
+
+```text
+method_layer
+method_family
+setup_method = FUTOU_ZHIRUN | CHAIBU_SOLAR_TERM | MAOSHAN_SOLAR_TERM | SOURCE_DEFINED_OTHER | NOT_APPLICABLE
+setup_calibration = PINGQI | DINGQI | SOURCE_DEFINED_OTHER | NOT_APPLICABLE
+seasonal_alignment = ZHENGSHOU | CHAOSHEN | ZHIRUN | JIEQI | SOURCE_DEFINED_OTHER | NOT_APPLICABLE
+time_boundary_system = CIVIL_MIDNIGHT | ZI_START_23 | SOURCE_DEFINED_OTHER | NOT_APPLICABLE
+time_family = YEAR | MONTH | DAY | HOUR | NOT_APPLICABLE
+layout_method
+deity_system = GOUCHEN_ZHUQUE | BAIHU_XUANWU | SOURCE_DEFINED_OTHER | NOT_APPLICABLE
+hour_omen_family
+ritual_layer
+bureau_table_source
+```
+
+若某变量对模型必要但未解决，必须停在 `CONTEXT_REQUIRED`；不使用写 `NOT_APPLICABLE`。可评分的 `FROZEN / RESOLVED` 模型不得把必要字段留为 `CONTEXT_REQUIRED`。
+
+### 4.1 Setup Method Gate
+
+旧 `qimen-qiju` 已发现超神/接气方向冲突、拆补算法描述冲突、拆补/茅山定义重叠、宫号顺序与旋转语言混用。因此不得默认某一 setup “天然正确”。不同算法若生成不同盘，反馈前 A/B。
+
+### 4.2 Time-Boundary Gate
+
+日界/子时规则是模型变量。结果后切换日界不能修补原预测。
+
+当前进一步区分：
+
+`TIME-BRANCH INTERVAL != HOUR-STEM DAY-BASIS != DAY-PILLAR ROLLOVER`
+
+看到“子时从23点开始”不能自动推出“完整日柱23点换日”；看到晚子时使用下一日干组的时干，也不能自动推出全部 setup 对象都已经切日。不同对象必须由各自 source witness 约束。
+
+### 4.3 Deity-System Gate
+
+梁书勾陈/朱雀体系与现代常见白虎/玄武体系平行保存：
+
+- 不静默改名；
+- 不互借象意；
+- 不假设天然同义；
+- 比较时反馈前独立冻结。
+
+早期 source witness 还出现 `朱/白` 同时占据不同位置的结构，因此现有 enum 只用于 anti-post-hoc freeze，不代表历史谱系已经解决。
+
+## 五、State-System Gate
+
+正式模型记录：
+
+```text
+star_state_system
+door_state_system
+```
+
+旧 `qimen-gongpan` 同一文件对天蓬状态曾出现相反示例。使用九星/八门旺相休囚时必须绑定明确 source/method system；不使用写 `NOT_APPLICABLE`；竞争系统反馈前 A/B。结果后切换 state system 不能修补原 score。
+
+这只是反后见约束，不表示任何一套旺衰算法已被证明正确。
+
+当前新增对象分离：
+
+`STAR/DOOR STATE CLASSIFICATION != PREDICTIVE EFFECT-SIZE`
+
+即使来源对旺相休囚分类一致，也不能自动恢复“旺相全额、休囚减半”之类数值权重。
+
+## 六、Baseline Firewall
+
+Reality Baseline 不能成为“把现实答案先塞进 method-only”的入口。
+
+基础信息必须先分：
+
+### `NEUTRAL_SETUP_FACTS`
+
+仅用于识别/定义待测对象，例如：对象身份、输入时间/地点/时区、问题定义、结果评分口径和必要的非预测性结构事实。
+
+### `PREDICTIVE_AUXILIARY_FACTS`
+
+本身可能直接提高结果预测力，例如：已发布天气预报、市场期货/赔率/盘口、重大新闻、当事人既有行为趋势、外应、其他术数或任何已经接近答案的现实线索。
+
+这些信息必须走 `auxiliary_information_policy`，使用：
+
+`method-only -> freeze -> context-augmented -> record delta`
+
+若预测者在 freeze 前已接触，则标 `PRE_EXPOSED`；不得伪装成 clean method-only。
+
+真实性不是“可以进入 baseline”的充分条件。
+
+## 七、Role Map / Component / Pattern
+
+Role Map 必须标明角色来源：`SOURCE_DEFINED / METHOD_DEFINED / CONTEXT_INFERRED`。多个合理用神反馈前保存竞争 Role Map；结果后换用神只能算模型修改。
+
+`qimen-gongpan` 至少区分：
+
+`STRUCTURAL_METADATA / SOURCE_SYMBOLISM / STATE_FEATURE / ROLE_BINDING / RELATION / CONTEXTUAL_INFERENCE`
+
+`qimen-gexia` 至少区分：
+
+`STEM_PAIR_PATTERN / COMPOSITE_PATTERN / STRUCTURAL_STATE / TIME_CONFIGURATION / METHOD_SPECIFIC_PATTERN`
+
+同一底层结构不得因多个格名重复计票。来源内部冲突保留为 `SOURCE_INCONSISTENCY / CONFLICT_CANDIDATE`，不能结果后选最贴合的一条。
+
+## 八、Branch-Discrimination Gate
+
+“预注册很多解释”不等于可证伪。
+
+`competing branches` 必须满足：
+
+1. 分支数量有限，不能枚举到覆盖几乎全部结果空间；
+2. 反馈前指定 `primary branch`，或冻结明确概率/权重；
+3. 每条分支写可观察的区分条件；
+4. 每条分支写明确失败条件；
+5. 结果后只能评分各分支，不能用“任一分支命中”给整个模型记 `HIT`；
+6. 若各分支无法由未来观察区分，应合并或标 `UNSCORABLE`。
+
+多分支的目的，是暴露不确定性，不是预先占满所有答案。
+
+## 九、Ambiguity-Debt Gate
+
+`CONTEXT_REQUIRED` 是暂时的诚实状态，不是永久逃生门。
+
+对影响可评分模型的未解决项，必须选择之一：
+
+- 在反馈前拆成明确 A/B；
+- 暂时移除该 feature/method layer，并写 `NOT_APPLICABLE`；
+- 保留为 `AMBIGUITY_DEBT`，明确阻塞对象、需要的证据和解除条件。
+
+不得长期把“无法选择”当成不接受失败的理由。新的来源冲突也不得直接变成永久新字段；先判断它是否真实改变模型输出。
+
+## 十、Source-Topology Gate
+
+2026-08-21 梁书十八局复核发现：主审曾把 spread 同一 raster 的右侧标题误配给左侧表体，validator 和 CI 因共享错误 expected mapping 而全部 PASS。
+
+因此 VISUAL_REQUIRED 后新增：
+
+`Visual Presence != Semantic Association`
+
+图表/跨页资料至少检查：
+
+`Raster Identity`
+→ `Printed-Page Topology`
+→ `Semantic Object Identity`
+→ `Internal Structural Check`
+→ `Sparse Anchor Verification`
+
+来源异常在排除 crop、跨页错配、scan-order、printed-page sequence、table-body identity 等解释前，不得升级为 `SOURCE_INCONSISTENCY`。
+
+## 十一、受约束情境推演流程
+
+当前运行链：
+
+`Reality Baseline`
+→ `Baseline Firewall`
+→ `Question Domain`
+→ `Method-Layer Freeze`
+→ `Setup Method + Calibration + Seasonal Alignment Freeze`
+→ `Time-Boundary + Time-Family + Layout + Deity Freeze`
+→ `State-System Freeze`
+→ `Role Map Freeze`
+→ `Bureau / Structural Lookup`
+→ `Eligible Feature Set`
+→ `Component / Relation Analysis`
+→ `Pattern Registry`
+→ `Competing Interpretation Branches`
+→ `Branch-Discrimination Gate`
+→ `Timing Freeze`
+→ `Frozen Prediction`
+→ `Prospective Registry`
+→ `Optional Auxiliary Context Ablation`
+→ `Outcome Audit`
+→ `Outcome-to-Rule Firewall`
+→ `Rule Lifecycle Update`
+→ `Model-Compression Review`
+
+情境化不等于自由发挥。推演越灵活，越需要反馈前冻结；叙事越漂亮，越不能拿叙事本身当证据。
+
+详细的场景化运行规范见：`奇门/CONTEXT_REASONING_PROTOCOL.md`。
+
+## 十二、星门神奇仪宫的使用原则
+
+星、门、神、奇仪、宫位、旺衰、生克、空墓刑迫、伏吟反吟、格局都先视为候选信息层，而非自动 verdict。
+
+至少检查：当前问题域中它代表谁/什么、角色映射依据、结构/状态/来源象意/项目推演分类、是否重复包装同一底层结构、删掉后结论是否改变、什么结果会证明解释错。
+
+九星、门、神固定“吉/凶”标签最多是传统 prior，不得直接输出犯罪、死亡、疾病等现实事实。
+
+## 十三、书本案例与案例证据
+
+案例必须先分类：
+
+- `SOURCE_RETROSPECTIVE_CASE`
+- `PROJECT_RETROSPECTIVE_REANALYSIS`
+- `PROSPECTIVE_FROZEN_CASE`
+- `CONTAMINATED_CASE`
+- `IMPLEMENTATION_FAILURE_CASE`
+- `UNSCORABLE_ANECDOTE`
+
+只有满足 Prospective Registry、结果未知、反馈前冻结且可评分的 `PROSPECTIVE_FROZEN_CASE` 才可能贡献 Empirical Support。
+
+无可审计分母、连续样本、失败记录、基线和污染控制的“约八成准确率”等统一标 `UNSUPPORTED_ACCURACY_CLAIM`。
+
+`CONTAMINATED_CASE`、outcome-known retrospective、书本复盘不允许折算为“0.5 次真验证”等经验支持。它们可生成研究问题，但 Empirical Support credit 默认为 0。
+
+## 十四、Prospective Case Registry
+
+正式未知结果测试遵循 `knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`。
+
+反馈后不得覆盖原 case 的冻结字段，包括 method/setup/time/deity/state/Role Map/features/patterns/branches/timing/auxiliary policy。任何改变必须创建新模型版本/`case_id`。污染案例保留。
+
+## 十五、Outcome Audit
+
+错误至少区分：
+
+`INPUT_ERROR / PAIPAN_ERROR / ROLE_MAP_ERROR / METHOD_FAMILY_ERROR / METHOD_LAYER_ERROR / SETUP_METHOD_ERROR / SETUP_CALIBRATION_ERROR / TIME_BOUNDARY_ERROR / DEITY_SYSTEM_ERROR / STATE_SYSTEM_ERROR / FEATURE_SELECTION_ERROR / INTERPRETATION_ERROR / TIMING_ERROR / BASE_RATE_ERROR / AUXILIARY_CONTAMINATION / UNSPECIFIED_MODEL_FAILURE`
+
+Outcome：`HIT / PARTIAL / MISS / UNRESOLVED / CONTAMINATED`。
+
+结果后只允许评分和模型更新，不允许重写原冻结版本。
+
+`PARTIAL` 是预注册评分口径中的 outcome class，不是“半次验证”。没有预先定义的可审计分母，不计算“真验证覆盖率”。
+
+## 十六、Rule Lifecycle + Model Compression
+
+规则生命周期：
+
+`CANDIDATE -> TESTABLE -> PROVISIONAL -> SUPPORTED`
+
+允许反向：
+
+`SUPPORTED/PROVISIONAL -> NARROWED -> DEPRECATED -> REJECTED`
+
+现在协议字段、feature、branch 和 Gate 本身也进入相同的可删除逻辑。
+
+每个新增模型变量原则上应写明未来的 removal/merge 条件，例如：长期不改变输出、不改善 discrimination/calibration、与另一字段高度耦合、负对照表明没有增量、或更简单模型在 prospective data 中表现相当/更好。
+
+研究目标不是“约束越来越多”，而是在保证可复现与区分力的前提下逼近**最小充分模型**。
+
+## 十七、Prediction Protocol Freeze != Theory Freeze
+
+单次预测协议必须冻结；跨书、跨案例、跨版本理论必须保持可推翻。Method-Layer Gate、Baseline Firewall、Branch-Discrimination Gate、Ambiguity-Debt Gate、State-System Gate乃至整个流程，都可以在更强证据下被 `NARROW / REVISE / SPLIT / DEPRECATE / REJECT`。
+
+## 十八、当前待验证问题
+
+仍不是定论：
+
+- Method-Family-Specific Priority 是否优于固定全局优先级；
+- Method-Layer Gate 是否显著减少事后救援；
+- setup/time-boundary/deity/state-system 分叉是否有稳定前瞻差异；
+- 九星固定标签是否劣于条件化模型；
+- 九星十二时辰应克是否优于基础概率与 shuffled controls；
+- Role Map Freeze 是否改善可复现性；
+- Branch-Discrimination 是否比“宽泛多分支”提高校准；
+- Baseline Firewall 是否能减少辅助信息误归因；
+- 哪些当前 context keys 可以通过 ablation 合并或删除；
+- `Outcome-to-Rule Firewall` 是否能减少单案例补丁复发；
+- Validation Independence 是否能显著降低“实现与 oracle 共错”的概率；
+- Context Compression 是否真的让具体问题的 role/meaning/branch 空间更窄；
+- CONTEXT_FROZEN_RELATIONAL 是否能在 matched prospective 中优于更简单 SOURCE_RESTRICTED baseline。
+
+## 十九、执行优先级
+
+发生冲突时：
+
+`K2 Evidence / Evidence Corrections / Book Distillate / Method Delta / Pre-Book Retrospective`
+→ `CURRENT_METHOD_CONSTRAINTS.md`
+→ `K2 Prospective Case / Source Fixture Protocols`
+→ `理论创新_反证情境压缩法_v0.3-alpha.md`
+→ `更早理论草案`
+→ `qclaw 技能与旧知识库`
+→ `更早修炼日志`
+
+这里的“优先”是项目运行约束优先级，不是玄学规则真值等级。
+
+## 二十、从结果学习的纪律：Outcome-to-Rule Firewall
+
+本节来自 6/15、6/16、8/10、8/11 与 8/21 的复发性错误回看，不新增 Prospective Registry top-level schema。
+
+### 20.1 单案例只生成候选教训
+
+单个 HIT/MISS 后的新认识先记为：
+
+`CASE_LESSON_CANDIDATE`
+
+正确链：
+
+`Outcome -> Case Lesson -> Testable Hypothesis -> Prospective Discrimination -> Rule Update`
+
+禁止从一次结果直接推出新的跨问题 global priority、固定象意、固定因果或唯一 setup。
+
+### 20.2 污染/复盘不得折算经验支持
+
+- outcome-known retrospective：Empirical Support credit = 0；
+- contaminated case：Empirical Support credit = 0；
+- 书本案例吻合：Empirical Support credit = 0；
+- `PARTIAL` 不转换为任意“0.5 次验证”。
+
+它们仍有 SOURCE / INFERENCE / failure-mode 价值，但不能跨层升级。
+
+### 20.3 方法优越性必须 matched prospective
+
+“解释更丰富”“用神更多”“故事更连贯”不能证明方法更好。
+
+若比较方法 A/B，至少要求同一 unknown-outcome 样本、同一 scoring、同一信息暴露边界、反馈前分别冻结，然后比较 discrimination / calibration / baseline delta / overconfidence / abstention。
+
+### 20.4 因果归因隔离
+
+一次结果后形成的“空间精度天花板”“某门优先级更高”“某方法才是真盘”等解释，先标 `CAUSAL_HYPOTHESIS`。没有跨案例可区分证据前，不进入 active rule。
+
+### 20.5 Validation Independence
+
+`Written Knowledge != Executable Knowledge != Validated Knowledge`
+
+且：
+
+`Validator PASS != Oracle Correctness`
+
+验证器的 expected/oracle 必须尽量独立于被测实现。若二者由同一脚本、同一推导链或同一未核验记忆生成，一致性不构成独立验证。
+
+实现完整性测试必须优先加入 deliberate wrong-input / shifted / permuted / shuffled controls，证明测试确实能拒绝错误输入。
+
+### 20.6 反省也要做减法
+
+每轮反省优先落为：
+
+- `DELETE`：删/降级一个不必要规则、字段或分支；
+- `TEST`：转成可失败实验；
+- `NO-OP`：只是提醒，不继续增加 schema/Gate。
+
+不把“记录了更多反省”本身当成能力增长。
+
+## 二十一、Context Compression Gate
+
+本节专门约束“活断”不要退化成自由发挥。
+
+详细协议：`奇门/CONTEXT_REASONING_PROTOCOL.md`。
+
+### 21.1 情境先定义现实问题空间
+
+至少拆：
+
+`QUESTION_DOMAIN / ACTORS / TARGET / TIME_HORIZON / DECISION_OR_OUTCOME_SPACE / KNOWN_CONSTRAINTS`
+
+再进入 Role Map 和盘面关系。
+
+问题没有结果空间或时间窗口时，优先追问/`UNSCORABLE`，而不是用应期/象意替用户补造目标。
+
+### 21.2 情境越具体，解释空间应越窄
+
+工作不变量：
+
+`richer context -> same or fewer eligible meanings / role alternatives / branches`
+
+若加入背景后反而需要更多象意、更多分支、更多例外才能解释，标：
+
+`CONTEXT_EXPANSION_FLAG / NARRATIVE_RESCUE_RISK`
+
+并进入 compression review。
+
+### 21.3 个性化适配的边界
+
+允许适配：现实角色、目标、时间、行动选项、约束、Role Map context basis、结果评分。
+
+不允许适配：结果后改 method/setup/time/deity/state、结果后扩大象意、因用户期待结果而改权重。
+
+`Personalize the problem model, not the desired answer.`
+
+### 21.4 关系命题优于标签堆叠
+
+盘面因素应转成：
+
+`ROLE -> FEATURE/STATE -> RELATION -> CONTEXTUAL PROPOSITION -> OBSERVABLE DISCRIMINATOR -> FAILURE CONDITION`
+
+不能继续以“星门神各念一句书本断语”冒充场景推演。
+
+## 二十二、Theory - Validation - Landing Gate
+
+任何新理论主张必须分别通过三层，不得跨层借 credit。
+
+### T — Theory
+
+明确：claim、适用域、来源/推断、rival model、失败条件。
+
+只完成 T，最多 `CANDIDATE / TESTABLE`。
+
+### V — Validation
+
+按对象选择：
+
+- Source Fidelity；
+- Implementation Fidelity；
+- wrong/permuted/shuffled negative control；
+- clean prospective；
+- baseline / ablation / calibration。
+
+`SOURCE PASS` 不等于 `PROSPECTIVE PASS`。
+
+### L — Landing
+
+进入 runtime/App/解盘之前检查：
+
+- method/profile 是否显式；
+- unresolved 是否 fail closed；
+- source-specific 是否被误升 global default；
+- UI/Interpreter 是否隐藏关键模型选择；
+- CI 是否覆盖 shipped path；
+- evidence boundary 是否在产品输出中保留。
+
+因此：
+
+`THEORY READY != VALIDATION READY != SHIPPED READY`
+
+且：
+
+`SHIPPED != VALIDATED`。
+
+## 二十三、全链路复盘与全覆盖
+
+深度闭关期的历史误区、优化路径与当前 coverage 现实分别见：
+
+- `奇门/FULL_CHAIN_RETROSPECTIVE_2026-08-21.md`
+- `奇门/K2_FULL_COVERAGE_MASTER_PLAN.md`
+- `奇门/BOOK_ROTATION_CYCLE.md`
+
+这些文件约束研究节奏，但不因为流程更完整就提高预测 Empirical Support。

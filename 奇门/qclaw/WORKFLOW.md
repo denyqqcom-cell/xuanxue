@@ -1,230 +1,343 @@
-# 奇门遁甲解盘工作流模板
+# 奇门受约束情境推演工作流 v2.3
 
-> **本文件是案例输出的模板参考。**  
-> 每个案例在 `F:\奇门遁甲\生成内容\` 下新建文件夹，按以下模板输出。
+> 本模板用于保存一次解盘从原始输入到冻结预测、辅助信息增量与结果审计的全过程。
+>
+> 上位约束：`奇门/CURRENT_METHOD_CONSTRAINTS.md`、`knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`、`qimen-overview/SKILL.md`、`_AGENT_INSTRUCTIONS.md`。
 
----
+## 一、核心链
 
-## 一、案例文件夹结构
-
+```text
+Reality Baseline
+-> Question Domain
+-> Method-Layer Freeze
+-> Setup Method / Calibration / Seasonal Alignment Freeze
+-> Time-Boundary / Time-Family / Layout / Deity Freeze
+-> State-System Freeze
+-> Role Map Freeze
+-> Structural Lookup
+-> Eligible Feature Set
+-> Component / Relation Analysis
+-> Pattern Registry
+-> Competing Branches
+-> Timing Freeze
+-> Frozen Prediction
+-> Prospective Registry
+-> Auxiliary Ablation
+-> Outcome Audit
 ```
-YYYYMMDD_问题关键词_时分\
-├── _META.md                        ← 元数据（原始输入，创建后不可修改）
-├── claw_问题分类_YYYYMMDD.md       ← 徒弟步骤①
-├── claw_看大局_YYYYMMDD.md         ← 徒弟步骤②
-├── claw_取用神_YYYYMMDD.md         ← 徒弟步骤③
-├── claw_查四害_YYYYMMDD.md         ← 徒弟步骤④
-├── claw_析宫盘_YYYYMMDD.md         ← 徒弟步骤⑤
-├── claw_看生克_YYYYMMDD.md         ← 徒弟步骤⑥
-├── claw_定应期_YYYYMMDD.md         ← 徒弟步骤⑦
-├── claw_格局详解_YYYYMMDD.md       ← 徒弟步骤⑧
-├── claw_完整断局_YYYYMMDD.md       ← ★ 徒弟→师傅交接文件
-├── workbuddy_核查报告_YYYYMMDD.md  ← 师傅核查输出
-├── 最终结论_YYYYMMDD.md            ← 汇总输出
-└── 追加Q_序号_问题_YYYYMMDD.md     ← 用户追问（按需创建）
+
+原则：一个方法层的 miss 不得由另一层结果后救援；起局法、日界规则或旺衰系统也不得结果后切换来修补原模型。
+
+## 二、推荐案例目录
+
+```text
+YYYYMMDD_问题关键词_时分/
+├── _META.md
+├── claw_00_reality_baseline.md
+├── claw_01_method_family.md
+├── claw_02_setup_freeze.md
+├── claw_03_role_map.md
+├── claw_04_structural_lookup.md
+├── claw_05_eligible_features.md
+├── claw_06_relational_inference.md
+├── claw_07_competing_branches.md
+├── claw_08_timing_freeze.md
+├── claw_FROZEN_PREDICTION_YYYYMMDD.md
+├── claw_AUGMENTED_PREDICTION_YYYYMMDD.md
+├── claw_OUTCOME_AUDIT_YYYYMMDD.md
+└── final_case_summary.md
 ```
 
----
-
-## 二、_META.md 模板
+## 三、_META.md
 
 ```markdown
-# 案例元数据
-- 案例编号：YYYYMMDD-001
-- 事体：[事体描述]
-- 求测时间：[YYYY年MM月DD日 HH时]
-- 排盘数据：
-  [完整排盘信息]
-- 用户原始输入：
-  [原文保留]
-- 创建时间：[YYYY-MM-DD HH:MM]
-- 状态：分析中
+# Case Metadata
+- case_id:
+- question_raw:
+- question_normalized:
+- question_fingerprint_sha256:
+- prediction_time:
+- location:
+- input_plate_source:
+- known_facts_before_prediction:
+- outcome_unknown_at_freeze: true/false
+- auxiliary_information_policy: NONE / ALLOWED_AFTER_FREEZE / PRE_EXPOSED
+- tracked_registry_eligible: true/false
+- created_at:
 ```
 
----
+原始输入与已知事实不得结果后覆盖。私人信息不进入 tracked registry。
 
-## 三、徒弟步骤文件模板
+## 四、Reality Baseline
 
-每个 `claw_步骤名_YYYYMMDD.md` 使用统一格式：
+确认对象存在、已知/未知、时间范围、基础概率、安全边界。这里不做盘面吉凶。
+
+## 五、Question / Method-Layer Freeze
 
 ```markdown
-# [步骤名称]
-
-## 排盘信息
-[当前局的关键数据]
-
-## 分析过程
-[基于 qimen-* 知识的详细分析]
-
-## 本步结论
-[明确结论]
-
-## 下步衔接
-[引出下一步方向]
+# Question / Method Layer
+- question_domain:
+- method_family:
+- method_layer: STANDARD_PLATE / TIME_FAMILY_VARIANT / HOUR_OMEN / RITUAL_AUXILIARY
+- alternative_model_id:
+- reason:
+- eligible_for_scoring: true/false
 ```
 
----
+`RITUAL_AUXILIARY` 默认不评分；A/B 反馈前独立建 `case_id`。
 
-## 四、claw_完整断局 模板（核心交接文件）
+## 六、Setup / Time / Deity / State-System Freeze
 
 ```markdown
-# 徒弟完整断局报告
-
-## 一、事体概述
-[一句话总结]
-
-## 二、排盘摘要
-- 局数：[阴/阳遁 第X局]
-- 值符值使：[X落X宫]
-- 日干：[X落X宫，旺衰]
-- 时干：[X落X宫，旺衰]
-- 用神：[X落X宫，旺衰]
-
-## 三、八步分析结论汇总
-
-### ① 问题分类
-[一句话]
-
-### ② 大局判断
-[一句话]
-
-### ③ 用神选取
-- 日干（本人）：[X落X宫]
-- 时干（事体）：[X落X宫]
-- 事项用神：[X落X宫]
-- 选取理由：[一句话]
-
-### ④ 四害检查
-- 空亡：[有/无]
-- 入墓：[有/无]
-- 击刑：[有/无]
-- 门迫：[有/无]
-- 四害影响：[一句话]
-
-### ⑤ 宫盘分析
-[星+门+神综合判断]
-
-### ⑥ 生克关系
-[主客+五行生克]
-
-### ⑦ 应期判断
-- 应期：[具体时间]
-- 依据：[方法+理由]
-
-### ⑧ 格局详解
-[格局+影响]
-
-## 四、综合判断
-[成败倾向 + 关键转折 + 最终应期]
-
-## 五、分析依据
-- 技能文件：[使用的 qimen-* 列表]
-- 知识来源：善天道讲义体系
+# Setup Freeze
+- setup_method: FUTOU_ZHIRUN / CHAIBU_SOLAR_TERM / MAOSHAN_SOLAR_TERM / SOURCE_DEFINED_OTHER / NOT_APPLICABLE
+- setup_method_version/source:
+- setup_calibration: PINGQI / DINGQI / SOURCE_DEFINED_OTHER / NOT_APPLICABLE
+- seasonal_alignment: ZHENGSHOU / CHAOSHEN / ZHIRUN / JIEQI / SOURCE_DEFINED_OTHER / NOT_APPLICABLE
+- time_boundary_system: CIVIL_MIDNIGHT / ZI_START_23 / SOURCE_DEFINED_OTHER / NOT_APPLICABLE
+- yin_yang_dun:
+- ju_number:
+- layout_method:
+- time_family: YEAR / MONTH / DAY / HOUR / NOT_APPLICABLE
+- deity_system: GOUCHEN_ZHUQUE / BAIHU_XUANWU / SOURCE_DEFINED_OTHER / NOT_APPLICABLE
+- star_state_system:
+- door_state_system:
+- hour_omen_family:
+- ritual_layer: EXCLUDED_BY_DEFAULT / RESEARCH_ONLY
+- bureau_table_source:
+- solar_term_timestamp_source:
+- input_timezone:
+- school_context:
+- plate_self_check:
+- frozen_at:
 ```
 
----
+规则：
 
-## 五、workbuddy_核查报告 模板
+- setup method、日界/子时、八神、state system 都是可改变整盘/解释的模型选择；
+- 不使用的字段写 `NOT_APPLICABLE`；
+- 可评分 FROZEN model 不得把 `setup_method / time_boundary_system / star_state_system / door_state_system` 留为 `CONTEXT_REQUIRED`；
+- 竞争选择需反馈前独立 A/B；
+- 结果后切换不能修补原预测。
+
+## 七、Role Map Freeze
 
 ```markdown
-# 师傅核查报告
-
-## 基本信息
-- 案例文件夹：[路径]
-- 核查时间：[YYYY-MM-DD HH:MM]
-- 交接文件：claw_完整断局_YYYYMMDD.md
-- 核查依据：qmdj-* skills（金函玉镜古籍体系）
-
-## 逐项核查结果
-
-| 序号 | 核查项 | 结果 | 说明 |
-|------|--------|------|------|
-| ① | 流程完整性 | ✅/❌ | [说明] |
-| ② | 用神准确性 | ✅/❌ | [说明] |
-| ③ | 格局完备性 | ✅/❌ | [说明] |
-| ④ | 旺衰判断 | ✅/❌ | [说明] |
-| ⑤ | 应期合理性 | ✅/❌ | [说明] |
-| ⑥ | 古籍补充 | ✅/— | [说明] |
-
-## 修正内容（如有）
-### 修正1：[标题]
-- 徒弟结论：[原文]
-- 师傅修正：[修正内容]
-- 古籍依据：> 《书名》·卷·页码
-  [引用原文]
-
-## 存疑项（如有）
-### 存疑1：[标题]
-- 徒弟观点：[原文]
-- 师傅观点：[原文]
-- 存疑原因：[说明]
-
-## 古籍补充（如有）
-### 补充1：[标题]
-- 古籍依据：> 《书名》·卷·页码
-  [引用原文]
-- 与事体关系：[说明]
-
-## 总评
-- 核查结果：[✅ 通过 / ⚠️ 有条件通过 / ❌ 需重新分析]
-- 修正数量：[X项]
-- 存疑数量：[X项]
-- 补充数量：[X项]
+# Role Map
+| Role | Symbol / Palace | Basis | Alternative |
+|---|---|---|---|
+| 求测者 | ... | SOURCE_DEFINED / METHOD_DEFINED / CONTEXT_INFERRED | ... |
+| 事件 | ... | ... | ... |
+| 对方 | ... | ... | ... |
+role_map_sha256:
 ```
 
----
+反馈后换用神标 `POST_FEEDBACK_ROLE_SWITCH`。
 
-## 六、最终结论 模板
+## 八、Structural Lookup
+
+只负责机械结构：阴阳遁、局数、值符值使、星门神位置、旬空马星、source-defined bureau lookup 等。
 
 ```markdown
-# 最终结论
-
-## 事体
-[事体描述]
-
-## 排盘摘要
-[关键排盘信息]
-
-## 徒弟分析
-[综合判断摘要]
-
-## 师傅核查
-[核查结果概要]
-
-## 修正与补充
-[如有]
-
-## 最终判断
-[合并后的最终结论：成败倾向 + 关键转折 + 应期]
-
-## 存疑项
-[如有，两种观点并列]
-
-## 文献依据
-[所有引用的古籍出处]
+# Structural Lookup
+- setup_method:
+- time_boundary_system:
+- bureau_table_source:
+- source_fixture_family:
+- source_fixture_status:
+- implementation_version:
+- input_hash:
+- output_hash:
+- self_check:
 ```
 
----
+`Source Fidelity != Lookup Determinism != Predictive Validity`。
 
-## 七、追加问答 模板
+## 九、Eligible Feature Set
 
 ```markdown
-# 追加问 Q[序号]：[问题关键词]
-
-## 用户追问
-[用户的新问题原文]
-
-## 追加分析
-[分析内容]
-
-## 追加结论
-[结论]
-
-## 师傅核查
-[核查结果]
+# Eligible Feature Set
+IN:
+- ...
+OUT:
+- ...
+Priority rule within this method family:
+- NONE / ...
+Reason:
+...
+eligible_features_sha256:
 ```
+
+未进入 IN 的信息结果后不得补入。仪式、博奕、禁敌默认 OUT。
+
+## 十、Component / Relation Analysis
+
+宫盘先分：
+
+`STRUCTURAL_METADATA / SOURCE_SYMBOLISM / STATE_FEATURE / ROLE_BINDING / RELATION / CONTEXTUAL_INFERENCE`
+
+```markdown
+# Relational Inference
+## Primary relations
+...
+## State features
+- star_state_system:
+- door_state_system:
+- 空亡：结构 + 作用对象 + 当前解释
+- 入墓：结构 + 作用对象 + 当前解释
+- 击刑：结构 + 作用对象 + 当前解释
+- 门迫：结构 + 作用对象 + 当前解释
+## Contrary evidence
+...
+## Epistemic split
+- SOURCE:
+- INFERENCE:
+- EMPIRICAL_SUPPORT:
+- CONTAMINATION:
+```
+
+禁止固定星门神加总、旺衰乘数和四害自动折扣。
+
+## 十一、Pattern Registry
+
+格局由 `qimen-gexia` 处理：
+
+`STEM_PAIR_PATTERN / COMPOSITE_PATTERN / STRUCTURAL_STATE / TIME_CONFIGURATION / METHOD_SPECIFIC_PATTERN`
+
+必须预先进入 Eligible Feature Set；同一底层结构不得多格名重复计票。
+
+## 十二、Competing Branches
+
+```markdown
+# Competing Interpretation Branches
+## H1
+- assumptions:
+- evidence:
+- predicted observation:
+- failure_condition:
+## H2
+- assumptions:
+- evidence:
+- predicted observation:
+- failure_condition:
+competing_branches_sha256:
+```
+
+叙事连贯性不等于证据。
+
+## 十三、Timing Freeze
+
+```markdown
+# Timing Freeze
+- prediction_horizon:
+- resolution_target:
+- timing_method_family:
+- eligible_timing_features:
+- main_window:
+- scoring_tolerance:
+- alternative_window:
+- timing_protocol_sha256:
+```
+
+阳遁内 `1、8、3、4`、外 `9、2、7、6`；阴遁反转。“内快外慢”不是固定天数系数。
+
+## 十四、Frozen Prediction
+
+```markdown
+# Frozen Prediction
+## Protocol
+- case_id:
+- question_fingerprint_sha256:
+- question_domain:
+- method_family:
+- method_layer:
+- setup_method:
+- setup_calibration:
+- seasonal_alignment:
+- time_boundary_system:
+- layout_method:
+- time_family:
+- deity_system:
+- star_state_system:
+- door_state_system:
+- hour_omen_family:
+- ritual_layer:
+- bureau_table_source:
+- role_map_sha256:
+- eligible_features_sha256:
+- competing_branches_sha256:
+- timing_protocol_sha256:
+- auxiliary_information_policy:
+## Main prediction
+- outcome/direction:
+- time_window:
+- observable_success_criteria:
+- observable_failure_criteria:
+## Alternatives
+...
+## Confidence split
+- source_fidelity:
+- applicability:
+- empirical_support:
+## Freeze
+- timestamp:
+- outcome_unknown_at_freeze: true/false
+- immutable_after_outcome_feedback: true
+```
+
+允许 `INSUFFICIENT_EVIDENCE / OUT_OF_SCOPE / UNSCORABLE`。正式前瞻案例同步 Prospective Registry。
+
+## 十五、Auxiliary Context Ablation
+
+先 freeze method-only，再加入 news/background/external omen/other method，记录 augmentation delta 与 attribution。不能回写成原预测本来就包含这些信息。
+
+## 十六、Outcome Audit
+
+```markdown
+# Outcome Audit
+## Actual outcome
+...
+## Frozen score
+- outcome_class: HIT / PARTIAL / MISS / UNRESOLVED / CONTAMINATED
+## Error class
+INPUT_ERROR / PAIPAN_ERROR / ROLE_MAP_ERROR / METHOD_FAMILY_ERROR /
+METHOD_LAYER_ERROR / SETUP_METHOD_ERROR / SETUP_CALIBRATION_ERROR /
+TIME_BOUNDARY_ERROR / DEITY_SYSTEM_ERROR / STATE_SYSTEM_ERROR /
+FEATURE_SELECTION_ERROR / INTERPRETATION_ERROR / TIMING_ERROR /
+BASE_RATE_ERROR / AUXILIARY_CONTAMINATION / UNSPECIFIED_MODEL_FAILURE
+## Post-feedback changes observed
+- setup_method_switch:
+- setup_calibration_switch:
+- time_boundary_system_switch:
+- method_layer_switch:
+- time_family_switch:
+- deity_system_switch:
+- star_state_system_switch:
+- door_state_system_switch:
+- role_switch:
+- factor_switch:
+- timing_rule_switch:
+- external_information_added:
+## Contamination flags
+...
+## Rule lifecycle decision
+KEEP / NARROW / REVISE / SPLIT / DEPRECATE / REJECT
+```
+
+成功、失败、污染都保留。
+
+## 十七、Prospective Registry Gate
+
+正式未知结果测试遵守 `knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`。任何冻结字段结果后变化都必须新建 `case_id`。
+
+## 十八、final_case_summary.md
+
+记录原问题、冻结协议、冻结预测、辅助信息增量、实际结果、评分/污染、最大误差来源、对理论影响。
+
+## 十九、文献与经验支持
+
+原书断语=SOURCE；项目转译=INFERENCE；合格前瞻结果=EMPIRICAL_SUPPORT；背景/外应=CONTAMINATION/AUXILIARY。多书一致不自动等于现实有效。
 
 ---
 
-*工作流模板 v1.0 | 2026-03-27*
-*完整规范见：`F:\奇门遁甲\CONDUCT.md`*
+*Workflow v2.3 | 2026-08-21 | Setup Method / Time-Boundary / State-System 全链冻结*

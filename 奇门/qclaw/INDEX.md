@@ -1,205 +1,171 @@
-# 奇门遁甲知识体系索引
+# 奇门 QClaw 知识体系索引 v2.3
 
-> ⚠️ **解盘执行前必读**：`_AGENT_INSTRUCTIONS.md`（徒弟操作指令）
-> 
-> 每次收到用户的排盘数据+事体后，必须先读取 `_AGENT_INSTRUCTIONS.md`，按其中的流程执行八步分析。
+> **执行前必读**：
+> 1. `奇门/CURRENT_METHOD_CONSTRAINTS.md`
+> 2. `knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`
+> 3. `qclaw/_AGENT_INSTRUCTIONS.md`
+> 4. `qclaw/qimen-overview/SKILL.md`
 
-> **收录文献**：29本古籍/教材/讲义  
-> **创建时间**：2026-03-26  
-> **存放位置**：`F:\奇门遁甲\qclaw\`
+QClaw 当前定位：**受约束情境推演 + 前瞻冻结登记**。旧技能继续保存 SOURCE / history，但不拥有自动真值地位。
 
----
+## 一、当前技能角色
 
-## 一、技能导航
+| 技能 | 当前定位 |
+|---|---|
+| `qimen-overview` | 运行入口：Method/Setup/Time/Deity/State/Role/Pattern 冻结与 Outcome Audit |
+| `qimen-basics` | 基础结构与传统来源层 |
+| `qimen-datum` | 问题分类候选，不是最终 taxonomy |
+| `qimen-bigpicture` | 伏吟反吟、日时、内外盘 Feature Map |
+| `qimen-yongshen` | Role Map 候选；反馈前冻结 |
+| `qimen-sihai` | 空亡/入墓/击刑/门迫结构识别 |
+| `qimen-gongpan` | Component / Relation Registry；结构、象意、状态、Role、关系分层 |
+| `qimen-shengke` | 宫间关系与主客候选 |
+| `qimen-yingqi` | Timing Method Registry；禁止结果后挑应期 |
+| `qimen-gexia` | Pattern Registry；格名不是自动结论 |
+| `qimen-qiju` | Setup Method Registry；拆补/置闰/茅山、日界、宫序等必须 source-specific freeze |
+| `qimen-cases` | 旧案例待重新分类，不直接证明准确率 |
+| `qimen-yange` | 歌诀/传统文本来源层，仍需 provenance migration |
 
-### 🔰 入门路线
-```
-qimen-basics (基础理论)
-     ↓
-qimen-qiju (起局排盘)
-     ↓
-qimen-overview (解盘流程)
-     ↓
-qimen-datum → qimen-bigpicture → qimen-yongshen → qimen-sihai → qimen-gongpan → qimen-shengke → qimen-yingqi
-```
+## 二、当前执行顺序
 
-### 📚 技能清单
-
-| 技能 | 定位 | 核心内容 | 行数 | 重点文献 |
-|------|------|----------|------|----------|
-| **qimen-overview** | 入口导航 | 七步解盘流程总览 | ~170行 | 善天道高级研修班 |
-| **qimen-basics** | 基础必修 | 阴阳五行/干支/八卦/八神 | ~365行 | 预测学/应用学/金函玉镜 |
-| **qimen-datum** | 第一步 | 明确问题类型/预测方法分类 | ~170行 | 图解大全/应用学 |
-| **qimen-bigpicture** | 第二步 | 伏吟反吟/日时关系/主客 | ~205行 | 善天道/图解大全 |
-| **qimen-yongshen** | 第三步 | 10类用神速查 | ~230行 | 应用学/善天道 |
-| **qimen-sihai** | 第四步 | 空亡/入墓/击刑/门迫 | ~210行 | 善天道高级研修班 |
-| **qimen-gongpan** | 第五步 | 九星/八门/八神/九宫人体详解 | ~178行 | 讲义71页/应用学 |
-| **qimen-shengke** | 第六步 | 宫间关系/主客/旺衰时令 | ~280行 | 善天道/应用学 |
-| **qimen-yingqi** | 第七步 | 定应期五步法/值使落宫 | ~200行 | 善天道/预测学 |
-| **qimen-gexia** | 辅助参考 | 15+吉格/12+凶格/十干克应 | ~240行 | 金函玉镜/预测学 |
-| **qimen-qiju** | 前置技能 | 置闰/拆补/茅山法/实例 | ~195行 | 应用学/图解大全 |
-| **qimen-cases** | 实战参考 | 财运/婚姻/健康/奇门直断 | ~300行 | 最新实例解析/奇门直断 |
-| **qimen-yange** | 经典歌诀 | 烟波钓叟歌阴阳遁/九星/八门 | ~180行 | 烟波钓叟歌原典 |
-
----
-
-## 二、文献引用统计
-
-### 2.1 已收录文献（按引用频率排序）
-
-| 文献 | 引用次数 | 主要贡献技能 |
-|------|----------|------------|
-| 《善天道-奇门遁甲高级研修班讲义294页》 | ★★★★★ | 解盘流程、四害、应期、用神 |
-| 《奇门遁甲应用学》佚名 | ★★★★★ | 用神、预测方法、生克、九宫 |
-| 《善天道-奇门遁甲讲义71页》 | ★★★★ | 八门九星详解、伏吟反吟 |
-| 《图解奇门遁甲大全》第1部 | ★★★★ | 吉凶占断体系、基础 |
-| 《奇门遁甲预测学》幺学声 | ★★★★ | 基础理论、格局、应期五步法 |
-| 《金函玉镜奇门遁甲秘笈全书》 | ★★★ | 经典格局、古籍原典 |
-| 《奇门直断》杜新会 | ★★★ | 实战直断技法、各类事项判断 |
-| 《奇门遁甲最新实例解析》 | ★★ | 实战案例 |
-| 曾子南《三元奇门遁甲讲义》上中下 | ★★ | 台湾传承体系 |
-| 《奇门枢要》上下 | ★★ | 秘传心法 |
-| 《日家奇门运筹秘法》 | ★★ | 日家奇门分支 |
-| 《笺元遁甲句解烟波钓叟歌》 | ★★ | 经典歌诀 |
-
-### 2.2 待补充文献（扫描版，待OCR后补充）
-
-| 文献 | 状态 | 计划补充内容 |
-|------|------|--------------|
-| 《图解遁甲演义》上下部 | 扫描版 | 1080局详解 |
-| 《奇门精粹：奇门遁甲典籍大全》 | 扫描版 | 典籍合集 |
-| 《奇门統宗大全》八卷合一版 | 扫描版 | 历史典籍 |
-| 《奇门遁甲秘传》姜春龙 | 扫描版 | 秘传实践 |
-| 《甲遁真授秘录》上下册 | 扫描版 | 清代善本 |
-| 《奇门遁甲新述》费秉勋 | 扫描版 | 学术研究 |
-| 《奇门遁甲吉凶占断教程》 | 扫描版 | 教程体系 |
-| 《奇门遁甲白话精解》 | 扫描版 | 白话解读 |
-| 412-日家奇门运筹秘法 | 扫描版 | 日家分支 |
-| 444-奇门直断 | 扫描版 | 技法速查 |
-
----
-
-## 三、知识点速查
-
-### 3.1 解盘流程速查
-
-| 步骤 | 核心任务 | 检查清单 |
-|------|----------|----------|
-| 1.明确问题 | 确定事项类型 | 财运/事业/婚姻/健康... |
-| 2.看大局 | 判断格局特征 | 伏吟/反吟/日时关系 |
-| 3.取用神 | 选取分析对象 | 日干/年命+事项用神 |
-| 4.查四害 | 检查凶兆 | 空亡/入墓/击刑/门迫 |
-| 5.析宫盘 | 宫内符号分析 | 星+门+神+卦+格局 |
-| 6.看生克 | 宫间横向关系 | 五行生克/主客动静 |
-| 7.定应期 | 确定时间节点 | 空墓法/值使法/马星法 |
-
-### 3.2 用神速查
-
-| 事项 | 主用神 | 辅助用神 |
-|------|--------|----------|
-| 求财 | 生门 | 戊、丙 |
-| 事业 | 开门 | 值符、日干 |
-| 婚姻 | 六合 | 乙、庚 |
-| 健康 | 天芮 | 死门 |
-| 出行 | 杜门 | 马星 |
-| 官讼 | 惊门 | 庚 |
-| 考学 | 景门 | 天辅 |
-| 寻人 | 六合 | 马星 |
-
-### 3.3 四害速查
-
-| 四害 | 定义 | 影响 |
-|------|------|------|
-| 空亡 | 旬空地支 | 事情不实、难以落实 |
-| 入墓 | 天干入墓 | 事情纠结、停滞 |
-| 击刑 | 六仪受刑 | 大凶、灾祸 |
-| 门迫 | 门克宫 | 吉门不吉、凶门更凶 |
-
-### 3.4 格局速查
-
-| 类型 | 代表格局 | 吉凶程度 |
-|------|----------|----------|
-| 大吉 | 青龙回首、飞鸟跌穴 | ★★★★★ |
-| 吉 | 三奇得使、玉女守门 | ★★★★ |
-| 次吉 | 生门大吉、开门大吉 | ★★★ |
-| 凶 | 门迫、入墓、击刑 | ★★ |
-| 大凶 | 庚金克甲、五不遇时 | ★ |
-
----
-
-## 四、学习建议
-
-### 4.1 新手路线
-1. 先读 `qimen-basics` 掌握基础概念
-2. 再读 `qimen-qiju` 学会排盘
-3. 然后按解盘流程逐个学习
-
-### 4.2 进阶路线
-1. 深入 `qimen-gexia` 掌握格局
-2. 结合 `qimen-cases` 分析实战
-3. 研读原典补充细节
-
-### 4.3 实战路线
-1. 用 `qimen-overview` 作为解盘检查清单
-2. 遇到具体问题查阅对应技能
-3. 积累案例，验证理论
-
-## 五、更新日志
-
-| 日期 | 更新内容 |
-|------|----------|
-| 2026-03-25 | 创建12个技能文件（70KB） |
-| 2026-03-26 V1 | 补充《奇门遁甲预测学》《金函玉镜》《奇门枢要》等（94KB） |
-| 2026-03-26 V2 | 补充《奇门直断》实战直断技法（147KB） |
-| 2026-03-26 V3 | 深度扩充全部12个skill：gongpan补充九星详解与九宫人体；overview补充八神八门组合与疾病预测；yingqi补充应期五步法与值使落宫数字；shengke补充九宫旺衰时令与门干速查 |
-| 2026-03-26 V4 | 新增qimen-yange：烟波钓叟歌详解（阴阳遁歌诀/九星/八门/九遁/格局口诀） |
-
----
-
-## 六、师傅-徒弟工作流
-
-### 6.1 角色分工
-
-| 角色 | 知识库 | 职责 | 触发时机 |
-|------|--------|------|----------|
-| **徒弟（QClaw）** | `F:\奇门遁甲\qclaw\` qimen-* | 按八步法执行解盘分析 | 用户提交排盘+事体后立即调用 |
-| **师傅（WorkBuddy）** | `F:\奇门遁甲\.workbuddy\skills\` qmdj-* | 用古籍文献核查验证徒弟分析 | 仅在徒弟输出完成后触发 |
-
-### 6.2 工作流规范
-
-完整规范文件：`F:\奇门遁甲\CONDUCT.md`
-
-```
-用户输入 → 徒弟八步分析 → 师傅六项核查 → 汇总输出
+```text
+Reality Baseline
+→ Question Domain
+→ Method Layer / Family
+→ Setup Method + Calibration + Seasonal Alignment
+→ Time Boundary + Time Family + Layout + Deity System
+→ Star/Door State Systems
+→ Role Map
+→ Structural Lookup
+→ Eligible Feature Set
+→ Component / Relation Analysis
+→ Pattern Registry
+→ Competing Branches
+→ Timing Freeze
+→ Frozen Prediction
+→ Prospective Registry
+→ Auxiliary Ablation
+→ Outcome Audit
+→ Rule Lifecycle
 ```
 
-### 6.3 案例输出
+## 三、三个必须分离的验证维度
 
-- 每个案例在 `F:\奇门遁甲\生成内容\` 下新建文件夹
-- 命名格式：`YYYYMMDD_问题关键词_时分`
-- 徒弟文件：`claw_流程名_YYYYMMDD.md`
-- 师傅文件：`workbuddy_核查报告_YYYYMMDD.md`
-- 活案例库：`F:\奇门遁甲\生成内容\qimen-cases-v2\`
+```text
+SOURCE CONSENSUS != EMPIRICAL SUPPORT
+SOURCE FIDELITY != LOOKUP DETERMINISM != EMPIRICAL SUPPORT
+RUNTIME CONTRACT PASS != PREDICTION VALIDATED
+```
 
-### 6.4 冲突裁决
+## 四、当前关键冻结字段
 
-- 师傅有古籍依据 → 以师傅为准
-- 师傅无依据 → 标注「存疑」，呈现两种结论
-- 任何Agent不得脱离事体单独论断格局
+正式可评分模型至少明确：
+
+```text
+method_layer
+method_family
+setup_method
+setup_calibration
+seasonal_alignment
+time_boundary_system
+time_family
+layout_method
+deity_system
+star_state_system
+door_state_system
+hour_omen_family
+ritual_layer
+bureau_table_source
+Role Map
+Eligible Feature Set
+Competing Branches
+Timing Protocol
+Auxiliary Policy
+```
+
+结果后改变任何关键字段只能新建模型版本/`case_id`。
+
+## 五、当前已确认的真实 legacy 冲突
+
+- gexia：朱雀投江两套干对；小格两套干对；三吉门/三奇会聚定义不清；
+- gongpan：天蓬旺相状态出现两套相反示例；
+- deity system：勾陈/朱雀 vs 白虎/玄武；
+- qiju：超神/接气定义方向反转；拆补两套算法描述；拆补/茅山重叠；子时 20-23 vs 23-24；宫号序列与“顺逆时针”混写。
+
+这些冲突是研究资产，不静默修成一套“统一古法”。
+
+## 六、旧速查/硬规则降级
+
+以下均不再是跨场景真理：
+
+- `开门 > 值符 > 生门 > 星神`；
+- 逢空固定待定；
+- 凶格>=3分/相乘；
+- 旺相全额、休囚减半；
+- 吉星+吉门+吉神=大吉；
+- 伏吟=守成、反吟=出击；
+- “拆补法推荐/最准/最常用”作为选择依据；
+- 任何传统疾病、犯罪、死亡类象直接当事实。
+
+## 七、当前验证生命周期
+
+`CANDIDATE -> TESTABLE -> PROVISIONAL -> SUPPORTED`
+
+允许反向：
+
+`SUPPORTED/PROVISIONAL -> NARROWED -> DEPRECATED -> REJECTED`
+
+`>=3` 不是验证魔数。
+
+## 八、当前原创方法论
+
+`奇门/理论创新_受约束情境推演法_v0.2-alpha.md`
+
+当前最可辩护的价值不是“已经更准”，而是：**更少允许反馈后换轨，更容易让模型真正失败。**
+
+## 九、QM-SRC-0001 当前完成状态
+
+已完成：
+
+- canonical 57/57 `VISUAL_PAGE`；
+- 32 REVIEWED Atomic Evidence；
+- REVIEWED Book Distillate；
+- Method Delta + Prospective Test Plan；
+- 十八局 p32-p49 source fixture index；
+- Prospective Case Registry；
+- gexia Pattern Registry migration；
+- gongpan Component / Relation Registry migration；
+- qiju Setup Method Registry migration；
+- execution/gexia/gongpan/qiju runtime-contract CI gates。
+
+尚未完成：
+
+- 十八局 `ANCHORS_VERIFIED`；
+- 十八局 `IMPLEMENTATION_CHECKED`；
+- old cases reclassification；
+- yange provenance migration；
+- Test A-G 真实前瞻实验；
+- 任何经验有效性结论。
+
+## 十、Prospective Registry
+
+正式未知结果测试使用：
+
+- `knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`
+- `knowledge/K2_PROSPECTIVE_CASE_REGISTRY.jsonl`
+
+Git 保存冻结元数据/hashes，详细私人 case packet 留在 Git 外。污染案例保留，不得为了命中率删除。
+
+## 十一、执行底线
+
+- 不因书名/作者/古籍权威盲信；
+- 不因案例“像”就称验证；
+- 不因叙事连贯就称正确；
+- 不在结果后换 setup、日界、method layer、time family、deity/state system、Role Map、Pattern、应期；
+- 不把 fixture/runtime contract PASS 当预测有效；
+- 不把传统高风险象意当专业结论；
+- 不用辅助信息倒算奇门本体能力。
 
 ---
 
-## 七、更新日志
-
-| 日期 | 更新内容 |
-|------|----------|
-| 2026-03-25 | 创建12个技能文件（70KB） |
-| 2026-03-26 V1 | 补充《奇门遁甲预测学》《金函玉镜》《奇门枢要》等（94KB） |
-| 2026-03-26 V2 | 补充《奇门直断》实战直断技法（147KB） |
-| 2026-03-26 V3 | 深度扩充全部12个skill：gongpan补充九星详解与九宫人体；overview补充八神八门组合与疾病预测；yingqi补充应期五步法与值使落宫数字；shengke补充九宫旺衰时令与门干速查 |
-| 2026-03-26 V4 | 新增qimen-yange：烟波钓叟歌详解（阴阳遁歌诀/九星/八门/九遁/格局口诀） |
-| 2026-03-27 | 新增师傅-徒弟工作流规范（CONDUCT.md）；创建活案例库模板（qimen-cases-v2）；INDEX添加第六节工作流入口 |
-
----
-
-*维护说明*：本索引随技能文件更新而更新。如发现内容遗漏或错误，请及时修正对应技能文件。
+*QClaw Index v2.3 | 2026-08-21 | Setup / Time-Boundary / State-System / Pattern / Component Registry aligned*

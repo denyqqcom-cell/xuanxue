@@ -1,277 +1,215 @@
 ---
 name: qimen-overview
 description: >
-  奇门遁甲解盘流程总览技能。覆盖七步标准解盘全流程（明确问题→看大局→取用神→查四害→析宫盘→看生克→定应期）。
-  提供完整的解盘思路图、每步核心检查项、常见错误警示。
-  适用于奇门遁甲学习者进行盘面分析时调用。
+  奇门遁甲受约束情境推演入口。定义问题、方法层/方法族、起局算法、时间边界、盘式/时间体系、
+  八神/旺衰体系、Role Map、结构查表、Component/Pattern、竞争解释、冻结预测与结果审计。
 ---
 
-# 奇门遁甲解盘流程总览
+# 奇门解盘总览：受约束情境推演入口 v2.3
 
-> **核心定位**：所有解盘技能的入口，提供全局导航  
-> **适用阶段**：分析任何奇门盘面之前
+> **当前约束**：先读 `奇门/CURRENT_METHOD_CONSTRAINTS.md`。正式未知结果前瞻同时读取 `knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`。SOURCE、查表一致、叙事自洽与 Empirical Support 必须分开。
 
----
+## 一、当前运行流程
 
-## 一、七步标准解盘流程
-
+```text
+Reality Baseline
+-> Question Domain
+-> Method-Layer / Method-Family Freeze
+-> Setup Method + Calibration + Seasonal Alignment Freeze
+-> Time-Boundary + Time-Family + Layout + Deity-System Freeze
+-> State-System Freeze
+-> Role Map Freeze
+-> Bureau / Structural Lookup
+-> Eligible Feature Set
+-> Component / Relation Analysis
+-> Pattern Registry
+-> Competing Branches
+-> Timing Freeze
+-> Frozen Prediction
+-> Prospective Registry
+-> Auxiliary Ablation
+-> Outcome Audit
+-> Rule Lifecycle
 ```
-① 明确问题
-  ↓
-② 看大局（反吟/伏吟/日时关系）
-  ↓
-③ 取用神（根据问题类型选取）
-  ↓
-④ 查四害（空亡/入墓/击刑/门迫）
-  ↓
-⑤ 析宫盘（星门神奇+格局吉凶）
-  ↓
-⑥ 看生克（用神宫与相关宫横向关系）
-  ↓
-⑦ 定应期（月令旺衰+地支应期）
+
+## 二、Reality Baseline
+
+确认对象/事件/时间/地点、已知与未知、时间范围、基础概率、高风险边界、是否 `PRE_EXPOSED`。现实背景若用于实际决策可以加入，但评价奇门本体时必须与 method-only 分开。
+
+## 三、Question Domain + Method Layer
+
+先定义问题，再冻结：
+
+`STANDARD_PLATE / TIME_FAMILY_VARIANT / HOUR_OMEN / RITUAL_AUXILIARY`
+
+一个层 miss 不得由另一层结果后救援。A/B 反馈前独立冻结。RITUAL 默认不评分。
+
+## 四、Setup Method Gate
+
+起局不是一个“局数”字段，而是一组算法选择。反馈前至少记录：
+
+```text
+setup_method
+setup_calibration
+seasonal_alignment
+time_boundary_system
+time_family
+layout_method
+bureau_table_source
 ```
 
-> **来源**：《善天道-奇门遁甲高级研修班讲义294页》第1节·断局基本思路·(6)奇门基本盘面分析  
-> *"断局的两个原则、四个避开、八神的辅助作用、参数的能量状态、奇门局的主客动静……"*
+`qimen-qiju` legacy 深查已经发现：
+
+- 超神/接气定义在同一文件前后反转；
+- 拆补存在“固定5+5+5”与“残元+补元”两套描述；
+- 拆补/茅山定义高度重叠；
+- 子时边界出现“20-23”与“23-24”冲突；
+- 宫序与“顺时针/逆时针”语言混用。
+
+因此当前没有默认“最正确 setup”。若这些差异影响盘，需绑定 source-specific algorithm 或并行 A/B。
+
+## 五、Time-Boundary Gate
+
+正式模型新增：
+
+```text
+time_boundary_system = CIVIL_MIDNIGHT / ZI_START_23 / SOURCE_DEFINED_OTHER / NOT_APPLICABLE
+```
+
+这些只是项目上下文标签，不声明哪一个玄学上正确。结果后改变日界/子时规则不能修补原预测。
+
+## 六、Deity-System Gate
+
+梁湘潤书使用勾陈/朱雀，现代资料常见白虎/玄武。当前按：
+
+`GOUCHEN_ZHUQUE / BAIHU_XUANWU / SOURCE_DEFINED_OTHER`
+
+平行保存，不静默改名、不互借象意、不反馈后切换。
+
+## 七、State-System Freeze
+
+正式模型明确：
+
+```text
+star_state_system
+door_state_system
+```
+
+旧 gongpan 同一文件对天蓬出现 `旺亥子/相寅卯` 与 `旺寅卯/相亥子` 两套相反示例。使用旺相休囚时必须绑定明确 source/method system；不使用写 `NOT_APPLICABLE`；可评分 FROZEN model 不得留 `CONTEXT_REQUIRED`。
+
+## 八、Role Map Freeze
+
+角色来源标：`SOURCE_DEFINED / METHOD_DEFINED / CONTEXT_INFERRED`。多个合理用神反馈前保存竞争 Role Map，不得结果后换用神。
+
+## 九、Bureau / Structural Lookup
+
+机械结构与解释分开。候选包括阴阳遁/局数、值符值使、星门神位置、旬空马星、source-defined bureau lookup。
+
+`Source Fidelity != Lookup Determinism != Empirical Support`。
+
+梁书十八局 fixture 即使实现全对，也不能证明预测有效。
+
+## 十、Eligible Feature Set
+
+按方法族预先选择 IN / OUT。没有全局 `开门 > 值符 > 生门 > 星神`。未进入 IN 的信息反馈后不能补入。
+
+## 十一、Component / Relation Analysis
+
+`qimen-gongpan` 先分：
+
+`STRUCTURAL_METADATA / SOURCE_SYMBOLISM / STATE_FEATURE / ROLE_BINDING / RELATION / CONTEXTUAL_INFERENCE`
+
+取消固定 `九星→八门→八神→八卦→十干` 顺序与“吉星+吉门+吉神=大吉”机械加总。传统犯罪、疾病、死亡、灾害类象不是现实事实分类器。
+
+## 十二、Pattern Registry
+
+`qimen-gexia` 先分：
+
+`STEM_PAIR_PATTERN / COMPOSITE_PATTERN / STRUCTURAL_STATE / TIME_CONFIGURATION / METHOD_SPECIFIC_PATTERN`
+
+十干克应保留 `(HEAVEN_STEM, EARTH_STEM)` 有序方向。同一底层结构不得多格名重复计票；来源冲突保留 `CONFLICT_CANDIDATE`。
+
+## 十三、空墓刑迫 / 伏吟反吟
+
+先识别结构与作用对象，不做固定凶吉、百分比折扣或自动放大。传统静/动、主客等语义属于 SOURCE candidate。
+
+## 十四、Competing Branches
+
+多义/流派冲突时保存 H1/H2：前提、主导证据、区分观察、失败条件。叙事连贯性不等于 Empirical Support。
+
+## 十五、Timing Freeze
+
+先冻结 timing method、eligible features、主窗口、容许度与竞争窗口。禁止结果后从空/墓/马/值使/外应中挑一个对得上的。
+
+阳遁内 `1、8、3、4`、外 `9、2、7、6`；阴遁反转。“内快外慢”仍待验证。
+
+## 十六、Frozen Prediction
+
+至少冻结：
+
+```text
+case_id
+question_fingerprint_sha256
+question_domain
+method_family
+method_layer
+setup_method
+setup_calibration
+seasonal_alignment
+time_boundary_system
+layout_method
+time_family
+deity_system
+star_state_system
+door_state_system
+hour_omen_family
+ritual_layer
+bureau_table_source
+role_map_sha256
+eligible_features_sha256
+competing_branches_sha256
+timing_protocol_sha256
+auxiliary_information_policy
+observable success/failure criteria
+freeze_timestamp
+outcome_unknown_at_freeze
+```
+
+正式前瞻同步 Prospective Registry。允许 `INSUFFICIENT_EVIDENCE / UNSCORABLE / OUT_OF_SCOPE`。
+
+## 十七、Auxiliary / HOUR_OMEN / Ritual 隔离
+
+推荐 `method-only -> freeze -> context-augmented -> record delta`。
+
+HOUR_OMEN 需要独立事件类别、时间窗、基准率、负对照。符咒/步斗/禁敌/博奕等 ritual-history 默认不进入普通评分。
+
+## 十八、高风险边界
+
+传统人体/疾病、犯罪、牢狱、死亡、灾害类象可用于文献研究，但不能替代医学、法律、金融或事实调查。
+
+## 十九、Outcome Audit
+
+错误至少区分：
+
+`INPUT_ERROR / PAIPAN_ERROR / ROLE_MAP_ERROR / METHOD_FAMILY_ERROR / METHOD_LAYER_ERROR / SETUP_METHOD_ERROR / SETUP_CALIBRATION_ERROR / TIME_BOUNDARY_ERROR / DEITY_SYSTEM_ERROR / STATE_SYSTEM_ERROR / FEATURE_SELECTION_ERROR / INTERPRETATION_ERROR / TIMING_ERROR / BASE_RATE_ERROR / AUXILIARY_CONTAMINATION / UNSPECIFIED_MODEL_FAILURE`
+
+Outcome：`HIT / PARTIAL / MISS / UNRESOLVED / CONTAMINATED`。
+
+Rule lifecycle：`KEEP / NARROW / REVISE / SPLIT / DEPRECATE / REJECT`。
+
+## 二十、快速导航
+
+| 任务 | 技能 |
+|---|---|
+| 起局 / setup registry | `qimen-qiju` |
+| Role Map | `qimen-yongshen` |
+| 空墓刑迫 | `qimen-sihai` |
+| 宫盘组件/关系 | `qimen-gongpan` |
+| 主客生克 | `qimen-shengke` |
+| 应期 | `qimen-yingqi` |
+| Pattern/格局 | `qimen-gexia` |
+| 基础 | `qimen-basics` |
 
 ---
 
-## 二、每一步核心检查项
-
-### 第一步：明确问题
-**核心原则**：没有问题就没有解盘
-
-- ✅ 确定求测事项类型（财运/事业/婚姻/健康/出行等）
-- ✅ 确定问测人身份（日干/年命）
-- ✅ 确定时间范围（近期/中期/远期）
-
-**文献出处**：
-> 《图解奇门遁甲大全》第1部 吉凶占断·第一章  
-> *"奇门遁甲预测，必须先明确所测何事，方能选取正确用神。"*
-
----
-
-### 第二步：看大局
-**核心原则**：先判断全局特征，再进入细节
-
-**三项必查**：
-| 检查项 | 含义 | 吉凶影响 |
-|--------|------|----------|
-| **伏吟局** | 星门伏在本宫不动 | 利主不利客，事情迟缓难变 |
-| **反吟局** | 星门飞到对冲宫位 | 利客不利主，事情变化快、易反复 |
-| **天显时格** | 甲丙庚时 | 经历纠结波折，最终可达较好效果 |
-
-**日干/时干关系**：
-> 《图解奇门遁甲大全》第1部·第五章  
-> *"日干为问测之人，时干为整个事件。以日干与时干之生克关系，判断事态发展趋势。"*
-
-**文献出处**：
-> 《善天道-奇门遁甲高级研修班讲义294页》第1节·断局基本思路·(4)  
-> *"参数的能量状态：吉祥参数能量弱则不吉；凶参数能量弱则不凶。"*
-
----
-
-### 第三步：取用神
-**核心原则**：按问题类型选取对应用神
-
-详见 `qimen-yongshen` 技能
-
----
-
-### 第四步：查四害
-**核心原则**：四害存在时吉凶判断需打折
-
-**四害速查**：
-| 四害 | 定义 | 查法 |
-|------|------|------|
-| **空亡** | 旬空之地支 | 甲子旬戌亥空，甲戌旬申酉空…… |
-| **入墓** | 天干入墓 | 乙丙墓戌、丁己墓丑、戊墓辰、庚墓丑、壬癸墓辰 |
-| **击刑** | 六仪受地支相刑 | 子卯刑、寅巳申刑、丑未戌刑、辰午酉亥自刑 |
-| **门迫** | 门克宫为迫/宫克门为制 | 吉门被迫吉不就，凶门被迫事更凶 |
-
-**五不遇时**（大凶，时干克日干）：
-> 《善天道-奇门遁甲高级研修班讲义294页》第1节·断局基本思路·(3)  
-> *"五不遇时：时干克日干，阳克阳、阴克阴。又称'七杀'，大凶兆头。"*
-
-详见 `qimen-sihai` 技能
-
----
-
-### 第五步：析宫盘
-**核心原则**：星+门+神+卦+格局五位一体综合分析
-
-**宫内分析顺序**：
-1. **九星** → 天时影响力（吉凶+旺相休囚）
-2. **八门** → 人事影响力（吉凶+门宫关系）
-3. **八神** → 神秘力量（辅助判断）
-4. **八卦** → 象意延伸（地理/人物/事物）
-5. **十干克应** → 格局组合具体含义
-
-**文献出处**：
-> 《奇门遁甲应用学》佚名·第四章·奇门遁甲预测依据与信息象意  
-> *"五大成败因素：天时（九星）、地利（八宫）、人和（八门）、神助（八神）、格局组合（十干克应）。"*
-
-详见 `qimen-gongpan` 技能
-
----
-
-### 第六步：看生克
-**核心原则**：宫与宫之间横向生克关系
-
-**门与宫的五种关系**：
-| 关系 | 含义 | 吉凶 |
-|------|------|------|
-| 门克宫 | 迫 | 凶 |
-| 宫克门 | 制 | 吉事不成，凶事也不起 |
-| 门生宫 | 和 | 吉 |
-| 宫生门 | 义 | 吉，但需付出 |
-| 门宫比和 | 比 | 中平 |
-
-**主客动静判断**：
-| 条件 | 主/客 | 动/静 |
-|------|-------|-------|
-| 五阳干（甲乙丙丁戊） | 利客 | 先动 |
-| 五阴干（己庚辛壬癸） | 利主 | 后动 |
-| 天盘生地盘 | 利主 | 静 |
-| 地盘生天盘 | 利客 | 动 |
-
-**急从神/缓从门**：
-> 《善天道-奇门遁甲高级研修班讲义294页》第1节·断局基本思路·(1)  
-> *"急则从神（向值符落宫方向行动）；缓则从门（以门为主要思考方向）。"*
-
-详见 `qimen-shengke` 技能
-
----
-
-### 第七步：定应期
-**核心原则**：空墓应期、马星冲动、值使落宫
-
-**三种定应期方法**：
-| 方法 | 要点 | 适用情况 |
-|------|------|----------|
-| **空墓法** | 被冲空或填空时为应期 | 遇旬空或入墓时 |
-| **值使法** | 看值使落宫数字，结合内外盘 | 一般情况 |
-| **马星法** | 冲动对宫或冲动本宫时为应期 | 有马星时 |
-
-**内外盘定远近**：
-- 内盘（1、3、4、9宫）→ 快、近、短
-- 外盘（2、6、7、8宫）→ 慢、远、长
-
-**文献出处**：
-> 《善天道-奇门遁甲高级研修班讲义294页》第1节·断局基本思路·(8)  
-> *"应期的确定：逢空逢墓时以冲空填空为应期；值使落宫看其宫有几个数字；马星冲动时为应期。"*
-
-详见 `qimen-yingqi` 技能
-
----
-
-## 三、常见错误警示
-
-| 错误 | 正确做法 |
-|------|----------|
-| 不明确问题就解盘 | 先确认事项类型再选对应用神 |
-| 忽视四害 | 空亡/入墓/击刑存在时吉凶打折 |
-| 只看星门吉凶 | 必须结合能量状态（旺相休囚） |
-| 忽略主客关系 | 五阴干利主安静，五阳干利客先动 |
-| 定应期凭感觉 | 必须有依据（空墓/马星/值使） |
-
----
-
-## 四、快速导航
-
-| 下一步 | 技能 | 核心内容 |
-|--------|------|----------|
-| 取用神 | `qimen-yongshen` | 10大类用神速查表 |
-| 查四害 | `qimen-sihai` | 空亡/入墓/击刑/门迫详解 |
-| 析宫盘 | `qimen-gongpan` | 九星/八门/八神详细解读 |
-| 看生克 | `qimen-shengke` | 宫间关系/主客判断 |
-| 定应期 | `qimen-yingqi` | 三种应期方法 |
-| 格局 | `qimen-gexia` | 15+吉格/12+凶格 |
-| 基础理论 | `qimen-basics` | 干支/五行/九宫八卦 |
-| 起局 | `qimen-qiju` | 置闰/拆补/茅山三法 |
-| 案例 | `qimen-cases` | 实战分析参考 |
-
----
-
-## 五、八神八门组合象意速查
-
-> 《奇门遁甲预测学》幺学声·第四章·第三节·P85-88
-
-### 5.1 值符与八门组合
-
-| 值符+门 | 象意 |
-|---------|------|
-| 值符+生门 | 兄弟悦财喜，文书逢酒色 |
-| 值符+休门 | 晴天有财帛到门，壮汉携妇 |
-| 值符+开门 | 相约不见有人来，空谈虚事 |
-| 值符+杜门 | 主客相交两不欢，往来为酒食 |
-| 值符+景门 | 云雨收，谋望依小人，文章异彩 |
-| 值符+死门 | 阴雨路难行，为灾祸事，被小人辖 |
-| 值符+伤门 | 险途不测莫寻人，换庄移家急论 |
-| 值符+惊门 | 天盘逢英利出行，惊虚因子女起 |
-
-### 5.2 螣蛇与八门组合（天气象意）
-
-| 螣蛇+门 | 天气 | 人事 |
-|---------|------|------|
-| 螣蛇+杜门 | 莫捕贼（贼已远逃） | 词讼纠缠 |
-| 螣蛇+景门 | 远信来，火光惊忧 | 官灾在即 |
-| 螣蛇+死门 | 灶炊烟断 | 居家有人外逃 |
-| 螣蛇+伤门 | 飓风狂，门上不安 | 阴人多邪事 |
-| 螣蛇+惊门 | 阴私多 | 暧昧桃花风波 |
-
-### 5.3 白虎与八门组合
-
-| 白虎+门 | 象意 |
-|---------|------|
-| 白虎+生门 | 杀伤，远行凶死 |
-| 白虎+死门 | 孤军，争婚病难痊 |
-| 白虎+开门 | 贵出兵，利官场 |
-| 白虎+杜门 | 必死亡，六蓄争坟 |
-| 白虎+景门 | 凶孝事，官灾病患宅难居 |
-
----
-
-## 六、疾病预测特殊体系
-
-### 6.1 九宫与人体部位详细对应
-
-> 《奇门遁甲预测学》幺学声·下编·第一章·P98-99
-
-| 宫位 | 体表部位 | 体内器官 | 内外盘 |
-|------|----------|----------|--------|
-| **坎一宫** | 腹部、生殖器 | 膀胱、肾脏、内分泌 | 下部 |
-| **坤二宫** | 右上侧肢体 | 脾胃、食道、胰腺消化系统 | 上右 |
-| **震三宫** | 左肋、腰 | 肝胆，脚足 | 中左 |
-| **巽四宫** | 左上侧、耳朵、头发、肩 | 胆，中风经络 | 上左 |
-| **中五宫** | 内脏总纲 | 脾胃总管 | 内 |
-| **乾六宫** | 右腿，头部 | 胸肺、脊髓、大肠、筋骨 | 下右 |
-| **兑七宫** | 右肋腰、胸 | 肺、口舌、牙齿、气管 | 中右 |
-| **艮八宫** | 左腿、鼻子 | 肠胃消化、结肠 | 下左 |
-| **离九宫** | 头部、眼睛、面部 | 心脏、心脑血管 | 上中 |
-
-### 6.2 十天干疾病对应
-
-> 《奇门遁甲预测学》幺学声·下编·第一章·P99
-
-**五脏六腑口诀**：
-> 甲胆乙肝丙小肠，丁心戊胃己脾乡。  
-> 庚是大肠辛是肺，壬是膀胱癸肾藏。
-
-**头面口诀**：
-> 甲头乙肩丙为额，丁齿戊鼻己为面。  
-> 庚筋辛肋壬为胫，癸为双足是真踪。
-
-### 6.3 疾病预测判断要点
-
-| 关键因素 | 判断内容 |
-|----------|----------|
-| 用神落宫 | 对应人体哪个部位/器官 |
-| 天干象意 | 甲丙戊等对应脏腑详细 |
-| 星门吉凶 | 吉则病轻，凶则病重 |
-| 旺衰状态 | 旺则病势猛，衰则病渐退 |
-| 格局 | 青龙回首有转机，天柱柱折病难愈 |
-
----
-
-*文献来源*：《善天道-奇门遁甲高级研修班讲义294页》第1节；《图解奇门遁甲大全》第1部·第五、六章；《奇门遁甲应用学》佚名·第四、五章；《奇门遁甲预测学》幺学声·第四章·下编
+*Overview v2.3 | 2026-08-21 | Setup Method / Time-Boundary / State-System / Pattern & Component Registry aligned*

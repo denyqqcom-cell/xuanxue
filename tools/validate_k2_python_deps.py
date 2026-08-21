@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Validate the external Python dependency directory used by K2 local helpers.
 
-The K2 page-packet builder intentionally supports dependencies installed with
+The K2 packet builders intentionally support dependencies installed with
 ``pip --target`` outside the repository. A partially interrupted target install
 can leave importable pure-Python package shells while omitting native modules
-needed by cffi/cryptography. This validator fails closed before corpus work
-starts and also rejects accidental fallback to globally installed packages.
+needed by cffi/cryptography or the PDFium renderer. This validator fails closed
+before corpus work starts and rejects accidental fallback to globally installed
+packages.
 """
 
 import argparse
@@ -62,6 +63,8 @@ def import_from_target(name: str, target: Path):
 
 def version_of(module):
     value = getattr(module, "__version__", None)
+    if value is None:
+        value = getattr(module, "VERSION", None)
     return str(value) if value is not None else "UNKNOWN"
 
 
@@ -81,13 +84,23 @@ def main():
     pdfminer, pdfminer_origin = import_from_target("pdfminer", target)
     cryptography, crypto_origin = import_from_target("cryptography", target)
     cffi, cffi_origin = import_from_target("cffi", target)
+    pdfium, pdfium_origin = import_from_target("pypdfium2", target)
+    pillow, pillow_origin = import_from_target("PIL", target)
+    pil_image, pil_image_origin = import_from_target("PIL.Image", target)
 
-    # Exercise the exact native/runtime pieces that were missing in the observed
+    # Exercise the exact native/runtime pieces that were missing in an observed
     # interrupted Windows target install.
     _, cffi_backend_origin = import_from_target("_cffi_backend", target)
     _, rust_origin = import_from_target("cryptography.hazmat.bindings._rust", target)
     import_from_target("pdfminer.high_level", target)
     import_from_target("pypdf._crypt_providers._cryptography", target)
+
+    # The visual helper requires concrete renderer and image APIs. The full
+    # native PDFium path is exercised again by test_k2_visual_page_packet.py.
+    if not callable(getattr(pdfium, "PdfDocument", None)):
+        fail("pypdfium2.PdfDocument is unavailable")
+    if not callable(getattr(pil_image, "new", None)):
+        fail("PIL.Image.new is unavailable")
 
     print("k2-python-deps: PASS")
     print(f"python_deps_dir={target}")
@@ -95,6 +108,9 @@ def main():
     print(f"pdfminer={version_of(pdfminer)} origin={pdfminer_origin}")
     print(f"cryptography={version_of(cryptography)} origin={crypto_origin}")
     print(f"cffi={version_of(cffi)} origin={cffi_origin}")
+    print(f"pypdfium2={version_of(pdfium)} origin={pdfium_origin}")
+    print(f"Pillow={version_of(pillow)} origin={pillow_origin}")
+    print(f"PIL_Image_origin={pil_image_origin}")
     print(f"_cffi_backend_origin={cffi_backend_origin}")
     print(f"cryptography_rust_origin={rust_origin}")
 

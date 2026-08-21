@@ -19,7 +19,7 @@ concurrency:
 jobs:
   knowledge-gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - name: Validate six-domain knowledge contracts
@@ -52,6 +52,30 @@ jobs:
         run: python3 tools/test_k2_evidence.py
       - name: Enforce K2 evidence state
         run: python3 tools/validate_k2_evidence.py
+      - name: Test post-Wave1 corpus expansion fail-closed cases
+        run: python3 tools/test_k2_evidence_expansion.py
+      - name: Enforce post-Wave1 corpus expansion state
+        run: python3 tools/validate_k2_evidence_expansion.py
+      - name: Test K2 source fixture fail-closed cases
+        run: python3 tools/test_k2_source_fixtures.py
+      - name: Enforce K2 source fixture state
+        run: python3 tools/validate_k2_source_fixtures.py
+      - name: Test K2 prospective case fail-closed cases
+        run: python3 tools/test_k2_prospective_cases.py
+      - name: Enforce K2 prospective case registry
+        run: python3 tools/validate_k2_prospective_cases.py
+      - name: Test Qimen execution freeze contract
+        run: python3 tools/test_qimen_execution_freeze_contract.py
+      - name: Test Qimen qiju runtime contract
+        run: python3 tools/test_qimen_qiju_runtime_contract.py
+      - name: Test Qimen cases runtime contract
+        run: python3 tools/test_qimen_cases_runtime_contract.py
+      - name: Test Qimen yange runtime contract
+        run: python3 tools/test_qimen_yange_runtime_contract.py
+      - name: Test Qimen gexia runtime contract
+        run: python3 tools/test_qimen_gexia_runtime_contract.py
+      - name: Test Qimen gongpan runtime contract
+        run: python3 tools/test_qimen_gongpan_runtime_contract.py
       - name: Test per-book distillation fail-closed cases
         run: python3 tools/test_k2_book_distillates.py
       - name: Enforce mandatory per-book distillation
@@ -81,6 +105,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: Verify existing stable core still passes
         run: ./gradlew --no-daemon :ziwei-core:test
+      - name: Verify Qimen app integration compiles
+        run: ./gradlew --no-daemon :app:compileDebugKotlin
 
   k2-helper-portability:
     runs-on: windows-latest
@@ -106,3 +132,6 @@ jobs:
         run: python tools/validate_k2_python_deps.py --python-deps-dir "$env:K2_PYTHON_DEPS"
       - name: Verify K2 local helper on Windows paths and PDF fallback
         run: python tools/test_k2_evidence.py
+      - name: Verify K2 VISUAL_REQUIRED page renderer on Windows
+        shell: pwsh
+        run: python tools/test_k2_visual_page_packet.py --python-deps-dir "$env:K2_PYTHON_DEPS"

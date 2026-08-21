@@ -8,18 +8,21 @@ import com.xuanxue.ziwei.core.ZiweiAstro.Astrolabe
 /**
  * 奇门解释层。
  *
- * handoff/qimen 明确记录：当前资料有 calendar/table/map fixtures，但完整九宫黄金盘为 0，
- * 地盘 walk 与人盘方向仍有冲突。因此这里不再把 main 分支的完整九宫当作已核验事实去断吉凶。
+ * 当前存在多个显式 MethodProfile。解释层必须把方法配置本身展示出来，
+ * 不能把来源限定实现或 legacy 实验实现伪装成同一个“标准盘”。
  */
 object QimenInterpreter : Interpreter<QimenChart> {
     override val toolName = "qimen_interpret"
-    override val toolDesc = "奇门基础事实整理：历法、局、旬首旬空；完整九宫仅标实验"
+    override val toolDesc = "奇门基础事实整理：方法配置、历法、局、旬首旬空；完整九宫只标实验"
 
     override fun interpret(c: QimenChart): List<String> = buildList {
-        add("当前引擎结果：四柱【${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}】，节气【${c.jieQi}】，${c.juText}。局数与定元必须结合所选流派方法理解，不把“拆补”当成只有一种实现。")
-        add("旬法信息：时旬首【${c.xunShou}】，遁干【${c.dunGan}】，旬空【${c.xunKong.joinToString("、")}】。这些属于当前资料交接中可工程化、可夹具化的层。")
-        add("九宫实验边界：当前 main 引擎可以生成值符【${c.zhiFu}】、值使【${c.zhiShi}】以及星门神九宫，但 handoff/qimen/05_FIXTURES.jsonl 没有完整九宫黄金盘；因此本离线解释层不依据这些字段输出吉凶、成败或应期。")
-        add("进一步解盘需要先明确具体事体与取用依据，再区分盘面事实、取用选择、情境推演、反证条件和置信边界；缺少现实条件时不补造反馈。")
+        add("当前引擎方法配置【${c.methodProfile}】；四柱【${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}】，节气【${c.jieQi}】，${c.juText}。方法配置是结果的一部分，不允许结果后静默切换。")
+        add("旬法信息：时旬首【${c.xunShou}】，遁干【${c.dunGan}】，旬空【${c.xunKong.joinToString("、")}】。这些是当前实现输出，不等于预测现实已经得到验证。")
+        if (c.implementationWarnings.isNotEmpty()) {
+            add("实现阻塞：${c.implementationWarnings.joinToString("、")}。对应盘层保持未解决，不用常识、另一流派或结果反馈自动补齐。")
+        }
+        add("九宫实验边界：当前引擎可以生成值符【${c.zhiFu}】、值使【${c.zhiShi}】及星门神九宫；梁书甲子 sparse anchors 与善天道 p21-p22 worked plates只覆盖有限实现范围，因此本离线解释层不依据这些字段直接输出吉凶、成败或应期。")
+        add("进一步解盘必须先明确具体事体、Role Map、方法/起局/时间边界与可用象意，再区分盘面事实、来源规则、情境推演、反证条件和置信边界；缺少现实条件时不补造反馈。")
     }
 }
 

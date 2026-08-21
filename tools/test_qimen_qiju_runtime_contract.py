@@ -1,0 +1,85 @@
+#!/usr/bin/env python3
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SKILL = ROOT / "奇门" / "qclaw" / "qimen-qiju" / "SKILL.md"
+REG = ROOT / "奇门" / "qclaw" / "qimen-qiju" / "SETUP_METHOD_REGISTRY.md"
+ENGINE = ROOT / "ziwei-core" / "src" / "main" / "kotlin" / "com" / "xuanxue" / "qimen" / "QimenEngine.kt"
+
+
+def fail(msg: str) -> None:
+    raise SystemExit(f"qimen-qiju-runtime-contract: FAIL: {msg}")
+
+
+def require(text: str, needle: str, where: str) -> None:
+    if needle not in text:
+        fail(f"missing {needle!r} in {where}")
+
+
+def forbid(text: str, needle: str, where: str) -> None:
+    if needle in text:
+        fail(f"legacy active rule remains: {needle!r} in {where}")
+
+
+def main() -> None:
+    skill = SKILL.read_text(encoding="utf-8")
+    reg = REG.read_text(encoding="utf-8")
+    engine = ENGINE.read_text(encoding="utf-8")
+
+    for needle in (
+        "Setup Method Registry",
+        "setup_method",
+        "setup_calibration",
+        "seasonal_alignment",
+        "time_boundary_system",
+        "TERMINOLOGY_DIRECTION_CONFLICT",
+        "ALGORITHM_VARIANT_REQUIRED",
+        "DEFINITION_OVERLAP_UNRESOLVED",
+        "IMPLEMENTATION_AMBIGUITY",
+        "SEMANTIC_LAYER_AMBIGUITY",
+        "王云鹏",
+        "LEGACY_WEB_NOTE",
+    ):
+        require(skill, needle, "SKILL.md")
+
+    for needle in (
+        "节气先到、旬首未到",
+        "上元符头在节气前",
+        "20点~23点为晚子时",
+        "23-24点为晚子时算次日",
+        "PALACE_NUMBER_ORDER",
+        "GEOMETRIC_ROTATION_ORDER",
+        "chief_door_position_rule",
+        "DEFINITION_OVERLAP_UNRESOLVED",
+        "Sequence-Object Type Safety",
+        "SHANTI_DAO_71_P21_P22",
+        "HOUR_OFFSET_SEQUENCE",
+    ):
+        require(reg, needle, "SETUP_METHOD_REGISTRY.md")
+
+    # The implementation audit exposed that the written QJ-05 warning had not
+    # automatically constrained production. Keep the object/sequence split executable.
+    for needle in (
+        "val LUO_SHU = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9)",
+        "ROTATION_RING = intArrayOf(1, 8, 3, 4, 9, 2, 7, 6)",
+        "SHANTI_DAO_71_P21_P22",
+        "buildShantiandao71Layers",
+        "SHANTI_DAO_71_DOOR_TARGET_CENTER_UNRESOLVED",
+    ):
+        require(engine, needle, "QimenEngine.kt")
+
+    for needle in (
+        "### 2.4 拆补法（推荐使用）",
+        "简单直观，应用最广",
+        "严格遵古，但复杂",
+        "（顺时针依次排列）",
+        "（逆时针依次排列）",
+        "**文献来源**：《奇门遁甲应用学》佚名·第三章",
+    ):
+        forbid(skill, needle, "SKILL.md")
+
+    print("qimen-qiju-runtime-contract: PASS")
+
+
+if __name__ == "__main__":
+    main()

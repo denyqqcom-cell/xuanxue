@@ -42,10 +42,17 @@ def lineage_index(root=ROOT):
 
 def aggregate_ledger(root=ROOT):
     rows=load_jsonl(root/"knowledge"/"K2_READING_LEDGER_WAVE1.jsonl")
-    shard=root/"knowledge"/"K2_READING_LEDGER_WAVE1.d"
-    if shard.exists():
-        for p in sorted(shard.glob("*.jsonl")):rows.extend(load_jsonl(p))
-    return {r.get("source_id"):r for r in rows}
+    for dirname in ("K2_READING_LEDGER_WAVE1.d","K2_READING_LEDGER_EXPANSION.d"):
+        shard=root/"knowledge"/dirname
+        if shard.exists():
+            for p in sorted(shard.glob("*.jsonl")):rows.extend(load_jsonl(p))
+    out={}
+    for row in rows:
+        sid=row.get("source_id")
+        if sid in out:
+            fail(f"duplicate reading credit across base/expansion ledgers: {sid}")
+        out[sid]=row
+    return out
 
 
 def validate_rows(sources,lineage,ledger,rows):

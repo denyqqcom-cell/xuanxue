@@ -53,6 +53,7 @@ fun QimenScreen() {
     var minute by remember { mutableStateOf(now.get(Calendar.MINUTE)) }
     var showDatePicker by remember { mutableStateOf(false) }
     var chart by remember { mutableStateOf<QimenChart?>(null) }
+    var methodProfile by remember { mutableStateOf(QimenEngine.MethodProfile.LEGACY_EXPERIMENTAL) }
 
     var queryDomain by remember { mutableStateOf(QueryDomain.GENERAL) }
     var question by remember { mutableStateOf("") }
@@ -82,12 +83,12 @@ fun QimenScreen() {
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Text(
-                    "实验九宫 · 不作为已核验标准盘",
+                    "实验九宫 · 方法选择必须显式",
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
                 Text(
-                    "handoff/qimen 当前有 17 条历法/表/映射夹具，但完整九宫黄金盘为 0；地盘走法与人盘方向仍有资料冲突。因此可以查看当前实现用于工程核对，但离线解释不会据此直接断成败、吉凶或应期。",
+                    "当前保留旧实验实现与善天道71页 p21-p22 来源限定实现。后者只对已审 worked plates 建立了窄范围实现证据，不代表整套奇门标准答案；选择不同方法可能得到不同盘，不能结果后静默切换。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
@@ -112,6 +113,40 @@ fun QimenScreen() {
                     Text("公历: $year-$month-$day  $hour:${"%02d".format(minute)}", Modifier.weight(1f))
                     Button(onClick = { showDatePicker = true }) { Text("选日期") }
                 }
+
+                Text("方法配置", fontWeight = FontWeight.SemiBold)
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    listOf(
+                        QimenEngine.MethodProfile.LEGACY_EXPERIMENTAL to "旧实现·实验",
+                        QimenEngine.MethodProfile.SHANTI_DAO_71_P21_P22 to "善天道71页·p21-p22",
+                    ).forEach { (profile, label) ->
+                        TextButton(onClick = {
+                            methodProfile = profile
+                            chart = null
+                        }) {
+                            Text(
+                                label,
+                                color = if (methodProfile == profile) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 12.sp,
+                                fontWeight = if (methodProfile == profile) FontWeight.Bold else FontWeight.Normal,
+                            )
+                        }
+                    }
+                }
+                Text(
+                    when (methodProfile) {
+                        QimenEngine.MethodProfile.LEGACY_EXPERIMENTAL -> "旧实现仅作为兼容/A-B基线；完整星门神旋转不是来源黄金盘。"
+                        QimenEngine.MethodProfile.SHANTI_DAO_71_P21_P22 -> "来源限定实现：按善天道 p15-p22 的符头/转盘对象，并以 p21-p22 两张例盘做实现核对。"
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
                 Text("时辰快捷选择", fontWeight = FontWeight.SemiBold)
                 Row(
                     Modifier
@@ -130,10 +165,10 @@ fun QimenScreen() {
                     }
                 }
                 Button(
-                    onClick = { chart = QimenEngine.bySolar(year, month, day, hour, minute) },
+                    onClick = { chart = QimenEngine.bySolar(year, month, day, hour, minute, methodProfile) },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text("生成当前实验局")
+                    Text("按当前方法生成实验局")
                 }
             }
         }
@@ -162,6 +197,7 @@ fun QimenScreen() {
                         month = cal.get(Calendar.MONTH) + 1
                         day = cal.get(Calendar.DAY_OF_MONTH)
                     }
+                    chart = null
                     showDatePicker = false
                 }) { Text("确定") }
             },
@@ -172,6 +208,11 @@ fun QimenScreen() {
 
 @Composable
 fun QimenResult(c: QimenChart) {
+    val profileLabel = when (c.methodProfile) {
+        QimenEngine.MethodProfile.LEGACY_EXPERIMENTAL -> "旧实现·实验"
+        QimenEngine.MethodProfile.SHANTI_DAO_71_P21_P22 -> "善天道71页·p21-p22 来源限定"
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         OutlinedCard(Modifier.fillMaxWidth()) {
             Column(
@@ -179,6 +220,7 @@ fun QimenResult(c: QimenChart) {
                 verticalArrangement = Arrangement.spacedBy(3.dp),
             ) {
                 Text("基础结果", fontWeight = FontWeight.Bold)
+                Text("方法配置: $profileLabel", fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
                 Text("农历: ${c.lunarDateStr}", fontSize = 14.sp)
                 Text("四柱: ${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}", fontSize = 14.sp)
                 Text("节气: ${c.jieQi}", fontSize = 14.sp)
@@ -186,11 +228,19 @@ fun QimenResult(c: QimenChart) {
                 Text("旬首: ${c.xunShou}遁${c.dunGan}   旬空: ${c.xunKong.joinToString("、")}", fontSize = 14.sp)
                 Text("马星: ${c.maXing}", fontSize = 14.sp)
                 Text(
-                    "值符/值使与下方九宫来自当前实验旋转实现，尚未通过完整九宫黄金夹具。",
+                    "值符/值使与下方九宫只按当前显式方法配置展示；实现复刻不等于预测有效。",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.error,
                 )
                 Text("实验值符: ${c.zhiFu}   实验值使: ${c.zhiShi}", fontSize = 14.sp)
+                if (c.implementationWarnings.isNotEmpty()) {
+                    Text(
+                        "实现阻塞: ${c.implementationWarnings.joinToString("、")}。未解决部分保持空白，不自动补盘。",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
             }
         }
 
@@ -247,7 +297,7 @@ fun QimenResult(c: QimenChart) {
             }
         }
         Text(
-            "工程状态来源：handoff/qimen/HANDOFF_SUMMARY.md、04_CONFLICTS.md、05_FIXTURES.jsonl。研究资料本身不会打包进 APK。",
+            "研究状态：梁书甲子 sparse anchors 与善天道 p21-p22 worked plates 只提供有限实现核对；研究资料本身不会打包进 APK。",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
