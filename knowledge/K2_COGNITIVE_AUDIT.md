@@ -253,6 +253,48 @@ Stable Contract 与 Runtime Fact 分离；每次执行前 fresh read，而不是
 
 ---
 
+## A13 载体—作品塌缩 / COMPOSITE_CARRIER_FLATTENING
+
+### 事件
+
+QM-SRC-0023 在完整 `pdf:p1-p185` 连续视觉复核前，看起来可以被文件名直接理解为“《甲遁真授秘录》下册，薛凤祚著”。完整阅读后才发现，同一个 PDF 实际包含至少三个作品层级与出版附页：
+
+- p1-p67：《甲遁真授秘錄（下）》；
+- p68-p104：《瑞應圖記》；
+- p105-p177：《乾坤變異錄》；
+- p178-p185：现代出版目录、版权及书目资料。
+
+### 暴露的旧假设
+
+项目过去默认：
+
+`one PDF/source_id = one work = one author = one domain`
+
+这个假设不是来源事实，而是旧 schema 为方便工程处理偷偷加入的简化。
+
+### 风险
+
+若按文件名直接升格：
+
+- 会把 p68-p177 两个附载作品错误归给薛凤祚；
+- 会把非奇门材料错误计入 qimen Evidence；
+- 会把一个 composite carrier 错配到单一 work_id；
+- 任何后续“多来源一致”都会被错误 lineage 污染。
+
+### 纠偏
+
+强制增加 carrier/work 中间层：
+
+`CARRIER -> SEGMENT -> WORK -> AUTHOR / DOMAIN / LINEAGE -> EVIDENCE`
+
+已建立 `K2_SOURCE_SEGMENTS.jsonl` 与 fail-closed validator。遇到 composite carrier 时，旧 source-level schema 不够表达，就修改 schema，不把事实压扁去迎合旧 schema。
+
+### 状态
+
+`MODEL_REFACTORED`
+
+---
+
 # 每书复盘最小问题集
 
 每完成一本书或一个 work family，PROJECT_MAIN_AGENT 必须回答：
@@ -267,5 +309,6 @@ Stable Contract 与 Runtime Fact 分离；每次执行前 fresh read，而不是
 8. 如果要验证，怎样在反馈前冻结？
 9. 什么结果会迫使我承认该假设失败？
 10. 当前模型是否因为这本书变得更可约束，而不是仅仅更复杂？
+11. 我是否把一个 PDF/载体误当成了一个作品、一个作者或一个领域？
 
 如果第 9 问无法回答，该理论当前不可证伪，只能保留为来源描述或解释性假设。
