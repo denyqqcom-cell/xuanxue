@@ -50,6 +50,14 @@ jobs:
         run: python3 tools/test_k2_source_segments.py
       - name: Enforce composite carrier segmentation
         run: python3 tools/validate_k2_source_segments.py
+      - name: Test segment-aware work lineage fail-closed cases
+        run: python3 tools/test_k2_segment_lineage.py
+      - name: Enforce segment-aware work lineage
+        run: python3 tools/validate_k2_segment_lineage.py
+      - name: Test segment-bound evidence fail-closed cases
+        run: python3 tools/test_k2_segment_evidence.py
+      - name: Enforce segment-bound evidence
+        run: python3 tools/validate_k2_segment_evidence.py
       - name: Test isolated K2 dependency health gate
         run: python3 tools/test_k2_python_deps.py
       - name: Test K2 evidence fail-closed cases
