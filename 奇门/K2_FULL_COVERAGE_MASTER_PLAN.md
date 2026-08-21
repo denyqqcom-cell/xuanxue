@@ -1,6 +1,6 @@
 # K2 奇门文献全覆盖总计划
 
-状态：ACTIVE / LONG-HORIZON / AUDITABLE / v1.1
+状态：ACTIVE / LONG-HORIZON / AUDITABLE / v1.2
 
 日期：2026-08-21
 
@@ -8,7 +8,7 @@
 
 ---
 
-## 0. 先纠正一个刚发生的指标误读
+## 0. 先纠正一个已经发生的指标误读
 
 v1.0 曾把 CI 输出：
 
@@ -30,7 +30,7 @@ not_started = 32
 
 这个错误很典型：即使数字来自 CI，也必须先确认 denominator 的语义对象。否则“精确数字”只会让错误显得更可靠。
 
-本文件从 v1.1 起不再用 37/32 代表奇门全覆盖进度。
+本文件不再用 37/32 代表奇门全覆盖进度。
 
 ---
 
@@ -100,7 +100,9 @@ QM-SRC-0024
 
 它们可用于导航、历史审计或项目记录，但不应为了“35/35”被伪装成 textual source reading。
 
-### 当前正式 COMPLETE textual carriers：5
+### 当前正式受 Gate 管理的 COMPLETE textual carriers：6
+
+Base Wave1 COMPLETE 仍为 5：
 
 - `QM-SRC-0001 / WORK-000217 / 梁湘润《奇门遁甲入门》` — `VISUAL_PAGE / 57/57`
 - `QM-SRC-0003 / WORK-000028 /《奇门直断》` — `VISUAL_PAGE / 45/45`
@@ -108,37 +110,75 @@ QM-SRC-0024
 - `QM-SRC-0021 / WORK-000027 / 幺学声《奇门遁甲预测学》` — `TEXT_LAYER_FULL / 285/285`
 - `QM-SRC-0028 / WORK-000018 / 善天道《奇门遁甲讲义71页》` — `TEXT_LAYER_FULL / 71/71`
 
+Post-Wave1 corpus expansion COMPLETE：
+
+- `QM-SRC-0017 / WORK-000224 / 费秉勋《奇门遁甲新述》` — `VISUAL_PAGE / 419/419`
+
+`QM-SRC-0017` 的 credit 不修改 Wave1 denominator；它由独立 expansion manifest / ledger / Evidence / Distillate gate 管理。
+
 所以当前更诚实的 corpus 描述是：
 
 ```text
 Qimen registered rows = 35
 K2-eligible textual carriers = 25
 K2-eligible unique works = 19
-formal COMPLETE textual carriers = 5
-eligible textual carriers not COMPLETE = 20
+base-Wave1 COMPLETE qimen carriers = 5
+post-Wave1 expansion COMPLETE qimen carriers = 1
+formally governed COMPLETE qimen textual carriers = 6
+eligible textual carriers not COMPLETE = 19
 textual carriers awaiting lineage/domain resolution = 5
 non-textual/secondary rows = 5
 ```
 
-这才是当前“全覆盖”分母。
+这里的 `6 COMPLETE` 只表示 Reading/Distillation coverage 已通过相应 Gate，不表示 6 本书都正确，更不表示奇门预测有效。
 
 ---
 
-## 2. 当前 K2 Gate 与长期全覆盖不是同一个集合
+## 2. Wave1 与长期 corpus expansion 是两个不同 scope
 
 现有 `validate_k2_evidence.py` 的 Wave1 selection 不是“所有 K2-eligible 奇门 P1/P2 source”。它只接受当前 selection policy 选中的 reading units。
 
-因此像 `QM-SRC-0017` 这样的 `P2 PRIMARY_CANDIDATE`，即使现在开始正式 visual study，也**不能为了体现进度就强塞进当前 Wave1 aggregate ledger**，否则 validator 会把它视为不在 selected set。
+因此 P1/P2 source 不能为了显示进度直接塞进 Wave1 ledger。
 
-处理原则：
+现在正式采用第二条可审计通道：
 
-1. 研究可以按用户目标继续；
-2. visual session / pre-book / source comparison 可以诚实落盘；
-3. 不伪造 Wave1 Reading Credit；
-4. 当 corpus expansion 进入正式阶段时，先演进 selection/protocol，再迁移这些已审页面；
-5. 迁移时保留原始 review 时间和范围，不把 earlier partial exposure 重写成“当时已 COMPLETE”。
+```text
+Base Wave1
+  knowledge/K2_READING_LEDGER_WAVE1*
+  knowledge/K2_EVIDENCE_WAVE1*
+  knowledge/K2_BOOK_DISTILLATES_WAVE1*
+
+Post-Wave1 Corpus Expansion
+  knowledge/K2_EVIDENCE_EXPANSION.json
+  knowledge/K2_READING_LEDGER_EXPANSION.d/
+  knowledge/K2_EVIDENCE_EXPANSION.d/
+  knowledge/K2_BOOK_DISTILLATES_EXPANSION.d/
+```
+
+Expansion 只能接纳：
+
+- 已在 K2 lineage 中 `k2_eligible=true` 的 textual source；
+- 不属于现有 Wave1 的 source；
+- canonical identity 已确认；
+- Pre-Book gate 与实际 Reading coverage 可审计；
+- SCAN/OCR_WEAK source 满足 `VISUAL_PAGE`；
+- Evidence / Distillate 与 reading count 一致；
+- 不泄露私有文件路径或受版权保护长文本。
+
+Expansion validator 必须拒绝：
+
+- 与 base Wave1 重复领 credit；
+- 非 eligible source；
+- 不完整 coverage 冒充 COMPLETE；
+- evidence locator 超出 reviewed pages；
+- SCAN 只靠 text/OCR 领视觉 credit；
+- distillate 与 Evidence 数量不一致。
+
+核心原则仍然是：
 
 `Protocol scope must expand before credit scope expands.`
+
+但 scope 扩展不需要每次重写原 Wave1 的历史 selection；显式 Expansion lane 更能保留历史语义。
 
 ---
 
@@ -177,7 +217,11 @@ non-textual/secondary rows = 5
 
 ### Track A — Source Mastery
 
-把来源本身读对：题名、作者/署名、版本、页序、方法对象、规则、图表拓扑、内部矛盾、术语变体、历史谱系。
+把来源本身读对：题名、作者/署名、版本、页序、方法对象、规则、图表拓扑、内部矛盾、术语变体、历史谱系、作者立场。
+
+新增永久阅读纪律：
+
+`SOURCE_CONTAINS(X) != AUTHOR_ENDORSES(X)`。
 
 主要提高：`Source Fidelity / Lineage Confidence`。
 
@@ -250,6 +294,12 @@ non-textual/secondary rows = 5
 
 `METHOD_OBJECT / SOURCE_RULE / CONFLICT / APPLICATION_CONTEXT / DETERMINISTIC_CLAIM / HIGH_RISK / IMPLEMENTATION_HOOK / TEST_HOOK`
 
+并检查 source-position：
+
+`TRADITION_RECORDED / AUTHOR_EXPLANATION / AUTHOR_CRITIQUE / AUTHOR_OPERATIONAL_COMMITMENT`。
+
+它目前是阅读纪律，不强制新增 schema 字段。
+
 ### After Reading
 
 必须回答：
@@ -273,7 +323,7 @@ non-textual/secondary rows = 5
 - 每 2 book sprints 至少出现一个 implementation negative-control 或 prospective milestone；
 - 连续两个 sprint 只有摘录，没有 conflict/test/compression，暂停开新书。
 
-剩余 20 个 eligible carriers + 5 个 unresolved textual carriers 是长期任务，不给虚假的“几天全部学完”承诺。
+剩余 19 个 eligible carriers + 5 个 unresolved textual carriers 是长期任务，不给虚假的“几天全部学完”承诺。
 
 ---
 
@@ -288,27 +338,37 @@ non-textual/secondary rows = 5
 - 为漂亮百分比跳过 conflict review；
 - Evidence 数量机械变 active rules；
 - 把 global Wave1 的 `37` 当 Qimen corpus denominator；
+- 把 Expansion COMPLETE 算回 Wave1 造成历史 denominator 漂移；
 - 把 corpus 完成包装成“奇门已验证”。
 
 ---
 
-## 9. 当前 PRIMARY_ACTIVE_BOOK
+## 9. 当前 Primary 状态
 
-`QM-SRC-0017 / WORK-000224 / 费秉勋《奇门遁甲新述》`
+`QM-SRC-0017 / WORK-000224 / 费秉勋《奇门遁甲新述》` 已完成本轮 full-carrier closure：
 
-在 full content inspection 前已完成 source-specific Pre-Book Retrospective：
+- Pre-Book Retrospective：已完成；
+- canonical SHA256：`f895e60c0cb0e52de43e1c4b17856d780499dae32cd8a058317305e5b8ca83d1`；
+- 419/419 original-page visual coverage；
+- Expansion Reading Ledger：COMPLETE；
+- 18 条 derived Atomic Evidence；
+- Expansion Book Distillate；
+- Final Method Delta；
+- Post-Reading Test Plan。
 
-`knowledge/K2_PRE_BOOK_RETROSPECTIVES/QM-SRC-0017.md`
+本书 closure 后不自动开启下一本 Primary。
 
-canonical identity：
+当前 `PRIMARY_ACTIVE_BOOK = NONE / NEXT_SOURCE_ATTACK_DRIVEN`。
 
-- SHA256 `f895e60c0cb0e52de43e1c4b17856d780499dae32cd8a058317305e5b8ca83d1`
-- 419 PDF pages
-- SCAN / VISUAL_REQUIRED
+下一本 source 必须由真实攻击问题选择，而不是按日历自动轮换。优先选择能够区分以下至少一项的 witness：
 
-当前本轮已完成 p1-p80 原页视觉阅读；这是真实 study progress，但由于当前 Wave1 selection 不覆盖该 P2 source，暂不冒充现有 aggregate Reading Ledger credit。
+- 23:00/00:00 day-pillar / hour-stem boundary；
+- 中五值使 full-door host；
+- 可能反对当前 full-rotation profile 的 worked plate；
+- 八门 state system 的明确独立算法；
+- 能够攻击 `SOURCE_FIXED_LOOKUP vs CONTEXT_FROZEN_RELATIONAL` 的不同 method family。
 
-初步发现进入 separate source-review artifact，不在全书未读完前生成 final Book Distillate。
+clean unknown-outcome case 若先出现，则 prospective 优先于继续开书。
 
 ---
 
