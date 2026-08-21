@@ -21,6 +21,24 @@ STARS={"天蓬","天芮","天衝","天輔","天禽","天心","天柱","天任","
 DOORS={"休","生","傷","杜","景","死","驚","開"}
 CN={1:"一",2:"二",3:"三",4:"四",5:"五",6:"六",7:"七",8:"八",9:"九"}
 
+# Canonical PDF contains two-page spreads. The table body and the visible title on the
+# same raster are not always the same semantic printed page. PDF p35/p36 are also out
+# of printed-page order. These maps are table-body locators verified from the internal
+# 甲子 palace/star/door structure, not from same-raster title proximity.
+LIANG_YANG_PAGE={1:31,2:32,3:33,4:34,5:36,6:35,7:37,8:38,9:39}
+LIANG_YIN_PAGE={1:48,2:47,3:46,4:45,5:44,6:43,7:42,8:41,9:40}
+LIANG_JIAZI={
+    1:("天蓬","休"),
+    2:("天芮","死"),
+    3:("天衝","傷"),
+    4:("天輔","杜"),
+    5:("天禽","死"),
+    6:("天心","開"),
+    7:("天柱","驚"),
+    8:("天任","生"),
+    9:("天英","景"),
+}
+
 def fail(msg):
     print(f"k2-source-fixtures: FAIL: {msg}",file=sys.stderr);raise SystemExit(1)
 
@@ -85,6 +103,13 @@ def validate_anchor(fid,a):
     if PATH_RE.search(json.dumps(a,ensure_ascii=False)):
         issues.append((fid,"local filesystem path leaked through anchor"))
     return issues
+
+def liang_anchor_values(r):
+    vals={}
+    for a in r.get("anchors") or []:
+        if isinstance(a,dict):
+            vals[a.get("locator")]=a.get("value")
+    return vals
 
 def validate_rows(sources,lineage,ledger,rows):
     issues=[];seen=set();liang=[]
@@ -162,20 +187,24 @@ def validate_rows(sources,lineage,ledger,rows):
 
     if liang:
         if len(liang)!=18: issues.append(("LIANG_18_BUREAU",f"expected 18 rows, found {len(liang)}"))
-        expected={("YANG",n,31+n) for n in range(1,10)}|{("YIN",n,50-n) for n in range(1,10)}
+        expected={("YANG",n,LIANG_YANG_PAGE[n]) for n in range(1,10)}|{("YIN",n,LIANG_YIN_PAGE[n]) for n in range(1,10)}
         actual={(r.get("polarity"),r.get("bureau"),page) for r,page in liang}
-        if actual!=expected: issues.append(("LIANG_18_BUREAU","bureau/page mapping mismatch"))
+        if actual!=expected: issues.append(("LIANG_18_BUREAU","bureau/table-body page mapping mismatch"))
         for r,page in liang:
             p=r.get("polarity");n=r.get("bureau");fid=r.get("fixture_id") or "<missing>"
             if p in {"YANG","YIN"} and isinstance(n,int) and 1<=n<=9:
                 expected_title=("陽遁" if p=="YANG" else "陰遁")+CN[n]+"局圖"
                 if r.get("table_title")!=expected_title:
                     issues.append((fid,f"table_title mismatch; expected {expected_title}"))
-                if p=="YIN" and n==1:
-                    if page!=49 or r.get("source_table_state")!="TITLE_VISIBLE_TABLE_NOT_PRESENT":
-                        issues.append((fid,"YIN-01 must preserve p49 title-visible/table-not-present anomaly"))
-                elif r.get("source_table_state")!="TABLE_VISIBLE":
-                    issues.append((fid,"expected TABLE_VISIBLE for this bureau page"))
+                if r.get("source_table_state")!="TABLE_VISIBLE":
+                    issues.append((fid,"LIANG_18_BUREAU table body must be TABLE_VISIBLE"))
+                if r.get("fixture_status") in {"ANCHORS_VERIFIED","IMPLEMENTATION_CHECKED"}:
+                    vals=liang_anchor_values(r)
+                    exp_star,exp_door=LIANG_JIAZI[n]
+                    if vals.get("MAIN_TABLE/甲子/TOP_STAR_HEADER")!=exp_star:
+                        issues.append((fid,f"bureau-specific Jiazi star anchor mismatch; expected {exp_star}"))
+                    if vals.get("MAIN_TABLE/甲子/BOTTOM_DOOR_FOOTER")!=exp_door:
+                        issues.append((fid,f"bureau-specific Jiazi door anchor mismatch; expected {exp_door}"))
     return issues
 
 def main():

@@ -1,4 +1,4 @@
-# ☿ Local execution prompt — QM-SRC-0001 18局 sparse-anchor candidate packet
+# ☿ Local execution prompt — QM-SRC-0001 18局 table-body / implementation packet
 
 execution_mode: EXECUTION_HELPER_ONLY
 review_mode: MAIN_AGENT_OWNS_ACCEPTANCE
@@ -9,88 +9,72 @@ You are the local execution helper. Do not redesign schemas, do not modify track
 ## A. Sync and provenance
 
 1. `git fetch` the repository.
-2. Switch to `k2-qm0001-liang-retrospective` and fast-forward to the **latest remote branch head**.
-3. Report the exact resulting `HEAD` SHA. Do not require an old hard-coded SHA from a previous chat turn unless the wrapper prompt explicitly supplies a newer expected SHA.
+2. Switch to `k2-qm0001-liang-retrospective` and fast-forward to the latest remote branch head.
+3. Report the exact resulting `HEAD` SHA.
 4. Verify tracked worktree state. Do not delete unrelated untracked files.
-5. Locate the local canonical PDF for:
+5. Locate the local canonical PDF:
    - source_id: `QM-SRC-0001`
    - title: `梁湘潤《奇門遁甲入門》`
    - expected SHA256: `0cbf020b76f866d3c2dc70001d16aa5cee9ce8405a4a725ce643c12ef701f7cf`
    - expected PDF pages: `57`
 6. If SHA256 or page count mismatches, STOP with `CANONICAL_MISMATCH`.
 
-## B. Render-only visual packet
+## B. Corrected spread topology
 
-Use project-owned tooling where possible. Render only PDF p32-p49 at 300 DPI or higher into a repository-external temporary directory.
+The earlier p32-p49 title-based index was wrong.
 
-Expected table-title/page mapping:
+This PDF contains two-page/spread scans. A bureau title visible on the right side of one PDF raster does **not** automatically label the large table body visible on the left side of that same raster.
 
-- p32 陽遁一局圖
-- p33 陽遁二局圖
-- p34 陽遁三局圖
-- p35 陽遁四局圖
-- p36 陽遁五局圖
-- p37 陽遁六局圖
-- p38 陽遁七局圖
-- p39 陽遁八局圖
-- p40 陽遁九局圖
-- p41 陰遁九局圖
-- p42 陰遁八局圖
-- p43 陰遁七局圖
-- p44 陰遁六局圖
-- p45 陰遁五局圖
-- p46 陰遁四局圖
-- p47 陰遁三局圖
-- p48 陰遁二局圖
-- p49 陰遁一局圖
+Also, PDF p35/p36 are out of printed physical-page order.
 
-For each page, produce two local crops if feasible:
-- `TABLE`: the large 值符/值使 table area.
-- `TITLE`: the smaller bureau-title / seasonal mapping area.
+Authoritative table-body mapping for this task:
+
+- YANG-01 p31
+- YANG-02 p32
+- YANG-03 p33
+- YANG-04 p34
+- YANG-05 p36
+- YANG-06 p35
+- YANG-07 p37
+- YANG-08 p38
+- YANG-09 p39
+- YIN-09 p40
+- YIN-08 p41
+- YIN-07 p42
+- YIN-06 p43
+- YIN-05 p44
+- YIN-04 p45
+- YIN-03 p46
+- YIN-02 p47
+- YIN-01 p48
+
+PDF p49 is the `十二日圖式` body. Do not report a Yin-1 missing-table anomaly.
+
+Table identity must be checked from the table-internal 甲子 palace/star/door relation plus polarity/printed-page progression, not same-raster title proximity alone.
+
+## C. Render-only local packet
+
+If re-rendering is needed, render only PDF p31-p48 at 300 DPI or higher into a repository-external temporary directory.
 
 Do not put PNG/JPG/PDF artifacts under the Git repository.
 
-## C. Candidate sparse-anchor transcription
+No full-table transcription is requested.
 
-This is navigation/transcription assistance only.
+## D. Implementation comparison assistance
 
-For each of the 18 bureau tables:
+After syncing the latest branch, inspect the project-owned Qimen implementation and tests.
 
-1. Confirm the visible bureau title.
-2. Select at most **four** candidate anchors, prioritizing:
-   - clearly legible cells;
-   - different parts of the table (top/middle/bottom where possible);
-   - cells useful for implementation regression;
-   - no attempt to reproduce the full table.
-3. For each candidate anchor report:
-   - `fixture_id` (`K2F-QM-0001-YANG-01` etc.);
-   - `pdf_page`;
-   - human-readable row/column locator;
-   - exact candidate text as visually read;
-   - confidence: HIGH / MEDIUM / LOW;
-   - crop filename;
-   - any ambiguity or alternative reading.
-4. If OCR is used, mark it `NAVIGATION_ONLY`. OCR output does not override visible page content and does not count as review.
-5. Do not normalize these candidates into project Evidence or fixture truth.
+You may locally run existing tests and produce an **uncommitted diagnostic report** comparing the implementation against the tracked `LIANG_18_BUREAU` sparse anchors.
 
-## D. Local output only
+Required controls:
 
-Write a repository-external local report named:
+1. positive: correct bureau-specific Jiazi star/door pairs;
+2. wrong-bureau: shift each bureau to an adjacent bureau and verify the comparison detects mismatch;
+3. shifted-page: use the superseded old mapping (Yang1=p32 ... Yin1=p49) and verify it fails;
+4. permuted-anchor: permute star/door pairs between bureaus and verify mismatch;
+5. report bureau 5 separately if the implementation uses an empty center-gate value.
 
-`QM-SRC-0001_BUREAU_ANCHOR_CANDIDATES.jsonl`
-
-and a short summary text file with:
-
-- HEAD
-- canonical SHA256
-- PDF page count
-- rendered pages count
-- crop count
-- candidate anchors count
-- LOW-confidence / unreadable cells
-- exact local output directory
-
-The JSONL may contain local paths because it must remain outside Git.
+Do not modify implementation code. Do not upgrade any fixture to `IMPLEMENTATION_CHECKED`.
 
 ## E. Hard prohibitions
 
@@ -100,8 +84,8 @@ The JSONL may contain local paths because it must remain outside Git.
 - no claim that code or tables predict reality;
 - no Reading Credit;
 - no silent correction of suspected source typos;
-- no replacing 勾陳/朱雀 or other source terminology with modern equivalents;
-- no changing Prospective Case Registry or granting empirical support.
+- no using right-side spread title as sole table identity;
+- no changing Prospective Registry or granting empirical support.
 
 ## F. Return format
 
@@ -110,10 +94,11 @@ Return only:
 1. `HEAD`
 2. `CANONICAL_SHA256`
 3. `PDF_PAGES`
-4. `RENDER_STATUS`
-5. `CANDIDATE_ANCHORS=<count>`
-6. `LOW_CONFIDENCE=<count>`
-7. `OUTPUT_DIR=<path>`
-8. concise blocker list, if any
+4. `TEST_COMMANDS_RUN=<...>`
+5. `POSITIVE_MATCH=<count>/<18>`
+6. `NEGATIVE_CONTROLS=<PASS|FAIL|BLOCKED>`
+7. `BUREAU5_NOTE=<...>`
+8. `OUTPUT_DIR=<path>`
+9. concise blocker list
 
-Do not summarize doctrine or make method decisions. Main agent will visually recheck and decide which sparse anchors, if any, enter the repository.
+Main agent owns any implementation change, fixture status upgrade, and Git publication.

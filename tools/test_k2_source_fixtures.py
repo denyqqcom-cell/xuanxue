@@ -13,21 +13,25 @@ LED={"QM-SRC-0001":{"source_id":"QM-SRC-0001","work_id":"WORK-000217","read_stat
 CN={1:"一",2:"二",3:"三",4:"四",5:"五",6:"六",7:"七",8:"八",9:"九"}
 
 def row(pol,n,page):
+    star,door=v.LIANG_JIAZI[n]
     return {
-        "anchor_count":0,
-        "anchors":[],
+        "anchor_count":2,
+        "anchors":[
+            {"anchor_id":"A1","locator":"MAIN_TABLE/甲子/TOP_STAR_HEADER","value":star},
+            {"anchor_id":"A2","locator":"MAIN_TABLE/甲子/BOTTOM_DOOR_FOOTER","value":door},
+        ],
         "bureau":n,
         "canonical_sha256":SHA,
         "copyright_class":"DERIVED_FACT_SAFE",
         "fixture_family":"LIANG_18_BUREAU",
         "fixture_id":f"K2F-QM-0001-{pol}-{n:02d}",
-        "fixture_status":"INDEXED",
+        "fixture_status":"ANCHORS_VERIFIED",
         "method_layer":"STANDARD_PLATE",
         "polarity":pol,
         "review_status":"REVIEWED",
         "source_id":"QM-SRC-0001",
         "source_location":f"pdf:p{page}",
-        "source_table_state":"TITLE_VISIBLE_TABLE_NOT_PRESENT" if (pol=="YIN" and n==1) else "TABLE_VISIBLE",
+        "source_table_state":"TABLE_VISIBLE",
         "table_title":("陽遁" if pol=="YANG" else "陰遁")+CN[n]+"局圖",
         "time_family":"HOUR",
         "verification_basis":"VISUAL_PAGE",
@@ -35,8 +39,8 @@ def row(pol,n,page):
     }
 
 def rows():
-    out=[row("YANG",n,31+n) for n in range(1,10)]
-    out.extend(row("YIN",n,50-n) for n in range(9,0,-1))
+    out=[row("YANG",n,v.LIANG_YANG_PAGE[n]) for n in range(1,10)]
+    out.extend(row("YIN",n,v.LIANG_YIN_PAGE[n]) for n in range(9,0,-1))
     return out
 
 def expect_ok(rs):
@@ -50,26 +54,25 @@ def expect_fail(rs,needle,led=None):
 def main():
     base=rows();expect_ok(copy.deepcopy(base))
 
-    r=copy.deepcopy(base)
-    r[0]["fixture_status"]="ANCHORS_VERIFIED"
-    r[0]["anchors"]=[
-        {"anchor_id":"A1","locator":"MAIN_TABLE/甲子/TOP_STAR_HEADER","value":"天芮"},
-        {"anchor_id":"A2","locator":"MAIN_TABLE/甲子/BOTTOM_DOOR_FOOTER","value":"死"},
-    ]
-    r[0]["anchor_count"]=2
-    expect_ok(r)
+    r=copy.deepcopy(base);r[0]["source_location"]="pdf:p32";expect_fail(r,"bureau/table-body page mapping mismatch")
+    r=copy.deepcopy(base);r[4]["source_location"]="pdf:p35";r[5]["source_location"]="pdf:p36";expect_fail(r,"bureau/table-body page mapping mismatch")
+    r=copy.deepcopy(base);r[-1]["source_location"]="pdf:p49";expect_fail(r,"bureau/table-body page mapping mismatch")
 
-    r=copy.deepcopy(base);r[0]["source_location"]="pdf:p33";expect_fail(r,"bureau/page mapping mismatch")
     r=copy.deepcopy(base);r[0]["canonical_sha256"]="0"*64;expect_fail(r,"canonical_sha256 mismatch")
     r=copy.deepcopy(base);r[0]["fixture_id"]=r[1]["fixture_id"];expect_fail(r,"duplicate fixture_id")
     r=copy.deepcopy(base);r[0]["anchor_count"]=1;expect_fail(r,"anchor_count must equal len(anchors)")
     r=copy.deepcopy(base);r[0]["table_title"]="陽遁九局圖";expect_fail(r,"table_title mismatch")
     r=copy.deepcopy(base[:-1]);expect_fail(r,"expected 18 rows")
     r=copy.deepcopy(base);r[0]["unexpected"]=1;expect_fail(r,"unexpected fields")
-    r=copy.deepcopy(base);r[0]["anchors"]=[{"anchor_id":"A1","locator":"MAIN_TABLE/甲子/TOP_STAR_HEADER","value":"天芮"}];r[0]["anchor_count"]=1;expect_fail(r,"INDEXED fixture must have anchor_count=0")
-    r=copy.deepcopy(base);r[0]["fixture_status"]="ANCHORS_VERIFIED";r[0]["anchors"]=[{"anchor_id":"A1","locator":"MAIN_TABLE/甲子/TOP_STAR_HEADER","value":"天冲"}];r[0]["anchor_count"]=1;expect_fail(r,"unexpected star anchor value")
-    r=copy.deepcopy(base);r[-1]["source_table_state"]="TABLE_VISIBLE";expect_fail(r,"YIN-01 must preserve")
-    r=copy.deepcopy(base);r[-1]["fixture_status"]="ANCHORS_VERIFIED";r[-1]["anchors"]=[{"anchor_id":"A1","locator":"MAIN_TABLE/甲子/TOP_STAR_HEADER","value":"天蓬"}];r[-1]["anchor_count"]=1;expect_fail(r,"title-only fixture must remain INDEXED")
+
+    r=copy.deepcopy(base);r[0]["anchors"][0]["value"]="天芮";expect_fail(r,"bureau-specific Jiazi star anchor mismatch")
+    r=copy.deepcopy(base);r[0]["anchors"][1]["value"]="死";expect_fail(r,"bureau-specific Jiazi door anchor mismatch")
+    r=copy.deepcopy(base);r[0]["anchors"][0]["value"]="天芮";r[0]["anchors"][1]["value"]="死";expect_fail(r,"bureau-specific Jiazi")
+
+    assert base[-1]["fixture_id"]=="K2F-QM-0001-YIN-01"
+    assert base[-1]["source_location"]=="pdf:p48"
+    expect_ok(copy.deepcopy(base))
+
     bad_led=copy.deepcopy(LED);bad_led["QM-SRC-0001"]["read_status"]="PARTIAL";expect_fail(copy.deepcopy(base),"requires COMPLETE reading row",bad_led)
     bad_led=copy.deepcopy(LED);bad_led["QM-SRC-0001"]["verification_mode"]="TEXT_LAYER_FULL";expect_fail(copy.deepcopy(base),"requires VISUAL_PAGE reading",bad_led)
     print("k2-source-fixture-tests: PASS")
