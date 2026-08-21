@@ -78,6 +78,24 @@ Every book must leave a compact record of:
 - anti-patterns that increase hindsight freedom;
 - concrete updates forced on the project methodology;
 - hypotheses that can be tested prospectively;
-- high-risk material excluded from direct operational use.
+- high-risk material excluded from direct operational use。
 
 The purpose is not to make the corpus smaller. It is to make accumulated knowledge **more constrained, auditable and falsifiable** as the corpus grows.
+
+## 7. Composite carrier exception
+
+“source-by-source”描述的是通常路径，不等于 `one source_id = one work` 的本体论断言。
+
+如果完整阅读证明一个 canonical carrier 内含多个作品，则在任何 author/domain/lineage/Evidence 升格前必须先执行：
+
+`canonical carrier -> full visual reading -> K2_SOURCE_SEGMENTS -> work-scoped attribution`
+
+此时：
+
+- `knowledge/K2_SOURCE_SEGMENTS.jsonl` 是页段归属的先决事实层；
+- 不允许把 carrier 文件名中的作者传播到未署名的 embedded work；
+- 不允许把载体路由领域传播到所有页段；
+- 不允许为了满足 legacy `source_id -> work_id` schema 而把 composite carrier 强行塞入单一 work_id；
+- 在 Evidence schema 尚未支持 segment binding 前，该 composite carrier 的正式 Evidence normalization 保持阻塞。
+
+也就是说，**已读完整载体但结构被证明为 composite** 时，正确动作不是假装旧 per-source contract 足够，而是先修正知识模型。
