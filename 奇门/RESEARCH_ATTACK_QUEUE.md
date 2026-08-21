@@ -55,7 +55,7 @@
 
 ## AQ-003 — 八神谱系：寻找早期且带运动对象的 witness
 
-当前问题：`勾陈/朱雀` 与 `白虎/玄武` 已存在至少四种竞争解释，Test C 当前 `UNRESOLVED / NO-OP`。
+当前问题：`勾陈/朱雀` 与 `白虎/玄武` 的现代整理已经出现互不等价的 alias / hidden-layer / yin-yang-substitution 解释。目标不是再找一本书替其中一方背书，而是查更早 witness 是否本来就存在不同结构。
 
 攻击目标：优先早期/独立来源，不优先现代摘要；需要同时观察名称、排列、阴阳遁、天/地神层、运动方向或 worked plate。
 
@@ -63,37 +63,90 @@
 
 - 早期 witness 明确支持其中一种关系且上下文完整 -> 只提高该 lineage hypothesis 的 Source/Lineage confidence，不自动改 runtime 全局 enum；
 - 早期 witness 与现代隐藏神说法冲突 -> 保留历史分叉，禁止普遍等号；
+- 出现现代四假设之外的结构 -> 扩大 source-lineage model，但不为了整齐强行归并；
 - 只有名称列表没有运动上下文 -> `NO-OP` 于 executable mapping。
 
 初始候选：
 
 - 《甲遁真授秘录》：先做结构/关键词导航，但 OCR 命中只当线索；
 - 《笺元遁甲句解烟波钓叟歌》：用于更早文本/口诀谱系，不假定其能回答八神运动；
-- 其他古籍由实际页级证据再加入。
+- 其他古籍只有下一轮重新开启 AQ-003 时才考虑，不因本轮出现漂亮结果立刻追加。
 
-停止条件：本轮最多深挖 2 个独立早期 witnesses；如果都不能回答运动对象，转向别的问题，不以“再找一本”拖延。
+停止条件：**本轮最多深挖 2 个独立早期 source probes。完成后无论结果漂亮与否，先停止 source accumulation，整合再说。**
 
-### First probe — 2026-08-21
+### Probe 1 — QM-SRC-0024 / 《笺元遁甲句解烟波钓叟歌》
 
-`QM-SRC-0024 / 《笺元遁甲句解烟波钓叟歌》` 已做 canonical p1-p12 targeted original-page provenance review。
+已做 canonical p1-p12 targeted original-page provenance review。
 
-得到的不是“八神谱系答案”，而是一个更窄的 provenance 结果：
+结果：
 
-- p5 原页可以 `PAGE_VERIFIED` 书名 witness；
-- p5 可以 `PAGE_VERIFIED_WITNESS_ATTRIBUTION` 到赵普归因语境；
-- 这不能单独证明赵普的历史作者身份；
+- p5 `PAGE_VERIFIED` 书名 witness；
+- p5 `PAGE_VERIFIED_WITNESS_ATTRIBUTION` 到赵普归因语境；
+- 赵普历史作者身份不能由该页单独证明；
 - `明刊本` 版本判断仍 `EDITION_UNRESOLVED`；
-- p1-p12 本轮没有提供足够的八神名称顺序、运动层或 worked-plate context 来解决 AQ-003。
+- p1-p12 本轮没有足够的八神名称顺序、运动层或 worked-plate context。
 
-所以 AQ-003 对本次 probe 的结果是：
+AQ-003 结果：
 
-`PROVENANCE_IMPROVED / DEITY_LINEAGE_NO-OP`
+`PROVENANCE_IMPROVED / DEITY_LINEAGE_NO-OP`。
 
-它**不计入**“2 个独立早期 movement witnesses”的停止条件，也不把 targeted p1-p12 review 冒充成 `QM-SRC-0024` 全书 Reading COMPLETE。
+不冒充全书 Reading COMPLETE，也不为了让 probe “有成果”强行生成八神结论。
 
-`QM-SRC-0022 / 《甲遁真授秘录》上册` 的初步 OCR 关键词命中目前只保留为 navigation clue；快速视觉抽查没有形成足够清楚的 deity-system witness，因此暂不登记支持/反对结论。若继续深挖，必须回原页上下文，而不是把 OCR 词命中升级成 Evidence。
+### Probe 2 — QM-SRC-0022 / 《甲遁真授秘录》上册 carrier
 
-这个 `NO-OP` 被保留下来，是为了检验 Attack Queue 是否真的会记录“没有帮当前理论增加规则”的研究结果。
+最初 OCR 对 `朱雀 / 白虎 / 玄武 / 九地 / 九天` 的命中非常嘈杂，因此只作为 navigation clue。继续回原页后，找到了真正处在 Qimen algorithm context 的 witness：
+
+- PDF p21-p22 周边明确出现六甲遁仪、八门、九星、直符、阴阳顺逆飞遁；
+- p22 原页写到 `天乙隨六甲加時干，是以名直符`；
+- 同一段随后给出八位置序列，原页缩写为：
+  `直符 / 蛇 / 陰 / 六合 / 朱 / 白 / 九地 / 九天`；
+- 紧接着有 `順逆飛遁 / 陰陽二至分順逆` 的 movement context；
+- PDF p37 又把八神中的五吉神明确列为：
+  `天乙 / 太陰 / 六合 / 九地 / 九天`。
+
+这不是在已有四种现代解释里“选中一个”。它反而形成一个新的 source-specific witness：
+
+`ZHU_BAI_DUAL_POSITION_WITNESS`
+
+即：在这个原页 Qimen context 中，`朱` 与 `白` 同时占据八位置中的两个不同位置。
+
+因此：
+
+- universal `白虎=勾陈 / 玄武=朱雀` 更不能直接成立；
+- universal yin/yang pair substitution 也不能拿来吞并这个 witness；
+- 不把 p22 的单字缩写偷偷展开成现代 enum；
+- 不因为它看起来“更古”就宣布它更真、更准或更标准。
+
+另一个重要反例在 PDF p44：OCR 同样命中 `白虎` 等词，但原页局部其实进入 `天将阴阳干支所属` / 十二将类语境，并不是 p22 那个 Qimen 八位置对象。
+
+由此得到阅读纪律：
+
+`same token != same method object`
+
+工作名：`Semantic-Object Type Safety`。
+
+详细记录：
+
+`knowledge/K2_VISUAL_REVIEW_SESSIONS/QM-SRC-0022_TARGETED_DEITY_LINEAGE.md`。
+
+### AQ-003 本轮停止
+
+两个预先限定的 early-source probes 已完成：
+
+1. QM-SRC-0024 -> deity lineage `NO-OP`；
+2. QM-SRC-0022 -> `ZHU_BAI_DUAL_POSITION_WITNESS`。
+
+**现在停止 AQ-003 本轮继续找第三本古籍。**
+
+原因不是“已经证明了什么”，而是遵守事先的 `STOPPING_DOF` 约束：出现有趣结果后立刻继续搜更多支持材料，同样是一种 favourable stopping / selection bias 的反面形式。
+
+下一轮若重新开启 AQ-003，必须先写新的攻击问题，例如：
+
+- QM-SRC-0022 的 `朱/白` 在同源其他页是否有全称解释？
+- 独立早期 witness 是复现 `朱/白` 双位置，还是给出另一套结构？
+- movement rule 是否也是同一对象？
+
+本轮不再扩源。
 
 ---
 
