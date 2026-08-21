@@ -36,6 +36,7 @@ def batch(p=None):
     return {
         "batch_id":"K2PVB-BATCH_001",
         "plan_id":p["plan_id"],
+        "plan_sha256":v.canonical_sha256(p),
         "preregistered_at_utc":"2026-08-21T23:00:00Z",
         "model_commit_sha":"a"*40,
         "comparator_ref":"STATIC_BASELINE_V1",
@@ -72,6 +73,7 @@ def freeze(p=None,b=None):
         "freeze_id":"K2PVF-CASE_001",
         "plan_id":p["plan_id"],
         "batch_id":b["batch_id"],
+        "batch_sha256":v.canonical_sha256(b),
         "case_id":"CASE_001",
         "frozen_at_utc":"2026-08-22T00:00:00Z",
         "model_commit_sha":b["model_commit_sha"],
@@ -88,6 +90,7 @@ def outcome(f=None):
     return {
         "outcome_id":"K2PVO-CASE_001",
         "freeze_id":f["freeze_id"],
+        "freeze_record_sha256":v.canonical_sha256(f),
         "observed_at_utc":"2026-08-23T00:00:00Z",
         "freeze_payload_sha256":f["frozen_payload_sha256"],
         "outcome_summary":"normalized observed result",
@@ -126,6 +129,9 @@ def main():
 
     b=batch(p);must_pass([p],[b])
 
+    badb=copy.deepcopy(b);badb["plan_sha256"]="b"*64
+    must_fail([p],[badb],needle="bind exact test plan")
+
     badb=copy.deepcopy(b);badb["primary_metric"]=""
     must_fail([p],[badb],needle="primary_metric must be non-empty text")
 
@@ -136,6 +142,9 @@ def main():
     must_fail([p],[],[f],needle="requires preregistered batch")
     must_pass([p],[b],[f])
 
+    badf=copy.deepcopy(f);badf["batch_sha256"]="c"*64
+    must_fail([p],[b],[badf],needle="bind exact preregistered batch")
+
     badf=copy.deepcopy(f);badf["frozen_at_utc"]="2026-08-21T22:00:00Z"
     must_fail([p],[b],[badf],needle="after batch preregistration")
 
@@ -143,6 +152,9 @@ def main():
     must_fail([p],[b],[badf],needle="frozen_payload_sha256 mismatch")
 
     o=outcome(f);must_pass([p],[b],[f],[o])
+
+    bado=copy.deepcopy(o);bado["freeze_record_sha256"]="d"*64
+    must_fail([p],[b],[f],[bado],needle="bind exact freeze record")
 
     bado=copy.deepcopy(o);bado["freeze_payload_sha256"]="b"*64
     must_fail([p],[b],[f],[bado],needle="exact frozen payload hash")
@@ -157,6 +169,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=16")
+    print("cases=19")
 
 if __name__=="__main__":main()
