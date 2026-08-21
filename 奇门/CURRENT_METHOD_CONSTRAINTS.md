@@ -1,10 +1,12 @@
 # 奇门当前方法约束层（2026-08-21）
 
-状态：**ACTIVE / AUTHORITATIVE OVERLAY / v2.4**
+状态：**ACTIVE / AUTHORITATIVE OVERLAY / v2.5**
 
 适用范围：后续奇门学习、解盘、技能调用、案例复盘与前瞻验证。本文件约束旧版《奇门遁甲知识库》及尚未完全迁移的 `qclaw` 内容。
 
 > 这不是新的“圣经”。它是一组当前有效、可被反例修改、缩窄、压缩或废弃的认识论与执行约束。
+
+当前原创研究方向：`奇门/理论创新_反证情境压缩法_v0.3-alpha.md`。它仍是未验证草案，不享有高于 Evidence/现实结果的权威。
 
 ## 一、认识论分层
 
@@ -198,6 +200,7 @@ Role Map 必须标明角色来源：`SOURCE_DEFINED / METHOD_DEFINED / CONTEXT_I
 → `Prospective Registry`
 → `Optional Auxiliary Context Ablation`
 → `Outcome Audit`
+→ `Outcome-to-Rule Firewall`
 → `Rule Lifecycle Update`
 → `Model-Compression Review`
 
@@ -226,6 +229,8 @@ Role Map 必须标明角色来源：`SOURCE_DEFINED / METHOD_DEFINED / CONTEXT_I
 
 无可审计分母、连续样本、失败记录、基线和污染控制的“约八成准确率”等统一标 `UNSUPPORTED_ACCURACY_CLAIM`。
 
+`CONTAMINATED_CASE`、outcome-known retrospective、书本复盘不允许折算为“0.5 次真验证”等经验支持。它们可生成研究问题，但 Empirical Support credit 默认为 0。
+
 ## 十四、Prospective Case Registry
 
 正式未知结果测试遵循 `knowledge/K2_PROSPECTIVE_CASE_PROTOCOL.md`。
@@ -241,6 +246,8 @@ Role Map 必须标明角色来源：`SOURCE_DEFINED / METHOD_DEFINED / CONTEXT_I
 Outcome：`HIT / PARTIAL / MISS / UNRESOLVED / CONTAMINATED`。
 
 结果后只允许评分和模型更新，不允许重写原冻结版本。
+
+`PARTIAL` 是预注册评分口径中的 outcome class，不是“半次验证”。没有预先定义的可审计分母，不计算“真验证覆盖率”。
 
 ## 十六、Rule Lifecycle + Model Compression
 
@@ -274,7 +281,9 @@ Outcome：`HIT / PARTIAL / MISS / UNRESOLVED / CONTAMINATED`。
 - Role Map Freeze 是否改善可复现性；
 - Branch-Discrimination 是否比“宽泛多分支”提高校准；
 - Baseline Firewall 是否能减少辅助信息误归因；
-- 哪些当前 context keys 可以通过 ablation 合并或删除。
+- 哪些当前 context keys 可以通过 ablation 合并或删除；
+- `Outcome-to-Rule Firewall` 是否能减少单案例补丁复发；
+- Validation Independence 是否能显著降低“实现与 oracle 共错”的概率。
 
 ## 十九、执行优先级
 
@@ -283,8 +292,66 @@ Outcome：`HIT / PARTIAL / MISS / UNRESOLVED / CONTAMINATED`。
 `K2 Evidence / Evidence Corrections / Book Distillate / Method Delta / Pre-Book Retrospective`
 → `CURRENT_METHOD_CONSTRAINTS.md`
 → `K2 Prospective Case / Source Fixture Protocols`
-→ `当前版本理论草案`
+→ `理论创新_反证情境压缩法_v0.3-alpha.md`
+→ `更早理论草案`
 → `qclaw 技能与旧知识库`
 → `更早修炼日志`
 
 这里的“优先”是项目运行约束优先级，不是玄学规则真值等级。
+
+## 二十、从结果学习的纪律：Outcome-to-Rule Firewall
+
+本节来自 6/15、6/16、8/10、8/11 与 8/21 的复发性错误回看，不新增 Prospective Registry top-level schema。
+
+### 20.1 单案例只生成候选教训
+
+单个 HIT/MISS 后的新认识先记为：
+
+`CASE_LESSON_CANDIDATE`
+
+正确链：
+
+`Outcome -> Case Lesson -> Testable Hypothesis -> Prospective Discrimination -> Rule Update`
+
+禁止从一次结果直接推出新的跨问题 global priority、固定象意、固定因果或唯一 setup。
+
+### 20.2 污染/复盘不得折算经验支持
+
+- outcome-known retrospective：Empirical Support credit = 0；
+- contaminated case：Empirical Support credit = 0；
+- 书本案例吻合：Empirical Support credit = 0；
+- `PARTIAL` 不转换为任意“0.5 次验证”。
+
+它们仍有 SOURCE / INFERENCE / failure-mode 价值，但不能跨层升级。
+
+### 20.3 方法优越性必须 matched prospective
+
+“解释更丰富”“用神更多”“故事更连贯”不能证明方法更好。
+
+若比较方法 A/B，至少要求同一 unknown-outcome 样本、同一 scoring、同一信息暴露边界、反馈前分别冻结，然后比较 discrimination / calibration / baseline delta / overconfidence / abstention。
+
+### 20.4 因果归因隔离
+
+一次结果后形成的“空间精度天花板”“某门优先级更高”“某方法才是真盘”等解释，先标 `CAUSAL_HYPOTHESIS`。没有跨案例可区分证据前，不进入 active rule。
+
+### 20.5 Validation Independence
+
+`Written Knowledge != Executable Knowledge != Validated Knowledge`
+
+且：
+
+`Validator PASS != Oracle Correctness`
+
+验证器的 expected/oracle 必须尽量独立于被测实现。若二者由同一脚本、同一推导链或同一未核验记忆生成，一致性不构成独立验证。
+
+实现完整性测试必须优先加入 deliberate wrong-input / shifted / permuted / shuffled controls，证明测试确实能拒绝错误输入。
+
+### 20.6 反省也要做减法
+
+每轮反省优先落为：
+
+- `DELETE`：删/降级一个不必要规则、字段或分支；
+- `TEST`：转成可失败实验；
+- `NO-OP`：只是提醒，不继续增加 schema/Gate。
+
+不把“记录了更多反省”本身当成能力增长。

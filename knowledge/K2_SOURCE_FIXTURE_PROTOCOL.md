@@ -1,6 +1,6 @@
 # K2 Source Fixture Protocol
 
-Status: ACTIVE / v1.1
+Status: ACTIVE / v1.2
 
 Purpose: create small, auditable source-defined implementation fixtures without confusing source reproducibility with predictive truth and without copying modern books wholesale into the repository.
 
@@ -166,3 +166,26 @@ The corrected Test F path is:
 The former one-bureau-shifted page mapping is now itself a required negative control. A validator or implementation test that accepts it lacks discrimination.
 
 A code path that reproduces the book has passed a source-fidelity/implementation-integrity test only. Predictive evaluation remains a separate prospective experiment.
+
+## 8. Validation Independence / Oracle Independence
+
+The 2026-08-21 correction exposed a deeper failure mode: fixture data and validator expectations can agree because both inherited the same mistaken model.
+
+Therefore:
+
+`Validator PASS != Oracle Correctness`
+
+For `IMPLEMENTATION_CHECKED`, record/ensure conceptual separation among:
+
+1. **source witness** — visually reviewed original page;
+2. **fixture oracle** — sparse anchor accepted from that witness;
+3. **system under test** — production/runtime implementation;
+4. **negative controls** — deliberately wrong bureau/page/permutation inputs.
+
+The fixture oracle must not be generated from the implementation under test.
+
+If a helper/script proposes both implementation output and expected output from the same transformation path, that comparison is self-consistency only and cannot grant `IMPLEMENTATION_CHECKED`.
+
+A useful implementation test must demonstrate discrimination: at least one known-wrong control must fail for the same assertion family that accepts the verified source anchor.
+
+When semantic normalization is needed, such as traditional/simplified character normalization, the normalization rule itself must be explicit and narrow; it must not silently change structural meaning.

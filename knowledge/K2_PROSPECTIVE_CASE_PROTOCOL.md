@@ -1,6 +1,6 @@
 # K2 Prospective Case Protocol
 
-Status: ACTIVE / v1.3
+Status: ACTIVE / v1.4
 
 Purpose: turn anti-hindsight method constraints into a machine-auditable preregistration layer before real outcome feedback arrives. This protocol is research bookkeeping, not a claim that Qimen has predictive validity.
 
@@ -15,7 +15,9 @@ Historical failures show post-feedback freedom can enter through:
 - adding news/background after the fact while crediting the gain to the original method;
 - retaining only successful stories and silently losing misses;
 - pre-registering so many branches that almost any outcome can later be called a hit;
-- hiding unresolved choices behind permanent `CONTEXT_REQUIRED`.
+- hiding unresolved choices behind permanent `CONTEXT_REQUIRED`;
+- converting contaminated/retrospective cases into fractional “validation credit”;
+- turning a single dramatic HIT/MISS directly into a new global operating rule.
 
 The registry stores compact frozen metadata and hashes. Detailed/private case notes stay outside Git.
 
@@ -234,7 +236,55 @@ A local helper may generate hashes/run validators but must not create synthetic 
 -> `Frozen Prediction`
 -> `Auxiliary Ablation`
 -> `Outcome Audit`
+-> `Outcome-to-Rule Firewall`
 -> `Rule Lifecycle Update`
 -> `Model-Compression Review`
 
 The protocol itself remains revisable when new loopholes appear.
+
+## 17. Outcome-to-Rule Firewall and scoring discipline
+
+This section is based on the historical 2026-06-15, 2026-06-16, 2026-08-10 and 2026-08-11 logs plus the 2026-08-21 fixture correction. It changes research credit rules, not the JSONL top-level schema.
+
+### 17.1 One case cannot create a global rule
+
+A resolved case may produce `CASE_LESSON_CANDIDATE` notes.
+
+The allowed learning chain is:
+
+`Outcome -> Case Lesson -> Testable Hypothesis -> Prospective Discrimination -> Rule Update`
+
+A single HIT/MISS cannot by itself promote a new global priority, fixed symbolism, causal explanation or unique setup method into the active model.
+
+### 17.2 No fractional “validation count” for contamination
+
+The following contribute zero Empirical Support credit by default:
+
+- outcome-known retrospective reanalysis;
+- contaminated prospective case;
+- book case agreement;
+- post-hoc narrative fit.
+
+They may still contribute source understanding, failure-mode discovery or hypothesis generation.
+
+`PARTIAL` is a preregistered outcome class for a scorable prospective forecast. It must not be converted into “0.5 validation” unless a separate prospective scoring system explicitly defines such a numeric metric before outcomes.
+
+Do not publish “true-validation coverage rate” without a stable, auditable denominator defined before outcome review.
+
+### 17.3 Method superiority requires matched prospective comparison
+
+A claim that method A is better than method B requires matched unknown-outcome cases with:
+
+- same target/outcome definitions;
+- same information exposure boundary;
+- same scoring contract;
+- separate pre-feedback freezes;
+- comparison of discrimination, calibration, baseline delta, overconfidence and abstention.
+
+Retrospective richness, more symbols, more use-gods or a more coherent story do not count as superiority evidence.
+
+### 17.4 Post-hoc causal explanations remain hypotheses
+
+Claims such as “space-resolution ceiling”, “this door must outrank that layer”, or “this setup is the true chart” remain `CAUSAL_HYPOTHESIS` until they survive independent discriminating trials.
+
+A plausible explanation of one result is not yet a rule.
