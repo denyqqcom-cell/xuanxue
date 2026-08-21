@@ -135,6 +135,14 @@ object QimenEngine {
         return Triple(xunShou, dun, kong)
     }
 
+    /**
+     * 地盘不直接出现甲；六甲以旬首遁干表示。
+     * 因此遇到甲时，找“时干所在宫”必须先把甲解析为本旬遁干。
+     * 这是输入表示层处理，不是对某一占断体系的优越性判断。
+     */
+    private fun representedHourStem(hourGZ: String, dunGan: String): String =
+        if (hourGZ[0] == '甲') dunGan else hourGZ[0].toString()
+
     fun zhiPalace(zhi: String): Int = when (zhi) {
         "子" -> 1; "丑", "寅" -> 8; "卯" -> 3; "辰", "巳" -> 4; "午" -> 9
         "未", "申" -> 2; "酉" -> 7; "戌", "亥" -> 6; else -> 5
@@ -249,6 +257,7 @@ object QimenEngine {
      * - 地盘飞布：1..9 数序；
      * - 九星/八门转盘：外八宫几何环；
      * - 天禽随天芮寄坤二参与转盘；
+     * - 六甲时的甲不直接出现在地盘，先以本旬遁干解析“时干所在宫”；
      * - 值使“随时宫”先按阴阳遁在 1..9 数序计时，再把值使门轮对齐目标外宫；
      * - 八神从大值符落宫起，阳顺/阴逆沿外八宫。
      *
@@ -265,7 +274,8 @@ object QimenEngine {
 
         val (_, dunGan, _) = xunInfo(hourGZ)
         val dunPalace = di.entries.single { it.value == dunGan }.key
-        val shiGanPalace = di.entries.single { it.value == hourGZ[0].toString() }.key
+        val visibleHourStem = representedHourStem(hourGZ, dunGan)
+        val shiGanPalace = di.entries.single { it.value == visibleHourStem }.key
 
         val starOrigin = hostToKun(dunPalace)
         val starTarget = hostToKun(shiGanPalace)
@@ -299,7 +309,9 @@ object QimenEngine {
         hourGZ: String,
         dunPalace: Int,
     ): RotationLayers {
-        val shiGanPalace = di.entries.first { it.value == hourGZ[0].toString() }.key
+        val (_, dunGan, _) = xunInfo(hourGZ)
+        val visibleHourStem = representedHourStem(hourGZ, dunGan)
+        val shiGanPalace = di.entries.first { it.value == visibleHourStem }.key
 
         // Legacy 天盘：数序平移。保留既有行为用于 A/B，不再把它叫 source-verified full rotation。
         val tian = mutableMapOf<Int, String>()
