@@ -52,6 +52,10 @@ jobs:
         run: python3 tools/test_k2_evidence.py
       - name: Enforce K2 evidence state
         run: python3 tools/validate_k2_evidence.py
+      - name: Test post-Wave1 corpus expansion fail-closed cases
+        run: python3 tools/test_k2_evidence_expansion.py
+      - name: Enforce post-Wave1 corpus expansion state
+        run: python3 tools/validate_k2_evidence_expansion.py
       - name: Test K2 source fixture fail-closed cases
         run: python3 tools/test_k2_source_fixtures.py
       - name: Enforce K2 source fixture state
