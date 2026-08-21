@@ -35,6 +35,14 @@ def main():
     require(text, "python tools/test_k2_python_deps.py")
     require(text, "Verify isolated K2 PDF dependency health")
 
+    # Composite-carrier facts must remain guarded at every refinement layer.
+    require(text, "python3 tools/test_k2_source_segments.py")
+    require(text, "python3 tools/validate_k2_source_segments.py")
+    require(text, "python3 tools/test_k2_segment_lineage.py")
+    require(text, "python3 tools/validate_k2_segment_lineage.py")
+    require(text, "python3 tools/test_k2_segment_evidence.py")
+    require(text, "python3 tools/validate_k2_segment_evidence.py")
+
     print("knowledge-ci-contract-tests: PASS")
 
 
