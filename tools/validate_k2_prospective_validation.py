@@ -13,18 +13,18 @@ PLAN_FIELDS={
     "high_risk_policy","update_policy","status","empirical_credit",
 }
 BATCH_FIELDS={
-    "batch_id","plan_id","preregistered_at_utc","model_commit_sha","comparator_ref",
+    "batch_id","plan_id","plan_sha256","preregistered_at_utc","model_commit_sha","comparator_ref",
     "planned_case_count","sampling_rule","primary_metric","decision_rule",
     "secondary_metrics","stopping_rule","exclusion_rule","duplicate_case_policy",
     "research_only","status","empirical_credit",
 }
 FREEZE_FIELDS={
-    "freeze_id","plan_id","batch_id","case_id","frozen_at_utc","model_commit_sha",
+    "freeze_id","plan_id","batch_id","batch_sha256","case_id","frozen_at_utc","model_commit_sha",
     "frozen_payload","frozen_payload_sha256","outcome_known_at_freeze",
     "research_only","status",
 }
 OUTCOME_FIELDS={
-    "outcome_id","freeze_id","observed_at_utc","freeze_payload_sha256",
+    "outcome_id","freeze_id","freeze_record_sha256","observed_at_utc","freeze_payload_sha256",
     "outcome_summary","evaluation","score_components","post_hoc_notes",
     "research_only","empirical_credit","status",
 }
@@ -137,7 +137,11 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         if not isinstance(bid,str) or not BATCH_ID_RE.match(bid):issues.append((bid,"invalid batch_id"))
         if bid in batch_by_id:issues.append((bid,"duplicate batch_id"))
         batch_by_id[bid]=b
-        if pid not in plan_by_id:issues.append((bid,f"unknown plan_id: {pid}"))
+        plan=plan_by_id.get(pid)
+        if not plan:issues.append((bid,f"unknown plan_id: {pid}"))
+        else:
+            if b.get("plan_sha256")!=canonical_sha256(plan):issues.append((bid,"plan_sha256 does not bind exact test plan"))
+        if not isinstance(b.get("plan_sha256"),str) or not SHA64_RE.match(b.get("plan_sha256","")):issues.append((bid,"plan_sha256 must be lowercase sha256"))
         if utc_value(b.get("preregistered_at_utc")) is None:issues.append((bid,"preregistered_at_utc must be UTC second timestamp ending Z"))
         if not isinstance(b.get("model_commit_sha"),str) or not SHA40_RE.match(b.get("model_commit_sha","")):issues.append((bid,"model_commit_sha must be lowercase 40-char git SHA"))
         for field in ["comparator_ref","sampling_rule","primary_metric","decision_rule","stopping_rule","exclusion_rule","duplicate_case_policy"]:
@@ -161,7 +165,10 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         if not plan:issues.append((fid,f"unknown plan_id: {pid}"))
         batch=batch_by_id.get(bid)
         if not batch:issues.append((fid,f"freeze requires preregistered batch: {bid}"))
-        elif batch.get("plan_id")!=pid:issues.append((fid,"freeze plan_id does not match batch plan_id"))
+        else:
+            if batch.get("plan_id")!=pid:issues.append((fid,"freeze plan_id does not match batch plan_id"))
+            if f.get("batch_sha256")!=canonical_sha256(batch):issues.append((fid,"batch_sha256 does not bind exact preregistered batch"))
+        if not isinstance(f.get("batch_sha256"),str) or not SHA64_RE.match(f.get("batch_sha256","")):issues.append((fid,"batch_sha256 must be lowercase sha256"))
         case_id=f.get("case_id")
         if not isinstance(case_id,str) or not CASE_ID_RE.match(case_id):issues.append((fid,"case_id must be anonymous uppercase token"))
         key=(bid,case_id)
@@ -204,9 +211,11 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         fr=freeze_by_id.get(fid)
         if not fr:issues.append((oid,f"unknown freeze_id: {fid}"))
         else:
+            if o.get("freeze_record_sha256")!=canonical_sha256(fr):issues.append((oid,"freeze_record_sha256 does not bind exact freeze record"))
             if o.get("freeze_payload_sha256")!=fr.get("frozen_payload_sha256"):issues.append((oid,"outcome does not reference exact frozen payload hash"))
             fdt=utc_value(fr.get("frozen_at_utc"));odt=utc_value(o.get("observed_at_utc"))
             if fdt and odt and odt<=fdt:issues.append((oid,"outcome must be observed after freeze"))
+        if not isinstance(o.get("freeze_record_sha256"),str) or not SHA64_RE.match(o.get("freeze_record_sha256","")):issues.append((oid,"freeze_record_sha256 must be lowercase sha256"))
         if utc_value(o.get("observed_at_utc")) is None:issues.append((oid,"observed_at_utc must be UTC second timestamp ending Z"))
         if not nonempty_text(o.get("outcome_summary")):issues.append((oid,"outcome_summary must be non-empty derived text"))
         if o.get("evaluation") not in EVALUATIONS:issues.append((oid,"invalid evaluation"))
