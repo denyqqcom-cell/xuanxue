@@ -10,18 +10,37 @@
 
 ## 1. 当前真实位置
 
-最新已通过的 exact-head 基线（写本文前）：
+写本文时的跨领域 K2 gate 基线曾记录：
 
-- head: `b67e69d02ca69782f0b7b5d3af5a6e072b62b08a`
-- Knowledge Engine V1 CI #323: `completed / success`
-- aggregate K2 per-book gate: `37 expected reading units / 5 COMPLETE / 32 NOT_STARTED`
-- aggregate evidence: `718 reviewed Evidence rows`
-- Prospective Registry: `0` clean scored rows
+- aggregate Wave1：`37 expected reading units / 5 COMPLETE / 32 NOT_STARTED`
+- aggregate evidence：`718 reviewed Evidence rows`
+- Prospective Registry：`0` clean scored rows
 
-因此必须同时承认两件事：
+但随后复查 validator 发现一个新的自我误区：
+
+`37/5/32` 是**六领域当前 Wave1 selection 的 aggregate denominator**，不是奇门 corpus denominator。
+
+因此原先把它写成“奇门还剩 32 reading units”是错误的 metric scope。
+
+当前奇门 corpus 应以 `K2_FULL_COVERAGE_MASTER_PLAN v1.1` 为准：
+
+```text
+Qimen registered rows = 35
+K2-eligible textual carriers = 25
+K2-eligible unique works = 19
+formal COMPLETE textual carriers = 5
+eligible textual carriers not COMPLETE = 20
+textual carriers awaiting lineage/domain resolution = 5
+non-textual/secondary rows = 5
+```
+
+这个错误很典型：**数字来自 CI，不代表 denominator 的语义对象就自动正确。**
+
+所以现在必须同时承认三件事：
 
 1. 知识工程已经明显比早期严谨；
-2. 文献全覆盖和现实预测验证都远没有完成。
+2. 奇门 corpus 全覆盖仍远未完成；
+3. 即使是自动化指标，也必须做 Semantic-Object audit。
 
 `Engineering maturity != Corpus mastery != Predictive validity`。
 
@@ -181,22 +200,36 @@
 
 ---
 
-## 8. 历史误区七：把“文献全覆盖”误解为“越快读越多”
+## 8. 历史误区七：把“文献全覆盖”误解为“越快读越多”，又把 aggregate metric 误当奇门分母
 
-当前 K2 gate 的真实状态是：
+第一层错误是速度崇拜：
 
-`37 expected reading units -> 5 COMPLETE -> 32 NOT_STARTED`
+`看得多 -> 掌握得多 -> 体系更强`
 
-因此“库中文献须尽数研习”应该解释为**长期可审计目标**，而不是口头宣布“已经掌握”。
+第二层错误更隐蔽：刚建立全覆盖计划时，又把 CI 的：
+
+`37 expected / 5 complete / 32 not_started`
+
+直接解释成奇门进度。
+
+复查代码后确认：这是六领域 Wave1 aggregate，不是奇门 corpus。
+
+因此全覆盖现在有两条硬纪律：
+
+1. **Coverage 必须有正确 denominator；**
+2. **Coverage 只代表读过，不代表信过、用过、验证过。**
+
+当前奇门 textual coverage 以 25 个 K2-eligible textual carriers 为主要正式目标，另有 5 个 textual carriers 先解决 lineage/domain admission。
 
 新的全覆盖含义：
 
-- 每一个 expected reading unit 最终必须有诚实的 `COMPLETE / PARTIAL / BLOCKED`；
+- 每一个 eligible textual carrier 最终必须有诚实的 `COMPLETE / PARTIAL / BLOCKED`；
 - 每本 source 的 provenance、method objects、冲突、适用域、风险断语和 test hooks 都要留下结构化记录；
 - 同一内容重复出现不重复计算独立支持；
 - OCR/targeted review 不能冒充 full reading；
 - “已经看过”若违反 Pre-Book gate，不追认流程 credit；
-- 完成阅读不等于采纳规则。
+- 完成阅读不等于采纳规则；
+- global aggregate metrics 不再偷换成 domain corpus coverage。
 
 详细执行见：`奇门/K2_FULL_COVERAGE_MASTER_PLAN.md`。
 
@@ -291,7 +324,8 @@
 
 ### P1 — 完成文献全覆盖，但按问题驱动轮换
 
-- 按 `K2_FULL_COVERAGE_MASTER_PLAN` 推进剩余 32 reading units；
+- 按 `K2_FULL_COVERAGE_MASTER_PLAN` 推进当前 20 个尚未正式 COMPLETE 的 K2-eligible textual carriers；
+- 对另 5 个 textual carriers 先解决 lineage/domain admission，再决定 reading lane；
 - 不连续读同一 lineage 形成回音室；
 - 每本必须产生 conflict/test/compression 之一，否则只算摘录。
 
@@ -331,3 +365,37 @@
 这才是“自成一家”必须接受的代价：
 
 > **自己的理论，也没有免于被自己推翻的特权。**
+
+---
+
+## 13. 新发现的阅读盲区：书里有，不等于作者认同
+
+费秉勋《奇门遁甲新述》的当前 visual review 暴露出一个过去未充分显式化的误区。
+
+这本书前部大量保存、解释传统格局、克应和定局材料；但卷十又明确批判：
+
+- 神化起源；
+- 偶然、唯心构拟的“动应”；
+- 符咒等内容；
+
+并且对剩余时空数理部分也没有直接宣布“已经科学成立”，而是要求继续研究并通过现实实践辨真伪。
+
+因此必须补一条 source-reading discipline：
+
+`SOURCE_CONTAINS(X) != AUTHOR_ENDORSES(X)`
+
+进一步：
+
+`TRADITION_RECORDED != AUTHORIAL_OPERATIONAL_COMMITMENT`
+
+这会修正一种非常隐蔽的“背书式学习”：摘到一条规则时，只证明该规则出现在文献里，不证明作者把它当可靠事实，更不证明现实有效。
+
+当前处理方式先做 **REVISE / NO NEW SCHEMA**：
+
+- Evidence/Distillate 中区分传统记录、作者解释与作者批判；
+- 不急着再新增一个顶层字段；
+- 如果后续多本书反复出现“记录传统但不认同传统”的结构，再评估是否需要稳定的 statement-role model。
+
+这次修正本身也说明：
+
+> **真正的闭关不是把错误藏得更深，而是连刚刚写下的“严谨指标”和刚刚读到的“权威规则”都继续怀疑。**
