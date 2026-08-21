@@ -295,6 +295,37 @@ QM-SRC-0023 在完整 `pdf:p1-p185` 连续视觉复核前，看起来可以被�
 
 ---
 
+## A14 冻结表演与批次后见自由度 / VALIDATION_THEATER
+
+### 事件
+
+项目第一次把“证”工程化时，初版 prospective gate 已要求单案例在结果未知前冻结 Role Map、Eligible Rule Set、Interpretation Path、Prediction 与 Confidence，但仍遗漏了两个更隐蔽的自由度：
+
+1. primary metric、threshold、stopping rule、exclusion rule 若在看过一批结果后才确定，单案例 Freeze 仍会被批次层 hindsight 污染；
+2. 如果 Plan、Batch、Freeze、Outcome 之间只靠 ID 引用，上游合同仍可能在后来被改写而不立即触发当前态校验。
+
+### 反省
+
+“有 Freeze 文件”不等于真正的前瞻验证。验证制度自身也可能成为一种仪式：表面上减少了自由度，实际上把自由度转移到指标选择、停止规则、排除规则或上游记录改写。
+
+### 纠偏
+
+Prospective Validation 被升级为：
+
+`TEST PLAN -> BATCH PREREGISTRATION -> CASE FREEZE -> OUTCOME -> BATCH REVIEW`
+
+并建立 hash-bound provenance：
+
+`PLAN --plan_sha256--> BATCH --batch_sha256--> FREEZE --freeze_record_sha256--> OUTCOME`
+
+批次指标、decision rule、停止/排除规则必须在该批 Outcome 前冻结；单案例与单批次仍不得直接升级 Empirical Credit。
+
+### 状态
+
+`MODEL_REFACTORED_2026-08-22`
+
+---
+
 # 每书复盘最小问题集
 
 每完成一本书或一个 work family，PROJECT_MAIN_AGENT 必须回答：
@@ -310,5 +341,6 @@ QM-SRC-0023 在完整 `pdf:p1-p185` 连续视觉复核前，看起来可以被�
 9. 什么结果会迫使我承认该假设失败？
 10. 当前模型是否因为这本书变得更可约束，而不是仅仅更复杂？
 11. 我是否把一个 PDF/载体误当成了一个作品、一个作者或一个领域？
+12. 我的验证协议是否仍允许在结果后改变指标、阈值、停止/排除规则，或悄悄改写上游合同？
 
 如果第 9 问无法回答，该理论当前不可证伪，只能保留为来源描述或解释性假设。
