@@ -73,6 +73,28 @@
 
 停止条件：本轮最多深挖 2 个独立早期 witnesses；如果都不能回答运动对象，转向别的问题，不以“再找一本”拖延。
 
+### First probe — 2026-08-21
+
+`QM-SRC-0024 / 《笺元遁甲句解烟波钓叟歌》` 已做 canonical p1-p12 targeted original-page provenance review。
+
+得到的不是“八神谱系答案”，而是一个更窄的 provenance 结果：
+
+- p5 原页可以 `PAGE_VERIFIED` 书名 witness；
+- p5 可以 `PAGE_VERIFIED_WITNESS_ATTRIBUTION` 到赵普归因语境；
+- 这不能单独证明赵普的历史作者身份；
+- `明刊本` 版本判断仍 `EDITION_UNRESOLVED`；
+- p1-p12 本轮没有提供足够的八神名称顺序、运动层或 worked-plate context 来解决 AQ-003。
+
+所以 AQ-003 对本次 probe 的结果是：
+
+`PROVENANCE_IMPROVED / DEITY_LINEAGE_NO-OP`
+
+它**不计入**“2 个独立早期 movement witnesses”的停止条件，也不把 targeted p1-p12 review 冒充成 `QM-SRC-0024` 全书 Reading COMPLETE。
+
+`QM-SRC-0022 / 《甲遁真授秘录》上册` 的初步 OCR 关键词命中目前只保留为 navigation clue；快速视觉抽查没有形成足够清楚的 deity-system witness，因此暂不登记支持/反对结论。若继续深挖，必须回原页上下文，而不是把 OCR 词命中升级成 Evidence。
+
+这个 `NO-OP` 被保留下来，是为了检验 Attack Queue 是否真的会记录“没有帮当前理论增加规则”的研究结果。
+
 ---
 
 ## AQ-004 — 真正的 time-boundary control
