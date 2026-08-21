@@ -1,0 +1,9 @@
+{
+  "schema_version":"k2-evidence-expansion-v1",
+  "status":"ACTIVE",
+  "source_ids":[
+    "QM-SRC-0017"
+  ],
+  "selection_rule":"Explicit post-Wave1 additions are admitted only after canonical identity, pre-book retrospective, honest full coverage and review artifacts exist; the expansion changes coverage scope only and does not promote empirical support.",
+  "review_status":"REVIEWED"
+}
