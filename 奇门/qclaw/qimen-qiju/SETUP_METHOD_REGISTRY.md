@@ -105,6 +105,40 @@ Required decomposition:
 
 No implementation should infer one from another.
 
+### 7.1 2026-08-21 implementation recurrence
+
+The p21-p22 `QM-SRC-0028` worked-plate audit found that production `QimenEngine` had independently reproduced this exact conceptual error:
+
+- the legacy star layer used the numeric `1..9` flying sequence as if it were the outer rotating-star ring;
+- the legacy door layer used `zhiPalace(hour branch)` as if it were the source's xun-hour value-door count;
+- the deity layer used another ad-hoc palace order;
+- `天禽` was rotated as an independent ninth outer star although the worked plates carry it with `天芮`.
+
+This is important because the **written registry already warned about QJ-05 before the implementation audit**. Written knowledge did not automatically constrain executable knowledge.
+
+Current correction adds an explicit source-bounded profile:
+
+`SHANTI_DAO_71_P21_P22`
+
+with separate executable objects:
+
+- `PALACE_NUMBER_SEQUENCE = 1..9`
+- `OUTER_ROTATION_RING = 1,8,3,4,9,2,7,6`
+- `HOUR_OFFSET_SEQUENCE`
+- `DEITY_ORDER`
+
+The legacy profile remains `LEGACY_EXPERIMENTAL` for A/B and backward compatibility; this correction does not declare the new profile universally true.
+
+New engineering discipline:
+
+**Sequence-Object Type Safety**
+
+Any rule containing “顺 / 逆 / 飞 / 转 / 移” is incomplete until it names the sequence object being traversed. A direction word without an object is not executable knowledge.
+
+Exact implementation audit:
+
+`knowledge/K2_IMPLEMENTATION_AUDITS/QM-SRC-0028_SHANTI_WORKED_PLATES.md`
+
 ## 8. Conflict QJ-06 — 值使落宫 vs 八门门序
 
 Legacy file says both:
@@ -121,6 +155,8 @@ Status:
 Future algorithm spec separates:
 
 `chief_door_position_rule / door_sequence_rule / rotation_direction_rule`.
+
+The Shantiandao p21-p22 source-profile implementation now demonstrates why this decomposition matters: “值使随时宫”的 target calculation and “八门固定顺序”的 outer-ring rotation are two different operations.
 
 ## 9. Provenance correction
 
@@ -158,6 +194,8 @@ A clean prospective model must freeze at least:
 
 If two choices lead to different plates, both models must be registered before feedback if compared.
 
+`layout_method` must identify the sequence objects it actually uses; a label such as “顺转” alone is not enough for reproducibility.
+
 ## 12. Experimental priorities
 
 1. source-faithful executable specs for setup variants;
@@ -167,4 +205,4 @@ If two choices lead to different plates, both models must be registered before f
 5. wrong-setup / permuted structural controls;
 6. only later compare outcome calibration.
 
-*Migration audit v1 | 2026-08-21*
+*Migration audit v1.1 | 2026-08-21*

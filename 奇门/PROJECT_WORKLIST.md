@@ -9,24 +9,38 @@
 ## 0. 当前基线
 
 - PR #9：Draft / open / unmerged。
-- 当前研究书：梁湘润《奇门遁甲入门》阅读/蒸馏已 CLOSED。
+- 梁湘润《奇门遁甲入门》阅读/蒸馏已 CLOSED。
 - 梁书十八局：18/18 fixture 已到 `IMPLEMENTATION_CHECKED`，但范围仅限 36 个 tracked `甲子` sparse anchors。
-- full star/door/deity rotation、非甲子时、setup/time-boundary A/B 仍未验证。
-- `QimenEngine` 已修正一个真实的 `CENTER_CHIEF_DOOR_IDENTITY` 实现缺口。
+- 善天道《奇门遁甲讲义71页》：aggregate K2 早已 `COMPLETE / 71/71 / TEXT_LAYER_FULL / 50 Evidence`；Cycle 1 又完成 supplemental visual fidelity re-audit 71/71，不重复 Reading/Evidence credit。
+- `QimenEngine` 已修正一个 `CENTER_CHIEF_DOOR_IDENTITY` 缺口。
+- `QM-SRC-0028` p21-p22 又暴露 production 把飞布数序、外八宫转盘、值使时序和八神宫序混成同一“顺逆”的实现问题。
+- 新增 explicit `SHANTI_DAO_71_P21_P22` source-defined implementation profile；`LEGACY_EXPERIMENTAL` 保留为默认 A/B baseline，不静默覆盖。
+- p21-p22 两个 non-Jiazi worked plates 已有 sparse star/door/deity positive comparison + wrong-bureau negative control；exact-head `fb54b40...` / CI #294 completed/success。
+- source-profile 的“值使计时正落中五宫”完整门盘仍明确 unresolved，不用猜测填满。
 - 当前原创理论：`反证情境压缩法 v0.3-alpha`，状态仍为 `PROVISIONAL / UNVALIDATED / OPEN TO REJECTION`。
 
 ## 1. 工作优先级
 
 ### P0-A — 先把实现边界继续打穿
 
-- [ ] 检查完整八门转动，不把“值使身份正确”偷换成“门盘完整正确”。
-- [ ] 检查天禽/天芮寄宫在非甲子时的实现。
-- [ ] 检查九星完整旋转至少一组 source-defined sparse cells。
-- [ ] 检查八神在不同 `deity_system` 下的实现，不把白虎/玄武体系静默套给勾陈/朱雀体系。
-- [ ] 增加 wrong-time / wrong-bureau / shifted-page / permuted-cell / shuffled-chart negative controls。
-- [ ] 每一个实现 PASS 都写明 scope，不允许从 sparse pass 外推 full-chart correctness。
+已完成的窄里程碑：
 
-退出条件：至少有一个非甲子、非 chief-identity 的 source-defined positive comparison，并且对应错误输入会明确 FAIL。
+- [x] 梁书 18 局甲子 chief identity：36 sparse anchors + wrong-bureau/permuted controls。
+- [x] 善天道 p21-p22：至少一组非甲子 full star/door/deity sparse source comparison。
+- [x] 善天道 p21-p22：阳3、阴8两个 worked plates 的 source-defined `元 / 星 / 门 / 神`实现路径。
+- [x] 第一组 full-rotation wrong-bureau negative control。
+- [x] 把 `PALACE_NUMBER_SEQUENCE` 与 `OUTER_ROTATION_RING` 变成不同 executable objects，而不只写在方法文档里。
+
+仍未完成：
+
+- [ ] 值使计时目标落中五宫时的 source-defined full door plate；没有独立 witness 前保持 `SHANTI_DAO_71_DOOR_TARGET_CENTER_UNRESOLVED`。
+- [ ] shifted-bureau / wrong-time-boundary / permuted-star / permuted-door / shuffled-full-chart controls。
+- [ ] 另一独立来源对同一 non-Jiazi full-rotation 对象的交叉 implementation comparison。
+- [ ] p31/p55 deity lineage/context 拆解；不能用 p21-p22 的白虎/玄武例盘自动解决全书八神谱系。
+- [ ] 检查九星/八门完整 rotation 在更多 source-defined时刻是否仍成立，而不是只拟合两张 worked plate。
+- [ ] 每一个实现 PASS 都继续写明 scope，不允许从 sparse pass 外推 full-chart correctness。
+
+阶段性退出条件“至少有一个非甲子、非 chief-identity 的 source-defined positive comparison，且错误输入会明确 FAIL”已达到；P0-A 本身仍未关闭。
 
 ### P0-B — 启动 clean unknown-outcome prospective pilot
 
@@ -60,6 +74,7 @@
 - [ ] `勾陈/朱雀` 与 `白虎/玄武` 的 source lineage。
 - [ ] 九星/八门旺相休囚算法冲突。
 - [ ] 十干克应天盘/地盘方向、格名异文。
+- [ ] 所有“顺/逆/飞/转/移”规则必须先命名 sequence object，落实 `Sequence-Object Type Safety`。
 
 ### P1-B — 反证情境压缩法 v0.3-alpha
 
@@ -67,6 +82,7 @@
 - [ ] 检查 Role Map Freeze 是否提高分析者一致性。
 - [ ] 检查 Branch-Discrimination 是否减少“任一分支命中”。
 - [ ] 做 feature ablation：删除某象、某 Gate、某 context key 后，结论/校准是否变化。
+- [ ] 做 `RESTRICTED vs BROAD vs SHUFFLED_SYMBOL vs SHUFFLED_ROLE_MAP`，直接测宽象意词典的 narrative-rescue capacity。
 - [ ] 每次模型版本评审至少提出一个 `DELETE / MERGE / NO-OP` 候选，而不只提出新增项。
 
 ### P1-C — 旧知识债务
@@ -74,6 +90,7 @@
 - [ ] 旧《奇门遁甲知识库》只做问题驱动清债，不再整本重写。
 - [ ] 旧“100%命中 / 92%实战能力 / 真验证覆盖率”等表述保留历史证据，但运行层禁止复活。
 - [ ] 已知错误如会影响 runtime，直接修；纯历史错误只做 correction overlay，不抹历史。
+- [ ] 文档已有约束但 production 未落实时，按“Written Knowledge != Executable Knowledge”处理，不能因为文档写对就宣称债务已关闭。
 
 ## 2. 每轮研究时间配比
 
@@ -85,6 +102,8 @@
 - 10%：CI、索引、状态同步、本地执行助手交接。
 
 如果连续两轮实际投入中“读书+整理”超过 70% 而没有新的 implementation/prospective test，下一轮自动降读书优先级。
+
+当前 Cycle 1 已产生真实 implementation test，因此下一棒优先从 **P0-B prospective pilot + P0-A remaining negative controls** 中选，不因“书读完了”自动切书。
 
 ## 3. 每周检查点
 
@@ -102,6 +121,7 @@
 
 - 决定研究问题、source identity、Evidence semantics、冲突归类、理论修改、case scoring、credit、Git 归档与是否发布。
 - 负责最终视觉主审；不把 OCR/本地助手候选直接当事实。
+- implementation comparison 必须把 source witness、oracle、system under test、negative control 尽量分开。
 
 本地 AI：
 
@@ -113,7 +133,7 @@
 
 ## 5. 书籍切换
 
-项目不再采用“读完一本马上下一本”的无限堆书模式。
+项目不采用“读完一本马上下一本”的无限堆书模式。
 
 统一执行：`奇门/BOOK_ROTATION_CYCLE.md`。
 
@@ -124,3 +144,5 @@
 而不是：
 
 `书越多 -> 规则越多 -> 默认越接近真理`。
+
+当前善天道 Cycle 1 已完成视觉 fidelity re-audit，但由它生成的 Test B/C/D 与中宫值使 unresolved 仍开放。是否切到下一本书，应由这些测试需要什么独立 witness 决定，而不是由日历自动触发。

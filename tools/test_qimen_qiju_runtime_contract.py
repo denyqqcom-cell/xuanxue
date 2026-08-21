@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SKILL = ROOT / "奇门" / "qclaw" / "qimen-qiju" / "SKILL.md"
 REG = ROOT / "奇门" / "qclaw" / "qimen-qiju" / "SETUP_METHOD_REGISTRY.md"
+ENGINE = ROOT / "ziwei-core" / "src" / "main" / "kotlin" / "com" / "xuanxue" / "qimen" / "QimenEngine.kt"
 
 
 def fail(msg: str) -> None:
@@ -23,6 +24,7 @@ def forbid(text: str, needle: str, where: str) -> None:
 def main() -> None:
     skill = SKILL.read_text(encoding="utf-8")
     reg = REG.read_text(encoding="utf-8")
+    engine = ENGINE.read_text(encoding="utf-8")
 
     for needle in (
         "Setup Method Registry",
@@ -46,10 +48,25 @@ def main() -> None:
         "20点~23点为晚子时",
         "23-24点为晚子时算次日",
         "PALACE_NUMBER_ORDER",
+        "GEOMETRIC_ROTATION_ORDER",
         "chief_door_position_rule",
         "DEFINITION_OVERLAP_UNRESOLVED",
+        "Sequence-Object Type Safety",
+        "SHANTI_DAO_71_P21_P22",
+        "HOUR_OFFSET_SEQUENCE",
     ):
         require(reg, needle, "SETUP_METHOD_REGISTRY.md")
+
+    # The implementation audit exposed that the written QJ-05 warning had not
+    # automatically constrained production. Keep the object/sequence split executable.
+    for needle in (
+        "val LUO_SHU = intArrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9)",
+        "ROTATION_RING = intArrayOf(1, 8, 3, 4, 9, 2, 7, 6)",
+        "SHANTI_DAO_71_P21_P22",
+        "buildShantiandao71Layers",
+        "SHANTI_DAO_71_DOOR_TARGET_CENTER_UNRESOLVED",
+    ):
+        require(engine, needle, "QimenEngine.kt")
 
     for needle in (
         "### 2.4 拆补法（推荐使用）",
