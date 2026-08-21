@@ -1,6 +1,6 @@
 # K2 Source Fixture Protocol
 
-Status: ACTIVE
+Status: ACTIVE / v1.1
 
 Purpose: create small, auditable source-defined implementation fixtures without confusing source reproducibility with predictive truth and without copying modern books wholesale into the repository.
 
@@ -10,8 +10,8 @@ A source fixture is a compact implementation reference derived from a fully revi
 
 It may answer questions such as:
 
-- which source page contains a bureau table;
-- which polarity/bureau number the table labels itself as;
+- which source page labels a bureau;
+- whether the expected main table is visibly present on that page;
 - a small number of manually verified anchor cells for implementation regression tests;
 - whether code reproduces those source-defined anchors.
 
@@ -41,9 +41,13 @@ For `LIANG_18_BUREAU`, no more than four sparse anchor cells per table may enter
 
 `INDEXED -> ANCHORS_VERIFIED -> IMPLEMENTATION_CHECKED`
 
-- `INDEXED`: source table identity and locator were visually verified; no cell anchor has entered the repository.
+- `INDEXED`: source title/page identity was visually reviewed, but no tracked anchor has been accepted.
 - `ANCHORS_VERIFIED`: 1-4 sparse anchors were independently rechecked against the original page image by the main reviewer.
 - `IMPLEMENTATION_CHECKED`: code output was compared against the verified anchors.
+
+Tracked anchors are deliberately small. Each anchor stores only a stable locator and the visible cell value. It is not a table transcription.
+
+A title may be visible while the expected table is not. Such a row remains `INDEXED`; absence must not be silently repaired by moving the fixture to another page.
 
 No state here changes Reading Ledger status or Evidence claim readiness.
 
@@ -55,7 +59,14 @@ OCR may be used locally as a navigation/transcription aid, but every tracked anc
 
 `OCR_CANDIDATE != VERIFIED_ANCHOR`
 
-## 5. QM-SRC-0001 bureau index
+For the current sparse anchors, the main reviewer uses layout locators such as:
+
+- `MAIN_TABLE/甲子/TOP_STAR_HEADER`
+- `MAIN_TABLE/甲子/BOTTOM_DOOR_FOOTER`
+
+These locators describe visible table positions; they do not by themselves assert predictive meaning.
+
+## 5. QM-SRC-0001 bureau index and source-page anomaly
 
 For 梁湘潤《奇門遁甲入門》:
 
@@ -66,19 +77,28 @@ For 梁湘潤《奇門遁甲入門》:
 - time family: `HOUR`
 - method layer: `STANDARD_PLATE`
 
-The visually verified table-title/page mapping is:
+Main-reviewer reinspection at 300 DPI confirms:
 
-- 陽遁一局至九局: PDF p32-p40, ascending;
-- 陰遁九局至一局: PDF p41-p49, descending.
+- PDF p32-p40: `陽遁一局圖` through `陽遁九局圖`; title and six-column main table are visible.
+- PDF p41-p48: `陰遁九局圖` through `陰遁二局圖`; title and six-column main table are visible.
+- PDF p49: the right side visibly labels `陰遁一局圖`, but the facing/left content is `十二日圖式`; the expected six-column bureau table is **not visibly present on this indexed page**.
 
-This mapping is an implementation index, not a prediction result.
+Therefore `K2F-QM-0001-YIN-01` remains:
+
+- `fixture_status=INDEXED`
+- `anchor_count=0`
+- `source_table_state=TITLE_VISIBLE_TABLE_NOT_PRESENT`
+
+This is preserved as a source/scan page-content anomaly. Do not silently relocate the Yin-one table by inference. A later source-specific lineage review may determine whether the table was omitted, displaced, or represented elsewhere.
+
+The other 17 rows may advance independently to `ANCHORS_VERIFIED`.
 
 ## 6. Local helper boundary
 
 A local AI/helper may:
 
 - resolve the canonical PDF by exact SHA256;
-- render/crop p32-p49 at higher DPI outside the repository;
+- render/crop source pages at higher DPI outside the repository;
 - produce candidate transcriptions or OCR strictly as local `NAVIGATION_ONLY` material;
 - report unreadable cells and conflicting candidate readings.
 
@@ -94,14 +114,20 @@ Final anchor selection and Git normalization belong to the project-side main rev
 
 ## 7. Test F use
 
-The initial Test F path is:
+The current Test F path is:
 
 `source page index`
--> `local high-DPI crops`
--> `candidate sparse anchors`
--> `main visual recheck`
+-> `high-DPI visual recheck`
+-> `sparse anchor selection`
 -> `ANCHORS_VERIFIED`
 -> `implementation comparison`
 -> `wrong-bureau / permuted negative controls`
 
-A code path that reproduces the book has passed a source-fidelity test only. Predictive evaluation remains a separate prospective experiment.
+Current source-side result:
+
+- 17 bureau pages have visible main tables and can carry sparse anchors.
+- `YIN-01 / p49` is title-visible but table-not-present and remains unresolved at the fixture-source layer.
+
+An implementation may therefore be checked against the 17 verified visible-table fixtures without pretending the eighteenth source table exists at p49.
+
+A code path that reproduces source anchors has passed a source-fidelity test only. Predictive evaluation remains a separate prospective experiment.

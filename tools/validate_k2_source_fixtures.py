@@ -7,13 +7,18 @@ K=ROOT/"knowledge"
 DOMAINS=["ziwei","bazi","qimen","liuyao","liuren","fengshui"]
 PATH_RE=re.compile(r"(?:/home/|/mnt/|[A-Za-z]:\\\\)")
 LOC_RE=re.compile(r"^pdf:p(\d+)$")
+ANCHOR_LOC_RE=re.compile(r"^MAIN_TABLE/甲子/(TOP_STAR_HEADER|BOTTOM_DOOR_FOOTER)$")
 ALLOWED_FIELDS={
-    "anchor_count","bureau","canonical_sha256","copyright_class",
+    "anchor_count","anchors","bureau","canonical_sha256","copyright_class",
     "fixture_family","fixture_id","fixture_status","method_layer",
-    "polarity","review_status","source_id","source_location",
+    "polarity","review_status","source_id","source_location","source_table_state",
     "table_title","time_family","verification_basis","work_id"
 }
+ANCHOR_FIELDS={"anchor_id","locator","value"}
 STATUS={"INDEXED","ANCHORS_VERIFIED","IMPLEMENTATION_CHECKED"}
+TABLE_STATES={"TABLE_VISIBLE","TITLE_VISIBLE_TABLE_NOT_PRESENT"}
+STARS={"天蓬","天芮","天衝","天輔","天禽","天心","天柱","天任","天英"}
+DOORS={"休","生","傷","杜","景","死","驚","開"}
 CN={1:"一",2:"二",3:"三",4:"四",5:"五",6:"六",7:"七",8:"八",9:"九"}
 
 def fail(msg):
@@ -54,6 +59,33 @@ def load_fixture_rows(root=ROOT):
         for p in sorted(d.glob("*.jsonl")): out.extend(load_jsonl(p))
     return out
 
+def validate_anchor(fid,a):
+    issues=[]
+    if not isinstance(a,dict):
+        return [(fid,"anchor must be object")]
+    extra=set(a)-ANCHOR_FIELDS
+    missing=ANCHOR_FIELDS-set(a)
+    if extra: issues.append((fid,f"anchor unexpected fields: {sorted(extra)}"))
+    if missing: issues.append((fid,f"anchor missing fields: {sorted(missing)}"))
+    aid=a.get("anchor_id")
+    loc=a.get("locator")
+    val=a.get("value")
+    if not isinstance(aid,str) or not aid.strip():
+        issues.append((fid,"anchor_id must be non-empty"))
+    m=ANCHOR_LOC_RE.match(loc or "")
+    if not m:
+        issues.append((fid,"anchor locator invalid"))
+    if not isinstance(val,str) or not val.strip():
+        issues.append((fid,"anchor value must be non-empty"))
+    elif m:
+        if m.group(1)=="TOP_STAR_HEADER" and val not in STARS:
+            issues.append((fid,f"unexpected star anchor value: {val}"))
+        if m.group(1)=="BOTTOM_DOOR_FOOTER" and val not in DOORS:
+            issues.append((fid,f"unexpected door anchor value: {val}"))
+    if PATH_RE.search(json.dumps(a,ensure_ascii=False)):
+        issues.append((fid,"local filesystem path leaked through anchor"))
+    return issues
+
 def validate_rows(sources,lineage,ledger,rows):
     issues=[];seen=set();liang=[]
     for r in rows:
@@ -73,13 +105,37 @@ def validate_rows(sources,lineage,ledger,rows):
         if r.get("verification_basis")!="VISUAL_PAGE": issues.append((fid,"verification_basis must be VISUAL_PAGE"))
         if r.get("copyright_class")!="DERIVED_FACT_SAFE": issues.append((fid,"copyright_class must be DERIVED_FACT_SAFE"))
         if r.get("fixture_status") not in STATUS: issues.append((fid,"invalid fixture_status"))
+        if r.get("source_table_state") not in TABLE_STATES: issues.append((fid,"invalid source_table_state"))
+
+        anchors=r.get("anchors")
+        if not isinstance(anchors,list):
+            issues.append((fid,"anchors must be list"));anchors=[]
+        if len(anchors)>4: issues.append((fid,"anchors must contain at most 4 sparse anchors"))
+        anchor_ids=set();anchor_locs=set()
+        for a in anchors:
+            issues.extend(validate_anchor(fid,a))
+            if isinstance(a,dict):
+                aid=a.get("anchor_id");loc=a.get("locator")
+                if aid in anchor_ids: issues.append((fid,"duplicate anchor_id"))
+                if loc in anchor_locs: issues.append((fid,"duplicate anchor locator"))
+                anchor_ids.add(aid);anchor_locs.add(loc)
+
         ac=r.get("anchor_count")
         if not isinstance(ac,int) or isinstance(ac,bool) or ac<0 or ac>4:
             issues.append((fid,"anchor_count must be integer 0..4"))
+        elif ac!=len(anchors):
+            issues.append((fid,"anchor_count must equal len(anchors)"))
         elif r.get("fixture_status")=="INDEXED" and ac!=0:
             issues.append((fid,"INDEXED fixture must have anchor_count=0"))
         elif r.get("fixture_status") in {"ANCHORS_VERIFIED","IMPLEMENTATION_CHECKED"} and ac==0:
             issues.append((fid,"verified/checked fixture requires at least one sparse anchor"))
+
+        if r.get("source_table_state")=="TITLE_VISIBLE_TABLE_NOT_PRESENT":
+            if r.get("fixture_status")!="INDEXED" or ac!=0:
+                issues.append((fid,"title-only fixture must remain INDEXED with zero anchors"))
+        elif r.get("fixture_status") in {"ANCHORS_VERIFIED","IMPLEMENTATION_CHECKED"} and r.get("source_table_state")!="TABLE_VISIBLE":
+            issues.append((fid,"verified/checked fixture requires TABLE_VISIBLE"))
+
         if r.get("method_layer")!="STANDARD_PLATE": issues.append((fid,"method_layer must be STANDARD_PLATE"))
         if r.get("time_family")!="HOUR": issues.append((fid,"time_family must be HOUR"))
         if r.get("polarity") not in {"YANG","YIN"}: issues.append((fid,"polarity must be YANG or YIN"))
@@ -115,6 +171,11 @@ def validate_rows(sources,lineage,ledger,rows):
                 expected_title=("陽遁" if p=="YANG" else "陰遁")+CN[n]+"局圖"
                 if r.get("table_title")!=expected_title:
                     issues.append((fid,f"table_title mismatch; expected {expected_title}"))
+                if p=="YIN" and n==1:
+                    if page!=49 or r.get("source_table_state")!="TITLE_VISIBLE_TABLE_NOT_PRESENT":
+                        issues.append((fid,"YIN-01 must preserve p49 title-visible/table-not-present anomaly"))
+                elif r.get("source_table_state")!="TABLE_VISIBLE":
+                    issues.append((fid,"expected TABLE_VISIBLE for this bureau page"))
     return issues
 
 def main():
