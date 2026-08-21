@@ -76,7 +76,6 @@ class QimenEngineTest {
             val yinYang = if (fixture.polarity == "YANG") 1 else -1
             val di = QimenEngine.buildDiPan(yinYang, fixture.bureau)
 
-            // 甲子旬遁戊；source fixture 的 bureau lookup 先要求戊确实落局数宫。
             val dunPalace = di.entries.single { it.value == "戊" }.key
             assertEquals(fixture.bureau, dunPalace, "${fixture.fixtureId}: 戊落宫")
 
@@ -123,11 +122,98 @@ class QimenEngineTest {
     }
 
     @Test
+    fun shantiandaoFuTouYuanMatchesWorkedExampleDays() {
+        assertEquals("中元", QimenEngine.yuanOfFuTou("癸酉"))
+        assertEquals("下元", QimenEngine.yuanOfFuTou("丙子"))
+        assertNotEquals(QimenEngine.yuanOf("癸酉"), QimenEngine.yuanOfFuTou("癸酉"))
+    }
+
+    @Test
+    fun shantiandaoYang3WorkedPlateMatchesIndependentVisualAnchors() {
+        val c = QimenEngine.bySolar(
+            1995, 6, 11, 9, 30,
+            QimenEngine.MethodProfile.SHANTI_DAO_71_P21_P22,
+        )
+        val g = c.gongs.associateBy { it.palace }
+
+        assertEquals(QimenEngine.MethodProfile.SHANTI_DAO_71_P21_P22, c.methodProfile)
+        assertEquals("芒种", c.jieQi)
+        assertEquals(1, c.yinYang)
+        assertEquals("中元", c.yuan)
+        assertEquals(3, c.ju)
+        assertEquals("丁巳", c.hourGZ)
+        assertEquals("甲寅", c.xunShou)
+        assertEquals("癸", c.dunGan)
+        assertEquals("天任", c.zhiFu)
+        assertEquals("生门", c.zhiShi)
+        assertTrue(c.implementationWarnings.isEmpty())
+
+        assertEquals("天任", g.getValue(9).tianXing)
+        assertEquals("天冲", g.getValue(2).tianXing)
+        assertEquals("天芮/天禽", g.getValue(1).tianXing)
+        assertEquals("生门", g.getValue(2).renMen)
+        assertEquals("休门", g.getValue(9).renMen)
+        assertEquals("值符", g.getValue(9).shenPan)
+        assertEquals("腾蛇", g.getValue(2).shenPan)
+        assertEquals("白虎", g.getValue(1).shenPan)
+    }
+
+    @Test
+    fun shantiandaoYin8WorkedPlateMatchesIndependentVisualAnchors() {
+        val c = QimenEngine.bySolar(
+            1995, 8, 13, 20, 0,
+            QimenEngine.MethodProfile.SHANTI_DAO_71_P21_P22,
+        )
+        val g = c.gongs.associateBy { it.palace }
+
+        assertEquals("立秋", c.jieQi)
+        assertEquals(-1, c.yinYang)
+        assertEquals("下元", c.yuan)
+        assertEquals(8, c.ju)
+        assertEquals("戊戌", c.hourGZ)
+        assertEquals("甲午", c.xunShou)
+        assertEquals("辛", c.dunGan)
+        assertEquals("天禽", c.zhiFu)
+        assertEquals("死门", c.zhiShi)
+        assertTrue(c.implementationWarnings.isEmpty())
+
+        assertEquals("天芮/天禽", g.getValue(8).tianXing)
+        assertEquals("天柱", g.getValue(3).tianXing)
+        assertEquals("天英", g.getValue(1).tianXing)
+        assertEquals("死门", g.getValue(1).renMen)
+        assertEquals("惊门", g.getValue(8).renMen)
+        assertEquals("景门", g.getValue(6).renMen)
+        assertEquals("值符", g.getValue(8).shenPan)
+        assertEquals("腾蛇", g.getValue(1).shenPan)
+        assertEquals("玄武", g.getValue(9).shenPan)
+        assertEquals("九天", g.getValue(3).shenPan)
+    }
+
+    @Test
+    fun shantiandaoWrongBureauCannotRescueWorkedPlateAnchors() {
+        val correct = QimenEngine.buildShantiandao71Layers(
+            yinYang = 1,
+            di = QimenEngine.buildDiPan(1, 3),
+            hourGZ = "丁巳",
+        )
+        val wrong = QimenEngine.buildShantiandao71Layers(
+            yinYang = 1,
+            di = QimenEngine.buildDiPan(1, 4),
+            hourGZ = "丁巳",
+        )
+
+        assertEquals("天任", correct.stars[9])
+        assertEquals("生门", correct.doors[2])
+        assertNotEquals(correct.stars[9], wrong.stars[9])
+        assertNotEquals(correct.doors[2], wrong.doors[2])
+    }
+
+    @Test
     fun alignUserScript() {
-        // 对齐用户本地脚本案例：2026-08-12 申时(15:37)，立秋后 → 阴遁；此测试不授予完整九宫夹具信用。
         val c = QimenEngine.bySolar(2026, 8, 12, 15, 37)
         println("QM1 节气=${c.jieQi} ${c.juText} 四柱=${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}")
         println("QM1 旬首=${c.xunShou} 遁干=${c.dunGan} 旬空=${c.xunKong} 值符=${c.zhiFu} 值使=${c.zhiShi} 马星=${c.maXing}")
+        assertEquals(QimenEngine.MethodProfile.LEGACY_EXPERIMENTAL, c.methodProfile)
         assertEquals("立秋", c.jieQi)
         assertEquals(-1, c.yinYang)
         assertEquals(5, c.ju)
