@@ -191,21 +191,81 @@ class QimenEngineTest {
 
     @Test
     fun shantiandaoWrongBureauCannotRescueWorkedPlateAnchors() {
-        val correct = QimenEngine.buildShantiandao71Layers(
+        val correctYang = QimenEngine.buildShantiandao71Layers(
             yinYang = 1,
             di = QimenEngine.buildDiPan(1, 3),
             hourGZ = "丁巳",
         )
-        val wrong = QimenEngine.buildShantiandao71Layers(
+        val wrongYang = QimenEngine.buildShantiandao71Layers(
             yinYang = 1,
             di = QimenEngine.buildDiPan(1, 4),
             hourGZ = "丁巳",
         )
 
-        assertEquals("天任", correct.stars[9])
-        assertEquals("生门", correct.doors[2])
-        assertNotEquals(correct.stars[9], wrong.stars[9])
-        assertNotEquals(correct.doors[2], wrong.doors[2])
+        assertEquals("天任", correctYang.stars[9])
+        assertEquals("生门", correctYang.doors[2])
+        assertNotEquals(correctYang.stars[9], wrongYang.stars[9])
+        assertNotEquals(correctYang.doors[2], wrongYang.doors[2])
+
+        val correctYin = QimenEngine.buildShantiandao71Layers(
+            yinYang = -1,
+            di = QimenEngine.buildDiPan(-1, 8),
+            hourGZ = "戊戌",
+        )
+        val wrongYin = QimenEngine.buildShantiandao71Layers(
+            yinYang = -1,
+            di = QimenEngine.buildDiPan(-1, 7),
+            hourGZ = "戊戌",
+        )
+
+        assertEquals("天芮/天禽", correctYin.stars[8])
+        assertEquals("死门", correctYin.doors[1])
+        assertNotEquals(correctYin.stars[8], wrongYin.stars[8])
+        assertNotEquals(correctYin.doors[1], wrongYin.doors[1])
+    }
+
+    @Test
+    fun legacyProfileIsNotMistakenForShantiandaoWorkedPlate() {
+        val sourceYang = QimenEngine.bySolar(
+            1995, 6, 11, 9, 30,
+            QimenEngine.MethodProfile.SHANTI_DAO_71_P21_P22,
+        )
+        val legacyYang = QimenEngine.bySolar(1995, 6, 11, 9, 30)
+
+        assertEquals("中元", sourceYang.yuan)
+        assertEquals(3, sourceYang.ju)
+        assertNotEquals(sourceYang.yuan, legacyYang.yuan)
+        assertNotEquals(sourceYang.ju, legacyYang.ju)
+
+        val sourceYin = QimenEngine.bySolar(
+            1995, 8, 13, 20, 0,
+            QimenEngine.MethodProfile.SHANTI_DAO_71_P21_P22,
+        )
+        val legacyYin = QimenEngine.bySolar(1995, 8, 13, 20, 0)
+        val sourceG = sourceYin.gongs.associateBy { it.palace }
+        val legacyG = legacyYin.gongs.associateBy { it.palace }
+
+        val discriminatingAnchors = listOf(
+            sourceG.getValue(8).tianXing != legacyG.getValue(8).tianXing,
+            sourceG.getValue(1).renMen != legacyG.getValue(1).renMen,
+            sourceG.getValue(1).shenPan != legacyG.getValue(1).shenPan,
+        )
+        assertTrue(discriminatingAnchors.count { it } >= 2, "legacy profile must remain distinguishable from source profile")
+    }
+
+    @Test
+    fun shantiandaoCenterDoorTargetFailsClosedInsteadOfGuessing() {
+        val unresolved = QimenEngine.buildShantiandao71Layers(
+            yinYang = -1,
+            di = QimenEngine.buildDiPan(-1, 8),
+            hourGZ = "甲午",
+        )
+
+        assertTrue(unresolved.doors.isEmpty())
+        assertEquals(
+            listOf("SHANTI_DAO_71_DOOR_TARGET_CENTER_UNRESOLVED"),
+            unresolved.warnings,
+        )
     }
 
     @Test
