@@ -152,65 +152,96 @@ Sparse anchors include:
 
 These are implementation witnesses, not prediction outcomes.
 
-## 6. Negative controls and the failure that actually taught something
+## 6. Negative controls and what they exposed
 
-Controls now include:
+### 6.1 Wrong-bureau controls
 
-- Yang-3 wrong-bureau;
-- Yin-8 wrong-bureau;
-- legacy-vs-source-profile divergence on the worked examples;
-- center-door target fail-closed behavior.
+Both Yang-3 and Yin-8 source plates are rebuilt with deliberately wrong bureau inputs. The wrong configurations must lose the source-defined sparse anchors.
 
-### CI #298 — useful failure
+### 6.2 CI #298 — hidden Jia representation failure
 
 Commit `640d1e0f68ee6480141379fda21bf589efbc9be0` failed `QimenEngineTest > shantiandaoCenterDoorTargetFailsClosedInsteadOfGuessing()` with `NoSuchElementException` before reaching the intended center-door assertion.
 
 Root cause:
 
-`甲` never appears literally in the earth-plate `三奇六仪` map; it is hidden under the current xun's `遁干`. The implementation tried to locate `hourGZ[0] == 甲` directly in `di`, so the negative control exposed an input-representation defect that neither of the two non-Jia worked plates had touched.
+`甲` never appears literally in the earth-plate `三奇六仪` map; it is hidden under the current xun's `遁干`. The implementation tried to locate `hourGZ[0] == 甲` directly in `di`, so the negative control exposed an input-representation defect that neither non-Jia worked plate had touched.
 
 Classification:
 
 `HIDDEN_JIA_REPRESENTATION_ERROR`.
 
-The correction resolves a 甲 hour to the current `dunGan` before locating the hour-stem palace. The same input guard is also applied to the legacy profile so a 甲 hour no longer crashes merely because the earth plate stores the遁干 rather than literal甲.
+Correction:
+
+`甲时 -> 当前旬遁干表示 -> 地盘宫位`.
 
 Commit:
 
 `6decd61a7ed14741736a9b4668a7fe95cb1ebde0`
 
-Exact-head CI:
+Exact-head CI #299: `completed / success`.
 
-`Knowledge Engine V1 CI #299 = completed / success`.
+The intended center-door control now reaches the unresolved branch instead of crashing.
 
-The intended center-door negative control now reaches the unresolved branch instead of crashing.
+### 6.3 Wrong-hour control
 
-This is a stronger lesson than a green worked-example test: **a deliberately awkward case exposed a representation assumption hidden by the happy path.**
+Commit:
 
-## 7. CI scope gap discovered after the fix
+`de6caab23aeada99fb682c495518e6fed0122cec`
+
+The p21 Yang-3 source plate `丁巳` is compared with deliberately wrong `丙辰` while bureau remains fixed.
+
+The sparse visual oracle scores selected star/door/deity anchors. Correct `丁巳` must score strictly above wrong `丙辰`.
+
+Important scope distinction:
+
+`WRONG_HOUR != WRONG_TIME_BOUNDARY_SYSTEM`.
+
+The worked examples are not a genuine midnight/子时/solar-term boundary experiment, so no boundary-system result is claimed.
+
+### 6.4 Permuted-layer control
+
+The same commit deterministically shifts star, door and deity labels by different offsets along the outer ring. Those permuted layers must score below the correct sparse visual oracle.
+
+This tests whether a wrong-but-plausible rotation can still tie the selected source anchors.
+
+### 6.5 Exact-head status
+
+Exact head:
+
+`de6caab23aeada99fb682c495518e6fed0122cec`
+
+`Knowledge Engine V1 CI #301 = completed / success`.
+
+This includes core tests, App compile and Windows helper portability.
+
+## 7. CI scope gap discovered after the implementation fix
 
 `knowledge-engine-ci.yml` historically ran `:ziwei-core:test` but did not compile the Android App on this K2 PR path, because the heavier App Integration workflow only targets PRs into `main`.
 
-That means a research change could correctly update `QimenEngine` while breaking `QimenScreen` and still report the knowledge gate green.
+That meant a research change could correctly update `QimenEngine` while breaking `QimenScreen` and still report the knowledge gate green.
 
 This is another form of:
 
 `tested layer != shipped execution layer`.
 
-The K2 CI therefore adds a lightweight `:app:compileDebugKotlin` step and extends the existing execution-freeze contract to require:
+The K2 CI therefore adds:
+
+`./gradlew --no-daemon :app:compileDebugKotlin`
+
+and extends the execution-freeze contract to require:
 
 - explicit `MethodProfile` in the engine;
 - explicit method selection in `QimenScreen`;
 - method profile and unresolved warnings propagated into the interpreter;
 - no silent fallback from `SHANTI_DAO_71_P21_P22` to legacy after chart generation.
 
-This is an execution-integrity check, not a new metaphysical validation gate.
+This is an execution-integrity check, not a metaphysical validation gate.
 
 ## 8. What this milestone can and cannot claim
 
 Current implementation credit is limited to:
 
-> an explicit `SHANTI_DAO_71_P21_P22` implementation path reproduces selected non-Jiazi source-defined star/door/deity anchors, rejects defined wrong-bureau controls, preserves legacy divergence, and fails closed on an unresolved center-door condition rather than inventing a plate.
+> an explicit `SHANTI_DAO_71_P21_P22` implementation path reproduces selected non-Jiazi source-defined star/door/deity anchors, rejects defined wrong-bureau and wrong-hour inputs, loses to the correct oracle under deterministic layer permutation, preserves legacy divergence, and fails closed on an unresolved center-door condition rather than inventing a plate.
 
 It does **not** mean:
 
@@ -219,11 +250,12 @@ It does **not** mean:
 - p31/p55 deity lineage has been resolved;
 - center-door target 5 has been solved;
 - setup/time-boundary alternatives are settled;
+- full-chart correctness has been established;
 - any prediction claim has empirical support.
 
 ## 9. Self-audit lesson
 
-Two error families are now explicit.
+Three error families are now explicit.
 
 ### Sequence-Object Type Safety
 
@@ -243,8 +275,12 @@ Even when the sequence is correct, the token seen in the question may not be the
 
 must be an explicit representation transform, not an accidental lookup assumption.
 
-A useful generalization is:
+Generalization:
 
 `linguistic token != stored plate token != movement object`.
+
+### Discrimination before explanation
+
+A structurally wrong input should lose **before** interpretation begins. If wrong-hour or permuted layers still tie the correct source oracle, later narrative quality is irrelevant because the implementation test itself lacks discrimination.
 
 No theory version bump is granted by these implementation corrections.

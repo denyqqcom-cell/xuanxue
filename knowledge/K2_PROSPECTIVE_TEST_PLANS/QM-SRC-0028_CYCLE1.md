@@ -1,6 +1,6 @@
 # QM-SRC-0028 Cycle 1 — Test Plan
 
-Status: TEST_A_IMPLEMENTED / TEST_B-D_OPEN / NO EMPIRICAL CREDIT
+Status: TEST_A_A2_IMPLEMENTED / TEST_B-D_OPEN / NO EMPIRICAL CREDIT
 
 Date: 2026-08-21
 
@@ -10,7 +10,7 @@ Purpose: convert the full visual re-audit into tests that can fail. This plan do
 
 ## Test A — Worked-plate implementation fidelity
 
-Question: does an explicit source-defined implementation reproduce the source's p21-p22 worked plate structures beyond chief identity?
+Question: does an explicit source-defined implementation reproduce the source's p21-p22 worked plate structures beyond chief identity, while materially outperforming wrong or permuted structural inputs?
 
 Before running, freeze:
 
@@ -24,20 +24,20 @@ Before running, freeze:
 
 Positive controls: the two source worked plates.
 
-Negative controls:
+Negative-control families:
 
-- wrong bureau;
-- shifted bureau;
-- wrong time-boundary variant where applicable;
-- permuted star sequence;
-- permuted door sequence;
-- alternative center-host assumption.
+- wrong bureau / shifted bureau;
+- wrong hour while keeping the same bureau;
+- wrong time-boundary variant **only when a genuine boundary witness exists**;
+- permuted star/door/deity placements;
+- alternative center-host assumption;
+- broader shuffled full-chart controls.
 
 Pass condition: correct source configuration must match independently reviewed expected structure and materially outperform negative controls. A test that only confirms an identity derived by the same implementation path is insufficient.
 
-Failure classes: `PAIPAN_ERROR / SETUP_METHOD_ERROR / TIME_BOUNDARY_ERROR / DEITY_SYSTEM_ERROR / STATE_SYSTEM_ERROR / ORACLE_ASSOCIATION_ERROR`.
+Failure classes: `PAIPAN_ERROR / SETUP_METHOD_ERROR / TIME_BOUNDARY_ERROR / DEITY_SYSTEM_ERROR / STATE_SYSTEM_ERROR / ORACLE_ASSOCIATION_ERROR / REPRESENTATION_ERROR`.
 
-### Test A result — milestone A1
+## Test A result — milestone A1
 
 Implementation commit:
 
@@ -49,35 +49,98 @@ Exact-head CI:
 
 What changed:
 
-- production now exposes an explicit `SHANTI_DAO_71_P21_P22` method profile while retaining `LEGACY_EXPERIMENTAL` as the default A/B baseline;
-- the source profile uses the book's five-day甲/己符头元 logic rather than silently replacing legacy `yuanOf()`;
-- `PALACE_NUMBER_SEQUENCE` and `OUTER_ROTATION_RING` are different executable objects;
+- production exposes `SHANTI_DAO_71_P21_P22` while retaining `LEGACY_EXPERIMENTAL` as the A/B baseline;
+- source profile uses the book's five-day甲/己符头元 logic rather than silently replacing legacy `yuanOf()`;
+- `PALACE_NUMBER_SEQUENCE` and `OUTER_ROTATION_RING` became different executable objects;
 - `天禽` is represented as rotating with `天芮` in this profile;
 - value-door target is calculated by xun-hour offset with Yang forward / Yin reverse through 1..9, then the eight-door wheel is aligned on the outer ring;
 - deity movement starts from the chief-star destination and follows Yang-forward / Yin-reverse outer-ring motion.
 
-Positive comparison now covers sparse, non-Jiazi star/door/deity anchors from:
+Positive comparison covers sparse, non-Jiazi star/door/deity anchors from:
 
 - p21 `1995-06-11 09:30 / 丁巳 / 芒种中元 / 阳遁三局`;
 - p21-p22 `1995-08-13 20:00 / 戊戌 / 立秋下元 / 阴遁八局`.
 
 A deliberate wrong-bureau control is rejected.
 
-### Test A scope boundary
+## Test A result — milestone A2
+
+Negative controls were expanded in later commits.
+
+### A2.1 Hidden-Jia representation failure
+
+CI #298 exposed a real implementation defect while exercising a center-door fail-closed case: literal `甲` was searched directly in the earth-plate map even though the earth plate stores the current xun's hidden `遁干`.
+
+Classification:
+
+`HIDDEN_JIA_REPRESENTATION_ERROR`.
+
+Fix:
+
+`甲时 -> 当前旬遁干表示 -> 地盘宫位`.
+
+Commit:
+
+`6decd61a7ed14741736a9b4668a7fe95cb1ebde0`
+
+CI #299: `completed / success`.
+
+This adds **Representation-Object Type Safety** alongside Sequence-Object Type Safety:
+
+`linguistic token != stored plate token != movement object`.
+
+### A2.2 Wrong-hour control
+
+Commit:
+
+`de6caab23aeada99fb682c495518e6fed0122cec`
+
+For the p21 Yang-3 plate, the source configuration `丁巳` is compared with a deliberately wrong `丙辰` while keeping Yang-3 fixed.
+
+The independently reviewed sparse oracle scores star/door/deity anchors. The correct hour must score strictly higher than the wrong hour.
+
+This is a **wrong-time input** control. It is not a `wrong-time-boundary` control.
+
+### A2.3 Permuted-layer control
+
+The same commit deterministically shifts star, door and deity labels by different offsets on the outer ring. The permuted layers must score below the correct sparse visual oracle.
+
+This checks that the test is not merely satisfied by any plausible-looking rotation.
+
+### A2.4 Exact-head evidence
+
+Exact head for A2:
+
+`de6caab23aeada99fb682c495518e6fed0122cec`
+
+`Knowledge Engine V1 CI #301 = completed / success`.
+
+The run includes:
+
+- knowledge/runtime contracts;
+- `:ziwei-core:test`;
+- `:app:compileDebugKotlin`;
+- Windows K2 helper portability.
+
+Implementation fidelity credit from Test A still does not create predictive Empirical Support.
+
+## Test A scope boundary
 
 This is **not** full closure.
 
 Still open:
 
-- shifted-bureau / wrong-boundary / permuted-star / permuted-door controls beyond the first wrong-bureau control;
-- any case where source-defined value-door hour counting lands exactly on center 5;
-- p31/p55 deity-lineage conflict;
-- cross-source comparison of the same full-rotation object;
+- genuine wrong-`time_boundary_system` controls around an actual boundary witness;
+- broader shuffled-full-chart controls beyond deterministic outer-ring label shifts;
+- alternative center-host assumptions backed by explicit source variants;
+- cross-source comparison of the same non-Jiazi full-rotation object;
 - whether the legacy profile should ever be deprecated.
 
-The source profile deliberately returns `SHANTI_DAO_71_DOOR_TARGET_CENTER_UNRESOLVED` rather than inventing a center-door host rule that p21-p22 do not independently settle.
+If source-defined value-door counting lands exactly on center 5, current p21-p22 evidence does not independently settle a complete door wheel. The source profile therefore returns:
 
-Implementation fidelity credit from Test A does not create predictive Empirical Support.
+`SHANTI_DAO_71_DOOR_TARGET_CENTER_UNRESOLVED`
+
+and leaves the door layer blank rather than inventing a host rule.
 
 ## Test B — Semantic Degrees-of-Freedom / narrative-rescue control
 
@@ -112,18 +175,18 @@ Falsification signal: if shuffled/wrong-symbol controls remain comparably discri
 
 Question: are p31 and p55 describing aliases, yin/yang substitutions, different systems, or editorial inconsistency?
 
-This is a source-lineage test, not an outcome test.
+Current source-comparison result:
 
-Procedure:
+`UNRESOLVED / NO-OP`.
 
-- preserve p31 and p55 as separate witnesses;
-- compare surrounding method objects: plate method, yin/yang context, movement rule, list order, terminology;
-- compare independent sources without assuming modern enum equivalence;
-- do not choose the mapping based on which one improves a retrospective case.
+The comparison preserves at least these competing hypotheses:
 
-Possible conclusions:
+- `ALIAS_WITH_CONTEXT`;
+- `LAYERED_HIDDEN_DEITY`;
+- `YIN_YANG_SUBSTITUTION`;
+- `EDITORIAL_SYNTHESIS / MULTIPLE_METHOD_LAYERS`.
 
-`ALIAS_WITH_CONTEXT / SYSTEM_VARIANT / EDITORIAL_CORRUPTION / UNRESOLVED`.
+No runtime taxonomy change is justified yet. Existing deity-system labels remain anti-post-hoc freeze labels, not a solved historical lineage claim.
 
 No conclusion may increase predictive Empirical Support by itself.
 
@@ -157,4 +220,4 @@ A theory change requires prospective or broader implementation evidence that cha
 
 `CANDIDATE -> TESTABLE -> PROVISIONAL`, with reverse movement allowed.
 
-The strongest current innovation remains constraint of interpretive degrees of freedom, not expansion of symbolic vocabulary.
+The strongest current innovation remains constraint of interpretive degrees of freedom plus executable object/representation discipline, not expansion of symbolic vocabulary.
