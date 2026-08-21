@@ -31,8 +31,30 @@ def plan():
     }
 
 
-def freeze(p=None):
+def batch(p=None):
     p=p or plan()
+    return {
+        "batch_id":"K2PVB-BATCH_001",
+        "plan_id":p["plan_id"],
+        "preregistered_at_utc":"2026-08-21T23:00:00Z",
+        "model_commit_sha":"a"*40,
+        "comparator_ref":"STATIC_BASELINE_V1",
+        "planned_case_count":20,
+        "sampling_rule":"accept consecutive eligible cases under frozen scope",
+        "primary_metric":"predeclared binary score",
+        "decision_rule":"candidate must exceed baseline by frozen threshold T",
+        "secondary_metrics":["calibration","abstention_rate"],
+        "stopping_rule":"stop only at planned_case_count unless documented external impossibility",
+        "exclusion_rule":"exclude only cases ineligible before outcome is known",
+        "duplicate_case_policy":"same underlying event may appear only once",
+        "research_only":True,
+        "status":"PREREGISTERED",
+        "empirical_credit":"NONE",
+    }
+
+
+def freeze(p=None,b=None):
+    p=p or plan();b=b or batch(p)
     payload={
         "question_definition":"Will normalized event A occur within frozen window?",
         "asked_object":"OBJECT_A",
@@ -49,9 +71,10 @@ def freeze(p=None):
     return {
         "freeze_id":"K2PVF-CASE_001",
         "plan_id":p["plan_id"],
+        "batch_id":b["batch_id"],
         "case_id":"CASE_001",
         "frozen_at_utc":"2026-08-22T00:00:00Z",
-        "model_commit_sha":"a"*40,
+        "model_commit_sha":b["model_commit_sha"],
         "frozen_payload":payload,
         "frozen_payload_sha256":v.canonical_sha256(payload),
         "outcome_known_at_freeze":False,
@@ -77,13 +100,13 @@ def outcome(f=None):
     }
 
 
-def must_pass(plans,freezes=None,outcomes=None):
-    issues=v.validate_records(distillates(),plans,freezes or [],outcomes or [])
+def must_pass(plans,batches=None,freezes=None,outcomes=None):
+    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [])
     assert not issues,issues
 
 
-def must_fail(plans,freezes=None,outcomes=None,needle=""):
-    issues=v.validate_records(distillates(),plans,freezes or [],outcomes or [])
+def must_fail(plans,batches=None,freezes=None,outcomes=None,needle=""):
+    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [])
     assert issues,"expected failure"
     text="; ".join(f"{a}: {b}" for a,b in issues)
     assert needle in text,(needle,text)
@@ -101,26 +124,39 @@ def main():
     bad=copy.deepcopy(p);bad["empirical_credit"]="STRONG"
     must_fail([bad],needle="cannot carry empirical credit")
 
-    f=freeze(p);must_pass([p],[f])
+    b=batch(p);must_pass([p],[b])
+
+    badb=copy.deepcopy(b);badb["primary_metric"]=""
+    must_fail([p],[badb],needle="primary_metric must be non-empty text")
+
+    badb=copy.deepcopy(b);badb["empirical_credit"]="WEAK"
+    must_fail([p],[badb],needle="preregistered batch cannot carry empirical credit")
+
+    f=freeze(p,b)
+    must_fail([p],[],[f],needle="requires preregistered batch")
+    must_pass([p],[b],[f])
+
+    badf=copy.deepcopy(f);badf["frozen_at_utc"]="2026-08-21T22:00:00Z"
+    must_fail([p],[b],[badf],needle="after batch preregistration")
 
     badf=copy.deepcopy(f);badf["frozen_payload"]["prediction"]="CHANGED_AFTER_FREEZE"
-    must_fail([p],[badf],needle="frozen_payload_sha256 mismatch")
+    must_fail([p],[b],[badf],needle="frozen_payload_sha256 mismatch")
 
-    o=outcome(f);must_pass([p],[f],[o])
+    o=outcome(f);must_pass([p],[b],[f],[o])
 
     bado=copy.deepcopy(o);bado["freeze_payload_sha256"]="b"*64
-    must_fail([p],[f],[bado],needle="exact frozen payload hash")
+    must_fail([p],[b],[f],[bado],needle="exact frozen payload hash")
 
     bado=copy.deepcopy(o);bado["observed_at_utc"]="2026-08-21T00:00:00Z"
-    must_fail([p],[f],[bado],needle="observed after freeze")
+    must_fail([p],[b],[f],[bado],needle="observed after freeze")
 
     bado=copy.deepcopy(o);bado["empirical_credit"]="WEAK"
-    must_fail([p],[f],[bado],needle="single-case outcome cannot upgrade empirical credit")
+    must_fail([p],[b],[f],[bado],needle="single-case outcome cannot upgrade empirical credit")
 
     bado=copy.deepcopy(o);bado["prediction_override"]="post-hoc"
-    must_fail([p],[f],[bado],needle="outcome fields mismatch")
+    must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=11")
+    print("cases=16")
 
 if __name__=="__main__":main()
