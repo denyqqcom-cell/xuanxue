@@ -25,7 +25,7 @@ implementation_version
 
 | setup_method | Legacy description | Current status | Main unresolved point |
 |---|---|---|---|
-| FUTOU_ZHIRUN | 符头定元，正授/超神/接气，必要时置闰 | SOURCE_REVIEW_REQUIRED | 超神/接气已获得一条 source-specific 方向证据，但另一反向 legacy 定义来源仍未定位 |
+| FUTOU_ZHIRUN | 符头定元，正授/超神/接气/置闰 | SOURCE_REVIEW_REQUIRED | 超神/接气已有一条 source-specific 方向证据，另一反向 legacy 定义来源仍未定位 |
 | CHAIBU_SOLAR_TERM | 节气交接后拆补三元 | SOURCE_REVIEW_REQUIRED | “固定5+5+5”与“残元+补元”两套描述 |
 | MAOSHAN_SOLAR_TERM | 完全按实际节气，不参考符头 | DEFINITION_OVERLAP_UNRESOLVED | 与 legacy 简化拆补描述高度重叠 |
 | SOURCE_DEFINED_OTHER | 其他来源算法 | CONTEXT_REQUIRED | 必须给 source/version |
@@ -109,7 +109,7 @@ Legacy file contains:
 
 `INTERNAL_TIME_BOUNDARY_CONFLICT`.
 
-### 6.1 QM-SRC-0027 p3：真正的 split-zi witness
+### 6.1 QM-SRC-0027 p3：split-zi + hour-stem day-basis witness
 
 PDF p3 原页把时辰表明确拆成：
 
@@ -140,11 +140,37 @@ PDF p3 原页把时辰表明确拆成：
 
 而不是把它偷换成未经证明的全局 `ZI_START_23` truth。
 
-### 6.2 AQ-004 状态
+### 6.2 QM-SRC-0021 p25：连续子时区间是另一种 document representation
 
-`SOURCE_BOUNDARY_WITNESS_FOUND / EXECUTABLE_FULL_PLATE_CONTROL_NOT_READY`
+已正式 COMPLETE 的独立来源 `QM-SRC-0021 / 幺学声《奇门遁甲预测学》` PDF p25，经 supplemental original-page check，列出：
 
-原因：目前还缺一个发生在 23:00 / 00:00 边界、且能核对完整日柱/局/星门神的 worked plate oracle。
+`子时 23:00-1:00`
+
+并随后按两小时连续列出丑、寅……亥时。
+
+该页没有像 QM-SRC-0027 p3 那样拆成早子 / 晚子，也没有在此页直接显示晚子时单独切换 hour-stem day-basis。
+
+当前分类：
+
+`CROSS_SOURCE_BOUNDARY_REPRESENTATION_DIFFERENCE`
+
+但不能越级写成：
+
+`FULL_DAY_BOUNDARY_ALGORITHM_CONFLICT_CONFIRMED`
+
+因为 QM-SRC-0021 p25 只直接说明十二地支时辰区间，并没有在这一页明确展示 23:00 后完整日柱是否换日。
+
+新纪律：
+
+`TIME-BRANCH INTERVAL != DAY-PILLAR ROLLOVER != HOUR-STEM DAY-BASIS`
+
+三个对象必须分开核验，不能因为都谈“子时”就当成同一个算法字段。
+
+### 6.3 AQ-004 状态
+
+`SOURCE_BOUNDARY_WITNESS_FOUND / CROSS_SOURCE_REPRESENTATION_DIFFERENCE / FULL_DAY_ROLLOVER_UNRESOLVED / EXECUTABLE_FULL_PLATE_CONTROL_NOT_READY`
+
+现在已经不缺“子时怎么写”的资料，真正缺的是可执行 oracle：发生在 23:00/00:00 边界、能同时核对日干支、时干支、局数与完整盘层的 worked plate。
 
 在此之前不制造伪 `wrong-time-boundary` control。
 
@@ -266,11 +292,12 @@ For split-zi sources, the frozen packet must also preserve the exact source/vers
 ## 12. Experimental priorities
 
 1. source-faithful executable specs for setup variants;
-2. boundary timestamps around solar-term transitions and day boundaries;
-3. find a 23:00/00:00 worked plate so a deliberate wrong-boundary model can actually lose;
-4. setup divergence rate;
-5. downstream prediction divergence rate;
-6. wrong-setup / permuted structural controls;
-7. only later compare outcome calibration.
+2. boundary timestamps around solar-term transitions and day boundaries；
+3. find a 23:00/00:00 worked plate so a deliberate wrong-boundary model can actually lose；
+4. separate `time-branch interval / hour-stem day-basis / full day-pillar rollover` in every boundary source review；
+5. setup divergence rate；
+6. downstream prediction divergence rate；
+7. wrong-setup / permuted structural controls；
+8. only later compare outcome calibration。
 
-*Migration audit v1.2 | 2026-08-21*
+*Migration audit v1.3 | 2026-08-21*
