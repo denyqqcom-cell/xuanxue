@@ -9,10 +9,18 @@ FILES = {
     "agent": ROOT / "奇门" / "qclaw" / "_AGENT_INSTRUCTIONS.md",
     "overview": ROOT / "奇门" / "qclaw" / "qimen-overview" / "SKILL.md",
 }
+ENGINE = ROOT / "ziwei-core" / "src" / "main" / "kotlin" / "com" / "xuanxue" / "qimen" / "QimenEngine.kt"
+APP = ROOT / "app" / "src" / "main" / "kotlin" / "com" / "xuanxue" / "app" / "QimenScreen.kt"
+INTERPRETERS = ROOT / "ziwei-core" / "src" / "main" / "kotlin" / "com" / "xuanxue" / "ai" / "Interpreters.kt"
 
 
 def fail(msg: str) -> None:
     raise SystemExit(f"qimen-execution-freeze-contract: FAIL: {msg}")
+
+
+def require(text: str, needle: str, where: str) -> None:
+    if needle not in text:
+        fail(f"{where} missing {needle!r}")
 
 
 def main() -> None:
@@ -64,6 +72,40 @@ def main() -> None:
     if "TIME_BOUNDARY_ERROR" not in texts["agent"]:fail("agent missing TIME_BOUNDARY_ERROR")
     if "STATE_SYSTEM_ERROR" not in texts["overview"]:fail("overview missing STATE_SYSTEM_ERROR")
     if "TIME_BOUNDARY_ERROR" not in texts["overview"]:fail("overview missing TIME_BOUNDARY_ERROR")
+
+    # Method Freeze must survive the jump from research documents into executable code.
+    # Otherwise the project can say “freeze method” while the App silently uses one default.
+    engine = ENGINE.read_text(encoding="utf-8")
+    app = APP.read_text(encoding="utf-8")
+    interpreters = INTERPRETERS.read_text(encoding="utf-8")
+
+    for needle in (
+        "enum class MethodProfile",
+        "LEGACY_EXPERIMENTAL",
+        "SHANTI_DAO_71_P21_P22",
+        "implementationWarnings",
+        "representedHourStem",
+        "SHANTI_DAO_71_DOOR_TARGET_CENTER_UNRESOLVED",
+    ):
+        require(engine, needle, "QimenEngine.kt")
+
+    for needle in (
+        "var methodProfile",
+        "QimenEngine.MethodProfile.LEGACY_EXPERIMENTAL",
+        "QimenEngine.MethodProfile.SHANTI_DAO_71_P21_P22",
+        "methodProfile)",
+        "implementationWarnings",
+        "方法配置",
+    ):
+        require(app, needle, "QimenScreen.kt")
+
+    for needle in (
+        "c.methodProfile",
+        "c.implementationWarnings",
+        "静默切换",
+        "不等于预测现实已经得到验证",
+    ):
+        require(interpreters, needle, "Interpreters.kt")
 
     print("qimen-execution-freeze-contract: PASS")
 

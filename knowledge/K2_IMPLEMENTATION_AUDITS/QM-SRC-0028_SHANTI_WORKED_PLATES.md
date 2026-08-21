@@ -1,12 +1,12 @@
 # QM-SRC-0028 p21-p22 Worked Plate → QimenEngine Implementation Audit
 
-Status: IMPLEMENTATION_PATCH_CANDIDATE / SOURCE-BOUNDED / NO EMPIRICAL CREDIT
+Status: IMPLEMENTATION_CHECKED_WITH_OPEN_SCOPE / SOURCE-BOUNDED / NO EMPIRICAL CREDIT
 
 Date: 2026-08-21
 
 Source: `QM-SRC-0028 / WORK-000018 / 善天道《奇门遁甲讲义71页》`
 
-Scope: only the two visually re-audited worked plates on p21-p22 and the source-defined operations required to reproduce their sparse structural anchors. This is **not** a claim that the whole book is internally consistent, nor that this profile predicts reality.
+Scope: only the visually re-audited worked plates on p21-p22 and the source-defined operations required to reproduce their sparse structural anchors. This is **not** a claim that the whole book is internally consistent, nor that this profile predicts reality.
 
 ## 1. Why this audit was necessary
 
@@ -80,7 +80,7 @@ Classification: `DEITY_ROTATION_SEQUENCE_MISMATCH`.
 
 ## 3. Patch strategy: do not replace one dogma with another
 
-This audit does **not** silently replace the existing engine with “善天道真法”.
+This audit does **not** silently replace the existing engine with“善天道真法”.
 
 Instead production exposes two explicit profiles:
 
@@ -99,11 +99,13 @@ rather than:
 
 ## 4. Source-profile mechanics implemented
 
-The source-defined profile separates three different sequences:
+The source-defined profile separates different executable objects:
 
-1. `1..9` flying-number sequence for ground-plate placement and the value-door hour count;
-2. outer-ring geometric sequence `1,8,3,4,9,2,7,6` for star/door rotation;
-3. deity sequence, starting from the chief-star destination, Yang forward / Yin reverse on the outer ring.
+1. `PALACE_NUMBER_SEQUENCE = 1..9` for ground-plate placement and value-door hour count;
+2. `OUTER_ROTATION_RING = 1,8,3,4,9,2,7,6` for star/door rotation;
+3. `HOUR_OFFSET_SEQUENCE` for value-door target calculation;
+4. `DEITY_ORDER` for small-chief/deity placement;
+5. `HIDDEN_JIA_REPRESENTATION` for 六甲以旬首遁干落地盘的输入表示。
 
 It also represents the rotating center host as:
 
@@ -113,7 +115,7 @@ instead of inventing a ninth outer ring position.
 
 ### Explicit unresolved case
 
-If the source-defined value-door hour count lands exactly on center 5, p21-p22 do not provide an independently auditable full-door worked plate. The new profile therefore returns an empty door layer plus:
+If the source-defined value-door hour count lands exactly on center 5, p21-p22 do not provide an independently auditable full-door worked plate. The profile therefore returns an empty door layer plus:
 
 `SHANTI_DAO_71_DOOR_TARGET_CENTER_UNRESOLVED`
 
@@ -150,50 +152,99 @@ Sparse anchors include:
 
 These are implementation witnesses, not prediction outcomes.
 
-## 6. Negative control
+## 6. Negative controls and the failure that actually taught something
 
-A deliberate wrong-bureau control rebuilds the same `丁巳` hour with阳4 instead of source阳3.
+Controls now include:
 
-Pass condition:
+- Yang-3 wrong-bureau;
+- Yin-8 wrong-bureau;
+- legacy-vs-source-profile divergence on the worked examples;
+- center-door target fail-closed behavior.
 
-- correct bureau reproduces the registered sparse star/door anchors;
-- wrong bureau must not reproduce them.
+### CI #298 — useful failure
 
-If both correct and wrong bureau can pass, the test has no discrimination value.
+Commit `640d1e0f68ee6480141379fda21bf589efbc9be0` failed `QimenEngineTest > shantiandaoCenterDoorTargetFailsClosedInsteadOfGuessing()` with `NoSuchElementException` before reaching the intended center-door assertion.
 
-## 7. What this milestone can and cannot claim
+Root cause:
 
-If exact-head CI passes, the new credit is:
+`甲` never appears literally in the earth-plate `三奇六仪` map; it is hidden under the current xun's `遁干`. The implementation tried to locate `hourGZ[0] == 甲` directly in `di`, so the negative control exposed an input-representation defect that neither of the two non-Jia worked plates had touched.
 
-> an explicit `SHANTI_DAO_71_P21_P22` implementation path reproduces selected non-Jiazi source-defined star/door/deity anchors and rejects the defined wrong-bureau control.
+Classification:
+
+`HIDDEN_JIA_REPRESENTATION_ERROR`.
+
+The correction resolves a 甲 hour to the current `dunGan` before locating the hour-stem palace. The same input guard is also applied to the legacy profile so a 甲 hour no longer crashes merely because the earth plate stores the遁干 rather than literal甲.
+
+Commit:
+
+`6decd61a7ed14741736a9b4668a7fe95cb1ebde0`
+
+Exact-head CI:
+
+`Knowledge Engine V1 CI #299 = completed / success`.
+
+The intended center-door negative control now reaches the unresolved branch instead of crashing.
+
+This is a stronger lesson than a green worked-example test: **a deliberately awkward case exposed a representation assumption hidden by the happy path.**
+
+## 7. CI scope gap discovered after the fix
+
+`knowledge-engine-ci.yml` historically ran `:ziwei-core:test` but did not compile the Android App on this K2 PR path, because the heavier App Integration workflow only targets PRs into `main`.
+
+That means a research change could correctly update `QimenEngine` while breaking `QimenScreen` and still report the knowledge gate green.
+
+This is another form of:
+
+`tested layer != shipped execution layer`.
+
+The K2 CI therefore adds a lightweight `:app:compileDebugKotlin` step and extends the existing execution-freeze contract to require:
+
+- explicit `MethodProfile` in the engine;
+- explicit method selection in `QimenScreen`;
+- method profile and unresolved warnings propagated into the interpreter;
+- no silent fallback from `SHANTI_DAO_71_P21_P22` to legacy after chart generation.
+
+This is an execution-integrity check, not a new metaphysical validation gate.
+
+## 8. What this milestone can and cannot claim
+
+Current implementation credit is limited to:
+
+> an explicit `SHANTI_DAO_71_P21_P22` implementation path reproduces selected non-Jiazi source-defined star/door/deity anchors, rejects defined wrong-bureau controls, preserves legacy divergence, and fails closed on an unresolved center-door condition rather than inventing a plate.
 
 It does **not** mean:
 
-- `LEGACY_EXPERIMENTAL` is now wrong in every school;
+- `LEGACY_EXPERIMENTAL` is wrong in every school;
 - the whole 71-page carrier is coherent;
 - p31/p55 deity lineage has been resolved;
 - center-door target 5 has been solved;
 - setup/time-boundary alternatives are settled;
 - any prediction claim has empirical support.
 
-## 8. Self-audit lesson
+## 9. Self-audit lesson
 
-The deeper error family is not merely “the code used the wrong order”.
+Two error families are now explicit.
 
-It is:
+### Sequence-Object Type Safety
 
-`same integer labels -> assumed same semantic sequence`
+The project already saw palace-number order vs geometric rotation order in `qimen-qiju`, but production independently reproduced the same cognitive mistake.
 
-The project already saw this with palace-number order vs geometric rotation order in `qimen-qiju`. The production code independently reproduced the same cognitive mistake.
-
-New engineering discipline:
-
-**Sequence-Object Type Safety**
-
-Whenever an algorithm says “顺/逆/转/飞/移”, first name the object being traversed:
+Whenever an algorithm says“顺/逆/转/飞/移”, first name the object being traversed:
 
 `PALACE_NUMBER_SEQUENCE / OUTER_ROTATION_RING / HOUR_OFFSET_SEQUENCE / DEITY_ORDER / SOURCE_DEFINED_OTHER`.
 
 A direction word without an object is not executable knowledge.
 
-No theory version bump is granted by this implementation correction.
+### Representation-Object Type Safety
+
+Even when the sequence is correct, the token seen in the question may not be the token stored in the executable plate.
+
+`甲时 -> 当前旬首遁干表示 -> 地盘宫位`
+
+must be an explicit representation transform, not an accidental lookup assumption.
+
+A useful generalization is:
+
+`linguistic token != stored plate token != movement object`.
+
+No theory version bump is granted by these implementation corrections.

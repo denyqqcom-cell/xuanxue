@@ -19,7 +19,7 @@ concurrency:
 jobs:
   knowledge-gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - name: Validate six-domain knowledge contracts
@@ -101,6 +101,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
       - name: Verify existing stable core still passes
         run: ./gradlew --no-daemon :ziwei-core:test
+      - name: Verify Qimen app integration compiles
+        run: ./gradlew --no-daemon :app:compileDebugKotlin
 
   k2-helper-portability:
     runs-on: windows-latest
