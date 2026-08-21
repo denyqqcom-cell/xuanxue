@@ -67,6 +67,18 @@ class QimenEngineTest {
             )
         }
 
+    private fun anchorScore(actual: Map<Int, String>, expected: Map<Int, String>): Int =
+        expected.count { (palace, value) -> actual[palace] == value }
+
+    private fun shiftOuterRingValues(actual: Map<Int, String>, shift: Int): Map<Int, String> {
+        val ring = QimenEngine.ROTATION_RING.toList()
+        return ring.associateWith { palace ->
+            val index = ring.indexOf(palace)
+            val source = ring[((index - shift) % ring.size + ring.size) % ring.size]
+            actual[source].orEmpty()
+        }
+    }
+
     @Test
     fun liangJiaziSparseAnchorsMatchProductionChiefIdentity() {
         val fixtures = loadLiangJiaziFixtures()
@@ -222,6 +234,54 @@ class QimenEngineTest {
         assertEquals("死门", correctYin.doors[1])
         assertNotEquals(correctYin.stars[8], wrongYin.stars[8])
         assertNotEquals(correctYin.doors[1], wrongYin.doors[1])
+    }
+
+    @Test
+    fun shantiandaoWrongHourCannotRescueYang3VisualOracle() {
+        val di = QimenEngine.buildDiPan(1, 3)
+        val correct = QimenEngine.buildShantiandao71Layers(1, di, "丁巳")
+        val wrongHour = QimenEngine.buildShantiandao71Layers(1, di, "丙辰")
+
+        val expectedStars = mapOf(9 to "天任", 2 to "天冲", 1 to "天芮/天禽")
+        val expectedDoors = mapOf(2 to "生门", 9 to "休门")
+        val expectedDeities = mapOf(9 to "值符", 2 to "腾蛇", 1 to "白虎")
+
+        val correctScore = anchorScore(correct.stars, expectedStars) +
+            anchorScore(correct.doors, expectedDoors) +
+            anchorScore(correct.deities, expectedDeities)
+        val wrongScore = anchorScore(wrongHour.stars, expectedStars) +
+            anchorScore(wrongHour.doors, expectedDoors) +
+            anchorScore(wrongHour.deities, expectedDeities)
+
+        assertEquals(8, correctScore)
+        assertTrue(wrongScore < correctScore, "wrong hour must lose source-defined sparse oracle score")
+    }
+
+    @Test
+    fun shantiandaoPermutedLayerLabelsLoseYang3VisualOracleScore() {
+        val correct = QimenEngine.buildShantiandao71Layers(
+            yinYang = 1,
+            di = QimenEngine.buildDiPan(1, 3),
+            hourGZ = "丁巳",
+        )
+
+        val expectedStars = mapOf(9 to "天任", 2 to "天冲", 1 to "天芮/天禽")
+        val expectedDoors = mapOf(2 to "生门", 9 to "休门")
+        val expectedDeities = mapOf(9 to "值符", 2 to "腾蛇", 1 to "白虎")
+
+        val correctScore = anchorScore(correct.stars, expectedStars) +
+            anchorScore(correct.doors, expectedDoors) +
+            anchorScore(correct.deities, expectedDeities)
+
+        val permutedStars = shiftOuterRingValues(correct.stars, 1)
+        val permutedDoors = shiftOuterRingValues(correct.doors, 2)
+        val permutedDeities = shiftOuterRingValues(correct.deities, 3)
+        val permutedScore = anchorScore(permutedStars, expectedStars) +
+            anchorScore(permutedDoors, expectedDoors) +
+            anchorScore(permutedDeities, expectedDeities)
+
+        assertEquals(8, correctScore)
+        assertTrue(permutedScore < correctScore, "permuted layers must not tie the correct sparse oracle")
     }
 
     @Test
