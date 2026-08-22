@@ -1,0 +1,29 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"book_distillate.schema.json",
+  "type":"object",
+  "required":["distillate_id","source_id","work_id","domain","distillation_scope","source_read_status","evidence_count","evidence_anchor_refs","essence","method_map","applicability_constraints","source_limitations","conflicts_and_tensions","anti_patterns","model_updates","testable_hypotheses","excluded_from_operational_use","distillation_status","review_status","copyright_class"],
+  "properties":{
+    "distillate_id":{"type":"string","minLength":1},
+    "source_id":{"type":"string","minLength":1},
+    "work_id":{"type":["string","null"]},
+    "domain":{"enum":["ziwei","bazi","qimen","liuyao","liuren","fengshui"]},
+    "distillation_scope":{"const":"SOURCE_BOOK"},
+    "source_read_status":{"const":"COMPLETE"},
+    "evidence_count":{"type":"integer","minimum":0},
+    "evidence_anchor_refs":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","minLength":1}},
+    "essence":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}},
+    "method_map":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}},
+    "applicability_constraints":{"type":"array","items":{"type":"string","minLength":1}},
+    "source_limitations":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}},
+    "conflicts_and_tensions":{"type":"array","items":{"type":"string","minLength":1}},
+    "anti_patterns":{"type":"array","items":{"type":"string","minLength":1}},
+    "model_updates":{"type":"array","minItems":1,"items":{"type":"string","minLength":1}},
+    "testable_hypotheses":{"type":"array","items":{"type":"string","minLength":1}},
+    "excluded_from_operational_use":{"type":"array","items":{"type":"string","minLength":1}},
+    "distillation_status":{"const":"REVIEWED"},
+    "review_status":{"const":"REVIEWED"},
+    "copyright_class":{"const":"DERIVED_SYNTHESIS_SAFE"}
+  },
+  "additionalProperties":false
+}

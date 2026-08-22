@@ -68,7 +68,7 @@ App 不再用一行 Tab 塞六个模块，改为首页卡片式入口：
 
 ## Knowledge Engine v1
 
-知识工程已进入 `K1_CORPUS_INDEX`。六个正式术数域统一治理：
+知识工程已完成 K1 Source Registry 与 K2A Source Lineage，当前进入 **K2B Evidence Extraction / Wave 1**。六个正式术数域统一治理：
 
 - 紫微 `ziwei`
 - 八字 `bazi`
@@ -79,15 +79,43 @@ App 不再用一行 Tab 塞六个模块，改为首页卡片式入口：
 
 黄历作为公共历法/民俗工具，不作为第七个知识域。
 
-Knowledge Engine 使用统一的 Source / Evidence / Claim / School / Conflict / Fixture / Case 协议与 L0-L8 成熟度模型。当前 K1 本地盘点已经收到报告级结果，但项目端发现全局文件会计仍需核对，且本地私有 intake 尚未通过机器 validator，因此 **K2 Claim Extraction 仍被硬锁**。
+Knowledge Engine 使用统一的 Source / Evidence / Claim / School / Conflict / Fixture / Case 协议与 L0-L8 成熟度模型。当前六域统一保持 `L1_INDEXED`；K2B 只允许 Reading Coverage + Atomic Evidence，**Claim Extraction 仍被硬锁**。
 
-当前 K1 项目端验收见：
+### K2B 执行职责
 
-- `knowledge/K1_ACCEPTANCE.md`
-- `tools/validate_k1_intake.py`
-- `LOCAL_CORPUS_K1_REMEDIATION_PROMPT.md`
+仓库代码、Schema、validator、正式 Reading Ledger、Atomic Evidence、Git commit/push 与阶段验收由项目主 Agent负责。
 
-其中一个重要纠偏是：**“资料少”不等于 K1 Source Index 失败。** K1 只判断本地可发现资料是否被诚实发现、去重和索引；资料丰富度、可读性和跨来源能力属于下一阶段 readiness/maturity 问题。不能为了让六个域都显示 PASS 而人为增加来源。
+本地 AI 只作为执行助手：
+
+- fetch/pull；
+- 运行项目端已经存在的脚本和测试；
+- 在本机寻找 canonical source bytes；
+- 机械生成/回传 page packet；
+- 原样报告缺文件、提取失败、vision 失败或环境缺失。
+
+本地 AI 不修改 tracked 文件，不归纳正式 Evidence，不创建 Claims，不修改 App/算法，不 commit/push。
+
+### K2B source identity
+
+Source identity 以 K1 canonical `file_sha256` 为字节级权威：
+
+```text
+official K1 file_sha256 == actual local file SHA256
+```
+
+旧 private intake 的 `local_path` 只是一种可选定位方式。若当前 Windows/WSL/Linux 机器没有原 private registry，可以由项目工具在明确指定的本地 corpus roots 中按 canonical SHA256 找到完全相同的源文件。
+
+文件名、标题、目录位置、页数相似都不能代替 hash identity。
+
+Wave 1 当前固定为 37 个 unique-coverage reading units：`TEXT_DIRECT=22 / VISUAL_REQUIRED=15 / ACCESS_REVIEW=0`。SCAN/OCR_WEAK/OCR_FAIL 没有原页视觉能力时必须保持 BLOCKED，不得以 OCR 冒充视觉核验。
+
+具体状态与 Gate 见：
+
+- `knowledge/STATUS.md`
+- `knowledge/PROJECT_STATE.json`
+- `knowledge/K2_EVIDENCE_STATE.json`
+- `knowledge/K2_EVIDENCE_PROTOCOL.md`
+- `knowledge/K2B_EXECUTION_REFACTOR.md`
 
 ## 资料工程
 
@@ -97,7 +125,7 @@ Knowledge Engine 使用统一的 Source / Evidence / Claim / School / Conflict /
 
 奇门已建立第一套较完整工程交接，但仍不是“全书已经验证完成”。紫微、八字、六爻、大六壬、风水现在统一进入 Knowledge Engine，而不是继续各自走不同的学习标准。
 
-本地 `knowledge-intake/` 已被 `.gitignore` 排除；真实盘符、用户名、本机绝对路径和本地审计总账不得直接进入公开 Git。只有经过 sanitize 后的派生 registry 才能进入 `knowledge/`。
+本地 `knowledge-intake/` 已被 `.gitignore` 排除；真实盘符、用户名、本机绝对路径和本地审计总账不得直接进入公开 Git。只有经过 sanitize 后的派生 registry、Reading Coverage 与 Evidence 才能进入 `knowledge/`。
 
 ## 版权与发行边界
 
@@ -114,7 +142,7 @@ CI 现在有两层发行检查：
 1. **源码 Gate**：许可文本、权利人声明、Manifest 网络权限、未经审查的 `assets/`；
 2. **APK 二进制 Gate**：编译完成后直接扫描 APK，阻止 PDF/EPUB/DOC/字体、研究目录、全文/OCR/scan 痕迹和未经批准的 assets 被意外打进发行包。
 
-Knowledge Engine 另有自己的 CI：六域 schema、状态一致性、K1 intake validator 合同测试、研究二进制边界及稳定 core regression。
+Knowledge Engine 另有自己的 CI：六域 schema、状态一致性、K1/K2 fail-closed validator、研究二进制边界、Linux stable-core regression，以及 Windows K2 helper portability test。
 
 完整工程审计见 `COPYRIGHT_REVIEW.md`。这是一套工程合规措施，不构成法律意见。
 
@@ -138,6 +166,7 @@ export ANDROID_HOME=/path/to/android-sdk
 bash tools/audit_apk_contents.sh app/build/outputs/apk/debug/app-debug.apk
 python3 tools/validate_knowledge.py
 python3 tools/test_validate_k1_intake.py
+python3 tools/test_k2_evidence.py
 ```
 
 Debug APK：

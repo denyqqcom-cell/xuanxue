@@ -2,18 +2,24 @@
   "$schema":"https://json-schema.org/draft/2020-12/schema",
   "$id":"evidence.schema.json",
   "type":"object",
-  "required":["evidence_id","domain","source_id","source_location","evidence_type","normalized_fact","review_status"],
+  "required":["evidence_id","domain","source_id","work_id","source_location","evidence_type","scope","normalized_fact","extraction_basis","claim_readiness","review_status","copyright_class"],
   "properties":{
     "evidence_id":{"type":"string","minLength":1},
     "domain":{"enum":["ziwei","bazi","qimen","liuyao","liuren","fengshui","common"]},
     "source_id":{"type":"string","minLength":1},
-    "source_location":{"type":"string","minLength":1},
-    "evidence_type":{"enum":["EXPLICIT_RULE","WORKED_EXAMPLE","TABLE","DIAGRAM","COMMENTARY","HISTORICAL_CLAIM","CASE_RECORD","CODE_BEHAVIOR"]},
-    "normalized_fact":{"type":"string","minLength":1},
-    "verbatim_quote":{"type":["string","null"],"maxLength":280},
+    "work_id":{"type":"string","minLength":1},
+    "source_location":{"type":"string","minLength":1,"maxLength":120},
+    "evidence_type":{"enum":["EXPLICIT_RULE","WORKED_EXAMPLE","TABLE","DIAGRAM","COMMENTARY","HISTORICAL_CLAIM","CASE_RECORD","META_METHOD"]},
+    "scope":{"enum":["STRUCTURE","ALGORITHM","SYMBOLISM","SELECTION","INTERPRETATION","TIMING","CASE","HISTORY","META_METHOD"]},
+    "topic":{"type":["string","null"],"maxLength":120},
+    "normalized_fact":{"type":"string","minLength":1,"maxLength":800},
+    "extraction_basis":{"enum":["TEXT_LAYER","VISUAL_PAGE","TABLE_READ","DIAGRAM_READ","MANUAL_TRANSCRIPTION"]},
+    "claim_readiness":{"enum":["READY","CONTEXT_REQUIRED","CONFLICT_CANDIDATE","NOT_CLAIM"]},
+    "school_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
+    "verbatim_quote":{"type":["string","null"],"maxLength":120},
     "review_status":{"enum":["UNREVIEWED","REVIEWED","CONFLICTED","REJECTED"]},
     "copyright_class":{"enum":["DERIVED_FACT_SAFE","SHORT_QUOTE_REVIEWED","RESEARCH_ONLY","REVIEW_REQUIRED"]},
-    "notes":{"type":"string"}
+    "notes":{"type":["string","null"],"maxLength":240}
   },
-  "additionalProperties":true
+  "additionalProperties":false
 }

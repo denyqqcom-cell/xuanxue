@@ -19,6 +19,9 @@ SCHEMAS = [
     "conflict.schema.json",
     "fixture.schema.json",
     "case.schema.json",
+    "source_lineage.schema.json",
+    "reading_coverage.schema.json",
+    "book_distillate.schema.json",
 ]
 
 
@@ -52,8 +55,10 @@ def main():
             fail(f"schema lacks object/required contract: {schema}")
 
     levels = {}
+    status_docs = {}
     for d in REQUIRED:
         s = load(K / "domains" / d / "status.json")
+        status_docs[d] = s
         if s.get("domain") != d:
             fail(f"status domain mismatch: {d}")
         level = s.get("maturity_level")
@@ -84,8 +89,8 @@ def main():
     phase = state.get("phase", "")
     if phase == "K0_BOOTSTRAP" and "DOMAIN_IMBALANCE" not in status_text:
         fail("K0 status must expose DOMAIN_IMBALANCE")
-    if phase.startswith("K1_") and "ENGINE_MATURITY_IMBALANCE" not in status_text:
-        fail("K1 status must expose ENGINE_MATURITY_IMBALANCE")
+    if phase.startswith("K1_") and len(set(levels.values())) > 1 and "ENGINE_MATURITY_IMBALANCE" not in status_text:
+        fail("imbalanced K1 status must expose ENGINE_MATURITY_IMBALANCE")
 
     if state.get("k1_acceptance") == "LOCAL_MACHINE_VALIDATED":
         local = load(K / "K1_LOCAL_VALIDATION.json")
@@ -99,6 +104,44 @@ def main():
 
     if state.get("sanitized_import") == "PENDING" and state.get("k2_blocked") is not True:
         fail("K2 must remain blocked while sanitized import is pending")
+
+    if phase.startswith("K2_"):
+        if state.get("k1_acceptance") != "PROJECT_VERIFIED":
+            fail("K2 requires project-verified K1 closure")
+        if state.get("k2_blocked") is not False:
+            fail("K2 phase cannot remain globally blocked")
+        if min(levels.values()) < LEVELS.index("L1_INDEXED"):
+            fail("all six governed domains must reach at least L1 before K2")
+        if any(status_docs[d].get("sources_indexed", 0) <= 0 for d in REQUIRED):
+            fail("K2 requires non-zero indexed source counts for all domains")
+        if phase == "K2_SOURCE_LINEAGE" and state.get("claim_extraction_blocked") is not True:
+            fail("Claim Extraction must remain blocked during K2 source-lineage stage")
+        if phase == "K2_EVIDENCE_EXTRACTION":
+            if state.get("source_lineage") != "COMPLETE":
+                fail("K2 Evidence Extraction requires completed source lineage")
+            if state.get("evidence_extraction_blocked") is not False:
+                fail("K2 Evidence Extraction lane must be open in evidence phase")
+            if state.get("claim_extraction_blocked") is not True:
+                fail("Claim Extraction must remain blocked during K2 Evidence Extraction")
+            if state.get("execution_owner") != "PROJECT_MAIN_AGENT":
+                fail("K2B execution owner must remain PROJECT_MAIN_AGENT")
+            if state.get("local_ai_role") != "EXECUTION_HELPER_ONLY":
+                fail("K2B local AI role must remain EXECUTION_HELPER_ONLY")
+            if state.get("source_identity_authority") != "CANONICAL_FILE_SHA256":
+                fail("K2B source identity authority must remain CANONICAL_FILE_SHA256")
+            if state.get("source_resolution_policy") != "PRIVATE_REGISTRY_OPTIONAL_OR_EXPLICIT_ROOT_SHA256_SEARCH":
+                fail("K2B source resolution policy mismatch")
+            ev_state = load(K / "K2_EVIDENCE_STATE.json")
+            if ev_state.get("source_lineage_status") != "COMPLETE" or ev_state.get("claim_extraction_blocked") is not True:
+                fail("K2_EVIDENCE_STATE must preserve completed lineage and blocked claims")
+            if ev_state.get("execution_architecture") != "PROJECT_MAIN_AGENT_WITH_LOCAL_HELPER":
+                fail("K2_EVIDENCE_STATE execution architecture mismatch")
+            if ev_state.get("canonical_identity_rule") != "official K1 file_sha256 must equal actual local file SHA256; private local_path registry is optional":
+                fail("K2_EVIDENCE_STATE canonical identity rule mismatch")
+            if ev_state.get("source_resolution_modes") != ["PRIVATE_REGISTRY","CANONICAL_SHA256_SEARCH"]:
+                fail("K2_EVIDENCE_STATE source resolution modes mismatch")
+            if ev_state.get("liuren_legacy_candidate_dependency") is not False:
+                fail("unavailable Liuren candidate artifact must not remain a K2B dependency")
 
     forbidden_ext = {".pdf", ".epub", ".doc", ".docx", ".jpg", ".jpeg", ".png", ".webp", ".ttf", ".otf", ".woff", ".woff2"}
     for p in K.rglob("*"):
