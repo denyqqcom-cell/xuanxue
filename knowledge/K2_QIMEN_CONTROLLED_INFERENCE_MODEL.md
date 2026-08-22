@@ -1,199 +1,169 @@
-# 奇门受控推演链 QCIC v0.1
+# 奇门受控推演链 QCIC v0.2
 
-版本：0.1  
+版本：0.2  
 状态：CANDIDATE_UNTESTED  
 阶段：K2B / Deep Closure  
 empirical_credit：NONE  
 claim_extraction_blocked：true
 
-## 1. 为什么需要这套模型
+## 0. v0.2 迭代来源
 
-完整读完善天道 0027 / 0028 / 0029 后，项目暴露出三个互相连接的问题：
+v0.1 由善天道 0027/0028/0029 的完整阅读形成，重点控制角色切换、修正规则与同课重复计票。
 
-1. **角色过多**：精华讲义可以为不同问题列出大量“用神/参数”，如果全部开放给解释者，结果出来后几乎总能找到某个匹配角色；
-2. **修正规则过多**：高级班大量使用空、墓、马星、旺衰、伏吟反吟等二阶修正，如果 trigger 与优先级不预先固定，容易形成 hindsight fitting；
-3. **来源依赖被低估**：不同 PDF、不同 work_id 仍可能来自同一课程体系，文本重复不能当成多份独立验证。
+继续完整视觉阅读 QM-SRC-0015 后，项目发现另一个误区：**规则表密度本身就是解释自由度来源**。该 carrier 的第四章连续展开十干、八门、八卦、奇仪、格局等大量克应，随后第五章又把规则扩展到许多现实问题域；但来源自己同时强调人物、事情、环境不同应具体分析，并在后文提醒预测不能完全相信、只能参考。
 
-因此项目不再把“会背更多规则”视为推演能力，而把重点转向：
+因此 v0.2 新增：
 
-> 在反馈出现之前，控制一个解释者到底被允许调用哪些角色、哪些规则、按什么顺序修正，以及什么结果算失败。
+- Post-Acceptance Lineage Correction；
+- Rule Table Density Gate；
+- Rule Search Entropy；
+- candidate_rules_count -> eligible_rules_count 的压缩记录。
 
-这套候选模型暂名：
+## 1. 核心目标
 
-**Qimen Controlled Inference Chain — QCIC / 奇门受控推演链**
+项目不再把“记住更多规则”视为推演能力，而把重点转向：
 
-它是项目自己的工程化理论框架，不是古籍原说，也不因“自创”而获得额外信用。
+> 在反馈出现之前，控制解释者到底被允许调用哪些来源、角色、规则、修正项与竞争模型，并预先写清楚什么结果算失败。
 
-## 2. 八层推演链
+QCIC 是项目自己的工程化候选框架，不是古籍原说，也不因“自创”获得额外信用。
+
+## 2. 九层推演链
 
 ### L0 Provenance Gate — 来源独立性
 
 先确定：
 
-`canonical source -> work identity -> course provenance -> voice/source dependence`
+`canonical source -> raw lineage -> correction overlay -> effective work identity -> course provenance -> voice/source dependence`
 
-同课讲义只可增加 unique coverage；重复规则最多取得一个 provenance-family credit。
+文件名不是 work identity。完整视觉阅读若证明 carrier 只是篇/卷，必须允许反向纠正旧 lineage。
 
 ### L1 Question Topology — 问题拓扑
 
-先定义：
-
-- 问题域；
-- 所问对象；
-- 主体与客体；
-- 是否存在第三方；
-- 是否属于时间、位置、状态、关系或选择问题。
-
-没有问题拓扑，不允许直接从整库调用用神。
+先定义问题域、对象、主体/客体/第三方，以及所问属于时间、位置、状态、关系还是选择问题。没有问题拓扑，不允许直接从整库调用用神。
 
 ### L2 Role Candidate Library — 角色候选库
 
-0027 这类速查材料只提供候选角色集合。
-
-例如：
+速查材料只提供：
 
 `Question Domain -> Candidate Roles`
 
-候选不等于激活。进入下一层前必须冻结本题允许参与的角色。
+候选不等于激活。反馈前冻结本题允许参与的角色。
 
-### L3 Eligible Rule Set Freeze — 合格规则集冻结
+### L3 Rule Table Density Gate — 规则表密度门
+
+教材中出现的全部克应、格局、应象与应用条目先进入 candidate pool，而不是自动进入本题规则集。
+
+必须记录：
+
+- `candidate_rules_count`；
+- `eligible_rules_count`；
+- `rule_reduction_ratio`；
+- `rule_selection_basis`。
+
+规则表越密集，越需要更强的冻结；否则事后总能搜索到一个“看起来命中”的条目。
+
+### L4 Eligible Rule Set Freeze — 合格规则集冻结
 
 反馈前固定：
 
-- 哪些角色有资格参与；
-- 哪些门、星、神、干、宫与格局规则可调用；
-- 哪些 competing school/model 同时运行；
-- 哪些规则本题明确禁止调用。
+- 已激活角色；
+- 可调用门、星、神、干、宫、格局与克应；
+- competing school/model；
+- 本题明确禁止调用的规则。
 
 数据库里“存在”不等于当前案例“有资格使用”。
 
-### L4 Base Plate Annotation — 基础盘面标注
+### L5 Base Plate Annotation — 基础盘面标注
 
-吸收0029较清晰的程序化步骤，但只作为 source-derived candidate workflow：
+只记录预先允许的基础状态，例如年/月/日/时、月令、空亡、击刑、入墓、马星、伏吟反吟等，不先为了结果决定吉凶。
 
-- 年/月/日/时及月令；
-- 日空、时空；
-- 六仪击刑；
-- 入墓；
-- 马星；
-- 伏吟/反吟及其他预先允许的基础状态。
+### L6 Relational Inference — 关系推演
 
-这一层只记录状态，不先为了结果决定吉凶。
+分两个尺度：
 
-### L5 Relational Inference — 关系推演
+- Micro：主要角色所在宫内部的门、星、神、奇仪、旺衰及组合；
+- Macro：不同角色落宫之间的五行生克、主客与相互作用。
 
-分成两个尺度：
+静态表只提供局部特征；最终解释必须经过关系层。
 
-- **Micro / 小局**：主要角色所在宫内部的门、星、神、奇仪、旺衰及组合；
-- **Macro / 大局**：不同角色落宫之间的五行生克、主客与相互作用。
+### L7 Correction Rule Registry — 修正规则注册表
 
-静态符号词典只提供局部特征；最终解释必须经过关系层。
-
-### L6 Correction Rule Registry — 修正规则注册表
-
-空、墓、马冲、旺衰、伏反吟等不再是随时可加的“解释补丁”。
-
-每个 correction rule 必须预先拥有：
+空、墓、马冲、旺衰、伏反吟等修正必须预先拥有：
 
 `trigger + scope + precedence + effect + incompatible_rules + failure_condition`
 
-例如“马冲墓/空”如果未来进入测试，必须先定义：
+修正规则不能在看到结果后临时充当解释补丁。
 
-- 什么马星；
-- 冲哪一宫/哪一层；
-- 什么情况下可削弱而不是完全取消；
-- 与旺衰、空墓同时出现时谁优先；
-- 哪些结果会判它失败。
+### L8 Timing & Uncertainty — 应期与不确定性
 
-### L7 Timing & Uncertainty — 应期与不确定性
+输出主要时间候选、竞争 timing model、不确定范围；不能判断时明确 UNKNOWN。禁止只留下最终命中的数字而删除其他事前候选。
 
-应期本身在来源中就被承认为困难且有分歧，因此必须输出：
+### L9 Prospective Validation — 前瞻验证
 
-- 主要时间候选；
-- competing timing model；
-- 不确定范围；
-- 不能判定时明确 UNKNOWN。
-
-禁止只留下最终命中的一个数字而删除其他事前候选。
-
-### L8 Prospective Validation — 前瞻验证
-
-只有这一层可以提升 empirical credit。
-
-反馈前冻结：
-
-- role map；
-- eligible rule set；
-- correction registry；
-- competing models；
-- 预测结果；
-- alternatives；
-- falsification conditions。
-
-结果回来后只允许评分，不允许重写预测路径。
+只有这一层可以提升 empirical credit。反馈前冻结 role map、eligible rules、correction registry、competing models、预测、alternatives 与 falsification conditions；反馈后只评分，不重写路径。
 
 ## 3. Interpretation Degrees-of-Freedom Budget
 
-QCIC 新增一个核心概念：
+每次推演至少记录：
 
-**解释自由度预算**。
-
-一个案例可用角色越多、可切换模型越多、可叠加修正越多，就越容易在事后解释成功。
-
-因此每次推演应记录至少：
-
+- candidate_roles_count；
 - activated_roles_count；
+- candidate_rules_count；
 - eligible_rules_count；
 - correction_rules_count；
 - competing_models_count；
-- post_feedback_changes = 0（正式测试时必须为0）。
+- `post_feedback_changes = 0`（正式测试必须为0）。
 
-未来可以研究：在预测质量相同的情况下，是否应优先选择解释自由度更低的模型。
+新增 **Rule Search Entropy**：在反馈前可合法搜索的规则路径越多，事后解释成功的机会越高。未来应比较在预测质量相近时，低自由度模型是否更稳定。
 
-## 4. 三条当前候选假设
+## 4. 当前候选假设
 
-### QCIC-H1：角色冻结
+### QCIC-H1 角色冻结
 
-如果问题域与 role candidate set 在反馈前冻结，跨解读者角色切换率应下降。
+冻结问题域与 role candidate set 后，跨解读者角色切换率应下降。
 
-失败条件：冻结后复现率没有改善，或准确/校准明显恶化。
+失败：复现率不改善或校准明显恶化。
 
-### QCIC-H2：修正注册
+### QCIC-H2 修正注册
 
-把“马冲墓/空”等规则从自由修正改成预注册 correction rule，应减少事后解释路径数量。
+把“马冲墓/空”等从自由修正改为预注册 correction rule，应减少事后解释路径。
 
-失败条件：自由度没有下降，或只有不断增加例外才能维持表现。
+失败：自由度没有下降，或需要不断新增例外维持表现。
 
-### QCIC-H3：低自由度优先
+### QCIC-H3 低自由度优先
 
-在 competing models 表现接近时，更低 interpretation degrees-of-freedom 的模型应具有更高的可复现性与更好的样本外稳定性。
+competing models 表现接近时，更低 interpretation degrees-of-freedom 的模型应具有更高复现性与样本外稳定性。
 
-失败条件：自由度与复现/样本外表现不存在稳定关系。
+失败：自由度与复现/样本外表现不存在稳定关系。
 
-以上全部状态：`UNTESTED`。
+### QCIC-H4 规则密度门
+
+高规则密度来源若先把 candidate rules 压缩成冻结的 eligible set，应比开放式全表搜索具有更低 hindsight fit 和更高跨解读者一致性。
+
+失败：冻结后自由度、复现或校准没有改善，或优势只能靠结果后重新放宽规则集获得。
+
+以上全部：`UNTESTED`。
 
 ## 5. 明确拒绝的旧习惯
 
-QCIC 当前明确拒绝：
-
 - 看到结果后换用神；
-- 看到不利规则后临时用另一规则“解掉”；
-- 同一课程三本讲义一致就算三票；
+- 看到不利规则后临时换规则“解掉”；
+- 把整本克应表默认全部开放给当前案例；
+- 文件名像一本书就直接判为独立 work；
+- 同一课程多本讲义一致就算多票；
 - 用作者案例数量代替预测准确率；
-- 把 UNKNOWN 强行补成一个确定答案；
-- 为了让盘看起来合理而静默修正文献错误；
-- 医疗、法律、刑事、金融、战争、选举等高风险领域因来源丰富就自动开放操作。
+- 把 UNKNOWN 强行补成确定答案；
+- 为了让盘合理而静默修正文献；
+- 医疗、法律、刑事、金融、战争、选举等高风险领域因资料多就自动开放操作。
 
 ## 6. 当前定位
 
-QCIC v0.1 只是一个由完整阅读与项目自身错误反省长出来的**候选推演架构**。
-
-它目前获得的是：
+QCIC v0.2 仍只是由完整阅读和项目自身错误反省逐步长出来的候选架构：
 
 `method-structure credit = CANDIDATE`
 
-而不是：
+不是：
 
 `empirical_credit = VALIDATED`
 
-下一步只有通过预注册、可失败、反馈前冻结的案例测试，它才有资格继续进化。
+只有经过预注册、可失败、反馈前冻结的案例测试，才允许继续升级。

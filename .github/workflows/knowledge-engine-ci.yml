@@ -46,6 +46,10 @@ jobs:
         run: python3 tools/test_k2_source_lineage.py
       - name: Enforce accepted K2 lineage integrity
         run: python3 tools/validate_k2_lineage_integrity.py
+      - name: Test post-acceptance lineage correction fail-closed cases
+        run: python3 tools/test_k2_lineage_corrections.py
+      - name: Enforce post-acceptance lineage corrections
+        run: python3 tools/validate_k2_lineage_corrections.py
       - name: Test cross-work course provenance fail-closed cases
         run: python3 tools/test_k2_course_lineage.py
       - name: Enforce cross-work course provenance

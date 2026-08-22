@@ -1,4 +1,4 @@
-# K2 Deep Source Per-Book Distillation Protocol
+# K2 Deep Source Per-Book / Per-Part Distillation Protocol
 
 版本：2026-08-23  
 阶段：K2B / Deep Closure  
@@ -6,107 +6,94 @@
 
 ## 1. 适用范围
 
-本层用于已经进入 `K2_DEEP_READING_LEDGER.jsonl`、完成整本 `VISUAL_PAGE` 复核，但不属于 `K2_SEGMENT_LINEAGE` 多载体 work-family 的独立 source book。
+本层用于已经进入 `K2_DEEP_READING_LEDGER.jsonl`、完成 canonical carrier 全页 `VISUAL_PAGE` 复核，但不属于 `K2_SEGMENT_LINEAGE` 多载体 work-family 的 source unit。
 
-它解决一个此前尚未关闭的空档：
+source unit 可以是：
 
-- Wave1 `K2_BOOK_DISTILLATES_WAVE1*` 只覆盖 Wave1 Reading Ledger；
-- `K2_WORK_FAMILY_DISTILLATES*` 只覆盖上下册/分卷/composite segment work family；
-- 课程体系中的单本基础讲义、高级讲义、摘要汇编虽然已经完整阅读，却没有正式的 per-book deep closure。
+- `DEEP_SOURCE_BOOK`：effective lineage 为完整独立作品；
+- `DEEP_SOURCE_PART`：Deep Reading 后由 lineage correction 证明 canonical carrier 只是更大作品的完整篇/卷/节录。
 
-因此新增：
+因此真正的闭环是：
 
-`DEEP_READING -> DEEP_SOURCE_DISTILLATE -> SOURCE_REVIEW_ACCEPTANCE`
+`DEEP_READING -> EFFECTIVE_LINEAGE -> DEEP_SOURCE_DISTILLATE -> SOURCE_REVIEW_ACCEPTANCE`
 
-这仍然不是 Claim Extraction。
+它仍然不是 Claim Extraction。
 
-## 2. 数据文件
+## 2. 数据文件与分片
 
 - `knowledge/K2_DEEP_SOURCE_DISTILLATION_STATE.json`
 - `knowledge/K2_DEEP_SOURCE_DISTILLATES.jsonl`
+- `knowledge/K2_DEEP_SOURCE_DISTILLATES.d/*.jsonl`
 - `knowledge/schema/deep_source_distillate.schema.json`
 
-每个目标 source 只能有一条 deep-source distillate。
+主文件与 shard 聚合后，每个 target source 只能有一条 deep-source distillate。
 
-## 3. 与其他 Distillate 层的关系
+## 3. Effective Lineage 优先于历史 Raw Lineage
 
-### 3.1 已有 Wave1 distillate
+K2A 接受的 `K2_SOURCE_LINEAGE.jsonl` 是历史基线。若后续完整视觉阅读产生 `K2_LINEAGE_CORRECTIONS.jsonl`，本层必须使用 correction overlay 后的 effective lineage。
+
+- effective `PRIMARY_WORK` -> `DEEP_SOURCE_BOOK`；
+- effective `WORK_PART` -> `DEEP_SOURCE_PART`；
+- effective `WORK_PART` 必须 `WORK_FAMILY_SINGLE_VOTE`，不能把篇章节录当成完整独立作品投票。
+
+## 4. 与其他 Distillate 层的关系
+
+### 4.1 已有 Wave1 distillate
 
 若 source 以前已有 `K2_BOOK_DISTILLATES_WAVE1*`，deep closure 不删除或篡改旧 distillate；必须通过 `prior_distillate_refs` 明确承接。
 
-这允许完整视觉重读、course provenance、Evidence re-audit 后对项目理解做二次修正，同时保留原始审计链。
-
-### 3.2 Work-family source
+### 4.2 Segment/work-family source
 
 只要 source 已进入 `K2_SEGMENT_LINEAGE.jsonl`，就不得再走本层；它应由 `K2_WORK_FAMILY_DISTILLATES*` 关闭，避免 PDF-centric 与 family-centric 两套信用重复。
 
-### 3.3 Course provenance
+### 4.3 Course provenance
 
 若 source 已进入 `K2_COURSE_LINEAGE.jsonl` 且 `independent_vote_allowed=false`：
 
-- deep-source distillate 必须记录相同 `course_family_id` / `course_role`；
+- 必须记录相同 `course_family_id` / `course_role`；
 - `independence_policy=COURSE_FAMILY_SINGLE_VOTE`；
-- per-book 完整阅读可以增加 unique coverage，但不能变成第二、第三张独立来源票。
+- per-book 完整阅读可以增加 unique coverage，但不能增加第二、第三张独立来源票。
 
-## 4. Acceptance 的含义
+## 5. Acceptance 的含义
 
 `K2B_SOURCE_REVIEW_ACCEPTED` 只表示：
 
 - canonical source 身份已锁定；
 - p1-pN 已完整视觉复核；
-- 整本结构、限制、冲突与项目学习已经完成 distillation；
-- 课程依赖、旧 distillate、re-audit 等下游关系已被接入。
+- effective lineage 已纳入；
+- 整本/整篇结构、限制、冲突与项目学习已经 distill；
+- 课程依赖、旧 distillate、re-audit 等关系已接入。
 
-它**不**表示：
-
-- 书中规则真实；
-- 作者案例已经验证；
-- 同课多本可独立互证；
-- 可以进入医疗、金融、法律、刑事、选举、战争等现实高风险操作；
-- Claim Extraction 已解锁。
+它不表示书中规则真实、案例已验证、可以高风险操作或 Claim Extraction 已解锁。
 
 固定信用：
 
 `source_credit = FULL_SOURCE_VISUAL_REVIEWED`  
 `empirical_credit = NONE`
 
-## 5. Deep-source 压缩问题
-
-每条 distillate 必须回答：
-
-1. 这一本书作为单独作品真正增加了什么？
-2. 它的断局/取用/解释流程是什么？
-3. 哪些内容只是 quick-reference、作者偏好或 retrospective case？
-4. 哪些规则必须带问题域、角色、盘层、旺衰、关系与时序条件？
-5. 哪些矛盾不能被项目偷偷修掉？
-6. 哪些推演自由度会造成 hindsight fitting？
-7. 项目自己的模型因此发生了什么可审计变化？
-8. 哪些候选理论可以在反馈前冻结并真正允许失败？
-
 ## 6. Source anchors
 
-因为 Deep Closure 并不要求把整本书再次拆成大量 Atomic Evidence，source-level distillate 使用：
+source-level distillate 使用：
 
 `SOURCE_ID@pdf:pN`
 
-作为整书视觉阅读的 provenance handle。
-
-Anchor 只能指向同一 canonical source 的合法页码；不能引用另一册同课讲义来替本书作证。
+Anchor 只能指向同一 canonical carrier 的合法 PDF 页。对 work part，anchor 仍使用 carrier 页码；parent work 的印刷页码只能在 synthesis 文本中作为视觉事实记录，不能伪装成 canonical locator。
 
 ## 7. Evidence re-audit 接入
 
-如果某 source 已是 `K2_EVIDENCE_REAUDIT_STATE.json` 的 target，deep-source distillate 必须准确声明该 target 当前 coverage。
-
-因此旧 Evidence 的“来源事实”和项目后来学会的“降权/冻结/NOT_CLAIM”会同时进入 per-book closure，而不是彼此覆盖。
+如果 source 已是 `K2_EVIDENCE_REAUDIT_STATE.json` target，deep-source distillate 必须准确声明当前 coverage。旧 Evidence 与项目后来学会的降权/NOT_CLAIM 必须并存。
 
 ## 8. 自我迭代纪律
 
-Deep-source distillation 允许项目提出自己的模型更新，但必须满足：
+每条 distillate 必须回答：
 
-- 新理论从阅读中的可观察问题长出来；
-- 状态保持 `UNTESTED`；
-- 写明反馈前冻结条件；
-- 写明明确失败条件；
-- 不能因为是项目自己的创新就获得更高信用。
+1. 这一个 source unit 真正增加了什么？
+2. 它的推演/解释流程是什么？
+3. 哪些只是规则表、作者偏好或 retrospective case？
+4. 哪些矛盾不能被项目偷偷修掉？
+5. 哪些结构会扩大 hindsight freedom？
+6. 完整阅读是否反过来推翻了早期 metadata/lineage 判断？
+7. 项目自己的模型因此发生了什么可审计变化？
+8. 哪些候选理论可以反馈前冻结并真正允许失败？
 
-本层的目标不是把书读得越来越多，而是让“读完一本书之后，项目本身也必须变得更难自欺”。
+新理论全部保持 `UNTESTED`，不能因为是项目自己的创新就获得更高信用。
