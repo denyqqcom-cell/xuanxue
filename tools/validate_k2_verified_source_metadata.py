@@ -11,10 +11,8 @@ ALLOWED_TOP={"source_id","work_id","canonical_sha256","evidence_locator","verifi
 ALLOWED_FIELDS={"title","author","author_basis","author_evidence","edition","era","school_ids","school_basis","school_evidence"}
 BASES={"TEXT_LAYER","VISUAL_PAGE"}
 
-
 def fail(msg):
     print(f"k2-verified-source-metadata: FAIL: {msg}",file=sys.stderr);raise SystemExit(1)
-
 
 def load_jsonl(path):
     rows=[]
@@ -27,26 +25,34 @@ def load_jsonl(path):
         rows.append(r)
     return rows
 
-
 def source_index(root=ROOT):
     out={}
     for d in DOMAINS:
-        for r in load_jsonl(root/"knowledge"/"domains"/d/"sources.jsonl"):
-            out[r["source_id"]]=r
+        for r in load_jsonl(root/"knowledge"/"domains"/d/"sources.jsonl"):out[r["source_id"]]=r
     return out
-
 
 def lineage_index(root=ROOT):
     return {r["source_id"]:r for r in load_jsonl(root/"knowledge"/"K2_SOURCE_LINEAGE.jsonl")}
-
 
 def aggregate_ledger(root=ROOT):
     rows=load_jsonl(root/"knowledge"/"K2_READING_LEDGER_WAVE1.jsonl")
     shard=root/"knowledge"/"K2_READING_LEDGER_WAVE1.d"
     if shard.exists():
         for p in sorted(shard.glob("*.jsonl")):rows.extend(load_jsonl(p))
-    return {r.get("source_id"):r for r in rows}
+    out={r.get("source_id"):r for r in rows}
+    for r in load_jsonl(root/"knowledge"/"K2_DEEP_READING_LEDGER.jsonl"):
+        sid=r.get("source_id")
+        if r.get("read_status")=="COMPLETE" and r.get("verification_mode")=="VISUAL_PAGE":out[sid]=r
+    return out
 
+def reviewed_pages(row):
+    covered=set()
+    for x in row.get("page_ranges") or []:
+        if isinstance(x,dict) and isinstance(x.get("start"),int) and isinstance(x.get("end"),int):covered.update(range(x["start"],x["end"]+1))
+    if covered:return covered
+    a=row.get("page_start");b=row.get("page_end")
+    if isinstance(a,int) and isinstance(b,int) and 1<=a<=b:covered.update(range(a,b+1))
+    return covered
 
 def validate_rows(sources,lineage,ledger,rows):
     issues=[];seen=set()
@@ -79,22 +85,15 @@ def validate_rows(sources,lineage,ledger,rows):
         if not m:issues.append((sid,"evidence_locator must be pdf:pN"));continue
         page=int(m.group(1))
         if not led or led.get("read_status")!="COMPLETE":issues.append((sid,"verified metadata requires COMPLETE reading row"));continue
-        covered=set()
-        for x in led.get("page_ranges") or []:
-            if isinstance(x,dict) and isinstance(x.get("start"),int) and isinstance(x.get("end"),int):covered.update(range(x["start"],x["end"]+1))
-        if page not in covered:issues.append((sid,"evidence locator outside reviewed coverage"))
+        if page not in reviewed_pages(led):issues.append((sid,"evidence locator outside reviewed coverage"))
         verification=led.get("verification_mode")
         if basis=="TEXT_LAYER" and verification not in {"TEXT_LAYER_FULL","VISUAL_PAGE"}:issues.append((sid,"TEXT_LAYER metadata requires text/visual reviewed source"))
         if basis=="VISUAL_PAGE" and verification!="VISUAL_PAGE":issues.append((sid,"VISUAL_PAGE metadata requires VISUAL_PAGE reading"))
     return issues
 
-
 def main():
-    rows=load_jsonl(K/"K2_VERIFIED_SOURCE_METADATA.jsonl")
-    issues=validate_rows(source_index(),lineage_index(),aggregate_ledger(),rows)
+    rows=load_jsonl(K/"K2_VERIFIED_SOURCE_METADATA.jsonl");issues=validate_rows(source_index(),lineage_index(),aggregate_ledger(),rows)
     if issues:
         first=issues[0];fail(f"issues={len(issues)} first={first[0]}: {first[1]}")
-    print("k2-verified-source-metadata: PASS")
-    print(f"rows={len(rows)} issues=0")
-
+    print("k2-verified-source-metadata: PASS");print(f"rows={len(rows)} issues=0")
 if __name__=="__main__":main()
