@@ -54,6 +54,12 @@ def main():
     require(text, "python3 tools/test_k2_work_family_distillates.py")
     require(text, "python3 tools/validate_k2_work_family_distillates.py")
 
+    # Fully visual-reviewed standalone books need their own closure lane. It is
+    # distinct from Wave1 book distillates and from multi-carrier work-family
+    # distillation, and it must preserve course-family single-vote constraints.
+    require(text, "python3 tools/test_k2_deep_source_distillates.py")
+    require(text, "python3 tools/validate_k2_deep_source_distillates.py")
+
     # Re-audit overlays must be enforced after source-local evidence validation:
     # historical Evidence can be held/downgraded without rewriting provenance.
     require(text, "python3 tools/test_k2_evidence_reaudit.py")

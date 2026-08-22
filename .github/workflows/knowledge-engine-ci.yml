@@ -74,6 +74,10 @@ jobs:
         run: python3 tools/test_k2_work_family_distillates.py
       - name: Enforce work-family distillation
         run: python3 tools/validate_k2_work_family_distillates.py
+      - name: Test deep-source per-book distillation fail-closed cases
+        run: python3 tools/test_k2_deep_source_distillates.py
+      - name: Enforce deep-source per-book distillation
+        run: python3 tools/validate_k2_deep_source_distillates.py
       - name: Test prospective validation fail-closed cases
         run: python3 tools/test_k2_prospective_validation.py
       - name: Enforce prospective validation contracts
