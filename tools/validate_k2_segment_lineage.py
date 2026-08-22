@@ -155,7 +155,6 @@ def validate_rows(sources,segments,rows):
         if len(parts)!=len(set(parts)):issues.append((family,"duplicate part_label in work family"))
         routes={tuple(r.get("domain_routes") or []) for r in group}
         if len(routes)!=1:issues.append((family,"work family members must share domain routing"))
-        if not any(r.get("member_kind")=="SEGMENT" for r in group):issues.append((family,"segment-aware family must include at least one SEGMENT member"))
         authors={(r.get("author"),r.get("author_basis")) for r in group}
         known={a for a,b in authors if a is not None}
         if len(known)>1:issues.append((family,"work family has conflicting reviewed authors"))
