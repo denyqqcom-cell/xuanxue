@@ -326,6 +326,45 @@ Prospective Validation 被升级为：
 
 ---
 
+## A15 无序关系塌缩 / UNORDERED_RELATION_COLLAPSE
+
+### 事件
+
+QM-SRC-0024 完成 `pdf:p1-p110` 连续视觉复核后，第二装订单元出现明确的顺序敏感结构：p61 将“庚加直符”与“直符加庚”列为不同格局，p66 又将“丙加甲”与“甲加丙”分别处理；p73 还显示观察层的取用可随急缓而变化。第一装订单元 p24 同时显示六仪、三奇的布行方向并不能被压成一个对所有对象相同的方向开关，p44 的主客取用也随具体位置条件变化。
+
+### 暴露的旧假设
+
+项目从 SYMBOL_DICTIONARY 转向 RELATIONAL_CONFIGURATION 后，仍可能潜藏一个更细的简化：
+
+`relationship = unordered co-occurrence set`
+
+如果把局面只编码成 `{甲, 丙}`、`{庚, 直符}` 或“这些要素同时出现”，那么 `A -> B`、`B -> A`、A 临 B、A 克 B、A 为主/B 为客都会被压成同一个关系袋。
+
+### 风险
+
+- `A + B` 与 `B + A` 被错误视为同一配置；
+- 主客、作用方向、先后、临乘、生克等操作语义丢失；
+- 模型表面上已经脱离固定吉凶词典，实际上只是把“符号词典”升级成“关系词袋”；
+- 事后解释者可以重新选择关系方向，继续保留大量 hindsight freedom。
+
+### 纠偏
+
+下一阶段的候选表示必须至少区分：
+
+`NODE = object / palace / stem / door / star / spirit`
+
+`TYPED DIRECTED EDGE = add_to / reside_in / generate / control / combine / clash / host_guest / precede`
+
+`CONTEXT = question_domain / temporal_context / role / action_intent / urgency / school_context`
+
+因此当前 `RELATIONAL_CONFIGURATION` 只保留为上位候选概念，不能假定关系天然无序；更严格的方向是构造 **有向、有序、类型化、情境约束的关系图**。这仍只是来源驱动的模型修正，不获得现实有效性信用。
+
+### 状态
+
+`MODEL_REFINEMENT_REQUIRED_2026-08-22`
+
+---
+
 # 每书复盘最小问题集
 
 每完成一本书或一个 work family，PROJECT_MAIN_AGENT 必须回答：
@@ -342,5 +381,6 @@ Prospective Validation 被升级为：
 10. 当前模型是否因为这本书变得更可约束，而不是仅仅更复杂？
 11. 我是否把一个 PDF/载体误当成了一个作品、一个作者或一个领域？
 12. 我的验证协议是否仍允许在结果后改变指标、阈值、停止/排除规则，或悄悄改写上游合同？
+13. 我的关系表示是否保留顺序、方向、角色与操作语义，而不是把 `A+B` 与 `B+A` 压成同一个共现集合？
 
 如果第 9 问无法回答，该理论当前不可证伪，只能保留为来源描述或解释性假设。
