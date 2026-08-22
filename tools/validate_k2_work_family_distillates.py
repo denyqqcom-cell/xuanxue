@@ -40,6 +40,16 @@ def load_jsonl(path):
     return rows
 
 
+def load_distillates(root=ROOT):
+    k=root/"knowledge"
+    rows=load_jsonl(k/"K2_WORK_FAMILY_DISTILLATES.jsonl")
+    shard_dir=k/"K2_WORK_FAMILY_DISTILLATES.d"
+    if shard_dir.exists():
+        for path in sorted(shard_dir.glob("*.jsonl")):
+            rows.extend(load_jsonl(path))
+    return rows
+
+
 def source_index(root=ROOT):
     out={}
     for d in DOMAINS:
@@ -170,12 +180,12 @@ def validate_rows(families,readings,ev,segs,sources,rows):
 
 
 def main():
-    path=K/"K2_WORK_FAMILY_DISTILLATES.jsonl"
-    if not path.exists():
+    rows=load_distillates(ROOT)
+    if not rows:
         print("k2-work-family-distillates: PASS")
         print("families=0 distillates=0 issues=0")
         return
-    rows=load_jsonl(path);idx=indexes(ROOT);issues=validate_rows(*idx,rows)
+    idx=indexes(ROOT);issues=validate_rows(*idx,rows)
     if issues:fail(f"issues={len(issues)}; "+"; ".join(f"{a}: {b}" for a,b in issues[:20]))
     print("k2-work-family-distillates: PASS")
     print(f"families={len({r['work_family_key'] for r in rows})} distillates={len(rows)} issues=0")
