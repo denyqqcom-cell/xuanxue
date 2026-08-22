@@ -10,6 +10,7 @@ def sources():
         "QM-SRC-9000":{"source_id":"QM-SRC-9000","pages":8,"file_sha256":"a"*64},
         "QM-SRC-9001":{"source_id":"QM-SRC-9001","pages":6,"file_sha256":"b"*64},
         "QM-SRC-9002":{"source_id":"QM-SRC-9002","pages":5,"file_sha256":"c"*64},
+        "QM-SRC-9003":{"source_id":"QM-SRC-9003","pages":7,"file_sha256":"d"*64},
     }
 
 
@@ -46,7 +47,7 @@ def all_source_rows():
     fam="WF-QM-TEST-SOURCE-ONLY-001"
     return [
         {"author":"甲","author_basis":"CONTENT_VERIFIED","author_evidence":"上册内页署名","binding_id":fam+"#MEM-001","credit_scope":"SOURCE_ONLY","domain_routes":["qimen"],"evidence_locators":["pdf:p1","pdf:p8"],"independence_class":"SAME_WORK_NOT_INDEPENDENT","independent_vote_key":fam,"member_kind":"SOURCE","member_ref":"QM-SRC-9000","page_end":8,"page_start":1,"part_label":"上册","relation":"WORK_PART","review_status":"REVIEWED","segment_id":None,"source_id":"QM-SRC-9000","work_family_key":fam,"work_title":"丙书"},
-        {"author":"甲","author_basis":"CONTENT_VERIFIED","author_evidence":"下册内页署名","binding_id":fam+"#MEM-002","credit_scope":"SOURCE_ONLY","domain_routes":["qimen"],"evidence_locators":["pdf:p1","pdf:p6"],"independence_class":"SAME_WORK_NOT_INDEPENDENT","independent_vote_key":fam,"member_kind":"SOURCE","member_ref":"QM-SRC-9001","page_end":6,"page_start":1,"part_label":"下册","relation":"WORK_PART","review_status":"REVIEWED","segment_id":None,"source_id":"QM-SRC-9001","work_family_key":fam,"work_title":"丙书"},
+        {"author":"甲","author_basis":"CONTENT_VERIFIED","author_evidence":"下册内页署名","binding_id":fam+"#MEM-002","credit_scope":"SOURCE_ONLY","domain_routes":["qimen"],"evidence_locators":["pdf:p1","pdf:p7"],"independence_class":"SAME_WORK_NOT_INDEPENDENT","independent_vote_key":fam,"member_kind":"SOURCE","member_ref":"QM-SRC-9003","page_end":7,"page_start":1,"part_label":"下册","relation":"WORK_PART","review_status":"REVIEWED","segment_id":None,"source_id":"QM-SRC-9003","work_family_key":fam,"work_title":"丙书"},
     ]
 
 
