@@ -9,7 +9,7 @@ DOMAINS={"ziwei","bazi","qimen","liuyao","liuren","fengshui"}
 MEMBER_KINDS={"SOURCE","SEGMENT"}
 RELATIONS={"WORK_PART"}
 INDEPENDENCE={"SAME_WORK_NOT_INDEPENDENT"}
-AUTHOR_BASES={"CONTENT_VERIFIED","MANUAL_VERIFIED","TITLE_PAGE"}
+AUTHOR_BASES={"CONTENT_VERIFIED","MANUAL_VERIFIED","TITLE_PAGE","UNKNOWN"}
 CREDIT_SCOPES={"SOURCE_ONLY","SEGMENT_ONLY"}
 ALLOWED={
     "binding_id","work_family_key","work_title","member_kind","member_ref",
@@ -47,7 +47,7 @@ def source_index(root=ROOT):
         if not p.exists():continue
         for r in load_jsonl(p):
             sid=r.get("source_id")
-            if sid in out:fail(f"duplicate canonical source_id {sid}")
+            if sid in out:fail(f"duplicate source_id {sid}")
             out[sid]=r
     return out
 
@@ -114,9 +114,13 @@ def validate_rows(sources,segments,rows):
                 if isinstance(a,int) and isinstance(b,int) and not (a<=p<=b):issues.append((bid,f"locator {loc} outside member range"))
 
         author=r.get("author");basis=r.get("author_basis");ae=r.get("author_evidence")
-        if not isinstance(author,str) or not author.strip():issues.append((bid,"segment work binding requires explicit reviewed author"))
-        if basis not in AUTHOR_BASES:issues.append((bid,"author_basis must be content/manual/title-page verified"))
-        if not isinstance(ae,str) or not ae.strip():issues.append((bid,"author_evidence must be non-empty"))
+        if author is None:
+            if basis!="UNKNOWN" or ae not in (None,""):
+                issues.append((bid,"unknown author must use author_basis=UNKNOWN with null evidence"))
+        else:
+            if not isinstance(author,str) or not author.strip():issues.append((bid,"author must be non-empty or null"))
+            if basis not in AUTHOR_BASES-{"UNKNOWN"}:issues.append((bid,"known author requires content/manual/title-page basis"))
+            if not isinstance(ae,str) or not ae.strip():issues.append((bid,"known author requires non-empty author_evidence"))
 
         member_ref=r.get("member_ref");seg_id=r.get("segment_id");scope=r.get("credit_scope")
         if kind=="SOURCE":
@@ -135,6 +139,8 @@ def validate_rows(sources,segments,rows):
                 seg_routes=set(seg.get("domain_routes") or [])
                 if isinstance(routes,list) and not set(routes).issubset(seg_routes):issues.append((bid,"binding domain_routes exceed segment routing"))
                 if seg.get("author") is not None and author!=seg.get("author"):issues.append((bid,"binding author conflicts with reviewed segment author"))
+                if seg.get("author") is None and author is not None:
+                    issues.append((bid,"binding cannot invent an author absent from reviewed segment"))
             if scope!="SEGMENT_ONLY":issues.append((bid,"SEGMENT member requires SEGMENT_ONLY credit_scope"))
 
         blob=json.dumps(r,ensure_ascii=False)
@@ -150,6 +156,11 @@ def validate_rows(sources,segments,rows):
         routes={tuple(r.get("domain_routes") or []) for r in group}
         if len(routes)!=1:issues.append((family,"work family members must share domain routing"))
         if not any(r.get("member_kind")=="SEGMENT" for r in group):issues.append((family,"segment-aware family must include at least one SEGMENT member"))
+        authors={(r.get("author"),r.get("author_basis")) for r in group}
+        known={a for a,b in authors if a is not None}
+        if len(known)>1:issues.append((family,"work family has conflicting reviewed authors"))
+        if known and any(r.get("author") is None for r in group):
+            issues.append((family,"work family mixes known and unknown author attribution"))
 
     return issues
 
