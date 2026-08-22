@@ -14,7 +14,7 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 
 继续视觉阅读 QM-SRC-0025《金函玉镜奇门遁甲秘笈全书(上)》后，又暴露出更细的 provenance 问题：**即使已经把 carrier 与 work 分开，同一页、同一卷内部仍可能同时存在多个“说话者”。**
 
-截至当前已完成 `pdf:p1-p300` 连续视觉复核，因此以下结论只具有 PARTIAL SOURCE CREDIT，不构成整部作品闭合结论。
+QM-SRC-0025 现已完成 `pdf:p1-p383` 连续视觉复核。以下结论具有 COMPLETE READING CREDIT，但仍只是 Source / Structural / Method 层，不构成现实有效性证明，也不自动证明历史作者归属。
 
 已直接看到：
 
@@ -28,14 +28,19 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 - `pdf:p68-p89` 进入九星条目，正文与白话译释持续交错，并按时序、方向及所见外应组织大量条件分支；
 - `pdf:p90` 起卷四进入“三奇到宫克应吉凶”，`pdf:p94` 后又见“十干克应捷法”“八门克应总诀”等；
 - `pdf:p113` 起卷五“九遁变化法”，`pdf:p126` 起卷六“奇门主客占验论”，`pdf:p144` 起卷七转入大量具体占类；
-- `pdf:p151-p194` 继续按“占书馆、占访人、占出行、占囚禁、占诉讼、占疾病、占失物、占捕盗、占选妃、占求财、占婚姻”等具体场景组织规则，并持续夹有 `[白话译释]`；不同场景会改换“以何为主”、主客、门星、干支与宫位组合，不能把同一个用神优先级表套遍所有问题；
-- `pdf:p195` 起进入卷十“千金诀”，`pdf:p196-p200` 又出现“三甲开阖图”“禹罡图”“兵占”等另一组方法材料，说明本 carrier 内部存在显著章节/材料类型转换；
+- `pdf:p151-p194` 继续按访人、出行、囚禁、诉讼、疾病、失物、捕盗、求财、婚姻等具体场景组织规则，并持续夹有 `[白话译释]`；不同场景会改换“以何为主”、主客、门星、干支与宫位组合，不能把同一个用神优先级表套遍所有问题；
+- `pdf:p195` 起进入卷十“千金诀”，`pdf:p196-p200` 又出现“三甲开阖图”“禹罡图”“兵占”等另一组方法材料，显示本 carrier 内部存在显著章节/材料类型转换；
 - `pdf:p201-p224` 从直符、八神、八门、十干、九星、九宫等紧凑映射继续进入官禄、词讼、晴雨等占类，显示同一符号会在不同占类承担不同功能；
 - `pdf:p225-p250` 从晴雨、身命、科试、求财、行人、出行等场景继续展开，规则取用随问题域改变，进一步支持“场景先确定对象与角色，再决定哪些规则有资格参与”；
 - `pdf:p251-p294` 又依次进入家宅、疾病、胎产、婚姻、埋葬、田禾等占类；这种组织方式本身只能获得 source/method credit，但足以否定“一个固定用神优先级表覆盖所有问题”的阅读简化；
-- `pdf:p295` 起卷十四转回“三奇八门、三奇入墓歌、奇门吉格、奇神八升殿格、凶格”等格局/诀法材料，说明同一 carrier 在“场景占验”与“格局规则”之间反复切换；最终 work/segment decomposition 必须等上册 383 页全部读完后再裁决。
+- `pdf:p295` 起卷十四转回“三奇八门、三奇入墓歌、奇门吉格、奇神八升殿格、凶格”等格局/诀法材料；
+- `pdf:p309-p318` 大量出现十二宫神分野图、河图、洛书、天三门之图、地四户之图及圆图/方位图，说明该部分知识不能被纯文字提取替代，图式本身属于结构信息；
+- `pdf:p321-p332` 继续天月将、地月将、天门将、地气将、天符将、十二支神、地私门、三奇克应、八门克应等材料；
+- `pdf:p333` 起卷十六“三奇到宫断”，之后多页继续按三奇、八门、九星等组合列举断法；
+- `pdf:p362` 起卷十七“斗柄所指”，后续又进入占诸路法、雷访、渡河、胡粮复水、敌使虚实、灾围、察贼所在、抽军避寇、排山掌、鬼谷子九仙数、古凶仙神合数、择日等材料；
+- `pdf:p371-p383` 主要为天赦、月德合、天成日、天恩日、四绝日、往亡日、天德地德时、重丧日、十恶大败日、四季月出行吉凶、伏断日、逐月出行吉方等择日材料；p383 结束于这组条目，没有出现能够让项目据此宣布整个 work family 已闭合的独立作者/终结标识。
 
-因此，仅靠 `source_id + page locator` 不足以保证 Evidence 的声音归属正确；仅靠“符号名”也不足以唯一确定关系参与者，必须额外保留盘层/位置实例。
+因此，仅靠 `source_id + page locator` 不足以保证 Evidence 的声音归属正确；仅靠“符号名”也不足以唯一确定关系参与者，必须额外保留盘层/位置实例。图式页还要求保留 DIAGRAM/VISUAL 结构，而不是把图形压扁成一段 OCR 文本。
 
 ## 2. 旧模型暴露出的隐性假设
 
@@ -98,11 +103,13 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 
 只有第 5 项才允许被表述为“历史作者已验证”。前四项都不能偷换成第五项。
 
-因此 QM-SRC-0025 当前只能说：
+因此 QM-SRC-0025 完整阅读后仍只能说：
 
 - 本版题名页：`诸葛亮等著 / 刘伯温点校 / 陈管明注评`；
 - 序文存在“相传为张子房、诸葛武侯所著”的传统归属说法；
-- **历史作者真实性：当前未验证。**
+- **历史作者真实性：仍未验证。**
+
+完整读完一本书，并不会自动把版本署名升级成历史事实。
 
 ## 5. Evidence 级约束
 
@@ -120,23 +127,24 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 - COMMENTARY / TRANSLATION_PARAPHRASE 若形成方法性解释，只能先获得该注评层的 METHOD/SOURCE credit；
 - 同一注评者对多个古籍文本的重复解释不得增加 independent traditional vote；
 - page locator 不足以唯一定位声音时，应增加局部段落/标签说明，或暂缓正式 Evidence；
-- 对“天盘 X 加地盘 Y”这类规则，Evidence 必须保留 operand layer，不能只存 `{X,Y}`。
+- 对“天盘 X 加地盘 Y”这类规则，Evidence 必须保留 operand layer，不能只存 `{X,Y}`；
+- 图式类知识必须允许 `DIAGRAM_READ / VISUAL_PAGE` 级结构证据，不能用 OCR 字串替代图中相对位置。
 
 ## 6. 对现有系统的影响
 
-当前 K2 Evidence schema 尚未全局强制 `voice_layer` 字段。此缺口已经被真实来源暴露，因此在 schema 迁移完成前：
+当前 K2 Evidence schema 尚未全局强制 `voice_layer` 与 layer-qualified instance 字段。此缺口已经被真实来源暴露，因此：
 
-1. QM-SRC-0025/0026 不进入正式 Atomic Evidence；
-2. 继续逐页视觉阅读可以进行，但 Reading Credit 与 Evidence Credit 分离；
-3. 不因为旧 `K2_SOURCE_LINEAGE` 将二者标成 `WORK-000016 / WORK_PART`，就假设内部只有一个作品声音；
-4. 完成上、下册全覆盖后，再决定是否需要 segment-level work decomposition 与 lineage 重写；
+1. QM-SRC-0025/0026 在 schema 收紧前不进入正式 Atomic Evidence；
+2. QM-SRC-0025 的 Reading Credit 已可独立记为 COMPLETE，但 Reading Credit 与 Evidence Credit 继续分离；
+3. 不因为旧 `K2_SOURCE_LINEAGE` 将 0025/0026 标成 `WORK-000016 / WORK_PART`，就把该 lineage 当成已经由完整语义阅读确认；
+4. 必须继续完整阅读 QM-SRC-0026，再决定 0025/0026 的 work-family、segment decomposition 与 attribution；
 5. Claim Extraction 继续保持 BLOCKED。
 
 ## 7. 对“法—道—术”的认知修正
 
 这次暴露的问题说明：所谓“书上写的法”，首先还要问**是谁在这一段说话**，以及**同一个符号此刻到底处于哪一盘层、哪一位置。**
 
-如果连声音层和实例层都没有分清，就谈不上从“法”抽象“道”。
+如果连声音层、实例层和图式结构都没有分清，就谈不上从“法”抽象“道”。
 
 因此当前顺序应是：
 
@@ -145,6 +153,7 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 → `辨声音`
 → `辨署名性质`
 → `辨对象实例/盘层`
+→ `辨图式结构`
 → `辨规则对象与边界`
 → `辨关系结构`
 → `再谈底层约束`
@@ -158,10 +167,11 @@ QM-SRC-0025：
 
 - canonical SHA256：`08a715a13df8ff61060a15b709794732a5ab8d564965559af3c03e4b729d3016`
 - canonical pages：383
-- 已连续视觉复核：`pdf:p1-p300`
-- 当前状态：`PARTIAL`
-- Reading Credit：仅 p1-p300
-- Formal Atomic Evidence：暂不生成，等待 voice provenance schema 收紧及更完整 work segmentation
+- 已连续视觉复核：`pdf:p1-p383`
+- 当前状态：`COMPLETE`
+- Reading Credit：FULL CARRIER VISUAL REVIEW
+- Formal Atomic Evidence：仍由 mixed-voice hold 阻塞，等待 voice provenance / layer-qualified instance schema 收紧
+- Historical Authorship：UNVERIFIED
 - Empirical Credit：NONE
 
 QM-SRC-0026 尚未开始语义阅读。
@@ -170,12 +180,12 @@ QM-SRC-0026 尚未开始语义阅读。
 
 本模型不是因为“分层看起来更专业”而成立。
 
-如果后续全册阅读证明：
+如果后续下册与跨源测试证明：
 
 - `[白话译释]` 与原文不存在可稳定区分的边界；或
-- 当前 carrier 实际并非多声音结构；或
-- voice layer 对 Evidence 归属、冲突判断、模型复现没有任何实质影响；
+- voice layer / layer-qualified instance 对 Evidence 归属、冲突判断、模型复现没有任何实质影响；或
+- 图式结构在可重复任务中并不增加任何信息；
 
-则本模型应被简化。
+则相关分层应被简化。
 
-反之，如果不区分 voice layer 会持续导致作者错配、规则时代错配、现代解释冒充古代原文或独立证据票数膨胀，则该层应升级为 fail-closed provenance gate。
+反之，如果不区分这些层会持续导致作者错配、规则时代错配、盘层错配、现代解释冒充古代原文或独立证据票数膨胀，则这些层应升级为更完整的 fail-closed provenance gate。
