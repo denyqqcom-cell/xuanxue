@@ -42,6 +42,14 @@ def valid_rows():
     ]
 
 
+def all_source_rows():
+    fam="WF-QM-TEST-SOURCE-ONLY-001"
+    return [
+        {"author":"甲","author_basis":"CONTENT_VERIFIED","author_evidence":"上册内页署名","binding_id":fam+"#MEM-001","credit_scope":"SOURCE_ONLY","domain_routes":["qimen"],"evidence_locators":["pdf:p1","pdf:p8"],"independence_class":"SAME_WORK_NOT_INDEPENDENT","independent_vote_key":fam,"member_kind":"SOURCE","member_ref":"QM-SRC-9000","page_end":8,"page_start":1,"part_label":"上册","relation":"WORK_PART","review_status":"REVIEWED","segment_id":None,"source_id":"QM-SRC-9000","work_family_key":fam,"work_title":"丙书"},
+        {"author":"甲","author_basis":"CONTENT_VERIFIED","author_evidence":"下册内页署名","binding_id":fam+"#MEM-002","credit_scope":"SOURCE_ONLY","domain_routes":["qimen"],"evidence_locators":["pdf:p1","pdf:p6"],"independence_class":"SAME_WORK_NOT_INDEPENDENT","independent_vote_key":fam,"member_kind":"SOURCE","member_ref":"QM-SRC-9001","page_end":6,"page_start":1,"part_label":"下册","relation":"WORK_PART","review_status":"REVIEWED","segment_id":None,"source_id":"QM-SRC-9001","work_family_key":fam,"work_title":"丙书"},
+    ]
+
+
 def unknown_rows():
     fam="WF-QM-TEST-UNKNOWN-001"
     return [
@@ -64,6 +72,7 @@ def must_fail(rows,needle):
 
 def main():
     base=valid_rows();must_pass(base)
+    source_only=all_source_rows();must_pass(source_only)
     unknown=unknown_rows();must_pass(unknown)
 
     rows=copy.deepcopy(base);rows[1]["member_kind"]="SOURCE";rows[1]["member_ref"]="QM-SRC-9001";rows[1]["segment_id"]=None;rows[1]["credit_scope"]="SOURCE_ONLY";rows[1]["page_end"]=6
@@ -100,6 +109,6 @@ def main():
     must_fail(rows,"work family mixes known and unknown author attribution")
 
     print("k2-segment-lineage-tests: PASS")
-    print("cases=13")
+    print("cases=14")
 
 if __name__=="__main__":main()
