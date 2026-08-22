@@ -14,7 +14,7 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 
 继续视觉阅读 QM-SRC-0025《金函玉镜奇门遁甲秘笈全书(上)》后，又暴露出更细的 provenance 问题：**即使已经把 carrier 与 work 分开，同一页、同一卷内部仍可能同时存在多个“说话者”。**
 
-截至当前仅完成 `pdf:p1-p50` 连续视觉复核，因此以下结论只具有 PARTIAL SOURCE CREDIT，不构成整部作品闭合结论。
+截至当前已完成 `pdf:p1-p150` 连续视觉复核，因此以下结论只具有 PARTIAL SOURCE CREDIT，不构成整部作品闭合结论。
 
 已直接看到：
 
@@ -23,7 +23,13 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 - `pdf:p5` 序文用“相传”为张子房、诸葛武侯所著来叙述来源；“相传”本身是传统归属声明，不是经过项目验证的历史作者事实；
 - `pdf:p7-p9`《奇门遁甲总序》包含黄帝、蚩尤、风后等起源叙事，这类内容首先只能获得 HISTORY/TRADITIONAL_CLAIM credit；
 - `pdf:p30` 起进入《烟波钓叟歌》正文；随后多页同时出现原歌诀与明确标记的 `[白话译释]`，说明 base text 与现代解释在同一 carrier、甚至同一页并存；
-- `pdf:p33-p50` 已反复出现“原文/歌诀 + 白话译释”的混合结构，因此仅靠 `source_id + page locator` 已不足以保证 Evidence 的声音归属正确。
+- `pdf:p33-p58` 反复出现“原文/歌诀或规则 + 白话译释”的混合结构；
+- `pdf:p59-p66`《十干克应诀》系统使用“天盘某干加地盘某干”的有层级、有方向组合，说明 page locator 之外还必须保留 operand 的盘层身份；
+- `pdf:p68-p89` 进入九星条目，正文与白话译释持续交错，并按时序、方向及所见外应组织大量条件分支；
+- `pdf:p90` 起卷四进入“三奇到宫克应吉凶”，`pdf:p94` 后又见“十干克应捷法”“八门克应总诀”等；
+- `pdf:p113` 起卷五“九遁变化法”，`pdf:p126` 起卷六“奇门主客占验论”，`pdf:p144` 起卷七转入大量具体占类；直到 p150，现代 `[白话译释]` 仍与规则层长期并存。
+
+因此，仅靠 `source_id + page locator` 不足以保证 Evidence 的声音归属正确；仅靠“符号名”也不足以唯一确定关系参与者，必须额外保留盘层/位置实例。
 
 ## 2. 旧模型暴露出的隐性假设
 
@@ -107,7 +113,8 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 - `TRADITIONAL_ATTRIBUTION_CLAIM` 的 claim_readiness 默认应为 `NOT_CLAIM` 或 `CONTEXT_REQUIRED`；
 - COMMENTARY / TRANSLATION_PARAPHRASE 若形成方法性解释，只能先获得该注评层的 METHOD/SOURCE credit；
 - 同一注评者对多个古籍文本的重复解释不得增加 independent traditional vote；
-- page locator 不足以唯一定位声音时，应增加局部段落/标签说明，或暂缓正式 Evidence。
+- page locator 不足以唯一定位声音时，应增加局部段落/标签说明，或暂缓正式 Evidence；
+- 对“天盘 X 加地盘 Y”这类规则，Evidence 必须保留 operand layer，不能只存 `{X,Y}`。
 
 ## 6. 对现有系统的影响
 
@@ -121,9 +128,9 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 
 ## 7. 对“法—道—术”的认知修正
 
-这次暴露的问题说明：所谓“书上写的法”，首先还要问**是谁在这一段说话**。
+这次暴露的问题说明：所谓“书上写的法”，首先还要问**是谁在这一段说话**，以及**同一个符号此刻到底处于哪一盘层、哪一位置。**
 
-如果连声音层都没有分清，就谈不上从“法”抽象“道”。
+如果连声音层和实例层都没有分清，就谈不上从“法”抽象“道”。
 
 因此当前顺序应是：
 
@@ -131,12 +138,13 @@ Deep Closure 已经通过 QM-SRC-0023、QM-SRC-0024 证明：
 → `辨作品`
 → `辨声音`
 → `辨署名性质`
+→ `辨对象实例/盘层`
 → `辨规则对象与边界`
 → `辨关系结构`
 → `再谈底层约束`
 → `最后才进入场景验证`
 
-“道”不是把不同声音强行揉成一个统一口诀，而是找出在明确 provenance、对象、边界和情境下仍能保持稳定的约束结构。
+“道”不是把不同声音、不同盘层的同名符号强行揉成一个统一口诀，而是找出在明确 provenance、对象实例、边界和情境下仍能保持稳定的约束结构。
 
 ## 8. 当前阅读状态
 
@@ -144,9 +152,9 @@ QM-SRC-0025：
 
 - canonical SHA256：`08a715a13df8ff61060a15b709794732a5ab8d564965559af3c03e4b729d3016`
 - canonical pages：383
-- 已连续视觉复核：`pdf:p1-p50`
+- 已连续视觉复核：`pdf:p1-p150`
 - 当前状态：`PARTIAL`
-- Reading Credit：仅 p1-p50
+- Reading Credit：仅 p1-p150
 - Formal Atomic Evidence：暂不生成，等待 voice provenance schema 收紧及更完整 work segmentation
 - Empirical Credit：NONE
 
