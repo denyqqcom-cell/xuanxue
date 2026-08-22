@@ -365,6 +365,65 @@ QM-SRC-0024 完成 `pdf:p1-p110` 连续视觉复核后，第二装订单元出�
 
 ---
 
+## A16 文本声音与署名层塌缩 / PROVENANCE_VOICE_COLLAPSE
+
+### 事件
+
+QM-SRC-0025 开始连续视觉复核后，仅 `pdf:p1-p50` 就暴露出一个此前仍未被充分建模的 provenance 问题：同一 carrier、同一卷、甚至同一页可以存在多个“说话者”。
+
+直接观察到：
+
+- p3 题名页列“诸葛亮等著”，另列“刘伯温点校”“陈管明注评”；
+- p4 为 1996 年现代出版信息页；
+- p5 序文使用“相传”为张子房、诸葛武侯所著的传承叙事；
+- p7-p9《奇门遁甲总序》包含黄帝、蚩尤、风后等起源叙事；
+- p30 起进入《烟波钓叟歌》，后续页面反复出现原歌诀与明确标记的 `[白话译释]` 并存。
+
+### 暴露的旧假设
+
+项目即使已经从 `one PDF = one work` 修正为 carrier/segment/work 分层，仍可能默认：
+
+`one source/page = one textual voice`
+
+这在注评本、点校本、白话译本、汇编本中不成立。
+
+### 风险
+
+- 把现代白话译释误算成古代原文；
+- 把题名页署名误算成历史作者已经验证；
+- 把“相传”型传统归属误算成 provenance fact；
+- 把原作者、点校者、注评者、出版者混入一个 author 字段；
+- 现代注家的解释若在多个 carrier 中重复，会被错误计成独立传统共识；
+- 项目自认为“从古籍学习”，实际却可能主要吸收现代解释层。
+
+### 纠偏
+
+新增 textual voice / attribution 分层：
+
+`CARRIER -> SEGMENT/WORK -> PAGE -> VOICE_LAYER -> ATTRIBUTION -> EVIDENCE`
+
+最小 voice layer 包括：
+
+`BASE_TEXT / COMMENTARY / TRANSLATION_PARAPHRASE / EDITORIAL_FRONT_MATTER / TITLE_PAGE_ATTRIBUTION / TRADITIONAL_ATTRIBUTION_CLAIM / PUBLISHER_METADATA / UNKNOWN_VOICE`
+
+并强制区分：
+
+`carrier_attribution`
+`segment_internal_signature`
+`commentary_author`
+`traditional_authorship_claim`
+`historical_authorship_verified`
+
+只有最后一项才允许表述为历史作者已验证。
+
+在 schema 收紧前，QM-SRC-0025/0026 暂不生成正式 Atomic Evidence；继续阅读不等于允许声音归属偷懒。
+
+### 状态
+
+`MODEL_REFINEMENT_REQUIRED_2026-08-22`
+
+---
+
 # 每书复盘最小问题集
 
 每完成一本书或一个 work family，PROJECT_MAIN_AGENT 必须回答：
@@ -382,5 +441,7 @@ QM-SRC-0024 完成 `pdf:p1-p110` 连续视觉复核后，第二装订单元出�
 11. 我是否把一个 PDF/载体误当成了一个作品、一个作者或一个领域？
 12. 我的验证协议是否仍允许在结果后改变指标、阈值、停止/排除规则，或悄悄改写上游合同？
 13. 我的关系表示是否保留顺序、方向、角色与操作语义，而不是把 `A+B` 与 `B+A` 压成同一个共现集合？
+14. 我是否区分了 BASE_TEXT、COMMENTARY、白话译释、序跋、题名页署名与出版信息，而不是让同一页的多个声音共享一个作者与 Evidence 身份？
+15. 当前所谓“作者”究竟是版本署名、段落内署名、传统归属声明，还是已经独立核验的历史作者？
 
 如果第 9 问无法回答，该理论当前不可证伪，只能保留为来源描述或解释性假设。
