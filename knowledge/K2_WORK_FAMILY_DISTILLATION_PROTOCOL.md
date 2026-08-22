@@ -1,6 +1,6 @@
 # K2 Work-Family Distillation Protocol
 
-版本：2026-08-22
+版本：2026-08-23
 阶段：K2B / Deep Closure
 状态：ACTIVE
 
@@ -19,11 +19,17 @@ Work-family distillate 的任务不是把书变短，而是回答：
 
 ## 2. 数据文件
 
+主文件：
+
 `knowledge/K2_WORK_FAMILY_DISTILLATES.jsonl`
 
-每一行对应一个已完成 work-family review 的 distillate。
+为避免随着 Deep Closure 推进而反复整体替换大型单体 JSONL，也允许使用受同一 validator 管理的 shard：
 
-它必须引用：
+`knowledge/K2_WORK_FAMILY_DISTILLATES.d/*.jsonl`
+
+主文件与 shards 在验证时组成一个逻辑数据集。每一行仍然只对应一个已完成 work-family review 的 distillate；`distillate_id` 必须在整个逻辑数据集中唯一，shard 不能用于重复同一 family、绕过 validator 或制造额外 independent vote。
+
+每个 distillate 必须引用：
 
 - `K2_SEGMENT_LINEAGE.jsonl` 的完整 family member set；
 - `K2_DEEP_READING_LEDGER.jsonl` 的真实 carrier Reading Credit；
@@ -42,7 +48,7 @@ Work-family distillate 的任务不是把书变短，而是回答：
 
 ## 4. Credit decision
 
-对于八神、中宫、movement 等关键争议点，不使用“书上有所以就是真”的二元裁决，而记录：
+对于八神、中宫、movement、ontology、state architecture 等关键争议点，不使用“书上有所以就是真”的二元裁决，而记录：
 
 - `topic`；
 - `source_credit`；
@@ -63,3 +69,9 @@ Work-family distillate 的任务不是把书变短，而是回答：
 - 不因它是“自己创新”而获得额外信用。
 
 自建理论也必须接受与古籍相同、甚至更严格的证伪纪律。
+
+## 6. 数据结构必须服从来源事实
+
+Work family 不要求人为制造 segment。若多个 canonical source 经完整阅读已经证明分别就是同一作品的完整上/中/下册，可以直接以多个 `SOURCE` member 组成 family；只有 composite carrier 才需要 `SEGMENT` member。
+
+同理，扫描损坏页、作者未知、source-local ontology 或无法可靠恢复的内容都必须允许保持 UNKNOWN / NO_CONTENT_CREDIT。若旧 schema 无法表达真实状态，应先修 schema，而不是补造事实。
