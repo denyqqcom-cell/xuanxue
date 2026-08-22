@@ -35,6 +35,13 @@ def main():
     require(text, "python tools/test_k2_python_deps.py")
     require(text, "Verify isolated K2 PDF dependency health")
 
+    # Work identity and cross-work course provenance are orthogonal. Both must
+    # remain fail-closed so same-course works cannot inflate source votes.
+    require(text, "python3 tools/test_k2_source_lineage.py")
+    require(text, "python3 tools/validate_k2_lineage_integrity.py")
+    require(text, "python3 tools/test_k2_course_lineage.py")
+    require(text, "python3 tools/validate_k2_course_lineage.py")
+
     # Composite-carrier facts must remain guarded at every refinement layer.
     require(text, "python3 tools/test_k2_source_segments.py")
     require(text, "python3 tools/validate_k2_source_segments.py")
@@ -46,6 +53,11 @@ def main():
     require(text, "python3 tools/validate_k2_deep_reading.py")
     require(text, "python3 tools/test_k2_work_family_distillates.py")
     require(text, "python3 tools/validate_k2_work_family_distillates.py")
+
+    # Re-audit overlays must be enforced after source-local evidence validation:
+    # historical Evidence can be held/downgraded without rewriting provenance.
+    require(text, "python3 tools/test_k2_evidence_reaudit.py")
+    require(text, "python3 tools/validate_k2_evidence_reaudit.py")
 
     # Candidate theories may not obtain empirical credit without a
     # pre-outcome freeze and fail-closed prospective validation contract.

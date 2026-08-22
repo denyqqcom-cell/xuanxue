@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "course_lineage.schema.json",
+  "type": "object",
+  "required": [
+    "course_family_id",
+    "domain",
+    "source_id",
+    "work_id",
+    "relation_scope",
+    "course_role",
+    "dependence_class",
+    "independent_vote_allowed",
+    "related_source_ids",
+    "lineage_basis",
+    "lineage_evidence",
+    "review_status"
+  ],
+  "properties": {
+    "course_family_id": {"type": "string", "minLength": 1},
+    "domain": {"enum": ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui", "common"]},
+    "source_id": {"type": "string", "minLength": 1},
+    "work_id": {"type": "string", "minLength": 1},
+    "relation_scope": {"const": "COURSE_PROVENANCE"},
+    "course_role": {"enum": ["FOUNDATION", "ADVANCED_EXTENSION", "SYNOPSIS_COMPENDIUM", "SIBLING_WORK", "UNKNOWN"]},
+    "dependence_class": {"enum": ["SAME_TEACHING_PROVENANCE", "DERIVATIVE_TEACHING_PROVENANCE", "UNKNOWN"]},
+    "independent_vote_allowed": {"type": "boolean"},
+    "related_source_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "lineage_basis": {"enum": ["CONTENT_VERIFIED", "MANUAL_VERIFIED", "UNKNOWN"]},
+    "lineage_evidence": {"type": ["string", "null"], "maxLength": 600},
+    "review_status": {"enum": ["REVIEWED", "BLOCKED"]},
+    "notes": {"type": ["string", "null"], "maxLength": 600}
+  },
+  "additionalProperties": false
+}

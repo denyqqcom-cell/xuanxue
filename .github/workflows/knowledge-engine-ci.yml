@@ -46,6 +46,10 @@ jobs:
         run: python3 tools/test_k2_source_lineage.py
       - name: Enforce accepted K2 lineage integrity
         run: python3 tools/validate_k2_lineage_integrity.py
+      - name: Test cross-work course provenance fail-closed cases
+        run: python3 tools/test_k2_course_lineage.py
+      - name: Enforce cross-work course provenance
+        run: python3 tools/validate_k2_course_lineage.py
       - name: Test composite carrier segment fail-closed cases
         run: python3 tools/test_k2_source_segments.py
       - name: Enforce composite carrier segmentation
@@ -80,6 +84,10 @@ jobs:
         run: python3 tools/test_k2_evidence.py
       - name: Enforce K2 evidence state
         run: python3 tools/validate_k2_evidence.py
+      - name: Test K2 evidence re-audit fail-closed cases
+        run: python3 tools/test_k2_evidence_reaudit.py
+      - name: Enforce K2 evidence re-audit overlays
+        run: python3 tools/validate_k2_evidence_reaudit.py
       - name: Test per-book distillation fail-closed cases
         run: python3 tools/test_k2_book_distillates.py
       - name: Enforce mandatory per-book distillation
