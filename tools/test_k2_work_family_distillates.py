@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import copy,sys
+import copy,json,sys,tempfile
 from pathlib import Path
 from collections import defaultdict
 sys.path.insert(0,str(Path(__file__).resolve().parent))
@@ -70,8 +70,21 @@ def must_fail(rows,needle):
     assert needle in text,(needle,text)
 
 
+def test_shard_loader():
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td);k=root/"knowledge";k.mkdir()
+        base=copy.deepcopy(row());base["distillate_id"]="K2WF-QM-BASE-001"
+        shard=copy.deepcopy(row());shard["distillate_id"]="K2WF-QM-SHARD-001"
+        (k/"K2_WORK_FAMILY_DISTILLATES.jsonl").write_text(json.dumps(base,ensure_ascii=False)+"\n",encoding="utf-8")
+        d=k/"K2_WORK_FAMILY_DISTILLATES.d";d.mkdir()
+        (d/"one.jsonl").write_text(json.dumps(shard,ensure_ascii=False)+"\n",encoding="utf-8")
+        rows=v.load_distillates(root)
+        assert [r["distillate_id"] for r in rows]==["K2WF-QM-BASE-001","K2WF-QM-SHARD-001"],rows
+
+
 def main():
     base=row();must_pass([base])
+    test_shard_loader()
 
     r=copy.deepcopy(base);r["member_refs"]=["QM-SRC-9000"];must_fail([r],"exactly match")
     r=copy.deepcopy(base);r["reading_refs"]=["K2DEEP-QM-SRC-9000"];must_fail([r],"cover exactly")
@@ -83,6 +96,6 @@ def main():
     r=copy.deepcopy(base);r["claim_extraction_blocked"]=False;must_fail([r],"must remain true")
 
     print("k2-work-family-distillates-tests: PASS")
-    print("cases=9")
+    print("cases=10")
 
 if __name__=="__main__":main()
