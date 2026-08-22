@@ -1,6 +1,6 @@
-# 奇门受控推演链 QCIC v0.5
+# 奇门受控推演链 QCIC v0.6
 
-版本：0.5  
+版本：0.6  
 状态：CANDIDATE_UNTESTED  
 阶段：K2B / Deep Closure  
 empirical_credit：NONE  
@@ -27,6 +27,17 @@ v0.4 由 QM-SRC-0020 完整阅读加入 Method Layer Router、Role Frame Registr
 - Retrospective Error Ledger；
 - Procedure Precedence Graph。
 
+继续完整视觉阅读 QM-SRC-0017《奇门遁甲新述》419/419 页后，项目又发现两个新的证据工程问题：
+
+1. **Source Stance Collapse**：同一本书可以先转述传统规则，后面再明确批判其中一部分；“书里出现过”并不等于“作者认可”。
+2. **Enumeration Inflation**：一千零八十定局、一百二十日家定局等大量页面可以由同一生成体系机械展开；条目数量、页数和独立证据数量不是一回事。
+
+因此 v0.6 新增：
+
+- Source Stance Registry；
+- Enumeration Compression Gate；
+- Derived Enumeration Collapse。
+
 ## 1. 核心目标
 
 QCIC 的控制对象不再只是“用了什么规则”，而是整个解释路径：
@@ -37,13 +48,22 @@ QCIC 是项目自己的工程化候选框架，不是古籍原说，也不因“
 
 ## 2. 十三层推演链
 
-### L0 Provenance Gate — 来源独立性
+### L0 Provenance Gate + Source Stance Registry — 来源独立性与作者立场
 
 先确定：
 
 `canonical source -> raw lineage -> correction overlay -> effective work identity -> course provenance -> voice/source dependence`
 
 文件名不是 work identity；传承/引录 voice 不自动算作者独立证据。
+
+同一来源内部还必须区分：
+
+- `SOURCE_REPORTS`：作者只是记录/转述；
+- `SOURCE_ENDORSES`：作者明确认可或采用；
+- `SOURCE_REJECTS`：作者明确否定、批判或要求删除；
+- `SOURCE_UNCERTAIN`：无法从文本确定立场。
+
+如果同一作者在后文对前文传统材料作明确批判，必须登记 `stance_precedence`。后出的明确否定可以改变 source-local eligibility，但不能被扩大成“其余内容因此已经被证明正确”。
 
 ### L1 Reality Evidence Gate — 现实证据门
 
@@ -118,7 +138,7 @@ QCIC 是项目自己的工程化候选框架，不是古籍原说，也不因“
 
 冻结本题可参与角色。
 
-### L6 Rule Table Density Gate — 规则表密度门
+### L6 Rule Table Density Gate + Enumeration Compression Gate — 规则密度与枚举压缩
 
 记录：
 
@@ -128,6 +148,16 @@ QCIC 是项目自己的工程化候选框架，不是古籍原说，也不因“
 - `rule_selection_basis`。
 
 规则存在于来源不等于当前案例有资格使用。
+
+对于定局表、状态表、组合表等确定性展开，还要判断它们是否由少量生成规则机械重建。若可以，则登记：
+
+`generative_rule_id + input_domain + enumerated_entries_count + reconstruction_test`
+
+并执行 `DERIVED_ENUMERATION_COLLAPSE`：
+
+> 可由同一算法和输入空间确定性重建的成百上千条表项，只提供生成体系的 coverage，不按表项数量增加独立证据票。
+
+这一区分尤其防止“书越厚、表越多、证据越强”的伪膨胀。
 
 ### L7 Eligible Rule Set Freeze — 合格规则集冻结
 
@@ -219,6 +249,11 @@ Macro：不同角色落宫之间的生克、主客与相互作用。
 
 每次推演至少记录：
 
+- source_reported_rule_count；
+- source_endorsed_rule_count；
+- source_rejected_rule_count；
+- generative_rule_count；
+- enumerated_entries_count；
 - observation_channel_count；
 - unregistered_observation_count；
 - candidate_roles_count；
@@ -254,6 +289,10 @@ Macro：不同角色落宫之间的生克、主客与相互作用。
 **Method-Layer Isolation Principle**：文本共存不等于方法同层；跨层调用是例外，不是默认。
 
 **Failure Preservation Principle**：错误样本不得通过事后重析被洗成成功样本。
+
+**Source Stance Principle**：来源收录、来源转述、来源认可、来源否定是四种不同状态；不能把“出现于书中”自动解释成作者支持。
+
+**Derived Enumeration Collapse Principle**：确定性枚举增加查询覆盖，不自动增加独立经验信用。
 
 ## 4. 当前候选假设
 
@@ -317,6 +356,18 @@ competing models 表现接近时，更低 interpretation degrees-of-freedom 的�
 
 失败：顺序冻结不能降低时间模型切换和结果后命中，或只有重新开放优先级才能维持表现。
 
+### QCIC-H14 来源立场注册
+
+把来源内部规则标注为 REPORTS / ENDORSES / REJECTS / UNCERTAIN，并执行明确 stance precedence，应降低把作者明确否定的内容误算为其方法的比例。
+
+失败：加入 stance registry 后，作者立场误判率、跨解读者分歧或被否定规则的误调用率没有下降。
+
+### QCIC-H15 枚举压缩
+
+对可由同一生成规则重建的大规模定局表执行 Derived Enumeration Collapse，应在保持结构重建完整性的同时降低伪证据数量与解释复杂度。
+
+失败：压缩后无法稳定重建原表，或大量枚举确实含有无法由生成规则表达的独立信息。
+
 以上全部：`UNTESTED`。
 
 ## 5. 明确拒绝的旧习惯
@@ -336,6 +387,10 @@ competing models 表现接近时，更低 interpretation degrees-of-freedom 的�
 - 事后只保留最像结果的时间模型；
 - 预测改变行为后仍把后果算作纯预测命中；
 - 文件名像一本书就直接判作者、版本或独立 work；
+- 因为某条规则被一本书收录，就默认作者本人认可；
+- 作者在书末明确批判某类规则，仍把前面转述的旧规则当同权可用；
+- 把1080个定局、120个日家定局或数百页查表内容按条目当成数百上千个独立证据；
+- 用页数、表项数量或排版完整度替代独立样本与经验验证；
 - 传承引录被同一作者收编后就重新算独立证据；
 - 同一课程多本讲义一致就算多票；
 - 用作者案例数量代替预测准确率；
@@ -345,7 +400,7 @@ competing models 表现接近时，更低 interpretation degrees-of-freedom 的�
 
 ## 6. 当前定位
 
-QCIC v0.5 仍只是由完整阅读、失败样本和项目自身错误反省逐步长出的候选架构：
+QCIC v0.6 仍只是由完整阅读、失败样本、来源自我批判和项目自身错误反省逐步长出的候选架构：
 
 `method-structure credit = CANDIDATE`
 
@@ -353,4 +408,4 @@ QCIC v0.5 仍只是由完整阅读、失败样本和项目自身错误反省逐�
 
 `empirical_credit = VALIDATED`
 
-下一步真正能提升信用的，不是再增加规则，而是把 observation channels、procedure precedence、exception budget 和 failure ledger 放进预注册前瞻测试。
+下一步真正能提升信用的，不是再增加规则或枚举表，而是把 source stance、generation/lookup equivalence、observation channels、procedure precedence、exception budget 和 failure ledger 放进可复现、预注册的测试。
