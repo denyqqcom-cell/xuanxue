@@ -424,6 +424,96 @@ QM-SRC-0025 开始连续视觉复核后，仅 `pdf:p1-p50` 就暴露出一个此
 
 ---
 
+## A17 方法功能层塌缩 / METHOD_FUNCTION_COLLAPSE
+
+### 事件
+
+QM-SRC-0025 与 QM-SRC-0026 完成上下册合计 776 页连续视觉复核后，可以确认同一 work family 内长期并列多种功能完全不同的方法材料：具体占断、主客判断、择日与出行选择、兵占、图式算法，以及符法、步斗、咒诀等操作性/仪式性条文。
+
+### 暴露的旧假设
+
+即使已经区分 symbol、relation、voice，项目仍可能默认：
+
+`method = homogeneous rule -> result`
+
+但“用于描述结构”“用于预测状态”“用于选择时间/方向”“要求执行动作”“仪式性操作”“图式算法”不是同一种知识功能。
+
+### 风险
+
+- 把择日/出行选择规则拿来解释已经发生的事件；
+- 把仪式性或处方式条文误当预测 evidence；
+- 把图式算法压成吉凶结论；
+- 因为同一书同时出现多类方法，就错误认为它们共享同一适用前提和有效性；
+- Eligible Rule Set 允许跨功能层任意抓取规则，继续保留巨大的 hindsight freedom。
+
+### 纠偏
+
+在进入场景推演与 Evidence 前，增加候选 Method Layer：
+
+`DESCRIPTIVE_STRUCTURE`
+`PREDICTIVE_INTERPRETATION`
+`SELECTION_TIMING`
+`PRESCRIPTIVE_ACTION`
+`RITUAL_OPERATIVE`
+`DIAGRAM_ALGORITHM`
+`TRADITIONAL_HISTORY`
+`COMMENTARY_EXPLANATION`
+
+Method Layer 首先是一种分类与边界控制，不代表承认任何方法具有现实因果或预测效力。后续若证明该分层不能减少误用、冲突或复现分歧，应简化或删除。
+
+### 状态
+
+`MODEL_REFINEMENT_REQUIRED_2026-08-22`
+
+---
+
+## A18 Schema 强迫确定性 / SCHEMA_FORCED_CERTAINTY
+
+### 事件
+
+《金函玉镜》上下册完整阅读后，项目能够确认 work-family 的卷次连续性，却仍无法独立核验历史作者。此时旧 `K2_SEGMENT_LINEAGE` validator 要求每个 work-family member 必须填写“explicit reviewed author”。若继续服从旧 Schema，就会被迫从题名页、传统归属或序文署名中挑一个名字填入作者字段。
+
+### 暴露的旧假设
+
+`required field = reality must have a known value`
+
+这是工程便利偷换成认识论确定性。数据库不允许 UNKNOWN，并不代表事实世界没有 UNKNOWN。
+
+### 风险
+
+- 为了通过 validator 制造作者确定性；
+- 把 edition attribution 或 traditional claim 偷换成 historical authorship；
+- 下游 lineage、独立票数和 Evidence 全部继承一个由 Schema 强制造成的假事实；
+- 项目表面“数据完整”，实际认知失真。
+
+### 纠偏
+
+Schema 改为允许经过完整阅读后仍然诚实表达：
+
+`author = null`
+`author_basis = UNKNOWN`
+`author_evidence = null`
+
+同时 fail-closed：
+
+- reviewed segment 为 UNKNOWN 时，work-family binding 不得自行发明作者；
+- 同一 family 不得无证据地混合 known/unknown attribution；
+- UNKNOWN 不视为数据质量失败，而视为当前证据状态。
+
+原则调整为：
+
+`REALITY / SOURCE STATE -> SCHEMA`
+
+而不是：
+
+`SCHEMA REQUIRED FIELD -> MANUFACTURED REALITY`
+
+### 状态
+
+`MODEL_REFACTORED_2026-08-22`
+
+---
+
 # 每书复盘最小问题集
 
 每完成一本书或一个 work family，PROJECT_MAIN_AGENT 必须回答：
@@ -443,5 +533,8 @@ QM-SRC-0025 开始连续视觉复核后，仅 `pdf:p1-p50` 就暴露出一个此
 13. 我的关系表示是否保留顺序、方向、角色与操作语义，而不是把 `A+B` 与 `B+A` 压成同一个共现集合？
 14. 我是否区分了 BASE_TEXT、COMMENTARY、白话译释、序跋、题名页署名与出版信息，而不是让同一页的多个声音共享一个作者与 Evidence 身份？
 15. 当前所谓“作者”究竟是版本署名、段落内署名、传统归属声明，还是已经独立核验的历史作者？
+16. 当前规则究竟属于描述、预测、择时、处方行动、仪式操作、图式算法、传统叙事还是注释解释；它是否被跨 Method Layer 误用？
+17. 我是否把同名符号在天盘、地盘、不同宫位或不同角色中的实例压成了一个 symbol type？
+18. 当前 Schema 是否因为“不允许 UNKNOWN”而逼迫我制造来源并未支持的确定答案？
 
 如果第 9 问无法回答，该理论当前不可证伪，只能保留为来源描述或解释性假设。
