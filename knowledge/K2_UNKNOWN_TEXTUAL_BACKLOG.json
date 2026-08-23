@@ -7,9 +7,10 @@
     "knowledge/K2_SOURCE_SEGMENTS.jsonl"
   ],
   "raw_unknown_textual_source_count": 96,
-  "remaining_unknown_textual_source_count": 93,
-  "resolved_by_k2_discovery_count": 3,
+  "remaining_unknown_textual_source_count": 92,
+  "resolved_by_k2_discovery_count": 4,
   "resolved_source_ids": [
+    "QM-SRC-0009",
     "QM-SRC-0022",
     "QM-SRC-0023",
     "QM-SRC-0024"

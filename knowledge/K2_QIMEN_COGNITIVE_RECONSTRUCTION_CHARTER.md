@@ -20,7 +20,7 @@ Empirical Credit：`NONE`
 
 这里的“闭关”不是暂停读书，而是改变读书的认识论地位。文献仍然是基础材料，但文献只回答“某个来源说了什么、怎样说、在什么语境下说”，不能自动回答“现实是否如此”。
 
-当前也不得宣称已经完成全库掌握。机器账本仍有 `93` 个 global semantic-UNKNOWN textual backlog，因此：
+当前也不得宣称已经完成全库掌握。机器账本仍有 `92` 个 global semantic-UNKNOWN textual backlog，因此：
 
 `full_corpus_mastery_claim = false`
 
@@ -219,7 +219,7 @@ SCRM-v0.1 是本项目新建的场景推演候选核心，负责：
 
 认知重构不能变成“只研究自己喜欢的几本书”。
 
-当前剩余的 `93` 个 semantic-UNKNOWN textual source 是明确知识债。后续覆盖按三条 lane 继续：
+当前剩余的 `92` 个 semantic-UNKNOWN textual source 是明确知识债。后续覆盖按三条 lane 继续：
 
 1. 已有完整阅读但尚未有效路由的材料：优先建立 discovery overlay；
 2. TEXT_OK：逐页保留来源结构进行完整阅读；

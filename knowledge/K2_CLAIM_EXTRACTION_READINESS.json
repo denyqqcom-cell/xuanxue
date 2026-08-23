@@ -24,7 +24,7 @@
     "knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json"
   ],
   "observed_state": {
-    "evidence_state_unknown_textual_resolution_backlog": 93,
+    "evidence_state_unknown_textual_resolution_backlog": 92,
     "evidence_status": "WAVE1_OPEN",
     "project_next_phase": "K2_CLAIM_EXTRACTION",
     "project_phase": "K2_EVIDENCE_EXTRACTION",
@@ -32,8 +32,8 @@
     "qcic_enumeration_unit_count": 2,
     "qcic_stance_topic_count": 9,
     "raw_unknown_textual_source_count": 96,
-    "resolved_by_k2_discovery_count": 3,
-    "unknown_textual_resolution_backlog": 93
+    "resolved_by_k2_discovery_count": 4,
+    "unknown_textual_resolution_backlog": 92
   },
   "schema_version": "k2-claim-extraction-readiness-v1",
   "status": "CLOSED",

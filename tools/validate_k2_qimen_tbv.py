@@ -292,9 +292,14 @@ def validate(repo: Path = ROOT):
         "SOURCE ENDORSES RULE != RULE IS EMPIRICALLY VALID",
         "universalization_status = BLOCKED",
         "empirical_credit = NONE",
-        "global_unknown_textual_backlog = 93",
+        "global_unknown_textual_backlog = 92",
         "KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION",
         "COVERAGE CREDIT != INDEPENDENT EVIDENCE VOTE",
+        "PREDEFINED PROCEDURAL BRANCHING != POST-HOC INTERPRETIVE SEARCH",
+        "CALCULATION CONSISTENCY != REAL-WORLD VALIDITY",
+        "TEXTUAL PRECISION != EMPIRICAL VALIDATION",
+        "EDITORIAL REPETITION != INDEPENDENT CORROBORATION",
+        "SOURCE CONTAINS METHOD != SOURCE ENDORSES METHOD",
     ):
         if needle not in protocol:
             issues.append(f"TBV protocol missing invariant: {needle}")

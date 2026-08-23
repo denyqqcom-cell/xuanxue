@@ -21,7 +21,7 @@ Windows/WSL/Linux 的 source 定位不再依赖固定 private intake 路径；�
 
 Wave 1 按 work coverage 而不是文件数排程：所有 P0 work family 展开到完整 PRIMARY_WORK/WORK_PART coverage；六爻与大六壬薄 corpus 的全部 governed unique textual coverage同步进入。`claim_extraction_blocked=true` 保持。
 
-当前 K2B 账面：unique textual coverage units = 103；semantic UNKNOWN textual backlog = 93。UNKNOWN 不会被遗忘，后续必须经过 content review 后路由或保留有依据的 UNKNOWN。
+当前 K2B 账面：unique textual coverage units = 103；semantic UNKNOWN textual backlog = 92。UNKNOWN 不会被遗忘，后续必须经过 content review 后路由或保留有依据的 UNKNOWN。
 
 六个正式术数域当前成熟度一致；Balance Gate 已从‘限制失衡’转为‘保持同步推进’。
 
