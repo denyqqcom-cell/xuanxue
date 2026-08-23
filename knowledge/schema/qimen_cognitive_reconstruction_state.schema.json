@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qimen_cognitive_reconstruction_state.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "status",
+    "mode",
+    "active_framework",
+    "framework_status",
+    "claim_extraction_blocked",
+    "empirical_credit",
+    "full_corpus_mastery_claim",
+    "coverage_status",
+    "global_unknown_textual_backlog",
+    "deep_visual_reviewed_source_count",
+    "historical_bias_count",
+    "workstreams",
+    "gates"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "k2-qimen-cognitive-reconstruction-v1"},
+    "status": {"enum": ["OPEN", "REVIEW_REQUIRED", "COMPLETE"]},
+    "mode": {"const": "COGNITIVE_RECONSTRUCTION"},
+    "active_framework": {"const": "SCRM-v0.1"},
+    "framework_status": {"const": "CANDIDATE_UNTESTED"},
+    "claim_extraction_blocked": {"const": true},
+    "empirical_credit": {"const": "NONE"},
+    "full_corpus_mastery_claim": {"type": "boolean"},
+    "coverage_status": {"enum": ["INCOMPLETE", "COMPLETE"]},
+    "global_unknown_textual_backlog": {"type": "integer", "minimum": 0},
+    "deep_visual_reviewed_source_count": {"type": "integer", "minimum": 0},
+    "historical_bias_count": {"type": "integer", "minimum": 1},
+    "workstreams": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "CRITICAL_RETROSPECTIVE",
+          "CORPUS_COMPLETION",
+          "SCENARIO_MODELING",
+          "PROSPECTIVE_VALIDATION",
+          "THEORY_ITERATION"
+        ]
+      }
+    },
+    "gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "theory_boundary_validation_required",
+        "scenario_graph_required",
+        "reality_anchor_required",
+        "competing_explanations_required",
+        "counterfactual_required",
+        "sensitivity_required",
+        "abstention_required",
+        "prospective_validation_required",
+        "no_book_rule_universalization",
+        "no_innovation_credit_without_test"
+      ],
+      "properties": {
+        "theory_boundary_validation_required": {"const": true},
+        "scenario_graph_required": {"const": true},
+        "reality_anchor_required": {"const": true},
+        "competing_explanations_required": {"const": true},
+        "counterfactual_required": {"const": true},
+        "sensitivity_required": {"const": true},
+        "abstention_required": {"const": true},
+        "prospective_validation_required": {"const": true},
+        "no_book_rule_universalization": {"const": true},
+        "no_innovation_credit_without_test": {"const": true}
+      }
+    }
+  }
+}

@@ -4,6 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "knowledge-engine-ci.yml"
 QCIC_WORKFLOW = ROOT / ".github" / "workflows" / "k2-qcic-v06-gates.yml"
+COGNITIVE_WORKFLOW = ROOT / ".github" / "workflows" / "k2-qimen-cognitive-reconstruction.yml"
 
 
 def require(text: str, needle: str):
@@ -64,6 +65,30 @@ def main():
     ):
         if not required_path.exists():
             raise AssertionError(f"missing semantic discovery routing artifact: {required_path.relative_to(ROOT)}")
+
+    # Qimen deep-closure now has an explicit cognitive-reconstruction lane.
+    # It must preserve historical mistakes, keep corpus-completeness claims
+    # fail-closed while UNKNOWN backlog remains, and treat the new SCRM model as
+    # an untested candidate rather than a source of empirical credit.
+    require(text, "python3 tools/test_k2_qimen_cognitive_reconstruction.py")
+    require(text, "python3 tools/validate_k2_qimen_cognitive_reconstruction.py")
+    cognitive = COGNITIVE_WORKFLOW.read_text(encoding="utf-8")
+    require(cognitive, "name: K2 Qimen Cognitive Reconstruction Gates")
+    require(cognitive, "python3 tools/test_k2_qimen_cognitive_reconstruction.py")
+    require(cognitive, "python3 tools/validate_k2_qimen_cognitive_reconstruction.py")
+    for required_path in (
+        ROOT / "knowledge" / "schema" / "qimen_cognitive_reconstruction_state.schema.json",
+        ROOT / "knowledge" / "schema" / "qimen_cognitive_error.schema.json",
+        ROOT / "knowledge" / "schema" / "qimen_scenario_reasoning.schema.json",
+        ROOT / "knowledge" / "K2_QIMEN_COGNITIVE_RECONSTRUCTION_STATE.json",
+        ROOT / "knowledge" / "K2_QIMEN_COGNITIVE_ERROR_LEDGER.jsonl",
+        ROOT / "knowledge" / "K2_QIMEN_COGNITIVE_RECONSTRUCTION_CHARTER.md",
+        ROOT / "knowledge" / "K2_QIMEN_SCRM_V01.md",
+        ROOT / "tools" / "test_k2_qimen_cognitive_reconstruction.py",
+        ROOT / "tools" / "validate_k2_qimen_cognitive_reconstruction.py",
+    ):
+        if not required_path.exists():
+            raise AssertionError(f"missing Qimen cognitive-reconstruction artifact: {required_path.relative_to(ROOT)}")
 
     require(text, "python3 tools/test_k2_work_family_distillates.py")
     require(text, "python3 tools/validate_k2_work_family_distillates.py")

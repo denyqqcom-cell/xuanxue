@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qimen_cognitive_error.schema.json",
+  "type": "object",
+  "required": [
+    "bias_id",
+    "category",
+    "historical_pattern",
+    "why_wrong",
+    "evidence_refs",
+    "correction_status",
+    "current_control",
+    "residual_risk",
+    "next_test",
+    "empirical_credit"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "bias_id": {"type": "string", "pattern": "^QCR-BIAS-[0-9]{3}$"},
+    "category": {
+      "enum": [
+        "PROVENANCE",
+        "INDEPENDENCE",
+        "ROUTING",
+        "RULE_SEARCH",
+        "METHOD_LAYER",
+        "OBSERVATION",
+        "RETROSPECTIVE",
+        "COVERAGE",
+        "SCENARIO",
+        "VALIDATION",
+        "CONFIDENCE",
+        "THEORY_BUILDING"
+      ]
+    },
+    "historical_pattern": {"type": "string", "minLength": 20},
+    "why_wrong": {"type": "string", "minLength": 20},
+    "evidence_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 5}
+    },
+    "correction_status": {"enum": ["CORRECTED", "PARTIALLY_CORRECTED", "OPEN"]},
+    "current_control": {"type": "string", "minLength": 10},
+    "residual_risk": {"type": "string", "minLength": 10},
+    "next_test": {"type": "string", "minLength": 10},
+    "empirical_credit": {"const": "NONE"}
+  }
+}
