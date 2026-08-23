@@ -10,6 +10,7 @@ on:
       - 'knowledge/K2_QIMEN_COGNITIVE_*'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
       - 'knowledge/K2_QIMEN_TBV_*'
+      - 'knowledge/K2_QIMEN_PRACTICE_*'
       - 'knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json'
       - 'knowledge/K2_DEEP_READING_LEDGER.jsonl'
       - 'knowledge/K2_DEEP_SOURCE_DISTILLATES.d/**'
@@ -19,6 +20,8 @@ on:
       - 'tools/validate_k2_qimen_cognitive_reconstruction.py'
       - 'tools/test_k2_qimen_tbv.py'
       - 'tools/validate_k2_qimen_tbv.py'
+      - 'tools/test_k2_qimen_practice_input_integrity.py'
+      - 'tools/validate_k2_qimen_practice_input_integrity.py'
       - '.github/workflows/k2-qimen-cognitive-reconstruction.yml'
       - '.github/workflows/knowledge-engine-ci.yml'
       - 'tools/test_knowledge_ci_contract.py'
@@ -27,6 +30,7 @@ on:
       - 'knowledge/K2_QIMEN_COGNITIVE_*'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
       - 'knowledge/K2_QIMEN_TBV_*'
+      - 'knowledge/K2_QIMEN_PRACTICE_*'
       - 'knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json'
       - 'knowledge/K2_DEEP_READING_LEDGER.jsonl'
       - 'knowledge/K2_DEEP_SOURCE_DISTILLATES.d/**'
@@ -36,6 +40,8 @@ on:
       - 'tools/validate_k2_qimen_cognitive_reconstruction.py'
       - 'tools/test_k2_qimen_tbv.py'
       - 'tools/validate_k2_qimen_tbv.py'
+      - 'tools/test_k2_qimen_practice_input_integrity.py'
+      - 'tools/validate_k2_qimen_practice_input_integrity.py'
       - '.github/workflows/k2-qimen-cognitive-reconstruction.yml'
       - '.github/workflows/knowledge-engine-ci.yml'
       - 'tools/test_knowledge_ci_contract.py'
@@ -58,3 +64,7 @@ jobs:
         run: python3 tools/test_k2_qimen_tbv.py
       - name: Enforce current Theory-Boundary-Validation state
         run: python3 tools/validate_k2_qimen_tbv.py
+      - name: Test Qimen practice input-integrity fail-closed cases
+        run: python3 tools/test_k2_qimen_practice_input_integrity.py
+      - name: Enforce Qimen practice input-integrity contract
+        run: python3 tools/validate_k2_qimen_practice_input_integrity.py
