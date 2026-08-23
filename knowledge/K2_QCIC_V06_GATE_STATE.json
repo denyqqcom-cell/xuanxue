@@ -1,0 +1,12 @@
+{
+  "schema_version": "k2-qcic-v06-machine-gates-v1",
+  "status": "ACTIVE",
+  "claim_extraction_blocked": true,
+  "targets": [
+    {
+      "source_id": "QM-SRC-0017",
+      "source_stance": {"required": true, "minimum_rows": 4},
+      "enumeration_compression": {"required": true, "minimum_rows": 2}
+    }
+  ]
+}

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 from copy import deepcopy
-from validate_k2_source_stance import validate_rows
+from validate_k2_source_stance import validate_rows,coverage_issues
 
 SRC={"QM-SRC-0017":{"file_sha256":"a"*64}}
 LIN={"QM-SRC-0017":{"work_id":"WORK-000224"}}
 DEEP={"QM-SRC-0017":{"read_status":"COMPLETE","verification_mode":"VISUAL_PAGE","page_end":419}}
+STATE={"schema_version":"k2-qcic-v06-machine-gates-v1","status":"ACTIVE","claim_extraction_blocked":True,"targets":[{"source_id":"QM-SRC-0017","source_stance":{"required":True,"minimum_rows":1},"enumeration_compression":{"required":True,"minimum_rows":0}}]}
 BASE={
  "stance_id":"K2SS-QM0017-001","source_id":"QM-SRC-0017","work_id":"WORK-000224","canonical_sha256":"a"*64,
  "topic_key":"chance-omen","stance":"SOURCE_REJECTS","evidence_locators":["pdf:p416"],"stance_basis":"VISUAL_PAGE",
@@ -18,6 +19,8 @@ def assert_bad(mut,msg):
 
 def main():
     assert not validate_rows(SRC,LIN,DEEP,[deepcopy(BASE)])
+    assert not coverage_issues([deepcopy(BASE)],deepcopy(STATE))
+    assert coverage_issues([],deepcopy(STATE)),"required registry rows may not disappear"
     assert_bad(lambda r:r.__setitem__("author_method_pool_eligible",True),"rejected stance entered method pool")
     assert_bad(lambda r:r.__setitem__("empirical_credit","VALIDATED"),"empirical credit escaped")
     assert_bad(lambda r:r.__setitem__("evidence_locators",["pdf:p999"]),"out-of-range locator accepted")

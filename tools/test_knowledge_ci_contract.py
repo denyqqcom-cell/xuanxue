@@ -74,6 +74,7 @@ def main():
         ROOT / "knowledge" / "schema" / "enumeration_compression.schema.json",
         ROOT / "knowledge" / "K2_SOURCE_STANCE_REGISTRY.jsonl",
         ROOT / "knowledge" / "K2_ENUMERATION_COMPRESSION_REGISTRY.jsonl",
+        ROOT / "knowledge" / "K2_QCIC_V06_GATE_STATE.json",
     ):
         if not required_path.exists():
             raise AssertionError(f"missing QCIC v0.6 machine-gate artifact: {required_path.relative_to(ROOT)}")
