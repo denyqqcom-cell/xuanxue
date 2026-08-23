@@ -7,6 +7,7 @@ ROOT = Path(__file__).resolve().parents[1]
 K = ROOT / "knowledge"
 
 REGISTRY = "K2_QIMEN_TBV_REVIEW_REGISTRY.jsonl"
+REGISTRY_SHARD_DIR = "K2_QIMEN_TBV_REVIEW_REGISTRY.d"
 STATE = "K2_QIMEN_TBV_STATE.json"
 BACKLOG = "K2_UNKNOWN_TEXTUAL_BACKLOG.json"
 DEEP_LEDGER = "K2_DEEP_READING_LEDGER.jsonl"
@@ -24,6 +25,7 @@ EXPECTED_WAVE_A = {
 }
 EXPECTED_WAVE_B_SEED = {
     "WF-QM-SANYUAN-QIMEN-001",
+    "WF-QM-JINHAN-YUJING-001",
 }
 
 ALLOWED_UNIT_TYPES = {"DEEP_SOURCE", "WORK_FAMILY"}
@@ -67,6 +69,15 @@ def deep_visual_ids(rows):
         and row.get("review_status") == "REVIEWED"
         and row.get("verification_mode") == "VISUAL_PAGE"
     }
+
+
+def load_registry_rows(k: Path):
+    rows = load_jsonl(k / REGISTRY)
+    shard_dir = k / REGISTRY_SHARD_DIR
+    if shard_dir.exists():
+        for path in sorted(shard_dir.glob("*.jsonl")):
+            rows.extend(load_jsonl(path))
+    return rows
 
 
 def load_work_family_rows(k: Path):
@@ -179,7 +190,7 @@ def validate(repo: Path = ROOT):
     if missing:
         return [f"missing TBV artifact(s): {missing}"]
 
-    registry = load_jsonl(k / REGISTRY)
+    registry = load_registry_rows(k)
     state = load_json(k / STATE)
     backlog = load_json(k / BACKLOG)
     deep_rows = load_jsonl(k / DEEP_LEDGER)

@@ -127,11 +127,18 @@ TBV 不允许输出：
 - QM-SRC-0021；
 - WF-QM-JIADUN-ZHENSHOU-001。
 
-Wave B 已从：
+Wave B 已继续推进：
 
-- WF-QM-SANYUAN-QIMEN-001
+- WF-QM-SANYUAN-QIMEN-001；
+- WF-QM-JINHAN-YUJING-001。
 
-开始继续推进。
+其中《金函玉镜奇门遁甲秘笈全书》进一步强化三项边界：
+
+1. 同名天干必须保存天盘/地盘/宫位与方向，`SymbolType != SymbolInstance`；
+2. 不同占类会改变取用对象，不能建立跨场景固定用神优先级；
+3. 预测、择日、兵占、图式算法、仪式操作与现代白话译释必须先做 Method Layer / voice provenance 分离。
+
+这些是 representation / method credit，不是预测准确率证据。
 
 TBV 的“覆盖”不能简单等于 `DEEP_SOURCE` 行数。一个已经完整复核的 work family 可以覆盖多个成员 carrier / segment，但在来源独立性上仍只算一个 family unit。因此机器状态同时保存：
 
@@ -141,6 +148,13 @@ TBV 的“覆盖”不能简单等于 `DEEP_SOURCE` 行数。一个已经完整�
 - 尚未被任何 TBV unit 覆盖的 deep-source gap。
 
 这避免为了把覆盖数字做满而给同一 work family 的每个成员重复建立 standalone TBV 行。
+
+当前 16 个 deep-visual reviewed 奇门来源中，TBV effective coverage 已覆盖 12 个；剩余 gap 为：
+
+- QM-SRC-0024；
+- QM-SRC-0027；
+- QM-SRC-0028；
+- QM-SRC-0029。
 
 全项目仍有：
 
@@ -154,13 +168,13 @@ TBV 的“覆盖”不能简单等于 `DEEP_SOURCE` 行数。一个已经完整�
 
 ## 8. 当前认知结果
 
-Wave A 已经足以确认一个重要方向：
+Wave A / B 当前支持的工程化方向不是“某符号固定等于某结果”，而是：
 
-传统材料中真正可被工程化保留的内容，往往不是“某符号固定等于某结果”，而是：
-
-`对象定义 + 问题域 + 角色坐标 + 时间模型 + 方法层 + 条件关系 + 程序顺序 + 现实边界`
+`对象定义 + 问题域 + 角色坐标 + symbol instance/layer + 时间模型 + 方法层 + 条件关系 + 程序顺序 + 现实边界`
 
 这与 SCRM 的 scenario-conditioned relational 路线相容，但“相容”只代表方法结构能够衔接，并不代表 SCRM 已经被证实。
+
+尤其《金函玉镜》提醒：如果只记录“甲、乙、门、星、神出现了什么”，却丢失它在天盘还是地盘、什么宫位、谁加谁、当前问的是哪一类事情，就已经把来源方法压坏了。反过来，保存这些结构也仍然只是 method representation，更不能自动转成现实命中率。
 
 ## 9. 失败条件
 
@@ -180,7 +194,7 @@ TBV 本身也允许失败。
 
 下一步分两路并行：
 
-A. 对剩余已经完成视觉深读、但尚未被 standalone 或 work-family TBV 有效覆盖的奇门材料继续做 Wave B；
+A. 对剩余四个已经完成视觉深读、但尚未被 standalone 或 work-family TBV 有效覆盖的来源（QM-SRC-0024、0027、0028、0029）继续做 Wave B；
 
 B. 对尚未解决的 semantic UNKNOWN corpus 继续真实 content review，禁止按文件名、目录或猜测批量清零。
 
@@ -188,7 +202,7 @@ B. 对尚未解决的 semantic UNKNOWN corpus 继续真实 content review，禁�
 
 ## 11. Known-outcome training 与评价隔离
 
-TBV 新增一个明确的验证边界：
+TBV 明确维持验证边界：
 
 `KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION`
 
@@ -220,3 +234,9 @@ TBV 新增一个明确的验证边界：
 若一个 TBV work-family unit 的 `member_refs` 指向多个已经 COMPLETE / REVIEWED / VISUAL_PAGE 的奇门来源，这些成员可以计入 `effective_deep_source_coverage`，因为它们的 unique coverage 已被该 family review 吸收；但整个 work family 仍不能因此产生多个独立 corroboration votes。
 
 反过来，也不能为了满足“每个 deep source 都有一行”的形式指标，给同一 work family 的上中下册、上下卷或 work part 再复制内容近似的 standalone TBV 行。真正需要单独 review 的情况，应当是该成员具有 family distillate 未覆盖的独特 theory / boundary / validation 信息，而不是为了增加计数。
+
+## 13. TBV registry shard
+
+随着 Wave B 扩展，TBV review 可以继续放在主 registry，也可以放入 `knowledge/K2_QIMEN_TBV_REVIEW_REGISTRY.d/*.jsonl` shard。validator 必须合并读取 aggregate + shards，并继续执行 duplicate review_id / duplicate unit / work-family identity / coverage machine-accounting Gate。
+
+shard 只是存储扩展，不增加独立证据票，也不能绕过主 TBV schema 与 fail-closed invariant。
