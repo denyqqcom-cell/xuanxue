@@ -11,6 +11,7 @@ STATE = "K2_QIMEN_TBV_STATE.json"
 BACKLOG = "K2_UNKNOWN_TEXTUAL_BACKLOG.json"
 DEEP_LEDGER = "K2_DEEP_READING_LEDGER.jsonl"
 WORK_FAMILY = "K2_WORK_FAMILY_DISTILLATES.jsonl"
+WORK_FAMILY_SHARD_DIR = "K2_WORK_FAMILY_DISTILLATES.d"
 PROTOCOL = "K2_QIMEN_TBV_PROTOCOL.md"
 
 EXPECTED_WAVE_A = {
@@ -66,6 +67,15 @@ def deep_visual_ids(rows):
         and row.get("review_status") == "REVIEWED"
         and row.get("verification_mode") == "VISUAL_PAGE"
     }
+
+
+def load_work_family_rows(k: Path):
+    rows = load_jsonl(k / WORK_FAMILY)
+    shard_dir = k / WORK_FAMILY_SHARD_DIR
+    if shard_dir.exists():
+        for path in sorted(shard_dir.glob("*.jsonl")):
+            rows.extend(load_jsonl(path))
+    return rows
 
 
 def validate_row(row: dict, idx: int, repo: Path, deep_ids: set[str], work_family_ids: set[str]):
@@ -173,7 +183,7 @@ def validate(repo: Path = ROOT):
     state = load_json(k / STATE)
     backlog = load_json(k / BACKLOG)
     deep_rows = load_jsonl(k / DEEP_LEDGER)
-    family_rows = load_jsonl(k / WORK_FAMILY)
+    family_rows = load_work_family_rows(k)
     protocol = (k / PROTOCOL).read_text(encoding="utf-8")
 
     deep_ids = deep_visual_ids(deep_rows)
