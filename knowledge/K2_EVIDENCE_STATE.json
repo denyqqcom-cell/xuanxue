@@ -7,7 +7,7 @@
   "public_evidence_file":"knowledge/K2_EVIDENCE_WAVE1.jsonl",
   "public_reading_ledger":"knowledge/K2_READING_LEDGER_WAVE1.jsonl",
   "unique_textual_coverage_units":103,
-  "unknown_textual_resolution_backlog":96,
+  "unknown_textual_resolution_backlog":93,
   "selection_rule":"all P0 work families expanded to all unique-coverage PRIMARY_WORK/WORK_PART members; all governed Liuyao/Liuren unique textual coverage included in Wave1",
   "execution_architecture":"PROJECT_MAIN_AGENT_WITH_LOCAL_HELPER",
   "source_resolution_modes":[

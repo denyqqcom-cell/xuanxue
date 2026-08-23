@@ -24,7 +24,7 @@ Earlier K2 work exposed a recurrent failure mode: a local sub-gate can be green 
 
 The readiness gate prevents a local success from being mistaken for global methodological maturity.
 
-It explicitly checks the global Evidence state, unresolved textual routing backlog, domain consistency, and current QCIC materialization before the project may even be reviewed for phase transition.
+It checks the global Evidence state, the machine-materialized semantic-UNKNOWN discovery backlog, domain consistency, and current QCIC materialization before the project may even be reviewed for phase transition.
 
 ## Inputs
 
@@ -33,6 +33,9 @@ The generated snapshot is derived only from tracked project state:
 - `knowledge/PROJECT_STATE.json`
 - `knowledge/K2_EVIDENCE_STATE.json`
 - `knowledge/K2_QCIC_INFERENCE_ELIGIBILITY_VIEW.json`
+- `knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json`
+
+The UNKNOWN-backlog snapshot is itself regenerated from all canonical K1 source rows plus the reviewed K2 semantic-discovery overlay. The readiness gate verifies that materialization is current instead of trusting a manually typed backlog integer.
 
 No private PDF text, local path, or untracked helper artifact is an input.
 
@@ -41,20 +44,28 @@ No private PDF text, local path, or untracked helper artifact is an input.
 The current v1 gate requires all of the following before it can return `READY_FOR_PROJECT_REVIEW`:
 
 1. `K2_EVIDENCE_STATE.status == COMPLETE`;
-2. `unknown_textual_resolution_backlog == 0`;
-3. the Evidence state itself no longer blocks Claim Extraction;
-4. the project is not globally K2-blocked;
-5. Evidence Extraction is not blocked;
-6. project and Evidence required-domain sets are consistent;
-7. the QCIC downstream eligibility view exactly matches its current registries and gate state.
+2. generated remaining semantic-UNKNOWN textual backlog equals zero;
+3. the UNKNOWN-backlog materialization is current;
+4. `K2_EVIDENCE_STATE.unknown_textual_resolution_backlog` exactly equals the generated remaining backlog;
+5. the Evidence state itself no longer blocks Claim Extraction;
+6. the project is not globally K2-blocked;
+7. Evidence Extraction is not blocked;
+8. project and Evidence required-domain sets are consistent;
+9. the QCIC downstream eligibility view exactly matches its current registries and gate state.
 
 Any failed prerequisite produces a stable blocker code and keeps the gate `CLOSED`.
 
 ## Current expected state
 
-At the time this protocol is introduced, K2B is still open and the unresolved textual routing backlog is non-zero. Therefore the correct readiness result is `CLOSED`.
+At the time this protocol is updated, three fully reviewed raw-UNKNOWN Qimen sources have been resolved through the K2 semantic-discovery routing overlay. The machine backlog therefore moves from 96 to 93.
 
-That is not a failure of the gate. It is the gate correctly preserving the phase boundary.
+K2B is still open, so the correct readiness result remains `CLOSED` with the substantive blockers:
+
+- `K2_EVIDENCE_STATE_NOT_COMPLETE`
+- `UNKNOWN_TEXTUAL_BACKLOG_REMAINS`
+- `EVIDENCE_STATE_BLOCKS_CLAIM_EXTRACTION`
+
+That is not a failure of the gate. It is the gate correctly preserving the phase boundary while still recognizing genuine backlog reduction.
 
 ## Claim Extraction is not empirical validation
 
@@ -80,6 +91,8 @@ The gate must remain closed when any of the following is true:
 
 - Evidence state is not globally complete;
 - semantic-UNKNOWN textual backlog remains;
+- UNKNOWN-backlog materialization is stale;
+- Evidence-state backlog accounting drifts from the generated backlog;
 - Evidence state still blocks Claim Extraction;
 - required-domain accounting drifts;
 - QCIC eligibility materialization is stale or invalid;

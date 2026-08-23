@@ -47,6 +47,24 @@ def main():
     require(text, "python3 tools/validate_k2_segment_evidence.py")
     require(text, "python3 tools/test_k2_deep_reading.py")
     require(text, "python3 tools/validate_k2_deep_reading.py")
+
+    # K1 semantic UNKNOWN rows are immutable historical intake. Later complete
+    # reading may resolve them only through the reviewed discovery-routing
+    # overlay, with machine-derived remaining-backlog accounting.
+    require(text, "python3 tools/test_k2_semantic_discovery_routing.py")
+    require(text, "python3 tools/validate_k2_semantic_discovery_routing.py")
+    for required_path in (
+        ROOT / "knowledge" / "schema" / "semantic_discovery_routing.schema.json",
+        ROOT / "knowledge" / "K2_SEMANTIC_DISCOVERY_ROUTING.jsonl",
+        ROOT / "knowledge" / "K2_UNKNOWN_TEXTUAL_BACKLOG.json",
+        ROOT / "knowledge" / "K2_SEMANTIC_DISCOVERY_ROUTING_PROTOCOL.md",
+        ROOT / "tools" / "generate_k2_unknown_textual_backlog.py",
+        ROOT / "tools" / "test_k2_semantic_discovery_routing.py",
+        ROOT / "tools" / "validate_k2_semantic_discovery_routing.py",
+    ):
+        if not required_path.exists():
+            raise AssertionError(f"missing semantic discovery routing artifact: {required_path.relative_to(ROOT)}")
+
     require(text, "python3 tools/test_k2_work_family_distillates.py")
     require(text, "python3 tools/validate_k2_work_family_distillates.py")
 

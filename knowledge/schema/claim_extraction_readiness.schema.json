@@ -12,18 +12,30 @@
     "claim_extraction_authorized": {"const": false},
     "transition_policy": {"const": "PROJECT_REVIEW_REQUIRED_V1_NEVER_AUTO_OPENS"},
     "generated_from": {
-      "type": "array", "minItems": 3, "uniqueItems": true,
+      "type": "array", "minItems": 4, "uniqueItems": true,
       "items": {"type": "string", "minLength": 1}
     },
     "checks": {
       "type": "object",
       "required": [
         "evidence_state_complete", "unknown_textual_backlog_cleared",
+        "unknown_textual_backlog_materialization_current", "unknown_textual_backlog_accounting_current",
         "evidence_state_unblocks_claim_extraction", "project_k2_not_blocked",
         "project_evidence_extraction_open", "required_domains_consistent",
         "qcic_materialization_current"
       ],
-      "additionalProperties": {"type": "boolean"}
+      "additionalProperties": false,
+      "properties": {
+        "evidence_state_complete": {"type": "boolean"},
+        "unknown_textual_backlog_cleared": {"type": "boolean"},
+        "unknown_textual_backlog_materialization_current": {"type": "boolean"},
+        "unknown_textual_backlog_accounting_current": {"type": "boolean"},
+        "evidence_state_unblocks_claim_extraction": {"type": "boolean"},
+        "project_k2_not_blocked": {"type": "boolean"},
+        "project_evidence_extraction_open": {"type": "boolean"},
+        "required_domains_consistent": {"type": "boolean"},
+        "qcic_materialization_current": {"type": "boolean"}
+      }
     },
     "blockers": {
       "type": "array", "uniqueItems": true,
@@ -33,6 +45,8 @@
       "type": "object",
       "required": [
         "project_phase", "project_next_phase", "evidence_status",
+        "evidence_state_unknown_textual_resolution_backlog",
+        "raw_unknown_textual_source_count", "resolved_by_k2_discovery_count",
         "unknown_textual_resolution_backlog", "qcic_stance_topic_count",
         "qcic_enumeration_unit_count", "qcic_claim_eligible_unit_count"
       ],
@@ -41,6 +55,9 @@
         "project_phase": {"type": "string"},
         "project_next_phase": {"type": "string"},
         "evidence_status": {"type": "string"},
+        "evidence_state_unknown_textual_resolution_backlog": {"type": "integer", "minimum": 0},
+        "raw_unknown_textual_source_count": {"type": "integer", "minimum": 0},
+        "resolved_by_k2_discovery_count": {"type": "integer", "minimum": 0},
         "unknown_textual_resolution_backlog": {"type": "integer", "minimum": 0},
         "qcic_stance_topic_count": {"type": "integer", "minimum": 0},
         "qcic_enumeration_unit_count": {"type": "integer", "minimum": 0},
