@@ -4,9 +4,19 @@
   "claim_extraction_blocked": true,
   "targets": [
     {
+      "source_id": "QM-SRC-0015",
+      "source_stance": {"required": true, "minimum_rows": 2},
+      "enumeration_compression": {"required": false, "minimum_rows": 0}
+    },
+    {
       "source_id": "QM-SRC-0017",
       "source_stance": {"required": true, "minimum_rows": 4},
       "enumeration_compression": {"required": true, "minimum_rows": 2}
+    },
+    {
+      "source_id": "QM-SRC-0019",
+      "source_stance": {"required": true, "minimum_rows": 3},
+      "enumeration_compression": {"required": false, "minimum_rows": 0}
     }
   ]
 }
