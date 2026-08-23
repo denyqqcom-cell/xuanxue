@@ -170,3 +170,28 @@ A. 对剩余已经完成视觉深读的奇门 source/work family 继续做 TBV W
 B. 对尚未解决的 semantic UNKNOWN corpus 继续真实 content review，禁止按文件名、目录或猜测批量清零。
 
 只有当覆盖、边界与验证路径同时推进，‘认知重构’才不是另一种形式的书本整理。
+
+## 11. Known-outcome training 与评价隔离
+
+TBV 新增一个明确的验证边界：
+
+`KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION`
+
+来源若建议使用“自己假设的事情”、已经知道结果的历史事件、事后反馈案例或其他 target-known 材料反复推演，这些材料可以用于：
+
+- 熟悉 source-local 算法；
+- 训练状态重建；
+- 检查是否能复述来源的方法路径；
+- 发现规则冲突与表示错误。
+
+但它们只能取得 `TRAINING / METHOD RECONSTRUCTION` 信用，不能进入同一模型版本的 prospective accuracy、calibration 或 empirical-credit 评价。
+
+因此后续验证必须：
+
+1. 给 known-outcome / retrospective / invented-event 练习显式标记 `TRAINING_ONLY`；
+2. 评价批次使用结果未知、反馈前冻结的 clean holdout；
+3. 已用于训练/复盘的案例不得再次作为盲测样本；
+4. 对语义近重复、同一事件改写、同源案例复制建立 contamination 检查；
+5. 一旦发现 training/evaluation leakage，该批结果降为方法研究材料，不得升级 empirical credit。
+
+这一控制首先来自《三元奇门遁甲讲义》上册 p5 对假设事件与已知事件反复推演的 source-local 训练建议。它不是对来源学习方法的否定，而是严格区分“练熟一个解释体系”与“在未知结果条件下证明它能预测”。

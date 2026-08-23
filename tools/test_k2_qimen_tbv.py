@@ -75,7 +75,7 @@ def main():
         write_jsonl(path, rows)
     issues = with_repo(family_mut)
     assert_issue(issues, "unknown reviewed work family")
-    assert_issue(issues, "Wave A coverage missing")
+    assert_issue(issues, "Wave B seed coverage missing")
 
     def backlog_mut(repo):
         path = repo / "knowledge" / "K2_UNKNOWN_TEXTUAL_BACKLOG.json"
@@ -83,6 +83,13 @@ def main():
         data["remaining_unknown_textual_source_count"] = 92
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     assert_issue(with_repo(backlog_mut), "TBV state/backlog count drift")
+
+    def protocol_mut(repo):
+        path = repo / "knowledge" / "K2_QIMEN_TBV_PROTOCOL.md"
+        text = path.read_text(encoding="utf-8")
+        text = text.replace("KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION", "KNOWN_OUTCOME_TRAINING == PROSPECTIVE_EVALUATION")
+        path.write_text(text, encoding="utf-8")
+    assert_issue(with_repo(protocol_mut), "TBV protocol missing invariant")
 
     print("k2-qimen-tbv-tests: PASS")
 

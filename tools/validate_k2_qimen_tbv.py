@@ -21,6 +21,9 @@ EXPECTED_WAVE_A = {
     "QM-SRC-0021",
     "WF-QM-JIADUN-ZHENSHOU-001",
 }
+EXPECTED_WAVE_B_SEED = {
+    "WF-QM-SANYUAN-QIMEN-001",
+}
 
 ALLOWED_UNIT_TYPES = {"DEEP_SOURCE", "WORK_FAMILY"}
 ALLOWED_OPERATIONAL = {
@@ -192,6 +195,8 @@ def validate(repo: Path = ROOT):
 
     if not EXPECTED_WAVE_A.issubset(seen_units):
         issues.append(f"Wave A coverage missing: {sorted(EXPECTED_WAVE_A-seen_units)}")
+    if not EXPECTED_WAVE_B_SEED.issubset(seen_units):
+        issues.append(f"Wave B seed coverage missing: {sorted(EXPECTED_WAVE_B_SEED-seen_units)}")
 
     if state.get("schema_version") != "k2-qimen-tbv-state-v1":
         issues.append("TBV state schema_version mismatch")
@@ -238,6 +243,7 @@ def validate(repo: Path = ROOT):
         "universalization_status = BLOCKED",
         "empirical_credit = NONE",
         "global_unknown_textual_backlog = 93",
+        "KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION",
     ):
         if needle not in protocol:
             issues.append(f"TBV protocol missing invariant: {needle}")
