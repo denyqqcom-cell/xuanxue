@@ -72,20 +72,31 @@ def main():
     # an untested candidate rather than a source of empirical credit.
     require(text, "python3 tools/test_k2_qimen_cognitive_reconstruction.py")
     require(text, "python3 tools/validate_k2_qimen_cognitive_reconstruction.py")
+    require(text, "python3 tools/test_k2_qimen_tbv.py")
+    require(text, "python3 tools/validate_k2_qimen_tbv.py")
     cognitive = COGNITIVE_WORKFLOW.read_text(encoding="utf-8")
     require(cognitive, "name: K2 Qimen Cognitive Reconstruction Gates")
     require(cognitive, "python3 tools/test_k2_qimen_cognitive_reconstruction.py")
     require(cognitive, "python3 tools/validate_k2_qimen_cognitive_reconstruction.py")
+    require(cognitive, "python3 tools/test_k2_qimen_tbv.py")
+    require(cognitive, "python3 tools/validate_k2_qimen_tbv.py")
     for required_path in (
         ROOT / "knowledge" / "schema" / "qimen_cognitive_reconstruction_state.schema.json",
         ROOT / "knowledge" / "schema" / "qimen_cognitive_error.schema.json",
         ROOT / "knowledge" / "schema" / "qimen_scenario_reasoning.schema.json",
+        ROOT / "knowledge" / "schema" / "qimen_tbv_review.schema.json",
+        ROOT / "knowledge" / "schema" / "qimen_tbv_state.schema.json",
         ROOT / "knowledge" / "K2_QIMEN_COGNITIVE_RECONSTRUCTION_STATE.json",
         ROOT / "knowledge" / "K2_QIMEN_COGNITIVE_ERROR_LEDGER.jsonl",
         ROOT / "knowledge" / "K2_QIMEN_COGNITIVE_RECONSTRUCTION_CHARTER.md",
         ROOT / "knowledge" / "K2_QIMEN_SCRM_V01.md",
+        ROOT / "knowledge" / "K2_QIMEN_TBV_REVIEW_REGISTRY.jsonl",
+        ROOT / "knowledge" / "K2_QIMEN_TBV_STATE.json",
+        ROOT / "knowledge" / "K2_QIMEN_TBV_PROTOCOL.md",
         ROOT / "tools" / "test_k2_qimen_cognitive_reconstruction.py",
         ROOT / "tools" / "validate_k2_qimen_cognitive_reconstruction.py",
+        ROOT / "tools" / "test_k2_qimen_tbv.py",
+        ROOT / "tools" / "validate_k2_qimen_tbv.py",
     ):
         if not required_path.exists():
             raise AssertionError(f"missing Qimen cognitive-reconstruction artifact: {required_path.relative_to(ROOT)}")

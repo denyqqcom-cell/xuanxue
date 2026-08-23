@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qimen_tbv_state.schema.json",
+  "title": "K2 Qimen TBV State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "reviewed_unit_count",
+    "reviewed_deep_source_count",
+    "reviewed_work_family_count",
+    "reviewed_deep_source_ids",
+    "reviewed_work_family_ids",
+    "known_deep_visual_reviewed_source_count",
+    "full_reviewed_material_tbv_coverage",
+    "global_unknown_textual_backlog",
+    "universalized_rule_count",
+    "empirical_validated_rule_count",
+    "claim_extraction_blocked",
+    "empirical_credit",
+    "next_priority"
+  ],
+  "properties": {
+    "schema_version": {"const": "k2-qimen-tbv-state-v1"},
+    "status": {"enum": ["PARTIAL", "COMPLETE"]},
+    "reviewed_unit_count": {"type": "integer", "minimum": 1},
+    "reviewed_deep_source_count": {"type": "integer", "minimum": 0},
+    "reviewed_work_family_count": {"type": "integer", "minimum": 0},
+    "reviewed_deep_source_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^QM-SRC-[0-9]{4}$"}},
+    "reviewed_work_family_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 5}},
+    "known_deep_visual_reviewed_source_count": {"type": "integer", "minimum": 0},
+    "full_reviewed_material_tbv_coverage": {"type": "boolean"},
+    "global_unknown_textual_backlog": {"type": "integer", "minimum": 0},
+    "universalized_rule_count": {"const": 0},
+    "empirical_validated_rule_count": {"const": 0},
+    "claim_extraction_blocked": {"const": true},
+    "empirical_credit": {"const": "NONE"},
+    "next_priority": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 10}}
+  }
+}

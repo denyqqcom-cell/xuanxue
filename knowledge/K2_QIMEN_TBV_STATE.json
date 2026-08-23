@@ -1,0 +1,29 @@
+{
+  "schema_version": "k2-qimen-tbv-state-v1",
+  "status": "PARTIAL",
+  "reviewed_unit_count": 6,
+  "reviewed_deep_source_count": 5,
+  "reviewed_work_family_count": 1,
+  "reviewed_deep_source_ids": [
+    "QM-SRC-0015",
+    "QM-SRC-0017",
+    "QM-SRC-0019",
+    "QM-SRC-0020",
+    "QM-SRC-0021"
+  ],
+  "reviewed_work_family_ids": [
+    "WF-QM-JIADUN-ZHENSHOU-001"
+  ],
+  "known_deep_visual_reviewed_source_count": 16,
+  "full_reviewed_material_tbv_coverage": false,
+  "global_unknown_textual_backlog": 93,
+  "universalized_rule_count": 0,
+  "empirical_validated_rule_count": 0,
+  "claim_extraction_blocked": true,
+  "empirical_credit": "NONE",
+  "next_priority": [
+    "extend TBV review to the remaining already-deep-reviewed Qimen sources/work families",
+    "continue semantic UNKNOWN backlog reduction only from actual content review",
+    "translate TBV findings into SCRM scenario operators without granting empirical credit"
+  ]
+}

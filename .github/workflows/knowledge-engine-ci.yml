@@ -82,6 +82,10 @@ jobs:
         run: python3 tools/test_k2_qimen_cognitive_reconstruction.py
       - name: Enforce Qimen cognitive reconstruction state
         run: python3 tools/validate_k2_qimen_cognitive_reconstruction.py
+      - name: Test Qimen Theory-Boundary-Validation reverse review
+        run: python3 tools/test_k2_qimen_tbv.py
+      - name: Enforce Qimen Theory-Boundary-Validation state
+        run: python3 tools/validate_k2_qimen_tbv.py
       - name: Test work-family distillation fail-closed cases
         run: python3 tools/test_k2_work_family_distillates.py
       - name: Enforce work-family distillation
