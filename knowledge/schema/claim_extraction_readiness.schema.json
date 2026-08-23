@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "claim_extraction_readiness.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version", "status", "claim_extraction_authorized", "transition_policy",
+    "generated_from", "checks", "blockers", "observed_state", "empirical_credit_path_separate"
+  ],
+  "properties": {
+    "schema_version": {"const": "k2-claim-extraction-readiness-v1"},
+    "status": {"enum": ["CLOSED", "READY_FOR_PROJECT_REVIEW"]},
+    "claim_extraction_authorized": {"const": false},
+    "transition_policy": {"const": "PROJECT_REVIEW_REQUIRED_V1_NEVER_AUTO_OPENS"},
+    "generated_from": {
+      "type": "array", "minItems": 3, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "checks": {
+      "type": "object",
+      "required": [
+        "evidence_state_complete", "unknown_textual_backlog_cleared",
+        "evidence_state_unblocks_claim_extraction", "project_k2_not_blocked",
+        "project_evidence_extraction_open", "required_domains_consistent",
+        "qcic_materialization_current"
+      ],
+      "additionalProperties": {"type": "boolean"}
+    },
+    "blockers": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "observed_state": {
+      "type": "object",
+      "required": [
+        "project_phase", "project_next_phase", "evidence_status",
+        "unknown_textual_resolution_backlog", "qcic_stance_topic_count",
+        "qcic_enumeration_unit_count", "qcic_claim_eligible_unit_count"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "project_phase": {"type": "string"},
+        "project_next_phase": {"type": "string"},
+        "evidence_status": {"type": "string"},
+        "unknown_textual_resolution_backlog": {"type": "integer", "minimum": 0},
+        "qcic_stance_topic_count": {"type": "integer", "minimum": 0},
+        "qcic_enumeration_unit_count": {"type": "integer", "minimum": 0},
+        "qcic_claim_eligible_unit_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "empirical_credit_path_separate": {"const": true}
+  },
+  "additionalProperties": false
+}

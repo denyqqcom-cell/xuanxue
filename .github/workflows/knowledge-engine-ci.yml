@@ -92,6 +92,10 @@ jobs:
         run: python3 tools/test_k2_evidence.py
       - name: Enforce K2 evidence state
         run: python3 tools/validate_k2_evidence.py
+      - name: Test K2 claim extraction readiness fail-closed cases
+        run: python3 tools/test_k2_claim_extraction_readiness.py
+      - name: Enforce current K2 claim extraction readiness snapshot
+        run: python3 tools/validate_k2_claim_extraction_readiness.py
       - name: Test K2 evidence re-audit fail-closed cases
         run: python3 tools/test_k2_evidence_reaudit.py
       - name: Enforce K2 evidence re-audit overlays

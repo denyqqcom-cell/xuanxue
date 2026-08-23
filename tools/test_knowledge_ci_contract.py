@@ -60,6 +60,22 @@ def main():
     require(text, "python3 tools/test_k2_prospective_validation.py")
     require(text, "python3 tools/validate_k2_prospective_validation.py")
 
+    # Claim Extraction readiness is a fail-closed review gate, not an automatic
+    # phase transition. The snapshot must remain current and authorization false.
+    require(text, "python3 tools/test_k2_claim_extraction_readiness.py")
+    require(text, "python3 tools/validate_k2_claim_extraction_readiness.py")
+
+    for required_path in (
+        ROOT / "knowledge" / "schema" / "claim_extraction_readiness.schema.json",
+        ROOT / "knowledge" / "K2_CLAIM_EXTRACTION_READINESS.json",
+        ROOT / "knowledge" / "K2_CLAIM_EXTRACTION_READINESS_PROTOCOL.md",
+        ROOT / "tools" / "generate_k2_claim_extraction_readiness.py",
+        ROOT / "tools" / "test_k2_claim_extraction_readiness.py",
+        ROOT / "tools" / "validate_k2_claim_extraction_readiness.py",
+    ):
+        if not required_path.exists():
+            raise AssertionError(f"missing Claim Extraction readiness artifact: {required_path.relative_to(ROOT)}")
+
     # QCIC v0.6 is not only prose: source stance, deterministic enumeration
     # collapse and the downstream materialized eligibility view are guarded by
     # a dedicated fail-closed workflow.
