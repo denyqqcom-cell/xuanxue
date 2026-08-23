@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from copy import deepcopy
-from validate_k2_source_stance import validate_rows,coverage_issues
+from validate_k2_source_stance import validate_rows,coverage_issues,effective_stance_rows
 
 SRC={"QM-SRC-0017":{"file_sha256":"a"*64}}
 LIN={"QM-SRC-0017":{"work_id":"WORK-000224"}}
@@ -27,10 +27,23 @@ def main():
     def reports_eligible(r):
         r["stance"]="SOURCE_REPORTS";r["author_method_pool_eligible"]=True
     assert_bad(reports_eligible,"reported-only stance entered method pool")
+
     old=deepcopy(BASE);old["stance_id"]="OLD";old["stance"]="SOURCE_REPORTS";old["stance_precedence"]=10
     new=deepcopy(BASE);new["stance_id"]="NEW";new["supersedes_stance_ids"]=["OLD"];new["stance_precedence"]=20
     assert not validate_rows(SRC,LIN,DEEP,[old,new])
+    assert [r["stance_id"] for r in effective_stance_rows([old,new])]==["NEW"]
     new["stance_precedence"]=5
     assert validate_rows(SRC,LIN,DEEP,[old,new]),"lower-precedence supersession accepted"
+
+    # Two unsuperseded rows for one topic create an ambiguous downstream stance
+    # even when every row is individually well-formed. This must fail closed.
+    a=deepcopy(BASE);a["stance_id"]="A";a["stance"]="SOURCE_REPORTS";a["stance_precedence"]=10
+    b=deepcopy(BASE);b["stance_id"]="B";b["stance"]="SOURCE_REJECTS";b["stance_precedence"]=20
+    assert validate_rows(SRC,LIN,DEEP,[a,b]),"ambiguous effective stance leaves accepted"
+    try:
+        effective_stance_rows([a,b])
+        raise AssertionError("ambiguous effective stance materialized")
+    except ValueError:
+        pass
     print("k2-source-stance-tests: PASS")
 if __name__=="__main__":main()

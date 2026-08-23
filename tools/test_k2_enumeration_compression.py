@@ -28,5 +28,11 @@ def main():
     assert_bad(lambda r:r.__setitem__("empirical_credit","VALIDATED"),"empirical credit escaped")
     assert_bad(lambda r:r.__setitem__("evidence_locators",["pdf:p500"]),"out-of-range locator accepted")
     assert_bad(lambda r:r.__setitem__("enumerated_entries_count",1),"single row accepted as enumeration")
+
+    # One generator split across two labels would double-count one structural
+    # mechanism if both rows were summed downstream. It must be one registry row.
+    a=deepcopy(BASE);a["compression_id"]="A";a["enumeration_label"]="part-a"
+    b=deepcopy(BASE);b["compression_id"]="B";b["enumeration_label"]="part-b";b["evidence_locators"]=["pdf:p210"]
+    assert validate_rows(SRC,LIN,DEEP,[a,b]),"duplicate generative_rule_id accepted"
     print("k2-enumeration-compression-tests: PASS")
 if __name__=="__main__":main()

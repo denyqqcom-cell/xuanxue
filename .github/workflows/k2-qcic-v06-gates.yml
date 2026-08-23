@@ -30,3 +30,7 @@ jobs:
         run: python3 tools/test_k2_enumeration_compression.py
       - name: Enforce enumeration compression registry
         run: python3 tools/validate_k2_enumeration_compression.py
+      - name: Test materialized QCIC inference eligibility
+        run: python3 tools/test_k2_qcic_eligibility_view.py
+      - name: Enforce current QCIC inference eligibility view
+        run: python3 tools/validate_k2_qcic_eligibility_view.py

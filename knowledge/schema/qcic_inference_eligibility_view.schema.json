@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qcic_inference_eligibility_view.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version", "generated_from", "claim_extraction_blocked", "empirical_credit",
+    "source_summaries", "stance_topics", "enumeration_units"
+  ],
+  "properties": {
+    "schema_version": {"const": "k2-qcic-inference-eligibility-v1"},
+    "generated_from": {
+      "type": "array", "minItems": 3, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "claim_extraction_blocked": {"const": true},
+    "empirical_credit": {"const": "NONE"},
+    "source_summaries": {"type": "array", "items": {"type": "object"}},
+    "stance_topics": {"type": "array", "items": {"type": "object"}},
+    "enumeration_units": {"type": "array", "items": {"type": "object"}}
+  },
+  "additionalProperties": false
+}

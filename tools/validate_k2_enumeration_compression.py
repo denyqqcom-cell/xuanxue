@@ -56,8 +56,7 @@ def coverage_issues(rows,state):
     if state.get("claim_extraction_blocked") is not True:issues.append(("STATE","claim_extraction_blocked must be true"))
     targets=state.get("targets")
     if not isinstance(targets,list) or not targets:issues.append(("STATE","targets must be non-empty array"));return issues
-    counts=Counter(r.get("source_id") for r in rows)
-    seen=set()
+    counts=Counter(r.get("source_id") for r in rows);seen=set()
     for t in targets:
         sid=t.get("source_id") if isinstance(t,dict) else None
         if not isinstance(sid,str) or not sid:issues.append(("STATE","target source_id required"));continue
@@ -65,22 +64,24 @@ def coverage_issues(rows,state):
         seen.add(sid)
         cfg=t.get("enumeration_compression")
         if not isinstance(cfg,dict):issues.append((sid,"enumeration_compression target config required"));continue
-        required=cfg.get("required")
-        minimum=cfg.get("minimum_rows")
+        required=cfg.get("required");minimum=cfg.get("minimum_rows")
         if not isinstance(required,bool):issues.append((sid,"enumeration_compression.required must be bool"))
         if not isinstance(minimum,int) or minimum<0:issues.append((sid,"enumeration_compression.minimum_rows must be non-negative int"));continue
         if required and counts.get(sid,0)<minimum:issues.append((sid,f"required enumeration compression rows missing: have={counts.get(sid,0)} need>={minimum}"))
     return issues
 
 def validate_rows(sources,lineage,deep,rows):
-    issues=[];ids=set();keys=set()
+    issues=[];ids=set();labels=set();generative_keys=set()
     for r in rows:
         rid=r.get("compression_id") or "<missing>";sid=r.get("source_id") or "<missing>"
         if rid in ids:issues.append((rid,"duplicate compression_id"))
         ids.add(rid)
-        key=(sid,r.get("enumeration_label"))
-        if key in keys:issues.append((rid,"duplicate source/enumeration_label"))
-        keys.add(key)
+        label_key=(sid,r.get("enumeration_label"))
+        if label_key in labels:issues.append((rid,"duplicate source/enumeration_label"))
+        labels.add(label_key)
+        generator_key=(sid,r.get("generative_rule_id"))
+        if generator_key in generative_keys:issues.append((rid,"duplicate source/generative_rule_id would double-count one structure mechanism"))
+        generative_keys.add(generator_key)
         extra=set(r)-ALLOWED
         if extra:issues.append((rid,f"unexpected fields: {sorted(extra)}"))
         src=sources.get(sid);lin=lineage.get(sid);read=deep.get(sid)
@@ -122,5 +123,5 @@ def main():
     issues=validate_rows(source_index(),lineage_index(),deep_reading_index(),rows)+coverage_issues(rows,state)
     if issues:fail(f"issues={len(issues)}; "+"; ".join(f"{a}: {b}" for a,b in issues[:20]))
     print("k2-enumeration-compression: PASS")
-    print(f"rows={len(rows)} collapsed_entries={sum(r.get('enumerated_entries_count',0) for r in rows)} required_targets={len(state.get('targets',[]))} issues=0")
+    print(f"rows={len(rows)} collapsed_entries={sum(r.get('enumerated_entries_count',0) for r in rows)} unique_generators={len({(r.get('source_id'),r.get('generative_rule_id')) for r in rows})} required_targets={len(state.get('targets',[]))} issues=0")
 if __name__=="__main__":main()

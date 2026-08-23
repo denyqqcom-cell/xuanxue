@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import json,re,sys
 from pathlib import Path
-from collections import Counter
+from collections import Counter,defaultdict
 from validate_k2_lineage_corrections import raw_lineage_index,effective_lineage_index
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -51,6 +51,19 @@ def lineage_index(root=ROOT):
 def deep_reading_index(root=ROOT):
     return {r.get("source_id"):r for r in load_jsonl(root/"knowledge"/"K2_DEEP_READING_LEDGER.jsonl")}
 
+def effective_stance_rows(rows):
+    by_topic=defaultdict(list);superseded=set()
+    for r in rows:
+        by_topic[(r.get("source_id"),r.get("topic_key"))].append(r)
+        superseded.update(r.get("supersedes_stance_ids") or [])
+    out=[]
+    for key,group in by_topic.items():
+        leaves=[r for r in group if r.get("stance_id") not in superseded]
+        if len(leaves)!=1:
+            raise ValueError(f"ambiguous effective stance for {key}: leaves={[r.get('stance_id') for r in leaves]}")
+        out.append(leaves[0])
+    return sorted(out,key=lambda r:(r.get("source_id") or "",r.get("topic_key") or "",r.get("stance_id") or ""))
+
 def coverage_issues(rows,state):
     issues=[]
     if not isinstance(state,dict):return [("STATE","missing QCIC v0.6 gate state")]
@@ -68,19 +81,18 @@ def coverage_issues(rows,state):
         seen.add(sid)
         cfg=t.get("source_stance")
         if not isinstance(cfg,dict):issues.append((sid,"source_stance target config required"));continue
-        required=cfg.get("required")
-        minimum=cfg.get("minimum_rows")
+        required=cfg.get("required");minimum=cfg.get("minimum_rows")
         if not isinstance(required,bool):issues.append((sid,"source_stance.required must be bool"))
         if not isinstance(minimum,int) or minimum<0:issues.append((sid,"source_stance.minimum_rows must be non-negative int"));continue
         if required and counts.get(sid,0)<minimum:issues.append((sid,f"required source stance rows missing: have={counts.get(sid,0)} need>={minimum}"))
     return issues
 
 def validate_rows(sources,lineage,deep,rows):
-    issues=[];ids=set();by_id={}
+    issues=[];ids=set();by_id={};by_topic=defaultdict(list);superseded=set()
     for r in rows:
         rid=r.get("stance_id") or "<missing>";sid=r.get("source_id") or "<missing>"
         if rid in ids:issues.append((rid,"duplicate stance_id"))
-        ids.add(rid);by_id[rid]=r
+        ids.add(rid);by_id[rid]=r;by_topic[(sid,r.get("topic_key"))].append(r)
         extra=set(r)-ALLOWED
         if extra:issues.append((rid,f"unexpected fields: {sorted(extra)}"))
         src=sources.get(sid);lin=lineage.get(sid);read=deep.get(sid)
@@ -95,6 +107,7 @@ def validate_rows(sources,lineage,deep,rows):
         if not isinstance(r.get("stance_precedence"),int) or r.get("stance_precedence")<0:issues.append((rid,"stance_precedence must be non-negative int"))
         supers=r.get("supersedes_stance_ids")
         if not isinstance(supers,list) or len(supers)!=len(set(supers)):issues.append((rid,"supersedes_stance_ids must be unique array"));supers=[]
+        superseded.update(x for x in supers if isinstance(x,str))
         eligible=r.get("author_method_pool_eligible")
         if not isinstance(eligible,bool):issues.append((rid,"author_method_pool_eligible must be bool"))
         if stance in {"SOURCE_REPORTS","SOURCE_REJECTS","SOURCE_UNCERTAIN"} and eligible is not False:
@@ -114,8 +127,7 @@ def validate_rows(sources,lineage,deep,rows):
                 if not m:issues.append((rid,f"invalid evidence locator {loc!r}"));continue
                 p=int(m.group(1))
                 if not isinstance(page_end,int) or p<1 or p>page_end:issues.append((rid,f"evidence locator outside reviewed pages: {loc}"))
-        blob=json.dumps(r,ensure_ascii=False)
-        if PATH_RE.search(blob):issues.append((rid,"local filesystem path leaked"))
+        if PATH_RE.search(json.dumps(r,ensure_ascii=False)):issues.append((rid,"local filesystem path leaked"))
 
     for r in rows:
         rid=r.get("stance_id") or "<missing>"
@@ -126,6 +138,11 @@ def validate_rows(sources,lineage,deep,rows):
                 issues.append((rid,"superseded stance must share source_id and topic_key"))
             if isinstance(target.get("stance_precedence"),int) and isinstance(r.get("stance_precedence"),int) and r["stance_precedence"]<=target["stance_precedence"]:
                 issues.append((rid,"superseding stance must have higher precedence"))
+
+    for key,group in by_topic.items():
+        leaves=[r for r in group if r.get("stance_id") not in superseded]
+        if len(leaves)!=1:
+            issues.append((f"{key[0]}:{key[1]}",f"effective stance must resolve to exactly one leaf, found={len(leaves)}"))
     return issues
 
 def main():
@@ -134,5 +151,5 @@ def main():
     issues=validate_rows(source_index(),lineage_index(),deep_reading_index(),rows)+coverage_issues(rows,state)
     if issues:fail(f"issues={len(issues)}; "+"; ".join(f"{a}: {b}" for a,b in issues[:20]))
     print("k2-source-stance: PASS")
-    print(f"rows={len(rows)} required_targets={len(state.get('targets',[]))} issues=0")
+    print(f"rows={len(rows)} effective_topics={len(effective_stance_rows(rows))} required_targets={len(state.get('targets',[]))} issues=0")
 if __name__=="__main__":main()
