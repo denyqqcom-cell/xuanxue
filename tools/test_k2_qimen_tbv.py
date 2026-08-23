@@ -84,12 +84,35 @@ def main():
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     assert_issue(with_repo(backlog_mut), "TBV state/backlog count drift")
 
-    def protocol_mut(repo):
+    def effective_count_mut(repo):
+        path = repo / "knowledge" / "K2_QIMEN_TBV_STATE.json"
+        state = json.loads(path.read_text(encoding="utf-8"))
+        state["effective_deep_source_coverage_count"] -= 1
+        path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    assert_issue(with_repo(effective_count_mut), "effective_deep_source_coverage_count drift")
+
+    def family_member_mut(repo):
+        path = repo / "knowledge" / "K2_WORK_FAMILY_DISTILLATES.d" / "WF-QM-SANYUAN-QIMEN-001.jsonl"
+        rows = load_jsonl(path)
+        rows[0]["member_refs"] = ["QM-SRC-0032"]
+        write_jsonl(path, rows)
+    issues = with_repo(family_member_mut)
+    assert_issue(issues, "effective_deep_source_coverage_count drift")
+    assert_issue(issues, "remaining_deep_source_tbv_ids drift")
+
+    def protocol_training_mut(repo):
         path = repo / "knowledge" / "K2_QIMEN_TBV_PROTOCOL.md"
         text = path.read_text(encoding="utf-8")
         text = text.replace("KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION", "KNOWN_OUTCOME_TRAINING == PROSPECTIVE_EVALUATION")
         path.write_text(text, encoding="utf-8")
-    assert_issue(with_repo(protocol_mut), "TBV protocol missing invariant")
+    assert_issue(with_repo(protocol_training_mut), "TBV protocol missing invariant")
+
+    def protocol_coverage_mut(repo):
+        path = repo / "knowledge" / "K2_QIMEN_TBV_PROTOCOL.md"
+        text = path.read_text(encoding="utf-8")
+        text = text.replace("COVERAGE CREDIT != INDEPENDENT EVIDENCE VOTE", "COVERAGE CREDIT == INDEPENDENT EVIDENCE VOTE")
+        path.write_text(text, encoding="utf-8")
+    assert_issue(with_repo(protocol_coverage_mut), "TBV protocol missing invariant")
 
     print("k2-qimen-tbv-tests: PASS")
 

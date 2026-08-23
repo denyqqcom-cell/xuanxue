@@ -116,9 +116,9 @@ TBV 不允许输出：
 - 高风险现实操作建议；
 - 因来源数量多而自动成立的共识真理。
 
-## 7. 当前 Wave A
+## 7. 当前 Wave A / Wave B
 
-首轮 TBV 反向重析只使用已经存在完整视觉阅读和正式 distillate 的材料，不冒充全库覆盖：
+首轮 Wave A 反向重析使用已经存在完整视觉阅读和正式 distillate 的材料：
 
 - QM-SRC-0015；
 - QM-SRC-0017；
@@ -127,15 +127,30 @@ TBV 不允许输出：
 - QM-SRC-0021；
 - WF-QM-JIADUN-ZHENSHOU-001。
 
-机器账本仍有 16 个奇门 deep visual reviewed source，而 TBV 当前只覆盖 5 个 standalone deep-source unit + 1 个 work-family unit，因此：
+Wave B 已从：
 
-`full_reviewed_material_tbv_coverage = false`
+- WF-QM-SANYUAN-QIMEN-001
 
-同时全项目仍有：
+开始继续推进。
+
+TBV 的“覆盖”不能简单等于 `DEEP_SOURCE` 行数。一个已经完整复核的 work family 可以覆盖多个成员 carrier / segment，但在来源独立性上仍只算一个 family unit。因此机器状态同时保存：
+
+- 显式 `DEEP_SOURCE` review 数；
+- `WORK_FAMILY` review 数；
+- work-family member 展开后的 `effective_deep_source_coverage`；
+- 尚未被任何 TBV unit 覆盖的 deep-source gap。
+
+这避免为了把覆盖数字做满而给同一 work family 的每个成员重复建立 standalone TBV 行。
+
+全项目仍有：
 
 `global_unknown_textual_backlog = 93`
 
-故不得宣称全知识库已经完成掌握。
+故：
+
+`full_reviewed_material_tbv_coverage = false`
+
+不得宣称全知识库已经完成掌握。
 
 ## 8. 当前认知结果
 
@@ -165,7 +180,7 @@ TBV 本身也允许失败。
 
 下一步分两路并行：
 
-A. 对剩余已经完成视觉深读的奇门 source/work family 继续做 TBV Wave B；
+A. 对剩余已经完成视觉深读、但尚未被 standalone 或 work-family TBV 有效覆盖的奇门材料继续做 Wave B；
 
 B. 对尚未解决的 semantic UNKNOWN corpus 继续真实 content review，禁止按文件名、目录或猜测批量清零。
 
@@ -195,3 +210,13 @@ TBV 新增一个明确的验证边界：
 5. 一旦发现 training/evaluation leakage，该批结果降为方法研究材料，不得升级 empirical credit。
 
 这一控制首先来自《三元奇门遁甲讲义》上册 p5 对假设事件与已知事件反复推演的 source-local 训练建议。它不是对来源学习方法的否定，而是严格区分“练熟一个解释体系”与“在未知结果条件下证明它能预测”。
+
+## 12. Work-family-aware coverage
+
+覆盖信用与独立证据票必须继续分开：
+
+`COVERAGE CREDIT != INDEPENDENT EVIDENCE VOTE`
+
+若一个 TBV work-family unit 的 `member_refs` 指向多个已经 COMPLETE / REVIEWED / VISUAL_PAGE 的奇门来源，这些成员可以计入 `effective_deep_source_coverage`，因为它们的 unique coverage 已被该 family review 吸收；但整个 work family 仍不能因此产生多个独立 corroboration votes。
+
+反过来，也不能为了满足“每个 deep source 都有一行”的形式指标，给同一 work family 的上中下册、上下卷或 work part 再复制内容近似的 standalone TBV 行。真正需要单独 review 的情况，应当是该成员具有 family distillate 未覆盖的独特 theory / boundary / validation 信息，而不是为了增加计数。

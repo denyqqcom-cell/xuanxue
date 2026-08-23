@@ -187,7 +187,12 @@ def validate(repo: Path = ROOT):
     protocol = (k / PROTOCOL).read_text(encoding="utf-8")
 
     deep_ids = deep_visual_ids(deep_rows)
-    work_family_ids = {r.get("work_family_key") for r in family_rows if isinstance(r.get("work_family_key"), str)}
+    work_family_by_id = {
+        r.get("work_family_key"): r
+        for r in family_rows
+        if isinstance(r.get("work_family_key"), str)
+    }
+    work_family_ids = set(work_family_by_id)
     issues = []
 
     seen_review_ids = set()
@@ -236,10 +241,34 @@ def validate(repo: Path = ROOT):
     if state.get("known_deep_visual_reviewed_source_count") != len(deep_ids):
         issues.append("known_deep_visual_reviewed_source_count drift")
 
+    family_member_deep_ids = set()
+    for family_id in registry_family_ids:
+        family = work_family_by_id.get(family_id)
+        if not family:
+            continue
+        refs = family.get("member_refs")
+        if not isinstance(refs, list):
+            continue
+        for ref in refs:
+            if not isinstance(ref, str) or not ref:
+                continue
+            source_id = ref.split("#", 1)[0]
+            if source_id in deep_ids:
+                family_member_deep_ids.add(source_id)
+
+    effective_deep_ids = registry_deep_ids | family_member_deep_ids
+    remaining_deep_ids = deep_ids - effective_deep_ids
+    if state.get("effective_deep_source_coverage_count") != len(effective_deep_ids):
+        issues.append("effective_deep_source_coverage_count drift")
+    if state.get("effective_deep_source_coverage_ids") != sorted(effective_deep_ids):
+        issues.append("effective_deep_source_coverage_ids drift")
+    if state.get("remaining_deep_source_tbv_ids") != sorted(remaining_deep_ids):
+        issues.append("remaining_deep_source_tbv_ids drift")
+
     remaining = backlog.get("remaining_unknown_textual_source_count")
     if state.get("global_unknown_textual_backlog") != remaining:
         issues.append("TBV state/backlog count drift")
-    expected_full = len(registry_deep_ids) >= len(deep_ids) and remaining == 0
+    expected_full = not remaining_deep_ids and remaining == 0
     if state.get("full_reviewed_material_tbv_coverage") is not expected_full:
         issues.append(f"full_reviewed_material_tbv_coverage must be {str(expected_full).lower()}")
     expected_status = "COMPLETE" if expected_full else "PARTIAL"
@@ -254,6 +283,7 @@ def validate(repo: Path = ROOT):
         "empirical_credit = NONE",
         "global_unknown_textual_backlog = 93",
         "KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION",
+        "COVERAGE CREDIT != INDEPENDENT EVIDENCE VOTE",
     ):
         if needle not in protocol:
             issues.append(f"TBV protocol missing invariant: {needle}")
@@ -275,7 +305,8 @@ def main():
     print("k2-qimen-tbv: PASS")
     print(
         f"status={state['status']} reviewed_units={state['reviewed_unit_count']} "
-        f"deep_sources={state['reviewed_deep_source_count']}/{state['known_deep_visual_reviewed_source_count']} "
+        f"deep_units={state['reviewed_deep_source_count']} "
+        f"effective_deep_sources={state['effective_deep_source_coverage_count']}/{state['known_deep_visual_reviewed_source_count']} "
         f"unknown_backlog={state['global_unknown_textual_backlog']} empirical_credit=NONE"
     )
 
