@@ -1,4 +1,4 @@
-# K2 奇门 TBV 反向重析协议 v1
+# K2 奇门 TBV 反向重析协议 v1.1
 
 TBV = Theory — Boundary — Validation（理论—边界—验证）。
 
@@ -9,234 +9,147 @@ Empirical Credit：`NONE`
 
 ## 1. 目的
 
-本协议用于第二遍反向阅读已经完成 Deep Visual Review 的奇门材料。
-
-第一遍完整阅读主要解决：
-
-`来源到底写了什么 -> 作品/作者/章节/方法结构是什么 -> 哪些材料应保留或隔离`
-
-TBV 第二遍不再追求“记住更多口诀”，而是把已有理解重新拆成三个互相不能偷换的层：
+TBV 用于对已经完成 Deep Visual Review 的奇门材料做第二遍反向阅读。第一遍回答“来源实际写了什么、作品/章节/方法结构怎样”，第二遍强制拆成：
 
 `THEORY -> BOUNDARY -> VALIDATION`
 
-只有三层都被显式记录，某个来源局部方法才有资格进入后续 SCRM 的候选 operator；即使如此也不获得现实有效性信用。
+只有三层都被显式记录，source-local 方法才可能进入后续 SCRM 候选 operator；即使进入，也不获得现实有效性信用。
 
-## 2. THEORY：理论核心
+## 2. THEORY
 
-TBV 不把“规则列表”本身等同理论。
+TBV 不把规则列表、页数或表项数量等同理论。优先提炼：对象定义、问题域、角色模型、盘层、时间模型、关系配置、生成规则、程序优先级、多观察通道、修正规则与作者自己的方法批判。
 
-应尽量提炼来源真正依赖的推演结构，例如：
+若一个 carrier 含多个 segment/work/method layer，必须分开表示。物理同册不等于同一作品、同一作者声音、同一理论或同一独立证据票。
 
-- 静态符号词典；
-- 关系配置；
-- 主客/角色模型；
-- 时间状态转移；
-- 程序优先级；
-- 多观察通道；
-- 生成规则与查表；
-- 作者自己的方法批判。
+## 3. BOUNDARY
 
-若一个来源同时包含多个 method layer，必须分别表示，不能因为共处一本书就合并为单一理论。
+每条理论至少反查：question domain、method layer、role frame、plate/symbol instance、temporal model、source/school context、prerequisite、exclusion 与 stop/failure condition。
 
-## 3. BOUNDARY：适用边界
-
-每一条理论核心都至少反查：
-
-- 它回答什么问题域；
-- 使用哪个 method layer；
-- role frame 是什么；
-- 使用什么时间模型；
-- 属于哪个 source/school context；
-- 使用前必须满足什么前置条件；
-- 什么情形禁止调用；
-- 边界是 EXPLICIT、PARTIAL 还是 UNCLEAR。
-
-规则若缺少边界，不允许补成“奇门通用真理”。
-
-因此统一执行：
+统一执行：
 
 `SOURCE CONTAINS RULE != RULE IS UNIVERSAL`
 
 `SOURCE ENDORSES RULE != RULE IS EMPIRICALLY VALID`
 
-## 4. VALIDATION：信用分层
+边界不清时保留 `CONTEXT_REQUIRED / HOLD`，不得替来源补成“奇门通用真理”。
 
-每条 TBV review 都分别记录：
+## 4. VALIDATION
 
-- `source_credit`：是否已经完整视觉核验来源；
-- `structure_credit`：内部结构能否稳定重建；
-- `method_credit`：能否明确还原来源怎样使用；
-- `empirical_credit`：现实未知结果下是否经过前瞻验证。
+信用必须分账：
 
-本阶段所有条目：
+- source_credit：来源是否完整视觉核验；
+- structure_credit：结构能否稳定重建；
+- method_credit：能否明确还原来源怎样使用；
+- empirical_credit：未知结果条件下是否经过前瞻验证。
+
+本阶段所有 TBV 条目：
 
 `empirical_credit = NONE`
 
-古籍年代、作者名气、案例数量、表项数量、来源自我批判、现代作者强调实践，都不能越级为 empirical credit。
+古籍年代、作者名气、案例数量、表项数量、来源自我主张、来源自我批判、现代作者强调实践，都不能越级成为 empirical credit。
 
 ## 5. Universalization Gate
 
-所有 TBV review 的：
+所有 TBV review：
 
 `universalization_status = BLOCKED`
 
-只有 source-local/context-local candidate 可以进入后续建模。
+跨来源规则在 Claim Extraction 正式开放前，不做“多数书都这么说所以是真的”的归并。先检查 work/course dependence、术语同名异义、role frame、plate layer、temporal model、method layer 与前置条件。
 
-跨来源出现相似规则时，先检查：
-
-1. 是否同 work family / 同传承导致的伪独立；
-2. 术语是否同名异义；
-3. role frame 是否一致；
-4. temporal model 是否一致；
-5. method layer 是否一致；
-6. 前置条件是否一致。
-
-在 Claim Extraction 与冲突解析正式开放前，不建立“多数书都这么说所以是真的”的规则。
-
-## 6. 与 SCRM 的关系
-
-TBV 是 SCRM 的上游知识过滤器。
+## 6. 与 SCRM / QCIC 的接口
 
 流程：
 
 `SOURCE -> Deep Reading -> TBV -> QCIC eligibility -> SCRM scenario mapping/operator -> prospective validation`
 
-TBV 允许输出：
+TBV 可以给出 source-local candidate、boundary-only、mixed-stance hold、historical-only 或 hold；不能给出无边界万能口诀、已验证现实规律或高风险现实操作建议。
 
-- source-local candidate；
-- boundary-only principle；
-- mixed-stance hold；
-- historical-only；
-- hold。
+## 7. Wave A / Wave B 当前状态
 
-TBV 不允许输出：
+Wave A 已覆盖：QM-SRC-0015、0017、0019、0020、0021 与 WF-QM-JIADUN-ZHENSHOU-001。
 
-- 已验证现实规律；
-- 无边界的万能口诀；
-- 高风险现实操作建议；
-- 因来源数量多而自动成立的共识真理。
+Wave B 已覆盖：WF-QM-SANYUAN-QIMEN-001、WF-QM-JINHAN-YUJING-001，以及 QM-SRC-0024、0027、0028、0029。
 
-## 7. 当前 Wave A / Wave B
+其中：
 
-首轮 Wave A 反向重析使用已经存在完整视觉阅读和正式 distillate 的材料：
+- QM-SRC-0024 是 composite carrier，QIMEN primary work content 必须按 SEG-002 / SEG-004 分段绑定，不能把共同装订当成统一理论；
+- QM-SRC-0027 / 0028 / 0029 虽分别做 source-level TBV，以保存 synopsis / foundation / advanced-extension 的独特边界，但三者属于 `COURSE-QM-SHANTIADAO-001`，独立性继续执行 `COURSE_FAMILY_SINGLE_VOTE`；三个 TBV source rows 不是三张 empirical/corroboration 票；
+- 已完成 visual deep review 的 16 个奇门来源，目前 `effective_deep_source_coverage = 16/16`。
 
-- QM-SRC-0015；
-- QM-SRC-0017；
-- QM-SRC-0019；
-- QM-SRC-0020；
-- QM-SRC-0021；
-- WF-QM-JIADUN-ZHENSHOU-001。
-
-Wave B 已继续推进：
-
-- WF-QM-SANYUAN-QIMEN-001；
-- WF-QM-JINHAN-YUJING-001。
-
-其中《金函玉镜奇门遁甲秘笈全书》进一步强化三项边界：
-
-1. 同名天干必须保存天盘/地盘/宫位与方向，`SymbolType != SymbolInstance`；
-2. 不同占类会改变取用对象，不能建立跨场景固定用神优先级；
-3. 预测、择日、兵占、图式算法、仪式操作与现代白话译释必须先做 Method Layer / voice provenance 分离。
-
-这些是 representation / method credit，不是预测准确率证据。
-
-TBV 的“覆盖”不能简单等于 `DEEP_SOURCE` 行数。一个已经完整复核的 work family 可以覆盖多个成员 carrier / segment，但在来源独立性上仍只算一个 family unit。因此机器状态同时保存：
-
-- 显式 `DEEP_SOURCE` review 数；
-- `WORK_FAMILY` review 数；
-- work-family member 展开后的 `effective_deep_source_coverage`；
-- 尚未被任何 TBV unit 覆盖的 deep-source gap。
-
-这避免为了把覆盖数字做满而给同一 work family 的每个成员重复建立 standalone TBV 行。
-
-当前 16 个 deep-visual reviewed 奇门来源中，TBV effective coverage 已覆盖 12 个；剩余 gap 为：
-
-- QM-SRC-0024；
-- QM-SRC-0027；
-- QM-SRC-0028；
-- QM-SRC-0029。
-
-全项目仍有：
+但全项目仍有：
 
 `global_unknown_textual_backlog = 93`
 
-故：
+因此：
 
 `full_reviewed_material_tbv_coverage = false`
 
-不得宣称全知识库已经完成掌握。
+`status = PARTIAL`
 
-## 8. 当前认知结果
+**Deep-reviewed layer 的 TBV 16/16 只代表已深读层没有 TBV gap，不代表全语料库掌握完成。**
 
-Wave A / B 当前支持的工程化方向不是“某符号固定等于某结果”，而是：
+统一执行：
 
-`对象定义 + 问题域 + 角色坐标 + symbol instance/layer + 时间模型 + 方法层 + 条件关系 + 程序顺序 + 现实边界`
+`DEEP_REVIEW_TBV_COVERAGE != FULL_CORPUS_COMPLETION`
 
-这与 SCRM 的 scenario-conditioned relational 路线相容，但“相容”只代表方法结构能够衔接，并不代表 SCRM 已经被证实。
-
-尤其《金函玉镜》提醒：如果只记录“甲、乙、门、星、神出现了什么”，却丢失它在天盘还是地盘、什么宫位、谁加谁、当前问的是哪一类事情，就已经把来源方法压坏了。反过来，保存这些结构也仍然只是 method representation，更不能自动转成现实命中率。
-
-## 9. 失败条件
-
-TBV 本身也允许失败。
-
-如果后续第二遍阅读发现：
-
-- 当前提炼遗漏来源关键前提；
-- 关系模型只是项目自己的现代重写而非来源支持；
-- 所谓 context split 实际是不可调和矛盾；
-- 某静态规则在来源内确实被明确写成无条件规则；
-- SCRM 为了吸收来源而不断增加例外和字段，却没有提高复现性；
-
-则必须修改/降级 TBV 条目和 SCRM，而不能修改来源以适配模型。
-
-## 10. 下一阶段
-
-下一步分两路并行：
-
-A. 对剩余四个已经完成视觉深读、但尚未被 standalone 或 work-family TBV 有效覆盖的来源（QM-SRC-0024、0027、0028、0029）继续做 Wave B；
-
-B. 对尚未解决的 semantic UNKNOWN corpus 继续真实 content review，禁止按文件名、目录或猜测批量清零。
-
-只有当覆盖、边界与验证路径同时推进，‘认知重构’才不是另一种形式的书本整理。
-
-## 11. Known-outcome training 与评价隔离
-
-TBV 明确维持验证边界：
-
-`KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION`
-
-来源若建议使用“自己假设的事情”、已经知道结果的历史事件、事后反馈案例或其他 target-known 材料反复推演，这些材料可以用于：
-
-- 熟悉 source-local 算法；
-- 训练状态重建；
-- 检查是否能复述来源的方法路径；
-- 发现规则冲突与表示错误。
-
-但它们只能取得 `TRAINING / METHOD RECONSTRUCTION` 信用，不能进入同一模型版本的 prospective accuracy、calibration 或 empirical-credit 评价。
-
-因此后续验证必须：
-
-1. 给 known-outcome / retrospective / invented-event 练习显式标记 `TRAINING_ONLY`；
-2. 评价批次使用结果未知、反馈前冻结的 clean holdout；
-3. 已用于训练/复盘的案例不得再次作为盲测样本；
-4. 对语义近重复、同一事件改写、同源案例复制建立 contamination 检查；
-5. 一旦发现 training/evaluation leakage，该批结果降为方法研究材料，不得升级 empirical credit。
-
-这一控制首先来自《三元奇门遁甲讲义》上册 p5 对假设事件与已知事件反复推演的 source-local 训练建议。它不是对来源学习方法的否定，而是严格区分“练熟一个解释体系”与“在未知结果条件下证明它能预测”。
-
-## 12. Work-family-aware coverage
-
-覆盖信用与独立证据票必须继续分开：
+## 8. 覆盖与独立性
 
 `COVERAGE CREDIT != INDEPENDENT EVIDENCE VOTE`
 
-若一个 TBV work-family unit 的 `member_refs` 指向多个已经 COMPLETE / REVIEWED / VISUAL_PAGE 的奇门来源，这些成员可以计入 `effective_deep_source_coverage`，因为它们的 unique coverage 已被该 family review 吸收；但整个 work family 仍不能因此产生多个独立 corroboration votes。
+work-family review 可以覆盖多个 member source，但仍只是一条 family-level provenance unit；同理，同一 course family 中的独立 work 为保存各自 theory/boundary 可分别接受 TBV review，却不能因此重复增加独立 corroboration。
 
-反过来，也不能为了满足“每个 deep source 都有一行”的形式指标，给同一 work family 的上中下册、上下卷或 work part 再复制内容近似的 standalone TBV 行。真正需要单独 review 的情况，应当是该成员具有 family distillate 未覆盖的独特 theory / boundary / validation 信息，而不是为了增加计数。
+TBV registry 可使用 aggregate 与 `knowledge/K2_QIMEN_TBV_REVIEW_REGISTRY.d/*.jsonl` shards。shard 只是存储方式，不绕过 duplicate unit、source identity、coverage 与 fail-closed gate。
 
-## 13. TBV registry shard
+## 9. Known-outcome training 与评价隔离
 
-随着 Wave B 扩展，TBV review 可以继续放在主 registry，也可以放入 `knowledge/K2_QIMEN_TBV_REVIEW_REGISTRY.d/*.jsonl` shard。validator 必须合并读取 aggregate + shards，并继续执行 duplicate review_id / duplicate unit / work-family identity / coverage machine-accounting Gate。
+`KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION`
 
-shard 只是存储扩展，不增加独立证据票，也不能绕过主 TBV schema 与 fail-closed invariant。
+假设事件、已经知道结果的历史事件、书中反馈案例和复盘盘例可用于训练算法、检查方法重建、发现表示错误与冲突，但只能取得 `TRAINING / METHOD RECONSTRUCTION` 信用。
+
+真正 prospective evaluation 必须使用结果未知、反馈前冻结的 clean holdout；已用于训练/复盘的案例及语义近重复不得重新包装成盲测。若发生 leakage，该批只能降为方法研究材料。
+
+## 10. 善天道课程家族的 TBV 边界
+
+QM-SRC-0027 主要提供高压缩 role-candidate 索引；QM-SRC-0028 主要提供基础排盘、组合解释与方法冲突；QM-SRC-0029 主要提供高级程序化断局、宫内/宫际关系、角色竞争与修正层。
+
+三册共同强化的不是“某符号固定等于某结果”，而是：
+
+`问题域 -> 候选角色 -> 反馈前冻结 -> 盘面状态 -> 宫内关系 -> 宫际关系 -> 受控修正 -> 应期/输出`
+
+其中年命/日干、拆补/置闰、九星旺衰、马星冲墓/空等都存在选择或竞争空间。它们必须被显式冻结或并行测试，不得结果后任选命中路径。
+
+## 11. Composite-carrier 边界
+
+对 QM-SRC-0024 这类复合载体：
+
+`CARRIER -> SEGMENT -> WORK -> METHOD/VOICE`
+
+是最低必要路径。共同装订、文件名或目录不能建立跨 work 的默认桥接。若以后发现来源自己明确给出桥接规则，应登记为新证据，而不是由项目事先补造。
+
+## 12. 当前认知结果
+
+到当前阶段，更值得工程化保留的不是孤立“吉凶词典”，而是：
+
+`对象定义 + 问题域 + 角色坐标 + symbol instance/layer + 时间模型 + 方法层 + 条件关系 + 程序顺序 + 修正边界 + 现实锚点`
+
+这与 SCRM 的 scenario-conditioned relational 路线相容，但“相容”不等于 SCRM 已被验证。
+
+## 13. TBV 自身的失败条件
+
+若后续实际来源复核或前瞻实践发现：
+
+- 当前提炼遗漏关键前提；
+- 所谓关系模型只是项目现代化重写；
+- context split 实际是不可调和矛盾；
+- 来源确实将某规则明确写成无条件规则；
+- SCRM/QCIC 增加结构却没有改善复现、校准、错误定位或弃权质量；
+
+则必须修改/降级 TBV 与模型，不能修改来源或事后加例外保护模型。
+
+## 14. 下一阶段
+
+Deep-visual TBV gap 已关闭，下一主线转为：
+
+1. 对 93 个 semantic UNKNOWN textual sources 继续真实 content access / review，禁止按文件名或目录批量清零；
+2. 将已完成 TBV 的 source-local 方法投入低风险实战/前瞻练习，用冻结预测、失败保留和 mapping drift 审计持续反向校正模型；
+3. Claim Extraction 保持 BLOCKED，Empirical Credit 保持 NONE，直到其各自机器门槛真正满足。
