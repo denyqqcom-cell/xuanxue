@@ -1,0 +1,32 @@
+name: K2 QCIC v0.6 Machine Gates
+
+on:
+  push:
+    branches:
+      - main
+      - knowledge-engine-v1
+      - knowledge-engine-v1-k2
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: k2-qcic-v06-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qcic-v06-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test source stance fail-closed cases
+        run: python3 tools/test_k2_source_stance.py
+      - name: Enforce source stance registry
+        run: python3 tools/validate_k2_source_stance.py
+      - name: Test enumeration compression fail-closed cases
+        run: python3 tools/test_k2_enumeration_compression.py
+      - name: Enforce enumeration compression registry
+        run: python3 tools/validate_k2_enumeration_compression.py

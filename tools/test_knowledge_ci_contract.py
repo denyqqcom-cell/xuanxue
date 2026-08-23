@@ -3,6 +3,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "knowledge-engine-ci.yml"
+QCIC_WORKFLOW = ROOT / ".github" / "workflows" / "k2-qcic-v06-gates.yml"
 
 
 def require(text: str, needle: str):
@@ -58,6 +59,24 @@ def main():
     require(text, "python3 tools/validate_k2_evidence_reaudit.py")
     require(text, "python3 tools/test_k2_prospective_validation.py")
     require(text, "python3 tools/validate_k2_prospective_validation.py")
+
+    # QCIC v0.6 is not only prose: source stance and deterministic enumeration
+    # collapse are guarded by a dedicated fail-closed workflow.
+    qcic = QCIC_WORKFLOW.read_text(encoding="utf-8")
+    require(qcic, "name: K2 QCIC v0.6 Machine Gates")
+    require(qcic, "python3 tools/test_k2_source_stance.py")
+    require(qcic, "python3 tools/validate_k2_source_stance.py")
+    require(qcic, "python3 tools/test_k2_enumeration_compression.py")
+    require(qcic, "python3 tools/validate_k2_enumeration_compression.py")
+
+    for required_path in (
+        ROOT / "knowledge" / "schema" / "source_stance.schema.json",
+        ROOT / "knowledge" / "schema" / "enumeration_compression.schema.json",
+        ROOT / "knowledge" / "K2_SOURCE_STANCE_REGISTRY.jsonl",
+        ROOT / "knowledge" / "K2_ENUMERATION_COMPRESSION_REGISTRY.jsonl",
+    ):
+        if not required_path.exists():
+            raise AssertionError(f"missing QCIC v0.6 machine-gate artifact: {required_path.relative_to(ROOT)}")
 
     print("knowledge-ci-contract-tests: PASS")
 
