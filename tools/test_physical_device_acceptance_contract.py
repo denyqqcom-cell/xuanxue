@@ -44,11 +44,18 @@ def main():
         "adb_version=",
         'INSTRUMENTATION_MODE="${INSTRUMENTATION_MODE:-GRADLE_CONNECTED}"',
         "GRADLE_CONNECTED|ADB_DIRECT",
+        'ADB_LOCAL_PATH_MODE="NATIVE"',
+        "WSL_TO_WINDOWS",
+        "wslpath -w",
+        "MAIN_APK_FOR_ADB",
+        "TEST_APK_FOR_ADB",
+        "SCREENSHOT_DEST_FOR_ADB",
         ":app:connectedDebugAndroidTest",
         "pm list instrumentation",
         "am instrument -w -r",
         "EXPECTED_TEST_COUNT",
         "INSTRUMENTATION_CODE: -1",
+        "adb_local_path_mode=",
         "instrumentation_mode=",
         "instrumentation_component=",
         "instrumentation_tests=",
@@ -77,8 +84,8 @@ def main():
     print(
         "single_device=true physical_only=true form_factor=narrow "
         "source_head_match=true tracked_worktree_clean=true configurable_adb=true "
-        "windows_crlf_safe=true gradle_connected=true adb_direct=true "
-        "full_test_count_required=true system_setting_mutation=false"
+        "windows_crlf_safe=true windows_host_paths=true gradle_connected=true "
+        "adb_direct=true full_test_count_required=true system_setting_mutation=false"
     )
 
 

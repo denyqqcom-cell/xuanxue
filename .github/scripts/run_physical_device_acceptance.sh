@@ -49,6 +49,27 @@ case "$INSTRUMENTATION_MODE" in
     ;;
 esac
 
+# A Windows adb.exe invoked from WSL needs Windows-readable host paths for
+# install/pull arguments. Device-side shell paths are never translated.
+ADB_LOCAL_PATH_MODE="NATIVE"
+if [[ "${ADB_BIN,,}" == *.exe ]]; then
+  if ! command -v wslpath >/dev/null 2>&1; then
+    echo "Windows adb.exe under WSL requires wslpath for host-file arguments." >&2
+    exit 1
+  fi
+  ADB_LOCAL_PATH_MODE="WSL_TO_WINDOWS"
+fi
+adb_local_path() {
+  local path="$1"
+  local absolute
+  absolute="$(realpath -m "$path")"
+  if [[ "$ADB_LOCAL_PATH_MODE" == "WSL_TO_WINDOWS" ]]; then
+    wslpath -w "$absolute"
+  else
+    printf '%s\n' "$absolute"
+  fi
+}
+
 # Windows adb.exe may emit CRLF when invoked through WSL. Normalize the device
 # list before parsing so a ready state cannot become the literal "device\r".
 mapfile -t DEVICE_ROWS < <("${ADB_BASE[@]}" devices | tr -d '\r' | awk 'NR > 1 && NF >= 2 {print $1 "\t" $2}')
@@ -97,6 +118,7 @@ cat > "$OUT/DEVICE_BEFORE.txt" <<EOF
 source_head_sha=$SOURCE_HEAD_SHA
 actual_head_sha=$ACTUAL_HEAD_SHA
 adb_version=$ADB_VERSION
+adb_local_path_mode=$ADB_LOCAL_PATH_MODE
 instrumentation_mode=$INSTRUMENTATION_MODE
 serial=$SERIAL
 manufacturer=$MANUFACTURER
@@ -143,9 +165,11 @@ else
   TEST_APK="app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk"
   test -s "$MAIN_APK"
   test -s "$TEST_APK"
+  MAIN_APK_FOR_ADB="$(adb_local_path "$MAIN_APK")"
+  TEST_APK_FOR_ADB="$(adb_local_path "$TEST_APK")"
 
-  "${ADB[@]}" install -r -t "$MAIN_APK" >/dev/null
-  "${ADB[@]}" install -r -t "$TEST_APK" >/dev/null
+  "${ADB[@]}" install -r -t "$MAIN_APK_FOR_ADB" >/dev/null
+  "${ADB[@]}" install -r -t "$TEST_APK_FOR_ADB" >/dev/null
 
   mapfile -t INSTRUMENTATION_ROWS < <(
     "${ADB[@]}" shell pm list instrumentation \
@@ -195,7 +219,8 @@ if [[ "$SCREENSHOT_COUNT" -lt 16 ]]; then
 fi
 
 rm -rf "$OUT/screenshots" "$OUT/test-results" "$OUT/html-report"
-"${ADB[@]}" pull "$REMOTE_SCREENS" "$OUT/screenshots" >/dev/null
+SCREENSHOT_DEST_FOR_ADB="$(adb_local_path "$OUT/screenshots")"
+"${ADB[@]}" pull "$REMOTE_SCREENS" "$SCREENSHOT_DEST_FOR_ADB" >/dev/null
 if [[ "$INSTRUMENTATION_MODE" == "GRADLE_CONNECTED" ]]; then
   if [[ -d app/build/outputs/androidTest-results/connected ]]; then
     cp -R app/build/outputs/androidTest-results/connected "$OUT/test-results"
@@ -228,6 +253,7 @@ status=PASS
 source_head_sha=$SOURCE_HEAD_SHA
 actual_head_sha=$ACTUAL_HEAD_SHA
 adb_version=$ADB_VERSION
+adb_local_path_mode=$ADB_LOCAL_PATH_MODE
 instrumentation_mode=$INSTRUMENTATION_MODE
 instrumentation_component=$INSTRUMENTATION_COMPONENT
 instrumentation_tests=$EXPECTED_TEST_COUNT
