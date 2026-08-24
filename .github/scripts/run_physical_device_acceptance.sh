@@ -37,7 +37,9 @@ fi
 ADB_BASE=("$ADB_BIN")
 ADB_VERSION="$("${ADB_BASE[@]}" version | sed -n '1p' | tr -d '\r')"
 
-mapfile -t DEVICE_ROWS < <("${ADB_BASE[@]}" devices | awk 'NR > 1 && NF >= 2 {print $1 "\t" $2}')
+# Windows adb.exe may emit CRLF when invoked through WSL. Normalize the device
+# list before parsing so a ready state cannot become the literal "device\r".
+mapfile -t DEVICE_ROWS < <("${ADB_BASE[@]}" devices | tr -d '\r' | awk 'NR > 1 && NF >= 2 {print $1 "\t" $2}')
 if [[ "${#DEVICE_ROWS[@]}" -ne 1 ]]; then
   echo "Physical-device acceptance requires exactly one ADB target; found ${#DEVICE_ROWS[@]}." >&2
   "${ADB_BASE[@]}" devices -l >&2 || true

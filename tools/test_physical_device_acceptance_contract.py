@@ -39,6 +39,7 @@ def main():
         'ADB_BIN="${ADB_BIN:-adb}"',
         'ADB_BASE=("$ADB_BIN")',
         '"${ADB_BASE[@]}" devices',
+        'devices | tr -d \'\\r\' | awk',
         'ADB=("${ADB_BASE[@]}" -s "$SERIAL")',
         "adb_version=",
         ":app:connectedDebugAndroidTest",
@@ -67,7 +68,7 @@ def main():
     print(
         "single_device=true physical_only=true form_factor=narrow "
         "source_head_match=true tracked_worktree_clean=true configurable_adb=true "
-        "system_setting_mutation=false"
+        "windows_crlf_safe=true system_setting_mutation=false"
     )
 
 
