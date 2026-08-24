@@ -2,6 +2,39 @@
 
 本清单用于 `app-integration-v3` 的人工触控与视觉验收。它不替代核心算法 fixture、Android Lint、APK 内容审计，也不把“界面正常”视为术数规则已被验证。
 
+## 自动化真机 smoke runner
+
+仓库提供 `.github/scripts/run_physical_device_acceptance.sh`，用于在**唯一一台已授权的真实 Android 设备**上运行现有 `RcDeviceAcceptanceTest` 的窄屏路径。
+
+它与 emulator runner 有意不同：
+
+- 必须只有一个 ADB target，且 `state=device`；
+- `ro.kernel.qemu=1` 时直接拒绝，不能把模拟器冒充真机；
+- 可通过 `EXPECTED_MODEL` 绑定预期型号，例如 Moto X30 Pro 使用 `XT2241-1`；
+- 只运行 `formFactor=narrow`；
+- **不修改** `wm size`、`wm density`、深浅色模式、飞行模式或网络状态；
+- 测试前后会重新读取这些系统状态，发生漂移即 fail closed；
+- 记录 source HEAD、设备型号、Android/API、APK SHA256、截图数量和 logcat 尾部；
+- 至少应取得 16 张现有 instrumentation evidence screenshot。
+
+在仓库根目录执行示例：
+
+```bash
+SOURCE_HEAD_SHA="$(git rev-parse HEAD)" \
+EXPECTED_MODEL="XT2241-1" \
+bash .github/scripts/run_physical_device_acceptance.sh
+```
+
+输出位于：
+
+```text
+build/physical-device-acceptance/
+```
+
+其中 `RESULT.txt` 只有在 instrumentation 完成、截图数量达标、且测试前后系统状态未发生变化时才写入 `status=PASS`。
+
+这条自动化只关闭窄屏真机 smoke / navigation / structural-result / crash-ANR evidence；深色模式、飞行模式、人体工学与完整人工视觉检查仍按下面清单单独验收。真机 PASS 也不等于任何术数预测获得 empirical credit。
+
 ## 建议至少覆盖
 
 - 一台窄屏手机：检查单列布局、横向时辰选择、长文本换行。
