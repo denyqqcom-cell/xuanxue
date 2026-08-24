@@ -80,7 +80,7 @@ def main():
     def backlog_mut(repo):
         path = repo / "knowledge" / "K2_UNKNOWN_TEXTUAL_BACKLOG.json"
         data = json.loads(path.read_text(encoding="utf-8"))
-        data["remaining_unknown_textual_source_count"] = 91
+        data["remaining_unknown_textual_source_count"] += 1
         path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     assert_issue(with_repo(backlog_mut), "TBV state/backlog count drift")
 
