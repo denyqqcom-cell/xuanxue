@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
 from pathlib import Path
-import re
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / ".github" / "scripts" / "run_physical_device_acceptance.sh"
+
+
+def assert_query_only(text: str, command: str):
+    for raw in text.splitlines():
+        code = raw.split("#", 1)[0]
+        if command not in code:
+            continue
+        tail = code.split(command, 1)[1].strip()
+        if tail and not tail.startswith(("|", ">", "2>", ";")):
+            raise AssertionError(f"physical-device runner may not mutate system setting via {command!r}: {raw}")
 
 
 def main():
@@ -30,13 +39,9 @@ def main():
     present = [needle for needle in forbidden_literals if needle in text]
     assert not present, f"physical-device runner may not mutate network state: {present}"
 
-    setter_patterns = (
-        r"\bwm\s+size\s+\S+",
-        r"\bwm\s+density\s+\S+",
-        r"\bcmd\s+uimode\s+night\s+\S+",
-    )
-    for pattern in setter_patterns:
-        assert re.search(pattern, text) is None, f"physical-device runner contains system-setting mutator: {pattern}"
+    assert_query_only(text, "wm size")
+    assert_query_only(text, "wm density")
+    assert_query_only(text, "cmd uimode night")
 
     print("physical-device-acceptance-contract: PASS")
     print("single_device=true physical_only=true form_factor=narrow system_setting_mutation=false")
