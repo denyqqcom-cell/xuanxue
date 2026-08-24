@@ -23,9 +23,15 @@ def main():
         "ro.kernel.qemu",
         "EXPECTED_MODEL",
         "SOURCE_HEAD_SHA",
+        'ACTUAL_HEAD_SHA="$(git rev-parse HEAD)"',
+        'if [[ "$ACTUAL_HEAD_SHA" != "$SOURCE_HEAD_SHA" ]]',
+        "Source HEAD mismatch",
+        "git diff --quiet --",
+        "git diff --cached --quiet --",
         ":app:connectedDebugAndroidTest",
         "formFactor=narrow",
         "acceptance_screenshots",
+        "actual_head_sha=",
         "system_state_preserved=true",
     )
     missing = [needle for needle in required if needle not in text]
@@ -44,7 +50,10 @@ def main():
     assert_query_only(text, "cmd uimode night")
 
     print("physical-device-acceptance-contract: PASS")
-    print("single_device=true physical_only=true form_factor=narrow system_setting_mutation=false")
+    print(
+        "single_device=true physical_only=true form_factor=narrow "
+        "source_head_match=true tracked_worktree_clean=true system_setting_mutation=false"
+    )
 
 
 if __name__ == "__main__":

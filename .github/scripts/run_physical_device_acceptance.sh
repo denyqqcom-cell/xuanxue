@@ -8,8 +8,19 @@ OUT="build/physical-device-acceptance"
 REMOTE_SCREENS="/sdcard/Download/xuanxue-v1-screenshots"
 mkdir -p "$OUT"
 
-SOURCE_HEAD_SHA="${SOURCE_HEAD_SHA:-$(git rev-parse HEAD)}"
+ACTUAL_HEAD_SHA="$(git rev-parse HEAD)"
+SOURCE_HEAD_SHA="${SOURCE_HEAD_SHA:-$ACTUAL_HEAD_SHA}"
 export SOURCE_HEAD_SHA
+
+if [[ "$ACTUAL_HEAD_SHA" != "$SOURCE_HEAD_SHA" ]]; then
+  echo "Source HEAD mismatch: expected=$SOURCE_HEAD_SHA actual=$ACTUAL_HEAD_SHA. Refusing mislabeled physical-device evidence." >&2
+  exit 1
+fi
+if ! git diff --quiet -- || ! git diff --cached --quiet --; then
+  echo "Physical-device acceptance requires a clean tracked worktree and index." >&2
+  git status --short --untracked-files=no >&2 || true
+  exit 1
+fi
 
 mapfile -t DEVICE_ROWS < <(adb devices | awk 'NR > 1 && NF >= 2 {print $1 "\t" $2}')
 if [[ "${#DEVICE_ROWS[@]}" -ne 1 ]]; then
@@ -55,6 +66,7 @@ BEFORE_AIRPLANE="$("${ADB[@]}" shell settings get global airplane_mode_on | tr -
 
 cat > "$OUT/DEVICE_BEFORE.txt" <<EOF
 source_head_sha=$SOURCE_HEAD_SHA
+actual_head_sha=$ACTUAL_HEAD_SHA
 serial=$SERIAL
 manufacturer=$MANUFACTURER
 model=$MODEL
@@ -115,6 +127,7 @@ APK_SHA256="$(sha256sum "$APK" | awk '{print $1}')"
 cat > "$OUT/RESULT.txt" <<EOF
 status=PASS
 source_head_sha=$SOURCE_HEAD_SHA
+actual_head_sha=$ACTUAL_HEAD_SHA
 serial=$SERIAL
 manufacturer=$MANUFACTURER
 model=$MODEL

@@ -11,10 +11,12 @@
 - 必须只有一个 ADB target，且 `state=device`；
 - `ro.kernel.qemu=1` 时直接拒绝，不能把模拟器冒充真机；
 - 可通过 `EXPECTED_MODEL` 绑定预期型号，例如 Moto X30 Pro 使用 `XT2241-1`；
+- `SOURCE_HEAD_SHA` 必须与本地实际 `git rev-parse HEAD` 完全一致，否则拒绝生成可能被错误标记的真机证据；
+- tracked worktree 与 index 必须干净；未跟踪文件不会被 runner 自动删除，也不会被冒充成 tracked clean/dirty 结论；
 - 只运行 `formFactor=narrow`；
 - **不修改** `wm size`、`wm density`、深浅色模式、飞行模式或网络状态；
 - 测试前后会重新读取这些系统状态，发生漂移即 fail closed；
-- 记录 source HEAD、设备型号、Android/API、APK SHA256、截图数量和 logcat 尾部；
+- 记录 source HEAD、实际 checkout HEAD、设备型号、Android/API、APK SHA256、截图数量和 logcat 尾部；
 - 至少应取得 16 张现有 instrumentation evidence screenshot。
 
 在仓库根目录执行示例：
@@ -31,7 +33,7 @@ bash .github/scripts/run_physical_device_acceptance.sh
 build/physical-device-acceptance/
 ```
 
-其中 `RESULT.txt` 只有在 instrumentation 完成、截图数量达标、且测试前后系统状态未发生变化时才写入 `status=PASS`。
+其中 `RESULT.txt` 只有在 source HEAD 与实际 checkout HEAD 一致、tracked worktree/index 干净、instrumentation 完成、截图数量达标、且测试前后系统状态未发生变化时才写入 `status=PASS`。
 
 这条自动化只关闭窄屏真机 smoke / navigation / structural-result / crash-ANR evidence；深色模式、飞行模式、人体工学与完整人工视觉检查仍按下面清单单独验收。真机 PASS 也不等于任何术数预测获得 empirical credit。
 
@@ -98,6 +100,7 @@ build/physical-device-acceptance/
 
 ## 失败即阻止合并的项目
 
+- source HEAD 与实际 checkout HEAD 不一致，或 tracked worktree/index 存在改动。
 - 崩溃、ANR、无法返回首页。
 - 文字重叠、关键按钮被裁切或无法触控。
 - 当前时间类模块仍显示写死日期/小时。
