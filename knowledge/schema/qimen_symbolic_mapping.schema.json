@@ -11,6 +11,7 @@
     "symbol_value",
     "plate_layer",
     "palace",
+    "dun_mode",
     "readback_status",
     "source_method_basis",
     "plate_layer_semantics",
@@ -29,6 +30,9 @@
       "enum": ["SKY_PLATE", "EARTH_PLATE", "OTHER_EXPLICIT_LAYER", "NOT_APPLICABLE", "UNRESOLVED"]
     },
     "palace": {"type": "string", "minLength": 1},
+    "dun_mode": {
+      "enum": ["YANG_DUN", "YIN_DUN", "NOT_APPLICABLE", "UNRESOLVED"]
+    },
     "readback_status": {
       "enum": ["VERIFIED", "SINGLE_READ", "CONTESTED", "NOT_APPLICABLE"]
     },

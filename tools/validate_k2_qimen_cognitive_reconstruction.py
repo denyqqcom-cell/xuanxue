@@ -69,11 +69,20 @@ REQUIRED_SCENARIO_FIELDS = {
     "competing_explanations",
     "counterfactual_checks",
     "sensitivity_checks",
+    "decision_tie_break_policy",
     "abstention_condition",
     "confidence_components",
     "prediction",
     "empirical_credit",
 }
+REQUIRED_TIE_BREAK_FIELDS = {
+    "applies",
+    "candidate_outputs",
+    "selection_rule",
+    "selected_output",
+    "freeze_status",
+}
+REQUIRED_TIE_BREAK_STATUS = {"FROZEN", "NOT_APPLICABLE", "UNRESOLVED"}
 
 
 def load_json(path: Path):
@@ -216,6 +225,20 @@ def validate_scenario_schema(schema: dict):
         issues.append("scenario contract requires counterfactual checks")
     if props.get("sensitivity_checks", {}).get("minItems", 0) < 1:
         issues.append("scenario contract requires sensitivity checks")
+
+    tie = props.get("decision_tie_break_policy", {})
+    if tie.get("type") != "object" or tie.get("additionalProperties") is not False:
+        issues.append("scenario tie-break policy must be a closed object")
+    tie_required = tie.get("required")
+    if not isinstance(tie_required, list) or set(tie_required) != REQUIRED_TIE_BREAK_FIELDS:
+        issues.append("scenario tie-break required-field contract drift")
+    tie_props = tie.get("properties") if isinstance(tie.get("properties"), dict) else {}
+    if set(tie_props.get("freeze_status", {}).get("enum", [])) != REQUIRED_TIE_BREAK_STATUS:
+        issues.append("scenario tie-break freeze_status enum drift")
+    if tie_props.get("candidate_outputs", {}).get("type") != "array":
+        issues.append("scenario tie-break candidate_outputs must be array")
+    if not isinstance(tie.get("allOf"), list) or len(tie.get("allOf")) < 2:
+        issues.append("scenario tie-break must fail closed for multi-output selection")
     return issues
 
 

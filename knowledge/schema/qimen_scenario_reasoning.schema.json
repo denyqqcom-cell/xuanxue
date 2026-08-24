@@ -21,6 +21,7 @@
     "competing_explanations",
     "counterfactual_checks",
     "sensitivity_checks",
+    "decision_tie_break_policy",
     "abstention_condition",
     "confidence_components",
     "prediction",
@@ -68,6 +69,38 @@
     "competing_explanations": {"type": "array", "minItems": 2, "items": {"type": "object"}},
     "counterfactual_checks": {"type": "array", "minItems": 1, "items": {"type": "object"}},
     "sensitivity_checks": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "decision_tie_break_policy": {
+      "type": "object",
+      "required": ["applies", "candidate_outputs", "selection_rule", "selected_output", "freeze_status"],
+      "additionalProperties": false,
+      "properties": {
+        "applies": {"type": "boolean"},
+        "candidate_outputs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "selection_rule": {"type": "string", "minLength": 1},
+        "selected_output": {"type": ["string", "null"]},
+        "freeze_status": {"enum": ["FROZEN", "NOT_APPLICABLE", "UNRESOLVED"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"applies": {"const": true}}, "required": ["applies"]},
+          "then": {
+            "properties": {
+              "candidate_outputs": {"minItems": 2},
+              "selected_output": {"type": "string", "minLength": 1},
+              "freeze_status": {"const": "FROZEN"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"applies": {"const": false}}, "required": ["applies"]},
+          "then": {
+            "properties": {
+              "freeze_status": {"enum": ["NOT_APPLICABLE", "UNRESOLVED"]}
+            }
+          }
+        }
+      ]
+    },
     "abstention_condition": {"type": "string", "minLength": 1},
     "confidence_components": {
       "type": "object",

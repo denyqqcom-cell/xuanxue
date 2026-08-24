@@ -1,4 +1,4 @@
-# K2 奇门实战输入完整性协议 v0.1
+# K2 奇门实战输入完整性协议 v0.2
 
 状态：`ACTIVE / FAIL-CLOSED`  
 阶段：K2B Cognitive Reconstruction  
@@ -14,6 +14,8 @@ Empirical Credit：`NONE`
 
 一次低风险实战复核已经暴露出典型风险：同一个天干在不同盘层可以形成不同 symbol instance；如果只记“某干落某宫”而不标天盘/地盘，后续角色、生克与场景解释可能建立在错误宫位上。这个错误必须在 Outcome 之前被输入完整性 Gate 拦截，而不是等结果出来以后用新解释修补。
 
+随后完整复核 `QM-SRC-0010` 又增加了一项来源内约束：在该来源的阳遁/阴遁实例中，八神 vocabulary 并非完全相同。因此 `dun_mode` 不能只被当作一个旋转方向的实现参数；在某些 source-local method 中，它参与定义 symbol system 本身。
+
 ## 2. Symbol type 与 symbol instance
 
 统一执行：
@@ -22,17 +24,21 @@ Empirical Credit：`NONE`
 
 `SAME STEM != SAME STATE`
 
-“辛”“戊”“开门”“天辅”等名称首先只是 symbol type/value。进入具体盘局时，至少还要保存它属于哪一个 plate/layer、落哪一宫、在什么 source/method context 下被读取。
+`DUN MODE != ROTATION DIRECTION ONLY`
 
-对需要盘层定位的对象，最低表示为：
+“辛”“戊”“开门”“天辅”等名称首先只是 symbol type/value。进入具体盘局时，至少还要保存它属于哪一个 plate/layer、落哪一宫、处于哪一种遁法模式、在什么 source/method context 下被读取。
 
-`symbol_value × plate_layer × palace × source_method_basis`
+对需要盘层定位的对象，最低表示升级为：
+
+`symbol_value × plate_layer × palace × dun_mode × source_method_basis`
 
 缺任一关键维度，不允许静默压成唯一角色状态。
 
+如果来源明确不依赖阴/阳遁，可用 `NOT_APPLICABLE`；如果方法层尚未确定，则必须用 `UNRESOLVED`，不能猜。
+
 ## 3. Plate layer 标签不等于时间语义
 
-再执行一个独立边界：
+继续执行：
 
 `PLATE LAYER TAG != PLATE LAYER SEMANTICS`
 
@@ -51,7 +57,7 @@ Empirical Credit：`NONE`
 
 正式场景推演顺序改为：
 
-`RAW PLATE -> SYMBOL INSTANCE REGISTER -> PLATE/PALACE TAG -> READBACK -> SOURCE-LOCAL SEMANTICS -> ROLE MAPPING -> SCENARIO INFERENCE -> FREEZE`
+`RAW PLATE -> DUN MODE TAG -> SYMBOL INSTANCE REGISTER -> PLATE/PALACE TAG -> READBACK -> SOURCE-LOCAL SEMANTICS -> ROLE MAPPING -> SCENARIO INFERENCE -> DECISION TIE-BREAK FREEZE -> PREDICTION FREEZE`
 
 不能从截图/盘面直接跳到“某人=某宫=某结果”。
 
@@ -65,6 +71,7 @@ Empirical Credit：`NONE`
 - symbol_value；
 - plate_layer；
 - palace；
+- dun_mode；
 - readback_status；
 - source_method_basis；
 - plate_layer_semantics；
@@ -99,41 +106,72 @@ Empirical Credit：`NONE`
 
 即使年命、日干、年干、值符等都能成为某类人物候选，也不能因为其中一个解释顺手，就结果后切换。plate readback 正确也不代表 role mapping 正确。
 
-## 6. 实战错误如何记分
+## 6. 多输出不是唯一决策
+
+完整复核 1080 局时反复出现一个盘同时给出多个合法吉方/候选方向的情况。这说明：
+
+`DETERMINISTIC MULTI-OUTPUT != UNIQUE DECISION`
+
+算法能够反馈前确定多个候选，不等于行动已经唯一。
+
+如果当前场景存在多个合法候选输出，必须在 Outcome 之前写入 `decision_tie_break_policy`，至少明确：
+
+- `applies`；
+- candidate_outputs；
+- selection_rule；
+- selected_output；
+- freeze_status。
+
+当 `applies=true` 时，至少要有两个候选，且 selection_rule 与 selected_output 必须在反馈前冻结。若无法形成合法选择规则，`freeze_status = UNRESOLVED` 并考虑 ABSTAIN；不得在结果后从多个候选里挑一个命中者。
+
+这一步冻结的是“如何从合法候选中行动”，不是把来源中的所有候选强行压成一个“唯一真答案”。
+
+## 7. 实战错误如何记分
 
 以下都属于模型/执行失败信号，而不是可以被解释掉的“小误差”：
 
 - 盘层未标导致落宫读错；
 - 同一天干的天/地盘实例被压成一个“唯一宫位”；
+- 阴/阳遁模式未记录，导致 source-local symbol vocabulary 或状态读取被混用；
 - 读取错误直到结果后才被发现；
 - 结果后才决定原来应该看另一盘层；
+- 多个合法候选在结果后才临时选择“命中”的一个；
 - 用流派A的盘层语义解释流派B而没有显式桥接；
 - 为保住原预测而修改原始读盘记录。
 
 如果错误在 Outcome 前发现，可以更正输入并重新 Freeze；旧错误必须保留为 practice lesson。若 Outcome 已知后才发现，只能记 `post_hoc correction`，原预测不能被洗成命中。
 
-## 7. 与 QCIC / SCRM / Prospective Gate 的关系
+## 8. 与 QCIC / SCRM / Prospective Gate 的关系
 
-QCIC 控制来源、规则、程序与反馈后自由度；SCRM 控制场景与角色映射；Prospective Gate 控制冻结链。
+QCIC 控制来源、规则、程序与反馈后自由度；SCRM 控制场景、角色映射与 competing explanations；Prospective Gate 控制冻结链。
 
-本协议补的是它们之间以前缺失的一层：
+本协议补的是它们之间以前缺失的两层：
 
 `INPUT CORRECTNESS / SYMBOL INSTANCE INTEGRITY`
+
+以及：
+
+`MULTI-OUTPUT DECISION FREEZE`
 
 所以：
 
 `VALID HASH CHAIN + WRONG PLATE READ = WRONG FROZEN CASE`
 
-工程冻结不能替代盘面读取正确性。
+同时：
 
-## 8. 验证方向
+`CORRECT PLATE + POST-HOC TIE-BREAK = INVALID DECISION EVALUATION`
+
+工程冻结不能替代盘面读取正确性，也不能替代事前决策规则。
+
+## 9. 验证方向
 
 该协议本身也没有经验特权。后续至少比较：
 
-1. layer-tagged mapping 与未标层 mapping 的读盘错误率；
+1. layer/dun-tagged mapping 与未完整标记 mapping 的读盘错误率；
 2. 单次读取与独立 readback 的错误发现率；
-3. layer-tagging 是否提高跨解读者复现性；
-4. 增加这一层后是否只增加文档复杂度而没有降低错误。
+3. layer/dun tagging 是否提高跨解读者复现性；
+4. 多输出场景加入反馈前 tie-break 后，是否减少结果后选择自由度；
+5. 增加这些字段后是否只增加文档复杂度而没有降低错误。
 
 如果没有增量价值，应简化；如果仍频繁发生错误，应继续收紧输入协议，而不是增加解释口诀。
 

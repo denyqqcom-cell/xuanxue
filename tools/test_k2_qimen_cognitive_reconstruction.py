@@ -81,6 +81,17 @@ def main():
     issues = v.validate_scenario_schema(broken_schema)
     assert any("sensitivity" in x for x in issues), issues
 
+    # Fail closed: multi-output decisions must carry an explicit tie-break contract.
+    broken_schema = copy.deepcopy(schema)
+    broken_schema["required"].remove("decision_tie_break_policy")
+    issues = v.validate_scenario_schema(broken_schema)
+    assert any("required-field contract drift" in x for x in issues), issues
+
+    broken_schema = copy.deepcopy(schema)
+    broken_schema["properties"]["decision_tie_break_policy"]["allOf"] = []
+    issues = v.validate_scenario_schema(broken_schema)
+    assert any("fail closed for multi-output selection" in x for x in issues), issues
+
     print("k2-qimen-cognitive-reconstruction-tests: PASS")
 
 

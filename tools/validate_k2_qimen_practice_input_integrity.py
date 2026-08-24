@@ -16,6 +16,7 @@ REQUIRED_MAPPING_FIELDS = {
     "symbol_value",
     "plate_layer",
     "palace",
+    "dun_mode",
     "readback_status",
     "source_method_basis",
     "plate_layer_semantics",
@@ -32,6 +33,7 @@ REQUIRED_PLATE_VALUES = {
     "NOT_APPLICABLE",
     "UNRESOLVED",
 }
+REQUIRED_DUN_VALUES = {"YANG_DUN", "YIN_DUN", "NOT_APPLICABLE", "UNRESOLVED"}
 REQUIRED_READBACK_VALUES = {"VERIFIED", "SINGLE_READ", "CONTESTED", "NOT_APPLICABLE"}
 REQUIRED_SEMANTICS_VALUES = {"SOURCE_LOCAL", "UNRESOLVED", "NOT_APPLICABLE"}
 
@@ -58,7 +60,9 @@ def validate(repo: Path = ROOT):
         "FREEZE INTEGRITY != INPUT CORRECTNESS",
         "SYMBOL TYPE != SYMBOL INSTANCE",
         "SAME STEM != SAME STATE",
+        "DUN MODE != ROTATION DIRECTION ONLY",
         "PLATE LAYER TAG != PLATE LAYER SEMANTICS",
+        "DETERMINISTIC MULTI-OUTPUT != UNIQUE DECISION",
         "instance_collapse_blocked=true",
         "Empirical Credit 始终保持：`NONE`",
     ):
@@ -75,6 +79,8 @@ def validate(repo: Path = ROOT):
     props = mapping.get("properties") if isinstance(mapping.get("properties"), dict) else {}
     if set(props.get("plate_layer", {}).get("enum", [])) != REQUIRED_PLATE_VALUES:
         issues.append("plate_layer enum drift")
+    if set(props.get("dun_mode", {}).get("enum", [])) != REQUIRED_DUN_VALUES:
+        issues.append("dun_mode enum drift")
     if set(props.get("readback_status", {}).get("enum", [])) != REQUIRED_READBACK_VALUES:
         issues.append("readback_status enum drift")
     if set(props.get("semantics_status", {}).get("enum", [])) != REQUIRED_SEMANTICS_VALUES:
@@ -88,6 +94,9 @@ def validate(repo: Path = ROOT):
         issues.append("scenario must require at least one symbolic mapping hypothesis")
     if mappings.get("items", {}).get("$ref") != "qimen_symbolic_mapping.schema.json":
         issues.append("scenario symbolic mappings must bind qimen_symbolic_mapping schema")
+    tie = sprops.get("decision_tie_break_policy") if isinstance(sprops.get("decision_tie_break_policy"), dict) else {}
+    if tie.get("type") != "object" or tie.get("additionalProperties") is not False:
+        issues.append("scenario decision tie-break policy must be closed object")
     if sprops.get("empirical_credit", {}).get("const") != "NONE":
         issues.append("practice input integrity cannot grant empirical credit")
     return issues
@@ -105,7 +114,7 @@ def main():
             print(f"- {issue}", file=sys.stderr)
         raise SystemExit(1)
     print("k2-qimen-practice-input-integrity: PASS")
-    print("plate_layer_tagging=true instance_collapse_blocked=true empirical_credit=NONE")
+    print("plate_layer_tagging=true dun_mode_tagging=true instance_collapse_blocked=true tie_break_freeze=true empirical_credit=NONE")
 
 
 if __name__ == "__main__":
