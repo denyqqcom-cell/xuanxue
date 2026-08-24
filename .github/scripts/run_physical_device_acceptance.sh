@@ -22,10 +22,25 @@ if ! git diff --quiet -- || ! git diff --cached --quiet --; then
   exit 1
 fi
 
-mapfile -t DEVICE_ROWS < <(adb devices | awk 'NR > 1 && NF >= 2 {print $1 "\t" $2}')
+# Default to adb from PATH, but allow an already-authorized bridge such as a
+# Windows platform-tools adb.exe exposed inside WSL via an explicit path.
+ADB_BIN="${ADB_BIN:-adb}"
+if [[ "$ADB_BIN" == */* ]]; then
+  if [[ ! -x "$ADB_BIN" ]]; then
+    echo "Configured ADB_BIN is not executable: $ADB_BIN" >&2
+    exit 1
+  fi
+elif ! command -v "$ADB_BIN" >/dev/null 2>&1; then
+  echo "ADB executable not found in PATH: $ADB_BIN" >&2
+  exit 1
+fi
+ADB_BASE=("$ADB_BIN")
+ADB_VERSION="$("${ADB_BASE[@]}" version | sed -n '1p' | tr -d '\r')"
+
+mapfile -t DEVICE_ROWS < <("${ADB_BASE[@]}" devices | awk 'NR > 1 && NF >= 2 {print $1 "\t" $2}')
 if [[ "${#DEVICE_ROWS[@]}" -ne 1 ]]; then
   echo "Physical-device acceptance requires exactly one ADB target; found ${#DEVICE_ROWS[@]}." >&2
-  adb devices -l >&2 || true
+  "${ADB_BASE[@]}" devices -l >&2 || true
   exit 1
 fi
 
@@ -33,10 +48,10 @@ SERIAL="${DEVICE_ROWS[0]%%$'\t'*}"
 STATE="${DEVICE_ROWS[0]#*$'\t'}"
 if [[ "$STATE" != "device" ]]; then
   echo "ADB target $SERIAL is not ready: state=$STATE" >&2
-  adb devices -l >&2 || true
+  "${ADB_BASE[@]}" devices -l >&2 || true
   exit 1
 fi
-ADB=(adb -s "$SERIAL")
+ADB=("${ADB_BASE[@]}" -s "$SERIAL")
 
 BOOT_COMPLETED="$("${ADB[@]}" shell getprop sys.boot_completed | tr -d '\r')"
 MODEL="$("${ADB[@]}" shell getprop ro.product.model | tr -d '\r')"
@@ -67,6 +82,7 @@ BEFORE_AIRPLANE="$("${ADB[@]}" shell settings get global airplane_mode_on | tr -
 cat > "$OUT/DEVICE_BEFORE.txt" <<EOF
 source_head_sha=$SOURCE_HEAD_SHA
 actual_head_sha=$ACTUAL_HEAD_SHA
+adb_version=$ADB_VERSION
 serial=$SERIAL
 manufacturer=$MANUFACTURER
 model=$MODEL
@@ -128,6 +144,7 @@ cat > "$OUT/RESULT.txt" <<EOF
 status=PASS
 source_head_sha=$SOURCE_HEAD_SHA
 actual_head_sha=$ACTUAL_HEAD_SHA
+adb_version=$ADB_VERSION
 serial=$SERIAL
 manufacturer=$MANUFACTURER
 model=$MODEL

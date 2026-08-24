@@ -13,15 +13,25 @@
 - 可通过 `EXPECTED_MODEL` 绑定预期型号，例如 Moto X30 Pro 使用 `XT2241-1`；
 - `SOURCE_HEAD_SHA` 必须与本地实际 `git rev-parse HEAD` 完全一致，否则拒绝生成可能被错误标记的真机证据；
 - tracked worktree 与 index 必须干净；未跟踪文件不会被 runner 自动删除，也不会被冒充成 tracked clean/dirty 结论；
+- ADB 默认从 `PATH` 使用 `adb`；若 WSL 中没有 `adb`，可通过 `ADB_BIN` 显式指向已授权且可执行的现有 ADB，例如 Windows `adb.exe` 在 WSL 中对应的 `/mnt/c/.../adb.exe` 路径；
 - 只运行 `formFactor=narrow`；
 - **不修改** `wm size`、`wm density`、深浅色模式、飞行模式或网络状态；
 - 测试前后会重新读取这些系统状态，发生漂移即 fail closed；
-- 记录 source HEAD、实际 checkout HEAD、设备型号、Android/API、APK SHA256、截图数量和 logcat 尾部；
+- 记录 source HEAD、实际 checkout HEAD、ADB 版本、设备型号、Android/API、APK SHA256、截图数量和 logcat 尾部；
 - 至少应取得 16 张现有 instrumentation evidence screenshot。
 
 在仓库根目录执行示例：
 
 ```bash
+SOURCE_HEAD_SHA="$(git rev-parse HEAD)" \
+EXPECTED_MODEL="XT2241-1" \
+bash .github/scripts/run_physical_device_acceptance.sh
+```
+
+如果当前 WSL 没有 `adb`，但 Windows 已有与这台真机连接成功的 `adb.exe`，可显式传入其 WSL 可执行路径，而不是另装一套 platform-tools：
+
+```bash
+ADB_BIN="/mnt/c/path/to/platform-tools/adb.exe" \
 SOURCE_HEAD_SHA="$(git rev-parse HEAD)" \
 EXPECTED_MODEL="XT2241-1" \
 bash .github/scripts/run_physical_device_acceptance.sh
