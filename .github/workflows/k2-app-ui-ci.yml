@@ -1,0 +1,47 @@
+name: K2 App UI CI
+
+on:
+  pull_request:
+    branches:
+      - knowledge-engine-v1-k2
+    paths:
+      - "app/**"
+      - "ziwei-core/**"
+      - "build.gradle.kts"
+      - "settings.gradle.kts"
+      - "gradle/**"
+      - "gradlew"
+      - "gradlew.bat"
+      - ".github/workflows/k2-app-ui-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: k2-app-ui-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x gradlew
+
+      - name: Unit tests and lint
+        run: ./gradlew --no-daemon :ziwei-core:test :app:testDebugUnitTest :app:lintDebug
+
+      - name: Assemble debug APK
+        run: ./gradlew --no-daemon :app:assembleDebug
