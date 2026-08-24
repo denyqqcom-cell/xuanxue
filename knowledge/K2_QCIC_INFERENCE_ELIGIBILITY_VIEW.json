@@ -4,6 +4,19 @@
   "enumeration_units": [
     {
       "claim_eligible": false,
+      "compression_id": "K2EC-QM0010-001",
+      "effective_structure_units": 1,
+      "empirical_evidence_units": 0,
+      "enumerated_entries_count": 1080,
+      "generative_rule_id": "QM0010-TIME-QIMEN-1080-ENUM",
+      "inference_eligibility": "STRUCTURE_ONLY_RECONSTRUCTION_UNTESTED",
+      "method_layer": "CALCULATION",
+      "reconstruction_test_status": "UNTESTED",
+      "source_id": "QM-SRC-0010",
+      "work_id": "WORK-000376"
+    },
+    {
+      "claim_eligible": false,
       "compression_id": "K2EC-QM0017-002",
       "effective_structure_units": 1,
       "empirical_evidence_units": 0,
@@ -36,6 +49,17 @@
   ],
   "schema_version": "k2-qcic-inference-eligibility-v1",
   "source_summaries": [
+    {
+      "author_method_candidate_count": 0,
+      "claim_eligible": false,
+      "collapsed_enumerated_entries": 1080,
+      "effective_structure_units": 1,
+      "empirical_evidence_units": 0,
+      "excluded_stance_topic_count": 0,
+      "held_stance_topic_count": 0,
+      "source_id": "QM-SRC-0010",
+      "stance_topic_count": 0
+    },
     {
       "author_method_candidate_count": 0,
       "claim_eligible": false,
