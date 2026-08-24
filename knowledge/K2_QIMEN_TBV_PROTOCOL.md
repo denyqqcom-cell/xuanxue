@@ -1,4 +1,4 @@
-# K2 奇门 TBV 反向重析协议 v1.2
+# K2 奇门 TBV 反向重析协议 v1.3
 
 TBV = Theory — Boundary — Validation（理论—边界—验证）。
 
@@ -64,44 +64,49 @@ TBV 不把规则列表、页数或表项数量等同理论。优先提炼：对�
 
 TBV 可以给出 source-local candidate、boundary-only、mixed-stance hold、historical-only 或 hold；不能给出无边界万能口诀、已验证现实规律或高风险现实操作建议。
 
-## 7. Wave A / Wave B 当前状态
+## 7. 覆盖状态必须机器派生
 
-Wave A 已覆盖：QM-SRC-0015、0017、0019、0020、0021 与 WF-QM-JIADUN-ZHENSHOU-001。
+从 v1.3 起，TBV 协议正文不再固定“当前 UNKNOWN 数量”或“当前 deep-visual 覆盖数量”。这些数字会随真实阅读推进而变化，权威值只来自机器状态：
 
-Wave B 已覆盖：WF-QM-SANYUAN-QIMEN-001、WF-QM-JINHAN-YUJING-001，以及 QM-SRC-0009、0024、0027、0028、0029。
+- `knowledge/K2_QIMEN_TBV_STATE.json`
+- `knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json`
+- `knowledge/K2_DEEP_READING_LEDGER.jsonl`
 
-其中：
+稳定不变量：
 
-- QM-SRC-0009 已完成 535/535 原页视觉复核。它是现代白话图解载体，内部至少要分传统原文/古注、现代白话提要、现代图解与出版社说明等 voice；方法上同时包含确定性排局、静态象意、条件关系、派生格局、回顾性案例与法术/仪式层。下部 QM-SRC-0010 尚未做双边视觉身份确认，因此本轮只关闭 0009 的 source-level semantic/TBV，不提前闭合上下部 work lineage，也不创建依赖 work_id 的 deep-source distillate；
-- QM-SRC-0024 是 composite carrier，QIMEN primary work content 必须按 SEG-002 / SEG-004 分段绑定，不能把共同装订当成统一理论；
-- QM-SRC-0027 / 0028 / 0029 虽分别做 source-level TBV，以保存 synopsis / foundation / advanced-extension 的独特边界，但三者属于 `COURSE-QM-SHANTIADAO-001`，独立性继续执行 `COURSE_FAMILY_SINGLE_VOTE`；三个 TBV source rows 不是三张 empirical/corroboration 票；
-- 已完成 visual deep review 的 17 个奇门来源，目前 `effective_deep_source_coverage = 17/17`。
+`GLOBAL_UNKNOWN_BACKLOG = MACHINE_DERIVED`
 
-但全项目仍有：
-
-`global_unknown_textual_backlog = 92`
+`DEEP_VISUAL_TBV_COVERAGE = MACHINE_DERIVED`
 
 因此：
 
-`full_reviewed_material_tbv_coverage = false`
-
-`status = PARTIAL`
-
-**Deep-reviewed layer 的 TBV 17/17 只代表已深读层没有 TBV gap，不代表全语料库掌握完成。**
-
-统一执行：
-
 `DEEP_REVIEW_TBV_COVERAGE != FULL_CORPUS_COMPLETION`
 
-## 8. 覆盖与独立性
+只要 machine-derived UNKNOWN backlog 非零，`full_reviewed_material_tbv_coverage = false`，TBV 总状态继续保持 `PARTIAL`。
+
+## 8. 当前已关闭的关键 work-family 边界
+
+`QM-SRC-0009` 与 `QM-SRC-0010` 均已完成全册原页视觉复核，并通过 lineage correction 绑定为同一现代出版物《图解遁甲演义》的互补 WORK_PART，由 `WF-QM-DUNJIA-YANYI-001` 作为 work-family provenance unit 管理。
+
+这两册不是两张独立 evidence vote。下部 1080 局按生成状态空间处理：
+
+`1080 STATE INSTANCES != 1080 EMPIRICAL SAMPLES`
+
+其主要结构应拆为：generator -> state instance -> derived feature -> interpretation annotation。1080 个实例可作为 reconstruction fixture corpus，但不能按实例数量增加 empirical credit。
+
+`QM-SRC-0024` 仍是 composite carrier，QIMEN primary work content 必须按 segment 绑定；共同装订不构成统一理论。
+
+`QM-SRC-0027 / 0028 / 0029` 属于同一课程家族，继续执行 `COURSE_FAMILY_SINGLE_VOTE`。
+
+## 9. 覆盖与独立性
 
 `COVERAGE CREDIT != INDEPENDENT EVIDENCE VOTE`
 
-work-family review 可以覆盖多个 member source，但仍只是一条 family-level provenance unit；同理，同一 course family 中的独立 work 为保存各自 theory/boundary 可分别接受 TBV review，却不能因此重复增加独立 corroboration。
+work-family review 可以覆盖多个 member source，但仍只是一条 family-level provenance unit；同一 course family 中的独立 work 为保存各自 theory/boundary 可分别接受 TBV review，却不能因此重复增加独立 corroboration。
 
 TBV registry 可使用 aggregate 与 `knowledge/K2_QIMEN_TBV_REVIEW_REGISTRY.d/*.jsonl` shards。shard 只是存储方式，不绕过 duplicate unit、source identity、coverage 与 fail-closed gate。
 
-## 9. Known-outcome training 与评价隔离
+## 10. Known-outcome training 与评价隔离
 
 `KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION`
 
@@ -109,9 +114,7 @@ TBV registry 可使用 aggregate 与 `knowledge/K2_QIMEN_TBV_REVIEW_REGISTRY.d/*
 
 真正 prospective evaluation 必须使用结果未知、反馈前冻结的 clean holdout；已用于训练/复盘的案例及语义近重复不得重新包装成盲测。若发生 leakage，该批只能降为方法研究材料。
 
-## 10. QM-SRC-0009 反审新增约束
-
-完整阅读 0009 后新增以下机器应保留的认知边界：
+## 11. 0009/0010 反审形成的机器认知边界
 
 `PREDEFINED PROCEDURAL BRANCHING != POST-HOC INTERPRETIVE SEARCH`
 
@@ -119,11 +122,11 @@ TBV registry 可使用 aggregate 与 `knowledge/K2_QIMEN_TBV_REVIEW_REGISTRY.d/*
 
 `CALCULATION CONSISTENCY != REAL-WORLD VALIDITY`
 
-来源内部的定局、超神、接气、置闰和错误检点可以证明算法内部可重建，不等于现实预测有效。
+来源内部的定局、超神、接气、置闰、1080局重建与错误检点可以证明算法内部可重建，不等于现实预测有效。
 
 `TEXTUAL PRECISION != EMPIRICAL VALIDATION`
 
-九星临十二时辰等条目即使给出非常具体的人物、事件、方向和期限，也不能凭文字具体程度升级经验信用。
+条目即使给出非常具体的人物、事件、方向和期限，也不能凭文字具体程度升级经验信用。
 
 `NAMED PATTERN = DERIVED FEATURE`
 
@@ -131,7 +134,7 @@ TBV registry 可使用 aggregate 与 `knowledge/K2_QIMEN_TBV_REVIEW_REGISTRY.d/*
 
 `EDITORIAL REPETITION != INDEPENDENT CORROBORATION`
 
-同一规则在原文、白话、表格、图解和后续章节中反复出现，只增加该编辑体系中的覆盖和重要性，不增加独立来源票。
+同一规则在原文、白话、表格、图解、上下册和后续章节中反复出现，只增加该编辑体系中的覆盖和重要性，不增加独立来源票。
 
 `SOURCE PROHIBITION != EPISTEMIC ABSTENTION`
 
@@ -141,13 +144,19 @@ TBV registry 可使用 aggregate 与 `knowledge/K2_QIMEN_TBV_REVIEW_REGISTRY.d/*
 
 秘传、师承、只传贤德等传承伦理与身份叙事不能增加 empirical credit。
 
-0009 的现代白话提要在玉女反闭部分明确指出其说法“玄而又玄”且“没有什么理论依据”，但仍因属于奇门传统而介绍。因此继续执行：
-
 `SOURCE CONTAINS METHOD != SOURCE ENDORSES METHOD`
 
-并将法术、咒式、军事仪式层与一般排盘/占断 operator 分离。
+现代整理者可以收录法术/咒式，同时明确质疑其理论依据。因此法术、咒式、军事仪式层必须与一般排盘/占断 operator 分离。
 
-## 11. 善天道课程家族的 TBV 边界
+`STATE COVERAGE != THEORY INFORMATION GAIN`
+
+大规模实例展开增加状态覆盖，不必然增加新的理论信息；正常实例主要用于重建/回归测试，异常实例反而具有更高的理论诊断价值。
+
+`DETERMINISTIC MULTI-OUTPUT != UNIQUE DECISION`
+
+若一个盘机械地产生多个合法吉方或多个候选输出，实际行动仍需反馈前冻结 tie-break policy；不能在结果后从多个合法输出中挑中一个命中者。
+
+## 12. 善天道课程家族的 TBV 边界
 
 QM-SRC-0027 主要提供高压缩 role-candidate 索引；QM-SRC-0028 主要提供基础排盘、组合解释与方法冲突；QM-SRC-0029 主要提供高级程序化断局、宫内/宫际关系、角色竞争与修正层。
 
@@ -157,27 +166,27 @@ QM-SRC-0027 主要提供高压缩 role-candidate 索引；QM-SRC-0028 主要提�
 
 其中年命/日干、拆补/置闰、九星旺衰、马星冲墓/空等都存在选择或竞争空间。它们必须被显式冻结或并行测试，不得结果后任选命中路径。
 
-## 12. Composite-carrier 边界
+## 13. Composite-carrier 边界
 
-对 QM-SRC-0024 这类复合载体：
+对 composite carrier：
 
 `CARRIER -> SEGMENT -> WORK -> METHOD/VOICE`
 
 是最低必要路径。共同装订、文件名或目录不能建立跨 work 的默认桥接。若以后发现来源自己明确给出桥接规则，应登记为新证据，而不是由项目事先补造。
 
-## 13. 当前认知结果
+## 14. 当前认知结果与 SCRM 自我约束
 
-到当前阶段，更值得工程化保留的不是孤立“吉凶词典”，而是：
+更值得工程化保留的不是孤立“吉凶词典”，而是：
 
 `对象定义 + 问题域 + 角色坐标 + symbol instance/layer + 时间模型 + 方法层 + 条件关系 + 程序顺序 + 修正边界 + 现实锚点`
 
-同时，0009 强迫项目再增加一项自我约束：场景模型不能因为字段更多就自称更高级。SCRM 若只是把传统的门星神干自由度换成 actor、constraint、rival、sensitivity 等现代字段，却没有降低实际可选解释路径，则只是换了一套复杂语言。
+但场景模型不能因为字段更多就自称更高级。SCRM 若只是把传统门星神干自由度换成 actor、constraint、rival、sensitivity 等现代字段，却没有降低实际可选解释路径，则只是换了一套复杂语言。
 
 因此后续比较必须关注 `NET DEGREES OF FREEDOM`：新结构应减少结果后可选路径并改善复现、错误定位、弃权或前瞻表现，否则删除或降级。
 
 这与 SCRM 的 scenario-conditioned relational 路线相容，但“相容”不等于 SCRM 已被验证。
 
-## 14. TBV 自身的失败条件
+## 15. TBV 自身的失败条件
 
 若后续实际来源复核或前瞻实践发现：
 
@@ -189,11 +198,11 @@ QM-SRC-0027 主要提供高压缩 role-candidate 索引；QM-SRC-0028 主要提�
 
 则必须修改/降级 TBV 与模型，不能修改来源或事后加例外保护模型。
 
-## 15. 下一阶段
+## 16. 下一阶段
 
-Deep-visual TBV gap 已关闭，下一主线转为：
+Deep-visual TBV gap 对当前已深读层已经关闭，但 machine-derived UNKNOWN backlog 仍非零。下一主线是：
 
-1. 对 92 个 semantic UNKNOWN textual sources 继续真实 content access / review，禁止按文件名或目录批量清零；
-2. 优先视觉核验 QM-SRC-0010 的题名、版权、目录和全文，再决定与 0009 的正式 work lineage；
-3. 将已完成 TBV 的 source-local 方法投入低风险实战/前瞻练习，用冻结预测、失败保留、mapping drift 与净自由度审计持续反向校正模型；
-4. Claim Extraction 保持 BLOCKED，Empirical Credit 保持 NONE，直到其各自机器门槛真正满足。
+1. 继续通过真实 content access / review 缩减 semantic UNKNOWN，不按文件名或目录批量清零；
+2. 将已关闭 work-family 的 source-local 方法用于低风险、结果未知、反馈前冻结的实战/前瞻练习；
+3. 对 generator、symbol instance、derived feature 和 tie-break policy 做可重建/可失败的实现测试；
+4. Claim Extraction 保持 BLOCKED，Empirical Credit 保持 NONE，直到各自机器门槛真正满足。

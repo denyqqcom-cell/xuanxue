@@ -1,4 +1,4 @@
-# K2 奇门深度闭关：认知重构章程 v1
+# K2 奇门深度闭关：认知重构章程 v1.1
 
 状态：`OPEN`  
 模式：`COGNITIVE_RECONSTRUCTION`  
@@ -20,7 +20,11 @@ Empirical Credit：`NONE`
 
 这里的“闭关”不是暂停读书，而是改变读书的认识论地位。文献仍然是基础材料，但文献只回答“某个来源说了什么、怎样说、在什么语境下说”，不能自动回答“现实是否如此”。
 
-当前也不得宣称已经完成全库掌握。机器账本仍有 `92` 个 global semantic-UNKNOWN textual backlog，因此：
+从 v1.1 起，章程正文不再固定当前 UNKNOWN 数量。覆盖数字必须由机器状态实时提供：
+
+`UNKNOWN_BACKLOG = MACHINE_DERIVED`
+
+权威来源为 `K2_UNKNOWN_TEXTUAL_BACKLOG.json` 与 `K2_QIMEN_COGNITIVE_RECONSTRUCTION_STATE.json`。只要 backlog 非零：
 
 `full_corpus_mastery_claim = false`
 
@@ -44,7 +48,7 @@ Empirical Credit：`NONE`
 
 ### 2.3 Deep Reading：从“书里有”误认成“作者认可”
 
-完整阅读《奇门遁甲新述》后暴露出 Source Stance Collapse：同一本书可以先转述传统材料，最后又明确批判其中一部分。
+完整阅读多部来源后暴露出 Source Stance Collapse：同一本书可以先转述传统材料，随后又明确批判其中一部分。
 
 因此：
 
@@ -58,17 +62,33 @@ Empirical Credit：`NONE`
 
 `enumeration size != independent evidence size`
 
-同时，开放式大规则池会增加结果后搜索路径，必须压缩、冻结并记录选择依据。
+完整阅读《图解遁甲演义》上下部后又进一步确认：
+
+`STATE COVERAGE != THEORY INFORMATION GAIN`
+
+规则展开可以增加 reference fixture coverage，却不能按页面/实例数量增加 empirical credit。
 
 ### 2.5 QCIC：从“冻结规则”误认成“解释自由度已经冻结”
 
-继续深读后发现，规则集合即使不变，只要仍能新增外应、特殊情况、改变应期优先级、换用神或换方法层，仍然可以产生 hindsight fit。
+规则集合即使不变，只要仍能新增外应、特殊情况、改变应期优先级、换用神或换方法层，仍然可以产生 hindsight fit。
 
 所以 QCIC 逐步加入：Observation Channel Registry、Method Layer Router、Procedure Precedence Graph、Exception Budget、Failure Ledger、Source Stance 与 Enumeration Compression。
 
-### 2.6 当前新发现：从“控制解释自由度”误认成“已经具备场景解释力”
+### 2.6 从“复杂规则”误认成“事后自由度”
 
-这是本次闭关最重要的新反省。
+《图解遁甲演义》1080局完整重构迫使项目修正这一点：反馈前由历法、局式、时辰与 source-local 程序机械决定的复杂分支，不应因为复杂就被当作 hindsight freedom。
+
+必须区分：
+
+`PREDEFINED PROCEDURAL BRANCHING`
+
+与：
+
+`POST-HOC INTERPRETIVE SEARCH`
+
+真正需要处罚的是结果后才改变解释路径，而不是结果前已经确定的复杂算法。
+
+### 2.7 当前新发现：从“控制解释自由度”误认成“已经具备场景解释力”
 
 QCIC 已经是一套较强的 **控制壳**，能回答：
 
@@ -85,20 +105,9 @@ QCIC 已经是一套较强的 **控制壳**，能回答：
 
 这可以降低乱套书的程度，却不等于真正理解一个具体场景。
 
-现实事件不是一张只含门星神的静态表。它还有：
+现实事件还包含：真实参与者、资源与利益、时间窗口、已知事实、未知变量、现实约束、行动反馈、基准概率、可直接调查的信息，以及多种相互竞争的解释。
 
-- 真实参与者；
-- 资源与利益；
-- 时间窗口；
-- 已知事实；
-- 未知变量；
-- 现实约束；
-- 行动反馈；
-- 基准概率；
-- 可直接调查的信息；
-- 多种相互竞争的解释。
-
-因此下一步不能只是继续给 QCIC 加更多 Gate，而要把“场景本身”建成显式模型。
+因此下一步不能只是继续给 QCIC 加 Gate，而要把“场景本身”建成显式模型。
 
 ## 3. 批判性阅读统一范式：理论—边界—验证
 
@@ -110,17 +119,7 @@ QCIC 已经是一套较强的 **控制壳**，能回答：
 
 ### B. BOUNDARY：它在什么条件下才声称成立？
 
-至少记录：
-
-- 时间模型；
-- 问题域；
-- role frame；
-- method layer；
-- source/school context；
-- 所需输入；
-- 适用对象；
-- 例外与停止条件；
-- 是否只是作者经验、口诀、查表、案例归纳或历史叙述。
+至少记录：时间模型、问题域、role frame、method layer、source/school context、所需输入、适用对象、例外与停止条件，以及它究竟是作者经验、口诀、查表、案例归纳还是历史叙述。
 
 如果边界不清，不补成普适规则，保持 `CONTEXT_REQUIRED / SOURCE_UNCERTAIN`。
 
@@ -145,34 +144,15 @@ QCIC 已经是一套较强的 **控制壳**，能回答：
 
 `看到盘 -> 找吉凶符号 -> 搜口诀 -> 拼叙事`
 
-必须先明确真实问题到底是什么。例如同一句“这件事能不能成”，可能实际分别属于：
-
-- 对方是否有意愿；
-- 资源是否足够；
-- 程序是否会通过；
-- 时间是否来得及；
-- 第三方是否干预；
-- 当事人应选择哪一个行动。
+必须先明确真实问题到底是什么。同一句“这件事能不能成”，可能实际分别属于：对方是否有意愿、资源是否足够、程序是否会通过、时间是否来得及、第三方是否干预、当事人应选择哪一个行动。
 
 这些问题对应不同的 state variables、actors 与 outcome definition。若问题本身不先拆开，再精细的门星神解释也可能是在回答错误的问题。
 
 ## 5. 双核心架构
 
-从本阶段开始，把项目自己的方法拆成两个不同职责。
-
 ### 5.1 QCIC：Epistemic Control Shell
 
-QCIC 继续负责：
-
-- provenance；
-- source stance；
-- observation channel；
-- method layer；
-- role/rule freeze；
-- precedence；
-- exception budget；
-- hindsight control；
-- prospective provenance。
+QCIC 继续负责：provenance、source stance、observation channel、method layer、role/rule freeze、precedence、exception budget、hindsight control、prospective provenance。
 
 QCIC 的目标是让推演 **可审计、可失败、少自由度**。
 
@@ -202,7 +182,7 @@ SCRM-v0.1 是本项目新建的场景推演候选核心，负责：
 本项目把原创性的最低要求定义为：
 
 1. 明确指出旧框架解决不了什么；
-2. 新增的结构必须有可观察后果；
+2. 新增结构必须有可观察后果；
 3. 必须存在合理 comparator；
 4. 必须写失败条件；
 5. 新组件如果不能改善预注册指标，就删除或降级；
@@ -217,31 +197,40 @@ SCRM-v0.1 是本项目新建的场景推演候选核心，负责：
 
 ## 7. 全覆盖学习仍然是硬前提
 
-认知重构不能变成“只研究自己喜欢的几本书”。
-
-当前剩余的 `92` 个 semantic-UNKNOWN textual source 是明确知识债。后续覆盖按三条 lane 继续：
+认知重构不能变成“只研究自己喜欢的几本书”。machine-derived semantic UNKNOWN backlog 仍然是明确知识债。后续覆盖按三条 lane 继续：
 
 1. 已有完整阅读但尚未有效路由的材料：优先建立 discovery overlay；
 2. TEXT_OK：逐页保留来源结构进行完整阅读；
 3. SCAN/OCR_WEAK/OCR_FAIL：必须视觉阅读，不能用弱 OCR 冒充完整理解。
 
-并新增一个原则：
+并继续执行：
 
 `coverage by family/context > coverage by page count`
 
-以后不仅问读了多少页，还要问：
+以后不仅问读了多少页，还要问：哪些 work family 没覆盖、哪些时代/流派过度代表、哪些材料只是现代课程重复、哪些冲突体系没有被认真保留、哪些案例类材料缺少失败样本。
 
-- 哪些 work family 没覆盖；
-- 哪些时代/流派过度代表；
-- 哪些材料只是现代课程重复；
-- 哪些冲突体系没有被认真保留；
-- 哪些案例类材料缺少失败样本。
+## 8. 实战必须从“断盘展示”升级为可验证案例
 
-## 8. 深度闭关退出条件
+低风险实战用于训练和验证时，必须反馈前冻结：
 
-本阶段不能因为“写出了新模型”自动结束。
+- outcome definition；
+- reality-only baseline；
+- method/setup；
+- role/symbol mapping；
+- eligible rule set；
+- competing explanations；
+- tie-break policy；
+- timing window；
+- abstention condition；
+- success/failure criteria。
 
-至少满足：
+若算法机械地产生多个合法输出，必须执行：
+
+`DETERMINISTIC MULTI-OUTPUT != UNIQUE DECISION`
+
+结果出来后不能从多个候选方向、格局或解释中挑一个命中者。
+
+## 9. 深度闭关退出条件
 
 ### Coverage Gate
 
@@ -271,11 +260,11 @@ SCRM-v0.1 是本项目新建的场景推演候选核心，负责：
 - 模型新增组件必须证明相对简单 baseline 的增量价值；
 - 无增量价值的组件删除，不以“传统上重要”或“自己设计得漂亮”为保留理由。
 
-## 9. 当前结论
+## 10. 当前结论
 
-这次闭关不是宣布已经到达更高境界，而是把一个新的错误暴露出来：
+这次闭关不是宣布已经到达更高境界，而是不断把新的错误暴露出来：
 
-> **过去的改进主要在控制“不要乱解”，下一阶段必须真正研究“怎样把具体世界建成可反驳、可比较、可验证的场景模型”。**
+> 过去的改进主要在控制“不要乱解”，下一阶段必须真正研究“怎样把具体世界建成可反驳、可比较、可验证的场景模型”。
 
 因此当前最重要的转变是：
 

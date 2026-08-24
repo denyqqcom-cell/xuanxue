@@ -226,7 +226,7 @@ def validate_docs(charter: str, model: str):
         "full_corpus_mastery_claim = false",
         "QCIC：Epistemic Control Shell",
         "SCRM：Scenario-Conditioned Relational Model",
-        "92",
+        "UNKNOWN_BACKLOG = MACHINE_DERIVED",
     ):
         if needle not in charter:
             issues.append(f"charter missing invariant: {needle}")
