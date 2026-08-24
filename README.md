@@ -83,17 +83,21 @@ Knowledge Engine 使用统一的 Source / Evidence / Claim / School / Conflict /
 
 ### K2B 执行职责
 
-仓库代码、Schema、validator、正式 Reading Ledger、Atomic Evidence、Git commit/push 与阶段验收由项目主 Agent负责。
+仓库代码、Schema、validator、正式 Reading Ledger、Atomic Evidence、测试设计与执行、真机验收、Git commit/push 与阶段验收全部由项目主 Agent负责。
 
-本地 AI 只作为执行助手：
+当前本地 AI 固定为 `EXECUTION_HELPER_ONLY`，权威边界见：
 
-- fetch/pull；
-- 运行项目端已经存在的脚本和测试；
-- 在本机寻找 canonical source bytes；
-- 机械生成/回传 page packet；
-- 原样报告缺文件、提取失败、vision 失败或环境缺失。
+- `LOCAL_AI_EXECUTION_BOUNDARY.json`
+- `LOCAL_HELPER_CURRENT_PROMPT.md`
 
-本地 AI 不修改 tracked 文件，不归纳正式 Evidence，不创建 Claims，不修改 App/算法，不 commit/push。
+本地 AI 现在只负责两类机械工作：
+
+- GitHub → 本地：读取状态、fetch、remote HEAD 校验，并在 tracked clean 前提下 `merge --ff-only`；
+- 本地资料：定位 canonical PDF / page packet，校验 SHA256、页数、文件大小、路径和 packet 完整性，以及主 Agent 明确点名的单文件发布。
+
+本地 AI 不写代码，不修改 tracked/knowledge 文件，不运行项目测试、Gradle、instrumentation、physical-device acceptance 或 ADB，不安装依赖，不做工程判断，不归纳正式 Evidence/Claims，不改 Ledger/lineage/distillate，不 commit/push/reset/stash/clean，也不删除 untracked 文件。
+
+历史 `LOCAL_CORPUS_*PROMPT.md` 仅保留 provenance；若旧提示词授权更宽，以当前 boundary 为准。
 
 ### K2B source identity
 
@@ -107,7 +111,7 @@ official K1 file_sha256 == actual local file SHA256
 
 文件名、标题、目录位置、页数相似都不能代替 hash identity。
 
-Wave 1 当前固定为 37 个 unique-coverage reading units：`TEXT_DIRECT=22 / VISUAL_REQUIRED=15 / ACCESS_REVIEW=0`。SCAN/OCR_WEAK/OCR_FAIL 没有原页视觉能力时必须保持 BLOCKED，不得以 OCR 冒充视觉核验。
+Wave 1 当前固定为 37 个 unique-coverage reading units：`TEXT_DIRECT=21 / VISUAL_REQUIRED=16 / ACCESS_REVIEW=0`。SCAN/OCR_WEAK/OCR_FAIL 没有原页视觉能力时必须保持 BLOCKED，不得以 OCR 冒充视觉核验。
 
 具体状态与 Gate 见：
 
@@ -142,7 +146,7 @@ CI 现在有两层发行检查：
 1. **源码 Gate**：许可文本、权利人声明、Manifest 网络权限、未经审查的 `assets/`；
 2. **APK 二进制 Gate**：编译完成后直接扫描 APK，阻止 PDF/EPUB/DOC/字体、研究目录、全文/OCR/scan 痕迹和未经批准的 assets 被意外打进发行包。
 
-Knowledge Engine 另有自己的 CI：六域 schema、状态一致性、K1/K2 fail-closed validator、研究二进制边界、Linux stable-core regression，以及 Windows K2 helper portability test。
+Knowledge Engine 另有自己的 CI：六域 schema、状态一致性、K1/K2 fail-closed validator、研究二进制边界、local-AI execution boundary、Linux stable-core regression，以及 Windows K2 tooling portability test。
 
 完整工程审计见 `COPYRIGHT_REVIEW.md`。这是一套工程合规措施，不构成法律意见。
 

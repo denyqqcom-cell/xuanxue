@@ -41,27 +41,36 @@ The remediation is implemented by the project main agent in repository code, not
 - Windows/WSL path translation is host-aware;
 - `test_k2_evidence.py` is portable across Windows/POSIX;
 - GitHub Actions has a `windows-latest` helper portability job;
-- no-JDK local execution is an environment skip, while JDK17 stable-core regression remains authoritative in GitHub Actions;
+- no-JDK local execution is an environment observation only, while JDK17 stable-core regression remains authoritative in GitHub Actions;
 - the unavailable Liuren 34-row candidate artifact is removed as a dependency rather than reconstructed from memory.
 
 ## Accepted replacement architecture
 
-The project-side main agent owns all engineering and final knowledge normalization.
+The project-side main agent owns all engineering, tests, acceptance, knowledge normalization, Evidence/Claim decisions, code changes, commits and pushes.
 
-Wave1 is split mechanically by source readability:
+Wave1 remains split mechanically by source readability:
 
 - `TEXT_DIRECT`: existing real text layer can be extracted page-by-page by project-owned tooling and reviewed by the project-side main agent;
-- `VISUAL_REQUIRED`: SCAN/OCR_WEAK/OCR_FAIL requires original-page visual verification; while the vision backend is unavailable these sources remain honestly BLOCKED;
+- `VISUAL_REQUIRED`: SCAN/OCR_WEAK/OCR_FAIL requires original-page visual verification; while original-page access is unavailable these sources remain honestly BLOCKED;
 - `ACCESS_REVIEW`: any other unresolved access state remains blocked until explicitly resolved.
 
-The local AI is an execution helper only. It may fetch/pull, run project-owned tools/tests, locate canonical local source bytes, and expose requested page packets. It does not edit tracked files, normalize Evidence, commit, push, or decide acceptance.
+The local AI is `EXECUTION_HELPER_ONLY` under `LOCAL_AI_EXECUTION_BOUNDARY.json`. Its current authority is limited to:
+
+- GitHub → local status/fetch and tracked-clean `merge --ff-only` synchronization;
+- locating canonical local source bytes or existing page packets;
+- verifying canonical SHA256, page count, file path/size and packet integrity;
+- publishing one explicitly named local file when the main agent requests it.
+
+The local AI does **not** run project tests, Gradle, instrumentation, physical-device acceptance or ADB operations; does not install dependencies; does not edit tracked files or `knowledge/`; does not normalize Evidence/Claims; does not make engineering or acceptance judgments; and does not commit/push/reset/stash/clean.
+
+Historical `LOCAL_CORPUS_*PROMPT.md` files are provenance records. When their old instructions grant broader authority, the current boundary overrides them.
 
 ## Wave1 accounting baseline
 
-The official Wave1 planner produces 37 unique-coverage reading units:
+The official current Wave1 planner/state produces 37 unique-coverage reading units:
 
-- TEXT_DIRECT: 22
-- VISUAL_REQUIRED: 15
+- TEXT_DIRECT: 21
+- VISUAL_REQUIRED: 16
 - ACCESS_REVIEW: 0
 
 These counts are machine-checked against `knowledge/K2_EVIDENCE_STATE.json`; drift fails the K2 Evidence validator.
@@ -103,15 +112,15 @@ Raw page text stays outside the repository under local `knowledge-intake` storag
 
 ## Environment-specific tests
 
-The Windows path-separator failure is fixed in project code: path normalization is host-aware and tests compare `Path.as_posix()` rather than assuming POSIX `Path.__str__` output.
+The Windows path-separator failure was fixed in project code: path normalization is host-aware and tests compare `Path.as_posix()` rather than assuming POSIX `Path.__str__` output.
 
-GitHub Actions contains a dedicated `windows-latest` K2 helper portability job so this class of bug is tested by the project rather than delegated to the local helper.
+GitHub Actions contains a dedicated `windows-latest` K2 portability job so this class of bug is tested by the project CI, not delegated to the local helper.
 
-A missing local JDK is not a helper-side engineering failure. The local helper reports `SKIP_ENV_NO_JDK`; the authoritative stable-core regression remains GitHub Actions with JDK 17.
+A missing local JDK is not a helper-side engineering task. The local helper may report that the environment lacks a requested file/tool while doing allowed discovery, but it must not install Java or run the regression; the authoritative stable-core regression remains GitHub Actions with JDK 17.
 
 ## Liuren candidate policy
 
-The missing 34-row Liuren candidate artifact is no longer an input dependency. It must not be reconstructed from memory. Liuren Evidence will be re-extracted from verified canonical page packets.
+The missing 34-row Liuren candidate artifact is no longer an input dependency. It must not be reconstructed from memory. Liuren Evidence will be re-extracted from verified canonical source material by the project main agent.
 
 ## Acceptance consequence
 
