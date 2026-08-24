@@ -13,7 +13,7 @@ K1 已完成项目端闭环：本地 accounting、515 条 sanitized registry、a
 
 K2A Source Lineage 已由项目端验收为 `COMPLETE`。当前进入 `K2_EVIDENCE_EXTRACTION`：开始逐页/逐段读取本地文本，形成页级 Evidence 与 Reading Ledger，但仍禁止把多个 Evidence 合成为 Claim。
 
-K2B 工程执行权由项目主 Agent 持有；本地 AI 仅负责拉取代码、运行项目已有工具/测试、定位本机资料和机械暴露 page packet，不再修改 tracked 文件、归纳正式 Evidence、commit 或 push。
+K2B 工程执行权由项目主 Agent 持有；本地 AI 仅负责 GitHub→本地 fast-forward 同步，以及 canonical 本地资料/page packet 的定位、SHA256/页数/完整性校验和明确点名的单文件发布。它不运行测试/Gradle/instrumentation，不写代码或知识树，不做工程判断，也不 commit/push。
 
 Wave 1 execution lanes：TEXT_DIRECT = 21；VISUAL_REQUIRED = 16；ACCESS_REVIEW = 0。SCAN/OCR_WEAK/OCR_FAIL 没有原页视觉能力时必须诚实 BLOCKED，不得用 OCR 冒充视觉核验。
 

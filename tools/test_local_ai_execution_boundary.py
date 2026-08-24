@@ -7,6 +7,10 @@ BOUNDARY = ROOT / "LOCAL_AI_EXECUTION_BOUNDARY.json"
 PROMPT = ROOT / "LOCAL_HELPER_CURRENT_PROMPT.md"
 LEGACY = ROOT / "LOCAL_CORPUS_K2_EVIDENCE_WAVE1_PROMPT.md"
 PROJECT_STATE = ROOT / "knowledge" / "PROJECT_STATE.json"
+EVIDENCE_STATE = ROOT / "knowledge" / "K2_EVIDENCE_STATE.json"
+README = ROOT / "README.md"
+EXECUTION_REFACTOR = ROOT / "knowledge" / "K2B_EXECUTION_REFACTOR.md"
+STATUS = ROOT / "knowledge" / "STATUS.md"
 
 
 def main():
@@ -14,12 +18,23 @@ def main():
     prompt = PROMPT.read_text(encoding="utf-8")
     legacy = LEGACY.read_text(encoding="utf-8")
     project_state = json.loads(PROJECT_STATE.read_text(encoding="utf-8"))
+    evidence_state = json.loads(EVIDENCE_STATE.read_text(encoding="utf-8"))
+    readme = README.read_text(encoding="utf-8")
+    refactor = EXECUTION_REFACTOR.read_text(encoding="utf-8")
+    status = STATUS.read_text(encoding="utf-8")
 
     assert boundary["status"] == "CURRENT"
     assert boundary["role"] == "EXECUTION_HELPER_ONLY"
     assert boundary["authority"] == "PROJECT_MAIN_AGENT"
     assert project_state["local_ai_role"] == "EXECUTION_HELPER_ONLY"
     assert project_state["execution_owner"] == "PROJECT_MAIN_AGENT"
+    assert evidence_state["local_helper_boundary"] == "LOCAL_AI_EXECUTION_BOUNDARY.json"
+
+    role_text = evidence_state["local_helper_role"]
+    for forbidden_claim in ("run project-owned tests/tools", "run project-owned tools/tests"):
+        assert forbidden_claim not in role_text
+    for required_phrase in ("fast-forward sync", "material/page-packet", "no tests", "code edits"):
+        assert required_phrase in role_text
 
     allowed = set(boundary["allowed_actions"])
     required_allowed = {
@@ -83,6 +98,28 @@ def main():
     assert legacy.startswith("# DEPRECATED")
     assert "LOCAL_HELPER_CURRENT_PROMPT.md" in legacy
     assert "LOCAL_AI_EXECUTION_BOUNDARY.json" in legacy
+
+    active_docs = {
+        "README.md": readme,
+        "knowledge/K2B_EXECUTION_REFACTOR.md": refactor,
+        "knowledge/STATUS.md": status,
+    }
+    stale_authority_phrases = (
+        "本地 AI 只作为执行助手：\n\n- fetch/pull；\n- 运行项目端已经存在的脚本和测试",
+        "本地 AI 仅负责拉取代码、运行项目已有工具/测试",
+        "It may fetch/pull, run project-owned tools/tests",
+    )
+    for path, text in active_docs.items():
+        for stale in stale_authority_phrases:
+            assert stale not in text, f"stale local-helper test authority remains in {path}: {stale}"
+        assert "EXECUTION_HELPER_ONLY" in text or "本地 AI 仅负责 GitHub→本地 fast-forward 同步" in text
+
+    expected_lanes = {"TEXT_DIRECT": 21, "VISUAL_REQUIRED": 16, "ACCESS_REVIEW": 0}
+    assert evidence_state["expected_execution_lanes"] == expected_lanes
+    assert "TEXT_DIRECT=21 / VISUAL_REQUIRED=16 / ACCESS_REVIEW=0" in readme
+    assert "- TEXT_DIRECT: 21" in refactor
+    assert "- VISUAL_REQUIRED: 16" in refactor
+    assert "- ACCESS_REVIEW: 0" in refactor
 
     print("local-ai-execution-boundary: PASS")
     print(
