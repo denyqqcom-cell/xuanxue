@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
@@ -19,6 +20,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -30,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -65,14 +68,19 @@ fun QimenScreen() {
     var year by remember { mutableStateOf(now.get(Calendar.YEAR)) }
     var month by remember { mutableStateOf(now.get(Calendar.MONTH) + 1) }
     var day by remember { mutableStateOf(now.get(Calendar.DAY_OF_MONTH)) }
-    var hour by remember { mutableStateOf(now.get(Calendar.HOUR_OF_DAY)) }
-    var minute by remember { mutableStateOf(now.get(Calendar.MINUTE)) }
+    var hourText by remember { mutableStateOf(now.get(Calendar.HOUR_OF_DAY).toString()) }
+    var minuteText by remember { mutableStateOf(now.get(Calendar.MINUTE).toString()) }
     var showDatePicker by remember { mutableStateOf(false) }
     var chart by remember { mutableStateOf<QimenChart?>(null) }
 
     var queryDomain by remember { mutableStateOf(QueryDomain.GENERAL) }
     var question by remember { mutableStateOf("") }
     var knownFacts by remember { mutableStateOf("") }
+
+    val hour = hourText.toIntOrNull()
+    val minute = minuteText.toIntOrNull()
+    val timeValid = hour != null && hour in 0..23 && minute != null && minute in 0..59
+    val timeLabel = if (timeValid) "%02d:%02d".format(hour, minute) else "--:--"
 
     val readingContext = ReadingContext(
         domain = queryDomain,
@@ -95,18 +103,50 @@ fun QimenScreen() {
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("公历 $year-$month-$day  $hour:${"%02d".format(minute)}", Modifier.weight(1f))
+                    Text("公历 $year-$month-$day  $timeLabel", Modifier.weight(1f))
                     Button(onClick = { showDatePicker = true }) { Text("选日期") }
                 }
-                Text("时辰", fontWeight = FontWeight.SemiBold)
+
+                Text("时间（24小时制）", fontWeight = FontWeight.SemiBold)
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = hourText,
+                        onValueChange = { if (it.length <= 2) hourText = it.filter(Char::isDigit) },
+                        label = { Text("时 0-23") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                    OutlinedTextField(
+                        value = minuteText,
+                        onValueChange = { if (it.length <= 2) minuteText = it.filter(Char::isDigit) },
+                        label = { Text("分 0-59") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                if (!timeValid) {
+                    Text(
+                        "请输入有效时间：小时 0-23、分钟 0-59",
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+
+                Text("时辰快捷", fontWeight = FontWeight.SemiBold)
                 Row(
                     Modifier
                         .fillMaxWidth()
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    listOf(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22).forEach { h ->
-                        TextButton(onClick = { hour = h; minute = 30 }) {
+                    listOf(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 23).forEach { h ->
+                        TextButton(onClick = { hourText = h.toString(); minuteText = "30" }) {
                             Text(
                                 "%02d:30".format(h),
                                 color = if (hour == h) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -116,7 +156,8 @@ fun QimenScreen() {
                     }
                 }
                 Button(
-                    onClick = { chart = QimenEngine.bySolar(year, month, day, hour, minute) },
+                    onClick = { chart = QimenEngine.bySolar(year, month, day, hour!!, minute!!) },
+                    enabled = timeValid,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("起局")
@@ -138,7 +179,7 @@ fun QimenScreen() {
             )
             ReadingCard(com.xuanxue.ai.XuanxueAI.qimen(c, readingContext))
         } ?: Text(
-            "选择日期与时辰后起局。盘面本身与问事解读分开显示。",
+            "选择日期与时间后起局。盘面本身与问事解读分开显示。",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -185,7 +226,12 @@ fun QimenResult(c: QimenChart) {
                 Text("四柱 ${c.yearGZ}　${c.monthGZ}　${c.dayGZ}　${c.hourGZ}", fontSize = 13.sp)
                 Text("农历 ${c.lunarDateStr}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text("值符 ${c.zhiFu}　值使 ${c.zhiShi}", fontSize = 13.sp)
-                Text("旬首 ${c.xunShou}遁${c.dunGan}　旬空 ${c.xunKong.joinToString("、")}　马星 ${c.maXing}", fontSize = 12.sp)
+                Text("旬首 ${c.xunShou}遁${c.dunGan}　马星 ${c.maXing}", fontSize = 12.sp)
+                Text(
+                    "日空 ${c.dayKong.joinToString("、")}　时空 ${c.hourKong.joinToString("、")}",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
 
@@ -207,7 +253,7 @@ fun QimenResult(c: QimenChart) {
         }
 
         Text(
-            "盘面位置按洛书九宫恢复为「巽四、离九、坤二 / 震三、中五、兑七 / 艮八、坎一、乾六」。当前星、门、神和值符值使算法仍属于待完整黄金盘夹具复核的实现；本次只修正信息结构与呈现，不用 UI 改动冒充术理已经验证。",
+            "盘面位置按洛书九宫恢复为「巽四、离九、坤二 / 震三、中五、兑七 / 艮八、坎一、乾六」。日空、时空与时支马星已用来源实例锁定；当前星、门、神和值符值使旋转算法仍属于待完整黄金盘夹具复核的实现，不因界面完成而升格为已验证术理。",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -244,8 +290,10 @@ private fun QimenPalaceCell(
                 if (gong?.isMaXing == true) {
                     Text("马", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.secondary)
                 }
-                if (gong?.isKong == true) {
-                    Text(" 空", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                when {
+                    gong?.isDayKong == true && gong.isHourKong -> Text(" 日时空", fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    gong?.isDayKong == true -> Text(" 日空", fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    gong?.isHourKong == true -> Text(" 时空", fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
