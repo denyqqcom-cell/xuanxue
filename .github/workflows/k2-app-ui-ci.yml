@@ -1,0 +1,91 @@
+name: K2 App UI CI
+
+on:
+  push:
+    branches:
+      - knowledge-engine-v1-k2
+    paths:
+      - 'app/**'
+      - 'ziwei-core/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'tools/audit_apk_contents.sh'
+      - '.github/workflows/k2-app-ui-ci.yml'
+      - 'tools/test_knowledge_ci_contract.py'
+  pull_request:
+    branches:
+      - knowledge-engine-v1-k2
+    paths:
+      - 'app/**'
+      - 'ziwei-core/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'tools/audit_apk_contents.sh'
+      - '.github/workflows/k2-app-ui-ci.yml'
+      - 'tools/test_knowledge_ci_contract.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: k2-app-ui-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout exact candidate
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify K2 core, lint, and debug APK
+        run: ./gradlew --no-daemon :ziwei-core:test :app:lintDebug :app:assembleDebug
+
+      - name: Verify debug APK exists and stays inside package boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s app/build/outputs/apk/debug/app-debug.apk
+          if grep -Fq 'android.permission.INTERNET' app/src/main/AndroidManifest.xml; then
+            echo 'Unexpected INTERNET permission in K2 app candidate.' >&2
+            exit 1
+          fi
+          bash tools/audit_apk_contents.sh app/build/outputs/apk/debug/app-debug.apk
+          sha256sum app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/SHA256SUMS.txt
+          {
+            echo "source_head_sha=${SOURCE_HEAD_SHA}"
+            echo "checked_out_sha=${GITHUB_SHA}"
+            echo "workflow_run=${GITHUB_RUN_ID}"
+          } > app/build/outputs/apk/debug/K2_BUILD_INFO.txt
+
+      - name: Upload K2 debug acceptance artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: xuanxue-k2-debug-${{ env.SOURCE_HEAD_SHA }}
+          path: |
+            app/build/outputs/apk/debug/app-debug.apk
+            app/build/outputs/apk/debug/SHA256SUMS.txt
+            app/build/outputs/apk/debug/K2_BUILD_INFO.txt
+            app/build/reports/lint-results-debug.html
+          if-no-files-found: error
+          retention-days: 7
+          compression-level: 0

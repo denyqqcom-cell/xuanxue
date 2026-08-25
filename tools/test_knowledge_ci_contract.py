@@ -5,6 +5,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "knowledge-engine-ci.yml"
 QCIC_WORKFLOW = ROOT / ".github" / "workflows" / "k2-qcic-v06-gates.yml"
 COGNITIVE_WORKFLOW = ROOT / ".github" / "workflows" / "k2-qimen-cognitive-reconstruction.yml"
+APP_UI_WORKFLOW = ROOT / ".github" / "workflows" / "k2-app-ui-ci.yml"
 
 
 def require(text: str, needle: str):
@@ -29,6 +30,24 @@ def main():
     require(text, "python3 tools/test_k2_python_deps.py")
     require(text, "python tools/test_k2_python_deps.py")
     require(text, "Verify isolated K2 PDF dependency health")
+
+    # K2 app/core changes need an Android-aware gate before they may be merged
+    # into the long-running K2 branch. This is deliberately separate from the
+    # release workflow, which remains scoped to main.
+    app_ui = APP_UI_WORKFLOW.read_text(encoding="utf-8")
+    require(app_ui, "name: K2 App UI CI")
+    require(app_ui, "push:")
+    require(app_ui, "pull_request:")
+    require(app_ui, "- knowledge-engine-v1-k2")
+    require(app_ui, "- 'app/**'")
+    require(app_ui, "- 'ziwei-core/**'")
+    require(app_ui, "- '.github/workflows/k2-app-ui-ci.yml'")
+    require(app_ui, "uses: actions/setup-java@v5")
+    require(app_ui, "./gradlew --no-daemon :ziwei-core:test :app:lintDebug :app:assembleDebug")
+    require(app_ui, "test -s app/build/outputs/apk/debug/app-debug.apk")
+    require(app_ui, "Unexpected INTERNET permission in K2 app candidate.")
+    require(app_ui, "bash tools/audit_apk_contents.sh app/build/outputs/apk/debug/app-debug.apk")
+    require(app_ui, "actions/upload-artifact@v4")
 
     # Accepted raw lineage remains auditable, while later full visual evidence
     # may add a reviewed correction overlay consumed as effective lineage.
