@@ -102,8 +102,21 @@ def validate_voice_qualification(sid,e,issues):
     if credit not in INDEPENDENCE_SCOPES:issues.append((sid,f"formal evidence {eid}: invalid independence_credit_scope"))
     elif credit=="UNRESOLVED":issues.append((sid,f"formal evidence {eid}: resolved independence_credit_scope required"))
 
-    if scope=="GENERAL_DIVINATION_CANDIDATE" and stance!="SOURCE_ENDORSES":
-        issues.append((sid,f"formal evidence {eid}: GENERAL_DIVINATION_CANDIDATE requires SOURCE_ENDORSES"))
+    # Operational eligibility is a relation between method and source stance,
+    # not a free label. This prevents non-divination material from silently
+    # entering the ordinary divination candidate pool.
+    if scope=="GENERAL_DIVINATION_CANDIDATE":
+        if stance!="SOURCE_ENDORSES":
+            issues.append((sid,f"formal evidence {eid}: GENERAL_DIVINATION_CANDIDATE requires SOURCE_ENDORSES"))
+        if method!="DIVINATION_INTERPRETATION":
+            issues.append((sid,f"formal evidence {eid}: GENERAL_DIVINATION_CANDIDATE requires DIVINATION_INTERPRETATION"))
+
+    if method=="STRUCTURE_CALCULATION" and scope!="STRUCTURE_ONLY":
+        issues.append((sid,f"formal evidence {eid}: STRUCTURE_CALCULATION requires STRUCTURE_ONLY"))
+    if method=="TRANSMITTED_REFERENCE" and scope!="REFERENCE_ONLY":
+        issues.append((sid,f"formal evidence {eid}: TRANSMITTED_REFERENCE requires REFERENCE_ONLY"))
+    if method in {"HISTORICAL_EDITORIAL","METADATA"} and scope!="NON_OPERATIONAL":
+        issues.append((sid,f"formal evidence {eid}: HISTORICAL_EDITORIAL/METADATA requires NON_OPERATIONAL"))
 
     if method=="RITUAL_ESOTERIC":
         if scope!="EXCLUDED_RITUAL_ESOTERIC":
