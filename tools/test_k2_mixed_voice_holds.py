@@ -165,14 +165,22 @@ def main():
         assert ids=={"E-BASE","E-SEG","E-SHARD"},ids
 
     # Evidence-level source_stance must not invent a second vocabulary parallel
-    # to the existing QCIC source_stance.schema.json contract.
+    # to the existing QCIC source_stance.schema.json contract. The validator
+    # constants and every nested Evidence enum are locked together so schema and
+    # enforcement cannot drift independently.
     evidence_schema=json.loads((v.ROOT/"knowledge"/"schema"/"evidence.schema.json").read_text(encoding="utf-8"))
     stance_schema=json.loads((v.ROOT/"knowledge"/"schema"/"source_stance.schema.json").read_text(encoding="utf-8"))
-    evidence_stances=set(evidence_schema["properties"]["voice_qualification"]["properties"]["source_stance"]["enum"])
+    qprops=evidence_schema["properties"]["voice_qualification"]["properties"]
     governed_stances=set(stance_schema["properties"]["stance"]["enum"])
-    assert evidence_stances==governed_stances,(evidence_stances,governed_stances)
+    assert set(qprops["source_stance"]["enum"])==governed_stances
+    assert set(v.SOURCE_STANCES)==governed_stances
+    assert set(qprops["voice_layer"]["enum"])==set(v.LAYERS)
+    assert set(qprops["attribution_basis"]["enum"])==set(v.ATTRIBUTION_BASES)
+    assert set(qprops["method_layer"]["enum"])==set(v.METHOD_LAYERS)
+    assert set(qprops["operational_scope"]["enum"])==set(v.OPERATIONAL_SCOPES)
+    assert set(qprops["independence_credit_scope"]["enum"])==set(v.INDEPENDENCE_SCOPES)
 
     print("k2-mixed-voice-hold-tests: PASS")
-    print("cases=32")
+    print("cases=38")
 
 if __name__=="__main__":main()
