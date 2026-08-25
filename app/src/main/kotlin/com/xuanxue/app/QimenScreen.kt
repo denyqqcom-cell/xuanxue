@@ -31,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -183,7 +182,7 @@ fun QimenResult(c: QimenChart) {
                 Text("农历: ${c.lunarDateStr}", fontSize = 14.sp)
                 Text("四柱: ${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}", fontSize = 14.sp)
                 Text("节气: ${c.jieQi}", fontSize = 14.sp)
-                Text("局: ${c.juText}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E88E5))
+                Text("局: ${c.juText}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 Text(
                     "定元法: ${c.juMethod}（默认仅执行拆补·日数分段；未完成的方法必须 fail-closed）",
                     fontSize = 12.sp,
