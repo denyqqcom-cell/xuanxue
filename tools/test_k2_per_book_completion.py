@@ -6,6 +6,7 @@ import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import k2_wave1_aggregate as agg
+import validate_k2_evidence as ev
 import validate_k2_per_book_completion as v
 
 
@@ -145,9 +146,9 @@ def main():
     rows = [{"evidence_id": "X", "source_id": "A"}, {"evidence_id": "X", "source_id": "B"}]
     expect_block(lambda: agg.ensure_unique(rows, "evidence_id", "evidence"), "global duplicate id")
 
-    # Per-book completion must consume the same authoritative aggregation
-    # contract rather than maintaining a second loader with different semantics.
+    # Both global consumers must share exactly the same loader object.
     assert v.aggregate is agg.aggregate_wave1
+    assert ev.aggregate_wave1 is agg.aggregate_wave1
 
     print("k2-per-book-completion-tests: PASS")
 
