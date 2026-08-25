@@ -23,7 +23,7 @@
     "WF-QM-JINHAN-YUJING-001",
     "WF-QM-SANYUAN-QIMEN-001"
   ],
-  "known_deep_visual_reviewed_source_count": 19,
+  "known_deep_visual_reviewed_source_count": 20,
   "effective_deep_source_coverage_count": 19,
   "effective_deep_source_coverage_ids": [
     "QM-SRC-0001",
@@ -46,7 +46,9 @@
     "QM-SRC-0033",
     "QM-SRC-0034"
   ],
-  "remaining_deep_source_tbv_ids": [],
+  "remaining_deep_source_tbv_ids": [
+    "QM-SRC-0013"
+  ],
   "full_reviewed_material_tbv_coverage": false,
   "global_unknown_textual_backlog": 91,
   "universalized_rule_count": 0,
@@ -54,9 +56,10 @@
   "claim_extraction_blocked": true,
   "empirical_credit": "NONE",
   "next_priority": [
-    "deep-visual TBV coverage is closed at 19/19 after QM-SRC-0001, but this is not full-corpus completion",
+    "complete TBV review for newly deep-reviewed composite carrier QM-SRC-0013; current effective deep-source coverage is 19/20",
     "reduce the 91 semantic UNKNOWN textual sources only through actual content access and review",
     "keep QM-SRC-0001 formal Atomic Evidence blocked until voice attribution and method-layer binding can prevent traditional/ritual material from being misattributed or cross-routed",
+    "keep QM-SRC-0013 formal segment Evidence blocked until work identity/lineage is sufficient for segment-aware evidence binding",
     "use source-local TBV findings in scenario practice while keeping Claim Extraction blocked and empirical credit NONE"
   ]
 }
