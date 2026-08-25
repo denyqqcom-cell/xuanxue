@@ -31,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -182,15 +183,25 @@ fun QimenResult(c: QimenChart) {
                 Text("农历: ${c.lunarDateStr}", fontSize = 14.sp)
                 Text("四柱: ${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}", fontSize = 14.sp)
                 Text("节气: ${c.jieQi}", fontSize = 14.sp)
-                Text("局: ${c.juText}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Text("旬首: ${c.xunShou}遁${c.dunGan}   旬空: ${c.xunKong.joinToString("、")}", fontSize = 14.sp)
-                Text("马星: ${c.maXing}", fontSize = 14.sp)
+                Text("局: ${c.juText}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1E88E5))
                 Text(
-                    "值符/值使与下方九宫来自当前实验旋转实现，尚未通过完整九宫黄金夹具。",
+                    "定元法: ${c.juMethod}（拆补日数分段为默认，符头/置闰可切换——流派冲突，见方法核验中心）",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (c.isWuBuYu) {
+                    Text("五不遇时（时干克日干）", fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
+                }
+                if (c.patterns.isNotEmpty()) {
+                    Text("格局: ${c.patterns.joinToString("、")}", fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
+                }
+                Text(
+                    "值符/值使与九宫来自转盘引擎（物理环序旋转，天禽寄坤2）。完整九宫黄金夹具仍在建设中。",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.error,
                 )
-                Text("实验值符: ${c.zhiFu}   实验值使: ${c.zhiShi}", fontSize = 14.sp)
+                Text("值符: ${c.zhiFu}   值使: ${c.zhiShi}   旬首: ${c.xunShou}遁${c.dunGan}", fontSize = 14.sp)
+                Text("旬空: ${c.xunKong.joinToString("")}   马星: ${c.maXing}", fontSize = 14.sp)
             }
         }
 
