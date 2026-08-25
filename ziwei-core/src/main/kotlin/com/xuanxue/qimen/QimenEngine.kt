@@ -272,16 +272,18 @@ object QimenEngine {
         if (dunPalace == 5) {
             val ruiIdx = ring.indexOf(2)
             val fuIdx = ring.indexOf(zhiFuPalace)
-            for (k in 0 until 8) {
-                tian[ring[(fuIdx - ruiIdx + k + 8) % 8]] = starsOnRing[k]
+            val shift = (fuIdx - ruiIdx + 8) % 8
+            for (sourceIdx in 0 until 8) {
+                tian[ring[(sourceIdx + shift) % 8]] = starsOnRing[sourceIdx]
             }
             val ruiNew = tian.entries.first { it.value == "天芮" }.key
             tian[ruiNew] = "天禽天芮"
         } else {
             val srcIdx = ring.indexOf(dunPalace)
             val fuIdx = ring.indexOf(zhiFuPalace)
-            for (k in 0 until 8) {
-                tian[ring[(fuIdx - srcIdx + k + 8) % 8]] = starsOnRing[(srcIdx + k) % 8]
+            val shift = (fuIdx - srcIdx + 8) % 8
+            for (sourceIdx in 0 until 8) {
+                tian[ring[(sourceIdx + shift) % 8]] = starsOnRing[sourceIdx]
             }
             val ruiNew = tian.entries.first { it.value == "天芮" }.key
             tian[ruiNew] = "天芮天禽"
