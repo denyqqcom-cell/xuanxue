@@ -56,6 +56,17 @@ def source_index(root=ROOT):
     return out
 
 
+def load_formal_evidence(k=K):
+    rows=[]
+    for name in ("K2_EVIDENCE_WAVE1.jsonl","K2_SEGMENT_EVIDENCE.jsonl"):
+        rows.extend(load_jsonl(k/name))
+    shard_dir=k/"K2_EVIDENCE_WAVE1.d"
+    if shard_dir.exists():
+        for p in sorted(shard_dir.glob("*.jsonl")):
+            rows.extend(load_jsonl(p))
+    return rows
+
+
 def validate_voice_qualification(sid,e,issues):
     eid=e.get("evidence_id") or "<missing evidence_id>"
     q=e.get("voice_qualification")
@@ -143,9 +154,7 @@ def validate_rows(sources,holds,evidence_rows):
 def main():
     hp=K/"K2_MIXED_VOICE_HOLDS.jsonl"
     holds=load_jsonl(hp)
-    evidence=[]
-    for name in ("K2_EVIDENCE_WAVE1.jsonl","K2_SEGMENT_EVIDENCE.jsonl"):
-        evidence.extend(load_jsonl(K/name))
+    evidence=load_formal_evidence(K)
     issues=validate_rows(source_index(ROOT),holds,evidence)
     if issues:
         fail(f"issues={len(issues)}; "+"; ".join(f"{a}: {b}" for a,b in issues[:20]))
