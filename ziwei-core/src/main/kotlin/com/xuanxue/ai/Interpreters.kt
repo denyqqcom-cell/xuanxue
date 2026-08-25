@@ -9,16 +9,22 @@ import com.xuanxue.ziwei.core.ZiweiAstro.Astrolabe
  * 奇门解释层。
  *
  * handoff/qimen 明确记录：当前资料有 calendar/table/map fixtures，但完整九宫黄金盘为 0，
- * 地盘 walk 与人盘方向仍有冲突。因此这里不再把 main 分支的完整九宫当作已核验事实去断吉凶。
+ * 地盘 walk 与人盘方向仍有冲突。因此这里不再把完整九宫当作已核验事实去断吉凶。
  */
 object QimenInterpreter : Interpreter<QimenChart> {
     override val toolName = "qimen_interpret"
-    override val toolDesc = "奇门基础事实整理：历法、局、旬首旬空；完整九宫仅标实验"
+    override val toolDesc = "奇门基础事实整理：历法、局、日空/时空；完整九宫仅标实验"
 
     override fun interpret(c: QimenChart): List<String> = buildList {
         add("当前引擎结果：四柱【${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}】，节气【${c.jieQi}】，${c.juText}。局数与定元必须结合所选流派方法理解，不把“拆补”当成只有一种实现。")
-        add("旬法信息：时旬首【${c.xunShou}】，遁干【${c.dunGan}】，旬空【${c.xunKong.joinToString("、")}】。这些属于当前资料交接中可工程化、可夹具化的层。")
-        add("九宫实验边界：当前 main 引擎可以生成值符【${c.zhiFu}】、值使【${c.zhiShi}】以及星门神九宫，但 handoff/qimen/05_FIXTURES.jsonl 没有完整九宫黄金盘；因此本离线解释层不依据这些字段输出吉凶、成败或应期。")
+        add("旬法信息：时旬首【${c.xunShou}】，遁干【${c.dunGan}】，日空【${c.dayKong.joinToString("、")}】，时空【${c.hourKong.joinToString("、")}】；马星【${c.maXing}】按当前时家实现由占时支取得。日空与时空是不同盘面字段，不再揉成一个“旬空”。")
+        if (c.isWuBuYu) {
+            add("历法/旬法标记：当前时柱满足五不遇时 generator。这里只记录规则命中，不把该标签单独翻译成现实事件。")
+        }
+        if (c.patterns.isNotEmpty()) {
+            add("实验格局候选：${c.patterns.joinToString("、")}。这些候选依赖尚未由完整九宫黄金盘核验的天/地盘实现，因此不进入确定性断语。")
+        }
+        add("九宫实验边界：当前引擎可以生成值符【${c.zhiFu}】、值使【${c.zhiShi}】以及星门神九宫，但 handoff/qimen/05_FIXTURES.jsonl 没有完整九宫黄金盘；因此本离线解释层不依据这些字段输出吉凶、成败或应期。")
         add("进一步解盘需要先明确具体事体与取用依据，再区分盘面事实、取用选择、情境推演、反证条件和置信边界；缺少现实条件时不补造反馈。")
     }
 }
@@ -92,7 +98,7 @@ object ZiweiInterpreter : Interpreter<Astrolabe> {
             val stars = ming.majorStars.joinToString("、") { star ->
                 buildString {
                     append(star.name)
-                    star.brightness?.takeIf { it.isNotBlank() }?.let { append("[$it]") }
+                    star.brightness?.takeIf { it.isNotBlank() }?.let { append("[$it") ; append("]") }
                     star.mutagen?.takeIf { it.isNotBlank() }?.let { append("化$it") }
                 }
             }
