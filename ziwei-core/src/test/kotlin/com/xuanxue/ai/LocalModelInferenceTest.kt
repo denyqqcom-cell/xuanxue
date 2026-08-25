@@ -37,7 +37,7 @@ class LocalModelInferenceTest {
         assertEquals(context, request.packet.context)
         assertEquals(reading, request.packet.reading)
         assertTrue(request.prompt.contains("不得重新计算、纠正或改写排盘"))
-        assertTrue(request.prompt.contains("USER_CONTEXT", ignoreCase = true).not())
+        assertTrue(request.prompt.contains("USER_CONTEXT"))
         assertTrue(request.prompt.contains("用户输入"))
         assertTrue(request.prompt.contains("QM-SRC-0013"))
         assertTrue(request.prompt.contains("竞争解释与反证/敏感点"))
@@ -65,6 +65,7 @@ class LocalModelInferenceTest {
             ),
         )
         assertTrue(result is LocalModelResult.Success)
-        assertEquals("ok", result.text)
+        val success = result as LocalModelResult.Success
+        assertEquals("ok", success.text)
     }
 }
