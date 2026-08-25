@@ -7,6 +7,7 @@ import com.nlf.calendar.Solar
  * 转盘时家奇门排盘引擎（Kotlin 实现）。
  * 规则来源：公开古籍（《烟波钓叟歌》/奇门遁甲预测学）；定局/旬首/地盘九仪/值符值使对齐
  * 用户本地验证脚本（_tmp_paipan_core.py），天/门/神盘旋转按标准转盘奇门补全。
+ * 基础局标注（日空/时空、时支马星）另以用户资料《善天道奇门遁甲高级研修班讲义》的实例交叉复核。
  * 基础干支/节气/旬空由 lunar-java (MIT) 提供。全部本地计算。
  */
 object QimenEngine {
@@ -58,7 +59,9 @@ object QimenEngine {
         val renMen: String,        // 人盘八门
         val shenPan: String,       // 神盘八神
         val isMaXing: Boolean = false,   // 马星
-        val isKong: Boolean = false,     // 旬空
+        val isKong: Boolean = false,     // 日空或时空之一
+        val isDayKong: Boolean = false,  // 日空
+        val isHourKong: Boolean = false, // 时空
     )
 
     data class QimenChart(
@@ -71,11 +74,13 @@ object QimenEngine {
         val ju: Int,                // 局数 1-9
         val xunShou: String,        // 时旬首
         val dunGan: String,         // 遁干
-        val xunKong: List<String>,  // 旬空地支
+        val xunKong: List<String>,  // 兼容字段：时空地支
         val zhiFu: String,          // 值符星
         val zhiShi: String,         // 值使门
         val gongs: List<Gong>,      // 九宫（1-9 顺序）
-        val maXing: String,         // 马星地支
+        val maXing: String,         // 按时支取的马星地支
+        val dayKong: List<String> = emptyList(),
+        val hourKong: List<String> = emptyList(),
     ) {
         val juText: String get() = "${if (yinYang > 0) "阳" else "阴"}遁${ju}局 $yuan"
     }
@@ -90,7 +95,7 @@ object QimenEngine {
         return 0
     }
 
-    // 时旬信息：旬首、遁干、旬空、时干在旬内序
+    // 干支旬信息：旬首、遁干、旬空
     private fun xunInfo(gz: String): Triple<String, String, List<String>> {
         val gan = gz[0].toString(); val zhi = gz[1].toString()
         val s = seqOf(gan, zhi)
@@ -107,8 +112,8 @@ object QimenEngine {
         "未", "申" -> 2; "酉" -> 7; "戌", "亥" -> 6; else -> 5
     }
 
-    // 日支驿马（三合局冲）
-    fun maXingOf(dayZhi: String): String = when (dayZhi) {
+    // 时支驿马（三合局冲）：寅午戌→申，申子辰→寅，巳酉丑→亥，亥卯未→巳
+    fun maXingOf(timeZhi: String): String = when (timeZhi) {
         "寅", "午", "戌" -> "申"; "申", "子", "辰" -> "寅"
         "巳", "酉", "丑" -> "亥"; "亥", "卯", "未" -> "巳"; else -> ""
     }
@@ -147,8 +152,10 @@ object QimenEngine {
         val yuan = yuanOf(dayGZ)
         val ju = when (yuan) { "上元" -> rule.shang; "中元" -> rule.zhong; else -> rule.xia }
 
-        // 时旬
-        val (xunShou, dunGan, xunKong) = xunInfo(hourGZ)
+        // 日空与时空必须分开保留；值符/值使仍取时旬。
+        val (_, _, dayKong) = xunInfo(dayGZ)
+        val (xunShou, dunGan, hourKong) = xunInfo(hourGZ)
+        val xunKong = hourKong
 
         // 地盘：阳遁顺飞/阴遁逆飞，戊起局数宫
         val di = mutableMapOf<Int, String>()
@@ -202,10 +209,12 @@ object QimenEngine {
             shen[shenOrder[(startIdx + k) % 8]] = SHEN[k]
         }
 
-        // 马星 + 旬空落宫
-        val ma = maXingOf(dayGZ[1].toString())
+        // 马星按时支取；日空与时空分别落宫，同时保留 isKong 兼容联合标记。
+        val ma = maXingOf(hourGZ[1].toString())
         val maPalace = zhiPalace(ma)
-        val kongPalaces = xunKong.map { zhiPalace(it) }
+        val dayKongPalaces = dayKong.map { zhiPalace(it) }.toSet()
+        val hourKongPalaces = hourKong.map { zhiPalace(it) }.toSet()
+        val kongPalaces = dayKongPalaces + hourKongPalaces
 
         val gongs = (1..9).map { p ->
             Gong(
@@ -216,6 +225,8 @@ object QimenEngine {
                 shenPan = shen[p] ?: "",
                 isMaXing = p == maPalace,
                 isKong = p in kongPalaces,
+                isDayKong = p in dayKongPalaces,
+                isHourKong = p in hourKongPalaces,
             )
         }
 
@@ -229,6 +240,8 @@ object QimenEngine {
             zhiFu = zhiFu, zhiShi = zhiShi,
             gongs = gongs,
             maXing = ma,
+            dayKong = dayKong,
+            hourKong = hourKong,
         )
     }
 }

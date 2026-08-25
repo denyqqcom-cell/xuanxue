@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -148,9 +149,8 @@ fun XuanxueApp() {
 
             val a = chart
             if (a != null) {
-                HeaderInfo(a)
                 Text(
-                    "十二宫概览 · 点击宫位查看完整星曜与限运",
+                    "十二宫命盘 · 宫内直接保留主星、辅星、庙旺、四化、大小限等层级",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -181,48 +181,74 @@ fun XuanxueApp() {
     }
 }
 
-@Composable
-fun HeaderInfo(a: Astrolabe) {
-    OutlinedCard(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                "${a.gender}命 · ${a.solarDate} · ${a.time}（${a.timeRange}）",
-                fontWeight = FontWeight.Bold,
-            )
-            Text("农历 ${a.lunarDate} · 命宫干支 ${a.chineseGanZhi()}")
-            Text("五行局：${a.fiveElementsClass}    命主：${a.soul}    身主：${a.body}")
-        }
-    }
-}
-
-/** 这里只返回命宫的天干地支，避免把它误标成整盘“四柱干支”。 */
-fun Astrolabe.chineseGanZhi(): String {
-    val soul = palaces.first { it.name == "命宫" }
-    return "${soul.heavenlyStem}${soul.earthlyBranch}"
-}
-
+/**
+ * 参考用户提供的成熟紫微 App 所采用的信息结构：十二宫围绕中央命盘摘要。
+ * 这里只借鉴信息层级和交互密度，所有 Compose 结构与视觉实现均为本项目原创。
+ */
 @Composable
 fun PanGrid(
     a: Astrolabe,
     selectedIndex: Int,
     onSelect: (Int) -> Unit,
 ) {
-    Column(Modifier.fillMaxWidth()) {
-        PAN_LAYOUT.forEach { row ->
-            Row(Modifier.fillMaxWidth()) {
-                row.forEach { idx ->
-                    if (idx == null) {
-                        Spacer(Modifier.weight(1f).aspectRatio(1f))
-                    } else {
-                        PanCell(
-                            p = a.palaces[idx],
-                            selected = selectedIndex == idx,
-                            onClick = { onSelect(idx) },
-                            modifier = Modifier.weight(1f).aspectRatio(1f),
-                        )
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f),
+    ) {
+        Column(Modifier.fillMaxSize()) {
+            PAN_LAYOUT.forEach { row ->
+                Row(Modifier.weight(1f).fillMaxWidth()) {
+                    row.forEach { idx ->
+                        if (idx == null) {
+                            Spacer(Modifier.weight(1f).fillMaxHeight())
+                        } else {
+                            PanCell(
+                                p = a.palaces[idx],
+                                selected = selectedIndex == idx,
+                                onClick = { onSelect(idx) },
+                                modifier = Modifier.weight(1f).fillMaxHeight(),
+                            )
+                        }
                     }
                 }
             }
+        }
+
+        CenterAstrolabeSummary(
+            a = a,
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth(0.5f)
+                .fillMaxHeight(0.5f),
+        )
+    }
+}
+
+@Composable
+private fun CenterAstrolabeSummary(
+    a: Astrolabe,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outline)
+            .padding(7.dp),
+    ) {
+        Column(
+            Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("紫微斗数", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("${a.gender}命 · ${a.fiveElementsClass}", fontSize = 10.sp, fontWeight = FontWeight.SemiBold)
+            Text("公历 ${a.solarDate}", fontSize = 9.sp)
+            Text("农历 ${a.lunarDate}", fontSize = 9.sp, maxLines = 1)
+            Text("${a.time} · ${a.timeRange}", fontSize = 9.sp)
+            Spacer(Modifier.weight(1f))
+            Text("命主 ${a.soul}　身主 ${a.body}", fontSize = 9.sp)
+            Text("命宫 ${a.earthlyBranchOfSoulPalace}　身宫 ${a.earthlyBranchOfBodyPalace}", fontSize = 9.sp)
         }
     }
 }
@@ -250,50 +276,75 @@ fun PanCell(
             .background(background)
             .border(BorderStroke(borderWidth, borderColor))
             .clickable(onClick = onClick)
-            .padding(4.dp),
+            .padding(3.dp),
     ) {
         Column(verticalArrangement = Arrangement.spacedBy(1.dp)) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
                     p.name + if (p.isBodyPalace) "·身" else "",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
+                    color = if (isSoul) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    p.earthlyBranch,
-                    fontSize = 10.sp,
+                    "${p.heavenlyStem}${p.earthlyBranch}",
+                    fontSize = 8.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
-            Text(
-                "${p.heavenlyStem}${p.earthlyBranch}",
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+
             if (p.majorStars.isEmpty()) {
-                Text("无主星", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("无主星", fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
-                p.majorStars.take(3).forEach { star ->
-                    Text(
-                        fmtStar(star),
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 10.sp,
-                        color = if (star.mutagen == "忌") MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
-                        maxLines = 1,
-                    )
-                }
-                if (p.majorStars.size > 3) {
-                    Text("+${p.majorStars.size - 3} 主星", fontSize = 9.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
+                Text(
+                    p.majorStars.joinToString(" ") { compactStar(it) },
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 9.sp,
+                    color = if (p.majorStars.any { it.mutagen == "忌" }) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                    maxLines = 2,
+                )
             }
+
+            if (p.minorStars.isNotEmpty()) {
+                Text(
+                    p.minorStars.take(4).joinToString(" ") { compactStar(it) },
+                    fontSize = 8.sp,
+                    maxLines = 2,
+                )
+            }
+
+            if (p.adjectiveStars.isNotEmpty()) {
+                Text(
+                    p.adjectiveStars.take(4).joinToString(" ") { it.name },
+                    fontSize = 7.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
+
             Spacer(Modifier.weight(1f))
+
+            p.ages?.takeIf { it.isNotEmpty() }?.let { ages ->
+                Text(
+                    "小限 ${ages.take(4).joinToString("/")}",
+                    fontSize = 7.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                )
+            }
             p.decadal?.let {
                 Text(
                     "大限 ${it.range[0]}-${it.range[1]}",
-                    fontSize = 9.sp,
+                    fontSize = 8.sp,
                     color = MaterialTheme.colorScheme.secondary,
                 )
             }
+            Text(
+                p.changsheng12,
+                fontSize = 7.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+            )
         }
     }
 }
@@ -336,7 +387,15 @@ fun PalaceDetail(p: ZiweiAstro.Palace) {
             }
 
             Text(
-                "这里先展示盘面结构与实现结果；星曜、四化、宫位不会被单独翻译成确定人格或具体事件。",
+                "长生十二神：${p.changsheng12}　博士十二神：${p.boshi12}",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Text(
+                "岁前：${p.suiqian12}　将前：${p.jiangqian12}",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Text(
+                "盘面保留原始结构信息；星曜、四化、宫位不会被单独翻译成确定人格或具体事件。",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -355,11 +414,13 @@ private fun StarGroup(title: String, stars: List<Star>) {
     )
 }
 
-fun fmtStar(s: Star): String = buildString {
+private fun compactStar(s: Star): String = buildString {
     append(s.name)
     if (s.brightness.isNotEmpty()) append("·${s.brightness}")
     if (s.mutagen.isNotEmpty()) append("·${s.mutagen}")
 }
+
+fun fmtStar(s: Star): String = compactStar(s)
 
 fun millisOf(dateStr: String): Long {
     val c = Calendar.getInstance()

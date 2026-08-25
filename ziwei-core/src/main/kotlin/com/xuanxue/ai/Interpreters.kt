@@ -13,11 +13,11 @@ import com.xuanxue.ziwei.core.ZiweiAstro.Astrolabe
  */
 object QimenInterpreter : Interpreter<QimenChart> {
     override val toolName = "qimen_interpret"
-    override val toolDesc = "奇门基础事实整理：历法、局、旬首旬空；完整九宫仅标实验"
+    override val toolDesc = "奇门基础事实整理：历法、局、日空时空、时支马星；完整九宫仅标实验"
 
     override fun interpret(c: QimenChart): List<String> = buildList {
         add("当前引擎结果：四柱【${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}】，节气【${c.jieQi}】，${c.juText}。局数与定元必须结合所选流派方法理解，不把“拆补”当成只有一种实现。")
-        add("旬法信息：时旬首【${c.xunShou}】，遁干【${c.dunGan}】，旬空【${c.xunKong.joinToString("、")}】。这些属于当前资料交接中可工程化、可夹具化的层。")
+        add("旬法与基本标记：时旬首【${c.xunShou}】，遁干【${c.dunGan}】，日空【${c.dayKong.joinToString("、")}】，时空【${c.hourKong.joinToString("、")}】，时支马星【${c.maXing}】。日空、时空与时支马星已拆开保存，避免把日空与时空混成一个“旬空”字段。")
         add("九宫实验边界：当前 main 引擎可以生成值符【${c.zhiFu}】、值使【${c.zhiShi}】以及星门神九宫，但 handoff/qimen/05_FIXTURES.jsonl 没有完整九宫黄金盘；因此本离线解释层不依据这些字段输出吉凶、成败或应期。")
         add("进一步解盘需要先明确具体事体与取用依据，再区分盘面事实、取用选择、情境推演、反证条件和置信边界；缺少现实条件时不补造反馈。")
     }
