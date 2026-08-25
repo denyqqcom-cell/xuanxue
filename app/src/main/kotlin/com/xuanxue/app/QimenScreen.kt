@@ -53,6 +53,7 @@ fun QimenScreen() {
     var minute by remember { mutableStateOf(now.get(Calendar.MINUTE)) }
     var showDatePicker by remember { mutableStateOf(false) }
     var chart by remember { mutableStateOf<QimenChart?>(null) }
+    var chartError by remember { mutableStateOf<String?>(null) }
 
     var queryDomain by remember { mutableStateOf(QueryDomain.GENERAL) }
     var question by remember { mutableStateOf("") }
@@ -130,10 +131,22 @@ fun QimenScreen() {
                     }
                 }
                 Button(
-                    onClick = { chart = QimenEngine.bySolar(year, month, day, hour, minute) },
+                    onClick = {
+                        val result = runCatching { QimenEngine.bySolar(year, month, day, hour, minute) }
+                        chart = result.getOrNull()
+                        chartError = result.exceptionOrNull()?.message
+                            ?: result.exceptionOrNull()?.javaClass?.simpleName
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("生成当前实验局")
+                }
+                chartError?.let { error ->
+                    Text(
+                        "当前方法无法可靠生成该时刻的盘：$error",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             }
         }
