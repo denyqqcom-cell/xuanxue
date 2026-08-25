@@ -13,6 +13,28 @@ def hold():
     return {"source_id":"QM-SRC-9000","status":"PARTIAL_READING_CONFIRMED","reviewed_page_start":1,"reviewed_page_end":25,"verification_mode":"VISUAL_PAGE","hold_policy":"BLOCK_FORMAL_EVIDENCE_UNTIL_VOICE_SCHEMA","reason":"mixed voice observed","allowed_voice_layers":sorted(v.LAYERS),"review_status":"REVIEWED"}
 
 
+def qualified_hold():
+    h=hold();h["hold_policy"]="VOICE_QUALIFIED_EVIDENCE_ONLY";return h
+
+
+def qualified_evidence():
+    return {
+        "source_id":"QM-SRC-9000",
+        "evidence_id":"E-Q-1",
+        "claim_readiness":"CONTEXT_REQUIRED",
+        "review_status":"REVIEWED",
+        "voice_qualification":{
+            "voice_layer":"BASE_TEXT",
+            "attribution_subject":"TEST-AUTHOR",
+            "attribution_basis":"EXPLICIT_AUTHORIAL_CONTEXT",
+            "source_stance":"ASSERTS",
+            "method_layer":"DIVINATION_INTERPRETATION",
+            "operational_scope":"GENERAL_DIVINATION_CANDIDATE",
+            "independence_credit_scope":"SOURCE_LOCAL_ONLY",
+        },
+    }
+
+
 def must_pass(holds,evidence):
     issues=v.validate_rows(sources(),holds,evidence)
     assert not issues,issues
@@ -52,7 +74,34 @@ def main():
     bad=copy.deepcopy(base);bad["status"]="COMPLETE"
     must_fail([bad],[],"invalid hold status")
 
+    # New contract: a mixed-voice source may leave the absolute block only when
+    # every formal Evidence row carries explicit voice/method qualification.
+    qh=qualified_hold();qe=qualified_evidence();must_pass([qh],[qe])
+
+    must_fail([qh],[{"source_id":"QM-SRC-9000","evidence_id":"E-Q-2","claim_readiness":"NOT_CLAIM","review_status":"REVIEWED"}],"voice_qualification required")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["voice_layer"]="UNKNOWN_VOICE"
+    must_fail([qh],[bad],"resolved voice_layer required")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["attribution_subject"]=""
+    must_fail([qh],[bad],"attribution_subject required")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["attribution_basis"]="UNKNOWN"
+    must_fail([qh],[bad],"resolved attribution_basis required")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="RITUAL_ESOTERIC"
+    bad["voice_qualification"]["operational_scope"]="GENERAL_DIVINATION_CANDIDATE"
+    must_fail([qh],[bad],"ritual/esoteric evidence cannot enter general divination pool")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="MILITARY_OPERATIONAL"
+    bad["voice_qualification"]["operational_scope"]="EXCLUDED_MILITARY_OPERATIONAL"
+    bad["claim_readiness"]="READY"
+    must_fail([qh],[bad],"ritual/military evidence must be NOT_CLAIM")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["independence_credit_scope"]="UNRESOLVED"
+    must_fail([qh],[bad],"resolved independence_credit_scope required")
+
     print("k2-mixed-voice-hold-tests: PASS")
-    print("cases=10")
+    print("cases=18")
 
 if __name__=="__main__":main()
