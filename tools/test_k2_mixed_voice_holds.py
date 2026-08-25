@@ -106,6 +106,21 @@ def main():
     bad=copy.deepcopy(qe);bad["voice_qualification"]["source_stance"]="SOURCE_UNCERTAIN"
     must_fail([qh],[bad],"GENERAL_DIVINATION_CANDIDATE requires SOURCE_ENDORSES")
 
+    # Method layer and operational scope are a routing contract, not two
+    # independent labels. Non-divination layers must not be able to opt into the
+    # general divination pool merely by carrying SOURCE_ENDORSES.
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="STRUCTURE_CALCULATION"
+    must_fail([qh],[bad],"STRUCTURE_CALCULATION requires STRUCTURE_ONLY")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="TRANSMITTED_REFERENCE"
+    must_fail([qh],[bad],"TRANSMITTED_REFERENCE requires REFERENCE_ONLY")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="HISTORICAL_EDITORIAL"
+    must_fail([qh],[bad],"HISTORICAL_EDITORIAL/METADATA requires NON_OPERATIONAL")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="METADATA"
+    must_fail([qh],[bad],"HISTORICAL_EDITORIAL/METADATA requires NON_OPERATIONAL")
+
     bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="RITUAL_ESOTERIC"
     bad["voice_qualification"]["operational_scope"]="GENERAL_DIVINATION_CANDIDATE"
     must_fail([qh],[bad],"ritual/esoteric evidence cannot enter general divination pool")
@@ -137,6 +152,6 @@ def main():
     assert evidence_stances==governed_stances,(evidence_stances,governed_stances)
 
     print("k2-mixed-voice-hold-tests: PASS")
-    print("cases=22")
+    print("cases=26")
 
 if __name__=="__main__":main()
