@@ -58,9 +58,12 @@ class QimenEngineTest {
 
     @Test
     fun winterSolsticeYang() {
-        val c = QimenEngine.bySolar(2026, 12, 22, 10, 0)
-        assertTrue(c.jieQi == "冬至" || c.jieQi == "大雪", "节气=${c.jieQi}")
-        if (c.jieQi == "冬至") assertEquals(1, c.yinYang)
+        // 12/22 10:00 may still be before the actual solstice instant; use the next civil day
+        // so the jieqi clock is unambiguously inside 冬至 and still inside R-JU-001's 1..15 window.
+        val c = QimenEngine.bySolar(2026, 12, 23, 10, 0)
+        assertEquals("冬至", c.jieQi)
+        assertEquals(1, c.yinYang)
+        assertTrue(c.jieqiDayIndex in 1..15)
     }
 
     @Test
@@ -79,6 +82,23 @@ class QimenEngineTest {
             c.gongs.filter { it.palace != 5 }
                 .all { it.diGan.isNotEmpty() && it.tianXing.isNotEmpty() },
         )
+    }
+
+    @Test
+    fun zhiFuStarLandsOnHourStemTargetPalace() {
+        // Structural invariant from R-SKY-001 only. This does not upgrade the experimental
+        // full-board implementation to a golden-board-verified plate.
+        for (h in listOf(0, 4, 9, 15, 21)) {
+            val c = QimenEngine.bySolar(2026, 8, 12, h, 30)
+            val effectiveHourGan = if (c.hourGZ[0] == '甲') c.dunGan else c.hourGZ[0].toString()
+            val rawTarget = c.gongs.first { it.diGan == effectiveHourGan }.palace
+            val expectedTarget = if (rawTarget == 5) 2 else rawTarget
+            val targetStar = c.gongs.first { it.palace == expectedTarget }.tianXing
+            assertTrue(
+                targetStar.contains(c.zhiFu),
+                "h=$h hour=${c.hourGZ} zhiFu=${c.zhiFu} expected=$expectedTarget actualStar=$targetStar",
+            )
+        }
     }
 
     @Test
