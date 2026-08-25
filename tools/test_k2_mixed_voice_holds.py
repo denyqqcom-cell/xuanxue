@@ -121,14 +121,35 @@ def main():
     bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="METADATA"
     must_fail([qh],[bad],"HISTORICAL_EDITORIAL/METADATA requires NON_OPERATIONAL")
 
+    # Positive routing cases prevent the fail-closed gate from degenerating into
+    # a blanket block. Each non-divination layer remains representable, but only
+    # in its safe operational scope.
+    good=copy.deepcopy(qe);good["voice_qualification"]["method_layer"]="STRUCTURE_CALCULATION";good["voice_qualification"]["operational_scope"]="STRUCTURE_ONLY"
+    must_pass([qh],[good])
+
+    good=copy.deepcopy(qe);good["voice_qualification"]["method_layer"]="TRANSMITTED_REFERENCE";good["voice_qualification"]["operational_scope"]="REFERENCE_ONLY";good["voice_qualification"]["source_stance"]="SOURCE_REPORTS"
+    must_pass([qh],[good])
+
+    good=copy.deepcopy(qe);good["voice_qualification"]["method_layer"]="HISTORICAL_EDITORIAL";good["voice_qualification"]["operational_scope"]="NON_OPERATIONAL";good["voice_qualification"]["source_stance"]="SOURCE_REPORTS"
+    must_pass([qh],[good])
+
+    good=copy.deepcopy(qe);good["voice_qualification"]["method_layer"]="METADATA";good["voice_qualification"]["operational_scope"]="NON_OPERATIONAL";good["voice_qualification"]["source_stance"]="SOURCE_REPORTS"
+    must_pass([qh],[good])
+
     bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="RITUAL_ESOTERIC"
     bad["voice_qualification"]["operational_scope"]="GENERAL_DIVINATION_CANDIDATE"
     must_fail([qh],[bad],"ritual/esoteric evidence cannot enter general divination pool")
+
+    good=copy.deepcopy(qe);good["voice_qualification"]["method_layer"]="RITUAL_ESOTERIC";good["voice_qualification"]["operational_scope"]="EXCLUDED_RITUAL_ESOTERIC";good["voice_qualification"]["source_stance"]="SOURCE_REPORTS";good["claim_readiness"]="NOT_CLAIM"
+    must_pass([qh],[good])
 
     bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="MILITARY_OPERATIONAL"
     bad["voice_qualification"]["operational_scope"]="EXCLUDED_MILITARY_OPERATIONAL"
     bad["claim_readiness"]="READY"
     must_fail([qh],[bad],"ritual/military evidence must be NOT_CLAIM")
+
+    good=copy.deepcopy(qe);good["voice_qualification"]["method_layer"]="MILITARY_OPERATIONAL";good["voice_qualification"]["operational_scope"]="EXCLUDED_MILITARY_OPERATIONAL";good["voice_qualification"]["source_stance"]="SOURCE_REPORTS";good["claim_readiness"]="NOT_CLAIM"
+    must_pass([qh],[good])
 
     bad=copy.deepcopy(qe);bad["voice_qualification"]["independence_credit_scope"]="UNRESOLVED"
     must_fail([qh],[bad],"resolved independence_credit_scope required")
@@ -152,6 +173,6 @@ def main():
     assert evidence_stances==governed_stances,(evidence_stances,governed_stances)
 
     print("k2-mixed-voice-hold-tests: PASS")
-    print("cases=26")
+    print("cases=32")
 
 if __name__=="__main__":main()
