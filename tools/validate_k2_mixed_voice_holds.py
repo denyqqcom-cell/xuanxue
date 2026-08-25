@@ -14,7 +14,7 @@ ATTRIBUTION_BASES={
     "EXPLICIT_AUTHORIAL_CONTEXT","EXPLICIT_QUOTATION","TITLE_PAGE","SECTION_HEADING",
     "EDITORIAL_CONTEXT","PUBLISHER_METADATA","TRADITIONAL_ATTRIBUTION","UNKNOWN"
 }
-SOURCE_STANCES={"ASSERTS","QUOTES","PARAPHRASES","DESCRIBES","ATTRIBUTES","CONTESTS","UNKNOWN"}
+SOURCE_STANCES={"SOURCE_REPORTS","SOURCE_ENDORSES","SOURCE_REJECTS","SOURCE_UNCERTAIN"}
 METHOD_LAYERS={
     "STRUCTURE_CALCULATION","DIVINATION_INTERPRETATION","TRANSMITTED_REFERENCE",
     "RITUAL_ESOTERIC","MILITARY_OPERATIONAL","HISTORICAL_EDITORIAL","METADATA","UNKNOWN"
@@ -89,7 +89,6 @@ def validate_voice_qualification(sid,e,issues):
 
     stance=q.get("source_stance")
     if stance not in SOURCE_STANCES:issues.append((sid,f"formal evidence {eid}: invalid source_stance"))
-    elif stance=="UNKNOWN":issues.append((sid,f"formal evidence {eid}: resolved source_stance required"))
 
     method=q.get("method_layer")
     if method not in METHOD_LAYERS:issues.append((sid,f"formal evidence {eid}: invalid method_layer"))
@@ -102,6 +101,9 @@ def validate_voice_qualification(sid,e,issues):
     credit=q.get("independence_credit_scope")
     if credit not in INDEPENDENCE_SCOPES:issues.append((sid,f"formal evidence {eid}: invalid independence_credit_scope"))
     elif credit=="UNRESOLVED":issues.append((sid,f"formal evidence {eid}: resolved independence_credit_scope required"))
+
+    if scope=="GENERAL_DIVINATION_CANDIDATE" and stance!="SOURCE_ENDORSES":
+        issues.append((sid,f"formal evidence {eid}: GENERAL_DIVINATION_CANDIDATE requires SOURCE_ENDORSES"))
 
     if method=="RITUAL_ESOTERIC":
         if scope!="EXCLUDED_RITUAL_ESOTERIC":
