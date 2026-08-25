@@ -2,46 +2,158 @@ package com.xuanxue.qimen
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
 
 class QimenEngineTest {
 
     @Test
     fun alignUserScript() {
-        // 对齐用户本地脚本案例：2026-08-12 申时(15:37)，立秋后第6天 → 中元 → 阴遁5局
         val c = QimenEngine.bySolar(2026, 8, 12, 15, 37)
-        println("QM1 节气=${c.jieQi} ${c.juText} 四柱=${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}")
-        println("QM1 旬首=${c.xunShou} 遁干=${c.dunGan} 旬空=${c.xunKong} 值符=${c.zhiFu} 值使=${c.zhiShi} 马星=${c.maXing}")
         assertEquals("立秋", c.jieQi)
-        assertEquals(-1, c.yinYang)          // 阴遁
-        assertEquals(5, c.ju)                 // 中元 5 局（对齐用户脚本）
-        // 值符值使：用户脚本给 dunPalace 后映射（测试时打印对比，此处不断言具体值）
-        println("QM1 九宫: " + c.gongs.map { "${it.palace}宫:地${it.diGan}/星${it.tianXing}/门${it.renMen}/神${it.shenPan}${if (it.isMaXing) "【马】" else ""}${if (it.isKong) "【空】" else ""}" }.joinToString(" | "))
+        assertEquals(-1, c.yinYang)
+        assertEquals(5, c.ju)
+        assertEquals("中元", c.yuan)
+        assertEquals("CHAI_BU_DAYCOUNT", c.juMethodUsed)
         assertTrue(c.gongs.all { it.diGan.isNotEmpty() })
+
+        val f = QimenEngine.bySolar(
+            2026, 8, 12, 15, 37,
+            QimenEngine.JuMethod.CHAI_BU_FUTOU,
+        )
+        assertEquals(5, f.ju)
+        assertEquals("中元", f.yuan)
+        assertEquals("CHAI_BU_FUTOU", f.juMethodUsed)
+        assertTrue(f.juMethod.contains("实验"))
     }
 
     @Test
-    fun winterSolsticeYang1() {
-        // 冬至：阳遁 上元 1 局（标准：冬至 一七四）
-        val c = QimenEngine.bySolar(2026, 12, 22, 10, 0)
-        println("QM2 ${c.jieQi} ${c.juText} 四柱=${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}")
-        assertTrue(c.jieQi == "冬至" || c.jieQi == "大雪", "节气=${c.jieQi}") // 可能仍在大雪（12/22 前后）
-        if (c.jieQi == "冬至") {
-            assertEquals(1, c.yinYang)
+    fun liqiuDayCountNotFutou() {
+        val c = QimenEngine.bySolar(2026, 8, 7, 16, 0)
+        assertEquals("立秋", c.jieQi)
+        assertEquals("CHAI_BU_DAYCOUNT", c.juMethodUsed)
+        assertEquals("上元", c.yuan)
+        assertEquals(2, c.ju)
+        assertEquals("下元", c.yuanFutou)
+        assertTrue(c.jieqiDayIndex in 1..15)
+    }
+
+    @Test
+    fun dayCountFailsClosedOutsideDocumentedWindow() {
+        assertFailsWith<IllegalArgumentException> { QimenEngine.yuanByDayCount(0) }
+        assertFailsWith<IllegalArgumentException> { QimenEngine.yuanByDayCount(16) }
+    }
+
+    @Test
+    fun zhiRunFailsClosedInsteadOfUsingFutouApproximation() {
+        assertFailsWith<UnsupportedOperationException> {
+            QimenEngine.bySolar(
+                2026, 8, 12, 15, 37,
+                QimenEngine.JuMethod.ZHI_RUN,
+            )
         }
-        println("QM2 旬首=${c.xunShou} 遁干=${c.dunGan} 值符=${c.zhiFu} 值使=${c.zhiShi}")
     }
 
     @Test
-    fun knownExample() {
-        // 已知经典案例（书籍验证）：1990-05-20 12:00 前后（小满后）→ 阳遁
+    fun winterSolsticeYang() {
+        // 12/22 10:00 may still be before the actual solstice instant; use the next civil day
+        // so the jieqi clock is unambiguously inside 冬至 and still inside R-JU-001's 1..15 window.
+        val c = QimenEngine.bySolar(2026, 12, 23, 10, 0)
+        assertEquals("冬至", c.jieQi)
+        assertEquals(1, c.yinYang)
+        assertTrue(c.jieqiDayIndex in 1..15)
+    }
+
+    @Test
+    fun earthPlateKeepsWuOnJuPalace() {
         val c = QimenEngine.bySolar(1990, 5, 20, 12, 30)
-        println("QM3 ${c.jieQi} ${c.juText} 四柱=${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ} 值符=${c.zhiFu} 值使=${c.zhiShi}")
-        println("QM3 九宫: " + c.gongs.map { "${it.palace}宫:${it.diGan}" }.joinToString(" "))
-        assertTrue(c.gongs.size == 9)
-        // 地盘：阳遁顺飞 戊起局数宫
+        assertEquals(9, c.gongs.size)
         val di = c.gongs.associate { it.palace to it.diGan }
-        val ju = c.ju
-        assertEquals("戊", di[ju])
+        assertEquals("戊", di[c.ju])
+    }
+
+    @Test
+    fun jiaHourDoesNotCrash() {
+        val c = QimenEngine.bySolar(2026, 8, 12, 4, 30)
+        assertEquals("甲寅", c.hourGZ)
+        assertTrue(
+            c.gongs.filter { it.palace != 5 }
+                .all { it.diGan.isNotEmpty() && it.tianXing.isNotEmpty() },
+        )
+    }
+
+    @Test
+    fun zhiFuStarLandsOnHourStemTargetPalace() {
+        // Structural invariant from R-SKY-001 only. This does not upgrade the experimental
+        // full-board implementation to a golden-board-verified plate.
+        for (h in listOf(0, 4, 9, 15, 21)) {
+            val c = QimenEngine.bySolar(2026, 8, 12, h, 30)
+            val effectiveHourGan = if (c.hourGZ[0] == '甲') c.dunGan else c.hourGZ[0].toString()
+            val rawTarget = c.gongs.first { it.diGan == effectiveHourGan }.palace
+            val expectedTarget = if (rawTarget == 5) 2 else rawTarget
+            val targetStar = c.gongs.first { it.palace == expectedTarget }.tianXing
+            assertTrue(
+                targetStar.contains(c.zhiFu),
+                "h=$h hour=${c.hourGZ} zhiFu=${c.zhiFu} expected=$expectedTarget actualStar=$targetStar",
+            )
+        }
+    }
+
+    @Test
+    fun ringRotationPreservesGateAdjacency() {
+        for (h in listOf(9, 11, 15, 21)) {
+            val c = QimenEngine.bySolar(2026, 8, 12, h, 0)
+            val xiu = c.gongs.first { it.renMen == "休门" }.palace
+            val sheng = c.gongs.first { it.renMen == "生门" }.palace
+            val ring = QimenEngine.RING
+            val d = (ring.indexOf(xiu) - ring.indexOf(sheng) + 8) % 8
+            assertTrue(d == 1 || d == 7, "h=$h 休${xiu} 生${sheng} 环距=$d")
+        }
+    }
+
+    @Test
+    fun twelveDoubleHoursKeepEightOuterPlateSlotsPopulated() {
+        for (h in listOf(0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22)) {
+            val c = QimenEngine.bySolar(2026, 8, 12, h, 30)
+            val outer = c.gongs.filter { it.palace != 5 }
+            assertEquals(8, outer.count { it.tianXing.isNotBlank() }, "star h=$h")
+            assertEquals(8, outer.count { it.renMen.isNotBlank() }, "gate h=$h")
+            assertEquals(8, outer.count { it.shenPan.isNotBlank() }, "spirit h=$h")
+        }
+    }
+
+    @Test
+    fun wuBuYuGeneratorMatchesGoldenFixturesAndRejectsNearMisses() {
+        // handoff/qimen/05_FIXTURES.jsonl: 甲日庚午、己日乙亥 are true.
+        assertTrue(QimenEngine.isWuBuYuStemPair('甲', '庚'))
+        assertTrue(QimenEngine.isWuBuYuStemPair('己', '乙'))
+
+        // Near misses must not pass merely because the test executes.
+        assertFalse(QimenEngine.isWuBuYuStemPair('甲', '己'))
+        assertFalse(QimenEngine.isWuBuYuStemPair('甲', '辛'))
+        assertFalse(QimenEngine.isWuBuYuStemPair('己', '甲'))
+    }
+
+    @Test
+    fun dayHourKongAndTimeMaAreSeparated() {
+        // 2026-08-12 00:30 uses a 子时; this fixture intentionally makes day/hour旬 different.
+        val c = QimenEngine.bySolar(2026, 8, 12, 0, 30)
+        assertEquals('子', c.hourGZ[1])
+
+        // 马星 must follow the占时支, not silently reuse day branch.
+        assertEquals(QimenEngine.maXingOf(c.hourGZ[1].toString()), c.maXing)
+        assertEquals("寅", c.maXing)
+        assertNotEquals(QimenEngine.maXingOf(c.dayGZ[1].toString()), c.maXing)
+
+        // Day and hour voids are separate model facts and separate palace flags.
+        assertNotEquals(c.dayKong, c.hourKong)
+        val expectedDay = c.dayKong.map { QimenEngine.zhiPalace(it) }.toSet()
+        val expectedHour = c.hourKong.map { QimenEngine.zhiPalace(it) }.toSet()
+        val actualDay = c.gongs.filter { it.isDayKong }.map { it.palace }.toSet()
+        val actualHour = c.gongs.filter { it.isHourKong }.map { it.palace }.toSet()
+        assertEquals(expectedDay, actualDay)
+        assertEquals(expectedHour, actualHour)
     }
 }

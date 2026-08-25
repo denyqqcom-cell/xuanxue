@@ -53,6 +53,7 @@ fun QimenScreen() {
     var minute by remember { mutableStateOf(now.get(Calendar.MINUTE)) }
     var showDatePicker by remember { mutableStateOf(false) }
     var chart by remember { mutableStateOf<QimenChart?>(null) }
+    var chartError by remember { mutableStateOf<String?>(null) }
 
     var queryDomain by remember { mutableStateOf(QueryDomain.GENERAL) }
     var question by remember { mutableStateOf("") }
@@ -87,7 +88,7 @@ fun QimenScreen() {
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
                 Text(
-                    "handoff/qimen 当前有 17 条历法/表/映射夹具，但完整九宫黄金盘为 0；地盘走法与人盘方向仍有资料冲突。因此可以查看当前实现用于工程核对，但离线解释不会据此直接断成败、吉凶或应期。",
+                    "handoff/qimen 当前只有历法/旬法/表/映射夹具，完整九宫黄金盘仍为 0；地盘 walk 与人盘方向仍有来源冲突。当前九宫只用于工程核对，结构测试通过不等于完整盘法已经术理验真。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
@@ -130,10 +131,22 @@ fun QimenScreen() {
                     }
                 }
                 Button(
-                    onClick = { chart = QimenEngine.bySolar(year, month, day, hour, minute) },
+                    onClick = {
+                        val result = runCatching { QimenEngine.bySolar(year, month, day, hour, minute) }
+                        chart = result.getOrNull()
+                        chartError = result.exceptionOrNull()?.message
+                            ?: result.exceptionOrNull()?.javaClass?.simpleName
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Text("生成当前实验局")
+                }
+                chartError?.let { error ->
+                    Text(
+                        "当前方法无法可靠生成该时刻的盘：$error",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
             }
         }
@@ -183,14 +196,29 @@ fun QimenResult(c: QimenChart) {
                 Text("四柱: ${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}", fontSize = 14.sp)
                 Text("节气: ${c.jieQi}", fontSize = 14.sp)
                 Text("局: ${c.juText}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-                Text("旬首: ${c.xunShou}遁${c.dunGan}   旬空: ${c.xunKong.joinToString("、")}", fontSize = 14.sp)
-                Text("马星: ${c.maXing}", fontSize = 14.sp)
                 Text(
-                    "值符/值使与下方九宫来自当前实验旋转实现，尚未通过完整九宫黄金夹具。",
+                    "定元法: ${c.juMethod}（默认仅执行拆补·日数分段；未完成的方法必须 fail-closed）",
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (c.isWuBuYu) {
+                    Text("五不遇时（时干克日干、同阴阳）", fontSize = 13.sp, color = MaterialTheme.colorScheme.error)
+                }
+                if (c.patterns.isNotEmpty()) {
+                    Text(
+                        "实验格局候选: ${c.patterns.joinToString("、")}",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+                Text(
+                    "值符/值使与九宫来自当前实验转盘实现（物理环序、天禽寄坤2）；完整九宫黄金夹具仍未建立。",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.error,
                 )
-                Text("实验值符: ${c.zhiFu}   实验值使: ${c.zhiShi}", fontSize = 14.sp)
+                Text("值符: ${c.zhiFu}   值使: ${c.zhiShi}   时旬首: ${c.xunShou}遁${c.dunGan}", fontSize = 14.sp)
+                Text("日空: ${c.dayKong.joinToString("")}   时空: ${c.hourKong.joinToString("")}", fontSize = 14.sp)
+                Text("马星（占时支）: ${c.maXing}", fontSize = 14.sp)
             }
         }
 
@@ -203,7 +231,7 @@ fun QimenResult(c: QimenChart) {
                     val g = byPalace[p]
                     val cellBackground = when {
                         g?.isMaXing == true -> MaterialTheme.colorScheme.secondaryContainer
-                        g?.isKong == true -> MaterialTheme.colorScheme.surfaceVariant
+                        g?.isDayKong == true || g?.isHourKong == true -> MaterialTheme.colorScheme.surfaceVariant
                         else -> MaterialTheme.colorScheme.surface
                     }
                     Box(
@@ -219,8 +247,9 @@ fun QimenResult(c: QimenChart) {
                             Row {
                                 Text("$p", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 Spacer(Modifier.weight(1f))
-                                if (g?.isMaXing == true) Text("马", fontSize = 10.sp, color = MaterialTheme.colorScheme.secondary)
-                                if (g?.isKong == true) Text("空", fontSize = 10.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (g?.isMaXing == true) Text("马", fontSize = 9.sp, color = MaterialTheme.colorScheme.secondary)
+                                if (g?.isDayKong == true) Text("日空", fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (g?.isHourKong == true) Text("时空", fontSize = 8.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             }
                             g?.diGan?.let {
                                 Text(
