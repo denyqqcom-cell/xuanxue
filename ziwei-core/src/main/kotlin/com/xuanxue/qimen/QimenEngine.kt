@@ -178,7 +178,9 @@ object QimenEngine {
     fun jieqiDayIndexOf(lunar: Lunar): Int = runCatching {
         val cur = lunar.solar
         val cur12 = Solar.fromYmdHms(cur.year, cur.month, cur.day, 12, 0, 0)
-        val ps = lunar.getPrevJie(true)?.solar ?: return@runCatching 0
+        // Must use the same 24-term boundary family as bySolar(). Using getPrevJie()
+        // skips 中气 such as 冬至/处暑 and can make the day index disagree with jieQi.
+        val ps = lunar.getPrevJieQi(true)?.solar ?: return@runCatching 0
         val prevNoon = Solar.fromYmdHms(ps.year, ps.month, ps.day, 12, 0, 0)
         (cur12.getJulianDay() - prevNoon.getJulianDay()).toInt() + 1
     }.getOrDefault(0)
