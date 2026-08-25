@@ -1,12 +1,13 @@
 {
   "schema_version": "k2-qimen-tbv-state-v1",
   "status": "PARTIAL",
-  "reviewed_unit_count": 15,
-  "reviewed_deep_source_count": 11,
+  "reviewed_unit_count": 16,
+  "reviewed_deep_source_count": 12,
   "reviewed_work_family_count": 4,
   "reviewed_deep_source_ids": [
     "QM-SRC-0001",
     "QM-SRC-0009",
+    "QM-SRC-0013",
     "QM-SRC-0015",
     "QM-SRC-0017",
     "QM-SRC-0019",
@@ -24,11 +25,12 @@
     "WF-QM-SANYUAN-QIMEN-001"
   ],
   "known_deep_visual_reviewed_source_count": 20,
-  "effective_deep_source_coverage_count": 19,
+  "effective_deep_source_coverage_count": 20,
   "effective_deep_source_coverage_ids": [
     "QM-SRC-0001",
     "QM-SRC-0009",
     "QM-SRC-0010",
+    "QM-SRC-0013",
     "QM-SRC-0015",
     "QM-SRC-0017",
     "QM-SRC-0019",
@@ -46,9 +48,7 @@
     "QM-SRC-0033",
     "QM-SRC-0034"
   ],
-  "remaining_deep_source_tbv_ids": [
-    "QM-SRC-0013"
-  ],
+  "remaining_deep_source_tbv_ids": [],
   "full_reviewed_material_tbv_coverage": false,
   "global_unknown_textual_backlog": 91,
   "universalized_rule_count": 0,
@@ -56,7 +56,7 @@
   "claim_extraction_blocked": true,
   "empirical_credit": "NONE",
   "next_priority": [
-    "complete TBV review for newly deep-reviewed composite carrier QM-SRC-0013; current effective deep-source coverage is 19/20",
+    "deep-visual TBV coverage is closed at 20/20 after QM-SRC-0013, but this is not full-corpus completion",
     "reduce the 91 semantic UNKNOWN textual sources only through actual content access and review",
     "keep QM-SRC-0001 formal Atomic Evidence blocked until voice attribution and method-layer binding can prevent traditional/ritual material from being misattributed or cross-routed",
     "keep QM-SRC-0013 formal segment Evidence blocked until work identity/lineage is sufficient for segment-aware evidence binding",
