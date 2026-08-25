@@ -98,7 +98,7 @@ object ZiweiInterpreter : Interpreter<Astrolabe> {
             val stars = ming.majorStars.joinToString("、") { star ->
                 buildString {
                     append(star.name)
-                    star.brightness?.takeIf { it.isNotBlank() }?.let { append("[$it") ; append("]") }
+                    star.brightness?.takeIf { it.isNotBlank() }?.let { append("[$it]") }
                     star.mutagen?.takeIf { it.isNotBlank() }?.let { append("化$it") }
                 }
             }
