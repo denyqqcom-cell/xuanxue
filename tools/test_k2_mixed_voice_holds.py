@@ -27,7 +27,7 @@ def qualified_evidence():
             "voice_layer":"BASE_TEXT",
             "attribution_subject":"TEST-AUTHOR",
             "attribution_basis":"EXPLICIT_AUTHORIAL_CONTEXT",
-            "source_stance":"ASSERTS",
+            "source_stance":"SOURCE_ENDORSES",
             "method_layer":"DIVINATION_INTERPRETATION",
             "operational_scope":"GENERAL_DIVINATION_CANDIDATE",
             "independence_credit_scope":"SOURCE_LOCAL_ONLY",
@@ -94,6 +94,18 @@ def main():
     bad=copy.deepcopy(qe);bad["voice_qualification"]["attribution_basis"]="UNKNOWN"
     must_fail([qh],[bad],"resolved attribution_basis required")
 
+    # Reuse the already governed QCIC source-stance vocabulary. Mere reporting,
+    # rejection, or source uncertainty must not be silently upgraded to an
+    # operational general-divination candidate.
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["source_stance"]="ASSERTS"
+    must_fail([qh],[bad],"invalid source_stance")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["source_stance"]="SOURCE_REPORTS"
+    must_fail([qh],[bad],"GENERAL_DIVINATION_CANDIDATE requires SOURCE_ENDORSES")
+
+    bad=copy.deepcopy(qe);bad["voice_qualification"]["source_stance"]="SOURCE_UNCERTAIN"
+    must_fail([qh],[bad],"GENERAL_DIVINATION_CANDIDATE requires SOURCE_ENDORSES")
+
     bad=copy.deepcopy(qe);bad["voice_qualification"]["method_layer"]="RITUAL_ESOTERIC"
     bad["voice_qualification"]["operational_scope"]="GENERAL_DIVINATION_CANDIDATE"
     must_fail([qh],[bad],"ritual/esoteric evidence cannot enter general divination pool")
@@ -116,7 +128,15 @@ def main():
         ids={r.get("evidence_id") for r in v.load_formal_evidence(k)}
         assert ids=={"E-BASE","E-SEG","E-SHARD"},ids
 
+    # Evidence-level source_stance must not invent a second vocabulary parallel
+    # to the existing QCIC source_stance.schema.json contract.
+    evidence_schema=json.loads((v.ROOT/"knowledge"/"schema"/"evidence.schema.json").read_text(encoding="utf-8"))
+    stance_schema=json.loads((v.ROOT/"knowledge"/"schema"/"source_stance.schema.json").read_text(encoding="utf-8"))
+    evidence_stances=set(evidence_schema["properties"]["voice_qualification"]["properties"]["source_stance"]["enum"])
+    governed_stances=set(stance_schema["properties"]["stance"]["enum"])
+    assert evidence_stances==governed_stances,(evidence_stances,governed_stances)
+
     print("k2-mixed-voice-hold-tests: PASS")
-    print("cases=19")
+    print("cases=22")
 
 if __name__=="__main__":main()
