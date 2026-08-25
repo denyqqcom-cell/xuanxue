@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import copy,sys
+import copy,json,sys,tempfile
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_mixed_voice_holds as v
@@ -45,6 +45,11 @@ def must_fail(holds,evidence,needle):
     assert issues,"expected failure"
     text="; ".join(f"{a}: {b}" for a,b in issues)
     assert needle in text,(needle,text)
+
+
+def write_jsonl(path,rows):
+    path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_text("".join(json.dumps(r,ensure_ascii=False)+"\n" for r in rows),encoding="utf-8")
 
 
 def main():
@@ -101,7 +106,17 @@ def main():
     bad=copy.deepcopy(qe);bad["voice_qualification"]["independence_credit_scope"]="UNRESOLVED"
     must_fail([qh],[bad],"resolved independence_credit_scope required")
 
+    # Per-book Evidence shards are formal Evidence too. A hold gate that reads
+    # only the aggregate files can be bypassed accidentally by adding a shard.
+    with tempfile.TemporaryDirectory(prefix="mixed-voice-evidence-") as tmp:
+        k=Path(tmp)
+        write_jsonl(k/"K2_EVIDENCE_WAVE1.jsonl",[{"evidence_id":"E-BASE"}])
+        write_jsonl(k/"K2_SEGMENT_EVIDENCE.jsonl",[{"evidence_id":"E-SEG"}])
+        write_jsonl(k/"K2_EVIDENCE_WAVE1.d"/"QM-SRC-9000.jsonl",[{"evidence_id":"E-SHARD"}])
+        ids={r.get("evidence_id") for r in v.load_formal_evidence(k)}
+        assert ids=={"E-BASE","E-SEG","E-SHARD"},ids
+
     print("k2-mixed-voice-hold-tests: PASS")
-    print("cases=18")
+    print("cases=19")
 
 if __name__=="__main__":main()
