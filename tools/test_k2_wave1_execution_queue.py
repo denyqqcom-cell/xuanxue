@@ -8,6 +8,16 @@ sys.path.insert(0, str(ROOT / "tools"))
 
 import generate_k2_wave1_execution_queue as q
 
+LANE_ORDER = {"TEXT_DIRECT": 0, "VISUAL_REQUIRED": 1, "ACCESS_REVIEW": 2}
+
+
+def semantic_sort_key(row):
+    return (
+        q.DOMAIN_ORDER.get(row["domain"], 99),
+        LANE_ORDER[row["execution_lane"]],
+        row["source_id"],
+    )
+
 
 def main():
     rows = q.build_queue(ROOT)
@@ -15,7 +25,17 @@ def main():
 
     source_ids = [row["source_id"] for row in rows]
     assert len(source_ids) == len(set(source_ids)), "duplicate source_id in execution queue"
-    assert source_ids == sorted(source_ids, key=q.queue_sort_key), "queue order must be deterministic"
+    assert rows == sorted(rows, key=semantic_sort_key), (
+        "queue must sort by semantic domain, then execution lane, then source_id"
+    )
+
+    # Intake prefixes are not semantic domains. These two real corpus rows are
+    # regressions for the old prefix-based ordering bug.
+    by_id = {row["source_id"]: row for row in rows}
+    assert by_id["ZW-SRC-0036"]["domain"] == "liuren"
+    assert by_id["BZ-SRC-0122"]["domain"] == "liuyao"
+    assert source_ids.index("BZ-SRC-0122") > source_ids.index("LY-SRC-0003")
+    assert source_ids.index("ZW-SRC-0036") > source_ids.index("LR-SRC-0005")
 
     completed = q.completed_source_ids(ROOT)
     assert not (set(source_ids) & completed), "completed Wave1 units must not remain in queue"
