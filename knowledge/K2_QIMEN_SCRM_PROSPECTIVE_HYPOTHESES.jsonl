@@ -1,0 +1,4 @@
+{"hypothesis_id":"SCRM-H6","scope_type":"FRAMEWORK","scope_ref":"SCRM-v0.2","component":"WORLD_MODEL_BEFORE_SYMBOLS","status":"UNTESTED","empirical_credit":"NONE"}
+{"hypothesis_id":"SCRM-H7","scope_type":"FRAMEWORK","scope_ref":"SCRM-v0.2","component":"COMPARATOR_INFORMATION_PARITY","status":"UNTESTED","empirical_credit":"NONE"}
+{"hypothesis_id":"SCRM-H8","scope_type":"FRAMEWORK","scope_ref":"SCRM-v0.2","component":"MODEL_VERSION_FREEZE","status":"UNTESTED","empirical_credit":"NONE"}
+{"hypothesis_id":"SCRM-H9","scope_type":"FRAMEWORK","scope_ref":"SCRM-v0.2","component":"ABSTENTION_ACCOUNTABILITY","status":"UNTESTED","empirical_credit":"NONE"}

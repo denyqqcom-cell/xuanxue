@@ -11,8 +11,11 @@ on:
       - 'knowledge/K2_QIMEN_DEEP_RETREAT_V12.md'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
       - 'knowledge/K2_QIMEN_SCRM_V02.md'
+      - 'knowledge/K2_QIMEN_SCRM_PROSPECTIVE_HYPOTHESES.jsonl'
+      - 'knowledge/K2_QIMEN_SCRM_PROSPECTIVE_BRIDGE.md'
       - 'knowledge/K2_QIMEN_TBV_*'
       - 'knowledge/K2_QIMEN_PRACTICE_*'
+      - 'knowledge/K2_PROSPECTIVE_*'
       - 'knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json'
       - 'knowledge/K2_DEEP_READING_LEDGER.jsonl'
       - 'knowledge/K2_DEEP_SOURCE_DISTILLATES.d/**'
@@ -24,6 +27,8 @@ on:
       - 'tools/validate_k2_qimen_tbv.py'
       - 'tools/test_k2_qimen_practice_input_integrity.py'
       - 'tools/validate_k2_qimen_practice_input_integrity.py'
+      - 'tools/test_k2_prospective_validation.py'
+      - 'tools/validate_k2_prospective_validation.py'
       - '.github/workflows/k2-qimen-cognitive-reconstruction.yml'
       - '.github/workflows/knowledge-engine-ci.yml'
       - 'tools/test_knowledge_ci_contract.py'
@@ -33,8 +38,11 @@ on:
       - 'knowledge/K2_QIMEN_DEEP_RETREAT_V12.md'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
       - 'knowledge/K2_QIMEN_SCRM_V02.md'
+      - 'knowledge/K2_QIMEN_SCRM_PROSPECTIVE_HYPOTHESES.jsonl'
+      - 'knowledge/K2_QIMEN_SCRM_PROSPECTIVE_BRIDGE.md'
       - 'knowledge/K2_QIMEN_TBV_*'
       - 'knowledge/K2_QIMEN_PRACTICE_*'
+      - 'knowledge/K2_PROSPECTIVE_*'
       - 'knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json'
       - 'knowledge/K2_DEEP_READING_LEDGER.jsonl'
       - 'knowledge/K2_DEEP_SOURCE_DISTILLATES.d/**'
@@ -46,6 +54,8 @@ on:
       - 'tools/validate_k2_qimen_tbv.py'
       - 'tools/test_k2_qimen_practice_input_integrity.py'
       - 'tools/validate_k2_qimen_practice_input_integrity.py'
+      - 'tools/test_k2_prospective_validation.py'
+      - 'tools/validate_k2_prospective_validation.py'
       - '.github/workflows/k2-qimen-cognitive-reconstruction.yml'
       - '.github/workflows/knowledge-engine-ci.yml'
       - 'tools/test_knowledge_ci_contract.py'
@@ -72,3 +82,7 @@ jobs:
         run: python3 tools/test_k2_qimen_practice_input_integrity.py
       - name: Enforce Qimen practice input-integrity contract
         run: python3 tools/validate_k2_qimen_practice_input_integrity.py
+      - name: Test SCRM prospective bridge fail-closed cases
+        run: python3 tools/test_k2_prospective_validation.py
+      - name: Enforce SCRM prospective bridge contracts
+        run: python3 tools/validate_k2_prospective_validation.py
