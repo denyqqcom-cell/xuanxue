@@ -48,6 +48,21 @@ def main():
     assert p.text_layer_is_semantically_readable(readable_cjk_latin)
     assert not p.text_layer_is_semantically_readable(garbled)
 
+    # A second false-positive class is a scanned/image-backed book that carries
+    # only a small repeated advertisement/watermark text layer. Such a layer is
+    # perfectly valid Unicode, but it does not cover the source body and must not
+    # be accepted as a TEXT_DIRECT page packet. The contract deliberately uses
+    # repeated low-information page signatures rather than source-specific words.
+    overlay_a = "获取更多资料 example.invalid 联系方式 123456"
+    overlay_b = "更多资料 example.invalid 备用联系方式 654321"
+    overlay_only = [overlay_a if i % 2 == 0 else overlay_b for i in range(24)]
+    source_body = [
+        f"第{i}页 紫微斗數命宮與三方四正的正文分析，這一頁有不同的章節內容與推演關係。"
+        for i in range(1, 25)
+    ]
+    assert not p.text_layer_has_semantic_coverage(overlay_only)
+    assert p.text_layer_has_semantic_coverage(source_body)
+
     # If an earlier extractor returns non-empty but semantically garbled text,
     # the helper must continue to the next text-layer extractor instead of
     # producing a false READY packet.
@@ -72,6 +87,24 @@ def main():
         assert extractor is None
         assert code == "TEXT_EXTRACTION_FAILED"
         assert "semantic readability" in reason.lower()
+
+        # Unicode-valid repeated overlay text must also trigger extractor
+        # fallback. If every extractor sees only the overlay, fail closed rather
+        # than writing a misleading READY packet.
+        p.extract_pdf_text_pdftotext = lambda path: (overlay_only, None)
+        p.extract_pdf_text_pypdf = lambda path: (overlay_only, None)
+        p.extract_pdf_text_pdfminer = lambda path: (source_body, None)
+        pages, extractor, code, reason = p.extract_pdf_text(Path("synthetic.pdf"))
+        assert pages == source_body
+        assert extractor == "PDFMINER_TEXT_LAYER"
+        assert code is None and reason is None
+
+        p.extract_pdf_text_pdfminer = lambda path: (overlay_only, None)
+        pages, extractor, code, reason = p.extract_pdf_text(Path("synthetic.pdf"))
+        assert pages is None
+        assert extractor is None
+        assert code == "TEXT_EXTRACTION_FAILED"
+        assert "semantic coverage" in reason.lower()
     finally:
         p.extract_pdf_text_pdftotext = original_pdftotext
         p.extract_pdf_text_pypdf = original_pypdf
