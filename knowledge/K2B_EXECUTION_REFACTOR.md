@@ -67,11 +67,13 @@ Historical `LOCAL_CORPUS_*PROMPT.md` files are provenance records. When their ol
 
 ## Wave1 accounting baseline
 
-The official current Wave1 planner/state produces 37 unique-coverage reading units:
+The current effective Wave1 planner/state produces 37 unique-coverage reading units:
 
-- TEXT_DIRECT: 21
-- VISUAL_REQUIRED: 16
+- TEXT_DIRECT: 20
+- VISUAL_REQUIRED: 17
 - ACCESS_REVIEW: 0
+
+The change from the earlier 21/16 snapshot is intentional: `ZW-SRC-0001` remains `TEXT_OK` in immutable K1 intake history, but post-K1 source-quality review verified that its usable body is scan-backed for K2 purposes. A REVIEWED execution-routing correction therefore downgrades only the effective K2 view to `SCAN`, moving that unit from `TEXT_DIRECT` to `VISUAL_REQUIRED` without rewriting K1 history.
 
 These counts are machine-checked against `knowledge/K2_EVIDENCE_STATE.json`; drift fails the K2 Evidence validator.
 
