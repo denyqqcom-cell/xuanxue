@@ -44,9 +44,18 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         k = base_files(root)
-        dump(k / agg.BASE_LEDGER, [{"reading_id": "R-A", "source_id": "A"}])
-        dump(k / agg.BASE_EVIDENCE, [{"evidence_id": "E-A-1", "source_id": "A"}])
-        dump(k / agg.SHARD_DIRS["ledger"] / "B.jsonl", [{"reading_id": "R-B", "source_id": "B"}])
+        dump(
+            k / agg.BASE_LEDGER,
+            [{"reading_id": "R-A", "source_id": "A"}],
+        )
+        dump(
+            k / agg.BASE_EVIDENCE,
+            [{"evidence_id": "E-A-1", "source_id": "A"}],
+        )
+        dump(
+            k / agg.SHARD_DIRS["ledger"] / "B.jsonl",
+            [{"reading_id": "R-B", "source_id": "B"}],
+        )
         dump(
             k / agg.SHARD_DIRS["evidence"] / "B.jsonl",
             [
@@ -62,9 +71,18 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         k = base_files(root)
-        dump(k / agg.SHARD_DIRS["ledger"] / "A.jsonl", [{"reading_id": "R-A", "source_id": "A"}])
-        dump(k / agg.SHARD_DIRS["evidence"] / "A.jsonl", [{"evidence_id": "E-A-1", "source_id": "A"}])
-        dump(k / agg.SHARD_DIRS["distillate"] / "A.jsonl", [{"distillate_id": "D-A", "source_id": "A"}])
+        dump(
+            k / agg.SHARD_DIRS["ledger"] / "A.jsonl",
+            [{"reading_id": "R-A", "source_id": "A"}],
+        )
+        dump(
+            k / agg.SHARD_DIRS["evidence"] / "A.jsonl",
+            [{"evidence_id": "E-A-1", "source_id": "A"}],
+        )
+        dump(
+            k / agg.SHARD_DIRS["distillate"] / "A.jsonl",
+            [{"distillate_id": "D-A", "source_id": "A"}],
+        )
         ledger, evidence, distillates = agg.aggregate_wave1(root)
         assert [r["reading_id"] for r in ledger] == ["R-A"]
         assert [r["evidence_id"] for r in evidence] == ["E-A-1"]
@@ -73,20 +91,29 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         k = base_files(root)
-        dump(k / agg.SHARD_DIRS["ledger"] / "A.jsonl", [{"reading_id": "R-A", "source_id": "B"}])
+        dump(
+            k / agg.SHARD_DIRS["ledger"] / "A.jsonl",
+            [{"reading_id": "R-A", "source_id": "B"}],
+        )
         expect_block(lambda: agg.aggregate_wave1(root), "shard/source mismatch")
 
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         k = base_files(root)
         dump(k / agg.BASE_LEDGER, [{"reading_id": "R-A-BASE", "source_id": "A"}])
-        dump(k / agg.SHARD_DIRS["ledger"] / "A.jsonl", [{"reading_id": "R-A-SHARD", "source_id": "A"}])
+        dump(
+            k / agg.SHARD_DIRS["ledger"] / "A.jsonl",
+            [{"reading_id": "R-A-SHARD", "source_id": "A"}],
+        )
         expect_block(lambda: agg.aggregate_wave1(root), "duplicate Reading source base+shard")
 
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         k = base_files(root)
-        dump(k / agg.SHARD_DIRS["ledger"] / "A.jsonl", [{"reading_id": "R-A", "source_id": "A"}])
+        dump(
+            k / agg.SHARD_DIRS["ledger"] / "A.jsonl",
+            [{"reading_id": "R-A", "source_id": "A"}],
+        )
         dump(
             k / agg.SHARD_DIRS["evidence"] / "A.jsonl",
             [
@@ -99,7 +126,10 @@ def main():
     with tempfile.TemporaryDirectory() as td:
         root = Path(td)
         k = base_files(root)
-        dump(k / agg.SHARD_DIRS["evidence"] / "A.jsonl", [{"evidence_id": "E-A-1", "source_id": "A"}])
+        dump(
+            k / agg.SHARD_DIRS["evidence"] / "A.jsonl",
+            [{"evidence_id": "E-A-1", "source_id": "A"}],
+        )
         expect_block(lambda: agg.aggregate_wave1(root), "Evidence shard without Reading row")
 
     with tempfile.TemporaryDirectory() as td:
