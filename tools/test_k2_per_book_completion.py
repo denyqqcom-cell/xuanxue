@@ -8,6 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import k2_wave1_aggregate as agg
 import validate_k2_evidence as ev
 import validate_k2_per_book_completion as v
+import test_k2_wave1_execution_queue as queue_test
 
 
 def dump(path, rows):
@@ -149,6 +150,10 @@ def main():
     # Both global consumers must share exactly the same loader object.
     assert v.aggregate is agg.aggregate_wave1
     assert ev.aggregate_wave1 is agg.aggregate_wave1
+
+    # P3 execution queue is part of the aggregate progress contract and must
+    # be exercised by the always-on Knowledge CI before any corpus batch runs.
+    queue_test.main()
 
     print("k2-per-book-completion-tests: PASS")
 
