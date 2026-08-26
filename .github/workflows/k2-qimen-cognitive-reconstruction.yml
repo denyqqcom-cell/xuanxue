@@ -8,7 +8,9 @@ on:
       - knowledge-engine-v1-k2
     paths:
       - 'knowledge/K2_QIMEN_COGNITIVE_*'
+      - 'knowledge/K2_QIMEN_DEEP_RETREAT_V12.md'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
+      - 'knowledge/K2_QIMEN_SCRM_V02.md'
       - 'knowledge/K2_QIMEN_TBV_*'
       - 'knowledge/K2_QIMEN_PRACTICE_*'
       - 'knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json'
@@ -28,7 +30,9 @@ on:
   pull_request:
     paths:
       - 'knowledge/K2_QIMEN_COGNITIVE_*'
+      - 'knowledge/K2_QIMEN_DEEP_RETREAT_V12.md'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
+      - 'knowledge/K2_QIMEN_SCRM_V02.md'
       - 'knowledge/K2_QIMEN_TBV_*'
       - 'knowledge/K2_QIMEN_PRACTICE_*'
       - 'knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json'

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -12,8 +13,8 @@ DEEP_LEDGER_PATH = K / "K2_DEEP_READING_LEDGER.jsonl"
 SCENARIO_SCHEMA_PATH = K / "schema" / "qimen_scenario_reasoning.schema.json"
 STATE_SCHEMA_PATH = K / "schema" / "qimen_cognitive_reconstruction_state.schema.json"
 ERROR_SCHEMA_PATH = K / "schema" / "qimen_cognitive_error.schema.json"
-CHARTER_PATH = K / "K2_QIMEN_COGNITIVE_RECONSTRUCTION_CHARTER.md"
-MODEL_PATH = K / "K2_QIMEN_SCRM_V01.md"
+CHARTER_PATH = K / "K2_QIMEN_DEEP_RETREAT_V12.md"
+MODEL_PATH = K / "K2_QIMEN_SCRM_V02.md"
 
 ALLOWED_STATUS = {"OPEN", "REVIEW_REQUIRED", "COMPLETE"}
 ALLOWED_CORRECTION = {"CORRECTED", "PARTIALLY_CORRECTED", "OPEN"}
@@ -49,6 +50,11 @@ REQUIRED_GATES = {
     "prospective_validation_required",
     "no_book_rule_universalization",
     "no_innovation_credit_without_test",
+    "world_model_pre_symbolic_freeze_required",
+    "comparator_information_parity_required",
+    "model_version_freeze_required",
+    "abstention_coverage_accounting_required",
+    "dynamic_state_machine_derived_required",
 }
 REQUIRED_SCENARIO_FIELDS = {
     "schema_version",
@@ -63,14 +69,17 @@ REQUIRED_SCENARIO_FIELDS = {
     "constraints",
     "reality_anchor",
     "scenario_graph",
+    "information_order",
     "symbolic_mapping_hypotheses",
     "eligible_rule_set",
     "boundary_conditions",
     "competing_explanations",
+    "comparator_parity",
     "counterfactual_checks",
     "sensitivity_checks",
     "decision_tie_break_policy",
-    "abstention_condition",
+    "model_freeze",
+    "abstention_policy",
     "confidence_components",
     "prediction",
     "empirical_credit",
@@ -83,6 +92,24 @@ REQUIRED_TIE_BREAK_FIELDS = {
     "freeze_status",
 }
 REQUIRED_TIE_BREAK_STATUS = {"FROZEN", "NOT_APPLICABLE", "UNRESOLVED"}
+REQUIRED_INFORMATION_ORDER_FIELDS = {
+    "world_model_freeze_status",
+    "symbolic_inputs_hidden_until_world_freeze",
+    "outcome_known_at_freeze",
+    "information_cutoff",
+    "contamination_status",
+}
+REQUIRED_COMPARATOR_PARITY_FIELDS = {
+    "shared_reality_information",
+    "shared_information_cutoff",
+    "symbolic_increment_isolated",
+    "freeze_status",
+}
+REQUIRED_MODEL_FREEZE_FIELDS = {"scrm_version", "qcic_version", "method_variants", "freeze_status"}
+REQUIRED_ABSTENTION_FIELDS = {"trigger_conditions", "decision_rule", "freeze_status", "coverage_accounting"}
+DYNAMIC_BACKLOG_LITERAL = re.compile(
+    r"(?i)(?:unknown|backlog)[^。；;\n]{0,60}\b\d+\b|\b\d+\b[^。；;\n]{0,60}(?:unknown|backlog)"
+)
 
 
 def load_json(path: Path):
@@ -110,14 +137,14 @@ def evidence_ref_path(ref: str) -> str:
 
 def validate_state(state: dict, backlog: dict, deep_rows: list[dict], bias_rows: list[dict]):
     issues = []
-    if state.get("schema_version") != "k2-qimen-cognitive-reconstruction-v1":
+    if state.get("schema_version") != "k2-qimen-cognitive-reconstruction-v2":
         issues.append("state schema_version mismatch")
     if state.get("status") not in ALLOWED_STATUS:
         issues.append("invalid state status")
     if state.get("mode") != "COGNITIVE_RECONSTRUCTION":
         issues.append("mode must be COGNITIVE_RECONSTRUCTION")
-    if state.get("active_framework") != "SCRM-v0.1":
-        issues.append("active_framework must be SCRM-v0.1")
+    if state.get("active_framework") != "SCRM-v0.2":
+        issues.append("active_framework must be SCRM-v0.2")
     if state.get("framework_status") != "CANDIDATE_UNTESTED":
         issues.append("framework must remain CANDIDATE_UNTESTED")
     if state.get("claim_extraction_blocked") is not True:
@@ -168,6 +195,7 @@ def validate_bias_rows(rows: list[dict], root: Path):
     issues = []
     seen = set()
     categories = set()
+    narrative_fields = ("historical_pattern", "why_wrong", "current_control", "residual_risk", "next_test")
     for i, row in enumerate(rows, 1):
         bid = row.get("bias_id")
         if not isinstance(bid, str) or not bid.startswith("QCR-BIAS-"):
@@ -185,10 +213,13 @@ def validate_bias_rows(rows: list[dict], root: Path):
             issues.append(f"{bid}: invalid correction_status")
         if row.get("empirical_credit") != "NONE":
             issues.append(f"{bid}: cognitive error repair cannot grant empirical credit")
-        for field in ("historical_pattern", "why_wrong", "current_control", "residual_risk", "next_test"):
+        for field in narrative_fields:
             value = row.get(field)
             if not isinstance(value, str) or len(value.strip()) < 10:
                 issues.append(f"{bid}: weak/missing {field}")
+                continue
+            if DYNAMIC_BACKLOG_LITERAL.search(value):
+                issues.append(f"{bid}: dynamic UNKNOWN/backlog state must remain machine-derived, not hard-coded in narrative")
         refs = row.get("evidence_refs")
         if not isinstance(refs, list) or not refs or len(refs) != len(set(refs)):
             issues.append(f"{bid}: evidence_refs must be non-empty unique list")
@@ -207,6 +238,17 @@ def validate_bias_rows(rows: list[dict], root: Path):
     return issues
 
 
+def _closed_object_contract(props: dict, field: str, required_fields: set[str], issues: list[str]):
+    obj = props.get(field, {})
+    if obj.get("type") != "object" or obj.get("additionalProperties") is not False:
+        issues.append(f"scenario {field} must be a closed object")
+        return {}
+    required = obj.get("required")
+    if not isinstance(required, list) or set(required) != required_fields:
+        issues.append(f"scenario {field} required-field contract drift")
+    return obj.get("properties") if isinstance(obj.get("properties"), dict) else {}
+
+
 def validate_scenario_schema(schema: dict):
     issues = []
     required = schema.get("required")
@@ -216,6 +258,8 @@ def validate_scenario_schema(schema: dict):
     for field in REQUIRED_SCENARIO_FIELDS:
         if field not in props:
             issues.append(f"scenario schema missing property {field}")
+    if props.get("schema_version", {}).get("const") != "qimen-scrm-case-v0.2":
+        issues.append("scenario schema must freeze qimen-scrm-case-v0.2")
     if props.get("empirical_credit", {}).get("const") != "NONE":
         issues.append("scenario case must not auto-grant empirical credit")
     comp = props.get("competing_explanations", {})
@@ -239,6 +283,36 @@ def validate_scenario_schema(schema: dict):
         issues.append("scenario tie-break candidate_outputs must be array")
     if not isinstance(tie.get("allOf"), list) or len(tie.get("allOf")) < 2:
         issues.append("scenario tie-break must fail closed for multi-output selection")
+
+    info_props = _closed_object_contract(props, "information_order", REQUIRED_INFORMATION_ORDER_FIELDS, issues)
+    if set(info_props.get("world_model_freeze_status", {}).get("enum", [])) != {"FROZEN", "UNRESOLVED"}:
+        issues.append("information-order world model freeze enum drift")
+    if info_props.get("symbolic_inputs_hidden_until_world_freeze", {}).get("type") != "boolean":
+        issues.append("information-order symbolic reveal field must be boolean")
+    if info_props.get("outcome_known_at_freeze", {}).get("type") != "boolean":
+        issues.append("information-order outcome-known field must be boolean")
+
+    parity_props = _closed_object_contract(props, "comparator_parity", REQUIRED_COMPARATOR_PARITY_FIELDS, issues)
+    if parity_props.get("shared_reality_information", {}).get("const") is not True:
+        issues.append("comparator parity requires shared reality information")
+    if parity_props.get("symbolic_increment_isolated", {}).get("const") is not True:
+        issues.append("comparator parity must isolate symbolic increment")
+
+    model_props = _closed_object_contract(props, "model_freeze", REQUIRED_MODEL_FREEZE_FIELDS, issues)
+    if model_props.get("scrm_version", {}).get("const") != "SCRM-v0.2":
+        issues.append("model freeze must pin SCRM-v0.2")
+    if model_props.get("method_variants", {}).get("minItems", 0) < 1:
+        issues.append("model freeze requires at least one explicit method variant")
+
+    abstain_props = _closed_object_contract(props, "abstention_policy", REQUIRED_ABSTENTION_FIELDS, issues)
+    if abstain_props.get("coverage_accounting", {}).get("const") is not True:
+        issues.append("abstention coverage must be accounted rather than treated as free escape")
+    if abstain_props.get("trigger_conditions", {}).get("minItems", 0) < 1:
+        issues.append("abstention policy requires predeclared trigger conditions")
+
+    root_all_of = schema.get("allOf")
+    if not isinstance(root_all_of, list) or len(root_all_of) < 1:
+        issues.append("frozen cases must enforce clean pre-symbolic information order and freeze contracts")
     return issues
 
 
@@ -247,12 +321,16 @@ def validate_docs(charter: str, model: str):
     for needle in (
         "理论—边界—验证",
         "full_corpus_mastery_claim = false",
-        "QCIC：Epistemic Control Shell",
-        "SCRM：Scenario-Conditioned Relational Model",
-        "UNKNOWN_BACKLOG = MACHINE_DERIVED",
+        "SCRM-v0.2",
+        "WORLD MODEL BEFORE SYMBOLS",
+        "COMPARATOR INFORMATION PARITY",
+        "MODEL VERSION FREEZE",
+        "ABSTENTION IS ACCOUNTED",
+        "DYNAMIC STATE = MACHINE_DERIVED",
+        "认知重构不等于理论已验证",
     ):
         if needle not in charter:
-            issues.append(f"charter missing invariant: {needle}")
+            issues.append(f"deep-retreat charter missing invariant: {needle}")
     for needle in (
         "CANDIDATE_UNTESTED",
         "Empirical Credit：`NONE`",
@@ -260,11 +338,14 @@ def validate_docs(charter: str, model: str):
         "Competing Explanations",
         "Counterfactual Stress Test",
         "Sensitivity Analysis",
-        "Abstention 是正式输出",
-        "SCRM-H5",
+        "WORLD MODEL BEFORE SYMBOLS",
+        "COMPARATOR INFORMATION PARITY",
+        "ABSTENTION IS ACCOUNTED",
+        "MODEL VERSION FREEZE",
+        "SCRM-H9",
     ):
         if needle not in model:
-            issues.append(f"SCRM model missing invariant: {needle}")
+            issues.append(f"SCRM v0.2 model missing invariant: {needle}")
     return issues
 
 
@@ -273,8 +354,8 @@ def validate(repo: Path = ROOT):
     required_paths = [
         k / "K2_QIMEN_COGNITIVE_RECONSTRUCTION_STATE.json",
         k / "K2_QIMEN_COGNITIVE_ERROR_LEDGER.jsonl",
-        k / "K2_QIMEN_COGNITIVE_RECONSTRUCTION_CHARTER.md",
-        k / "K2_QIMEN_SCRM_V01.md",
+        k / "K2_QIMEN_DEEP_RETREAT_V12.md",
+        k / "K2_QIMEN_SCRM_V02.md",
         k / "K2_UNKNOWN_TEXTUAL_BACKLOG.json",
         k / "K2_DEEP_READING_LEDGER.jsonl",
         k / "schema" / "qimen_cognitive_reconstruction_state.schema.json",
@@ -290,8 +371,8 @@ def validate(repo: Path = ROOT):
     deep_rows = load_jsonl(k / "K2_DEEP_READING_LEDGER.jsonl")
     bias_rows = load_jsonl(k / "K2_QIMEN_COGNITIVE_ERROR_LEDGER.jsonl")
     scenario_schema = load_json(k / "schema" / "qimen_scenario_reasoning.schema.json")
-    charter = (k / "K2_QIMEN_COGNITIVE_RECONSTRUCTION_CHARTER.md").read_text(encoding="utf-8")
-    model = (k / "K2_QIMEN_SCRM_V01.md").read_text(encoding="utf-8")
+    charter = (k / "K2_QIMEN_DEEP_RETREAT_V12.md").read_text(encoding="utf-8")
+    model = (k / "K2_QIMEN_SCRM_V02.md").read_text(encoding="utf-8")
 
     issues = []
     issues.extend(validate_state(state, backlog, deep_rows, bias_rows))
@@ -309,7 +390,7 @@ def main():
         raise SystemExit(1)
     if issues:
         print("k2-qimen-cognitive-reconstruction: FAIL", file=sys.stderr)
-        for issue in issues[:40]:
+        for issue in issues[:60]:
             print(f"- {issue}", file=sys.stderr)
         raise SystemExit(1)
     state = load_json(STATE_PATH)
