@@ -8,10 +8,15 @@ from pathlib import Path
 
 import k2_wave1_aggregate as agg
 import validate_k2_evidence_base as base
+import k2_verified_source_metadata as verified
+
+verified.patch_validator_module(base)
 from validate_k2_evidence_base import *  # re-export validator contract helpers for tests/importers
 
 ROOT = Path(__file__).resolve().parents[1]
 aggregate_wave1 = agg.aggregate_wave1
+apply_verified_source_metadata = verified.apply_verified_source_metadata
+load_verified_source_metadata = verified.load_verified_source_metadata
 
 
 def _write_jsonl(path, rows):
