@@ -16,13 +16,10 @@ DOMAIN_ORDER = {
     "liuren": 4,
     "fengshui": 5,
 }
-PREFIX_DOMAIN = {
-    "ZW": "ziwei",
-    "BZ": "bazi",
-    "QM": "qimen",
-    "LY": "liuyao",
-    "LR": "liuren",
-    "FS": "fengshui",
+LANE_ORDER = {
+    "TEXT_DIRECT": 0,
+    "VISUAL_REQUIRED": 1,
+    "ACCESS_REVIEW": 2,
 }
 
 
@@ -40,10 +37,12 @@ def load_jsonl(path):
     return rows
 
 
-def queue_sort_key(source_id):
-    prefix = str(source_id).split("-", 1)[0]
-    domain = PREFIX_DOMAIN.get(prefix, "")
-    return (DOMAIN_ORDER.get(domain, 99), str(source_id))
+def queue_row_sort_key(row):
+    return (
+        DOMAIN_ORDER.get(row.get("domain"), 99),
+        LANE_ORDER.get(row.get("execution_lane"), 99),
+        str(row.get("source_id", "")),
+    )
 
 
 def completed_source_ids(root=ROOT):
@@ -95,7 +94,7 @@ def build_queue(root=ROOT):
     segmented = _segmented_sources(root)
 
     rows = []
-    for source_id in sorted(expected - completed, key=queue_sort_key):
+    for source_id in sorted(expected - completed):
         src = sources[source_id]
         lin = lineage[source_id]
         lane = evidence.expected_execution_lane(src)
@@ -122,7 +121,7 @@ def build_queue(root=ROOT):
                 "next_action": next_action,
             }
         )
-    return rows
+    return sorted(rows, key=queue_row_sort_key)
 
 
 def main():
