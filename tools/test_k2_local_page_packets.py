@@ -34,14 +34,18 @@ def main():
     else:
         raise AssertionError("repository-contained output must be rejected")
 
-    # A packet must be semantically readable, not merely non-empty.  Normal
-    # Chinese and normal Latin text are both valid; synthetic font/CMap damage
-    # spanning many unrelated scripts must fail closed.
+    # A packet must be semantically readable, not merely non-empty. Normal
+    # Chinese/Latin text and ordinary East-Asian mixed scripts are valid;
+    # synthetic font/CMap damage spanning many unrelated scripts must fail closed.
     readable_cjk = ["紫微斗數 命宮 天機 四化 三方四正"] * 2
     readable_latin = ["Ziwei astrolabe method layer and timing model"] * 2
+    readable_japanese = ["紫微斗数の命宮をみる テスト カタカナ"] * 2
+    readable_cjk_latin = ["紫微斗數 Ziwei method v1 四化 timing layer"] * 2
     garbled = [("ΩЖشമԱሀᐁϞЯعകՖሴᑕ " * 24).strip()] * 2
     assert p.text_layer_is_semantically_readable(readable_cjk)
     assert p.text_layer_is_semantically_readable(readable_latin)
+    assert p.text_layer_is_semantically_readable(readable_japanese)
+    assert p.text_layer_is_semantically_readable(readable_cjk_latin)
     assert not p.text_layer_is_semantically_readable(garbled)
 
     # If an earlier extractor returns non-empty but semantically garbled text,
