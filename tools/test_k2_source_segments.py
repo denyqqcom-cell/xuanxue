@@ -32,9 +32,14 @@ def must_fail(rows,needle):
     assert needle in text,(needle,text)
 
 
+def overlay_row(**overrides):
+    row={"schema_version":"k2-segment-authorship-status-v1","segment_id":"QM-SRC-9000#SEG-001","author_claim_status":"SOURCE_INTERNAL_ATTRIBUTION","review_status":"REVIEWED","reason":"内页署名只证明载体内部归署名，不证明历史作者身份已经外部核验。","external_evidence_refs":[]}
+    row.update(overrides);return row
+
+
 def main():
     # Source-internal title/signature evidence proves what the carrier attributes,
-    # not the historical truth of authorship.  The segment model must preserve
+    # not the historical truth of authorship. The segment model must preserve
     # that distinction explicitly instead of letting CONTENT_VERIFIED read as
     # "historically verified author" downstream.
     assert hasattr(v,"AUTHOR_CLAIM_STATUSES"), "segment author-claim epistemic contract missing"
@@ -73,7 +78,20 @@ def main():
     rows=copy.deepcopy(base);del rows[0]["author_claim_status"]
     must_fail(rows,"author_claim_status")
 
+    historical=copy.deepcopy(base)
+    for row in historical:row.pop("author_claim_status",None)
+    effective,issues=v.apply_author_claim_status(historical,[overlay_row()])
+    assert not issues,issues
+    assert effective[0]["author_claim_status"]=="SOURCE_INTERNAL_ATTRIBUTION"
+    assert effective[1].get("author_claim_status") is None
+
+    _,issues=v.apply_author_claim_status(historical,[overlay_row(segment_id="QM-SRC-9999#SEG-001")])
+    assert any("unknown segment_id" in msg for _,msg in issues),issues
+
+    _,issues=v.apply_author_claim_status(historical,[overlay_row(author_claim_status="EXTERNALLY_VERIFIED")])
+    assert any("requires external_evidence_refs" in msg for _,msg in issues),issues
+
     print("k2-source-segments-tests: PASS")
-    print("cases=11")
+    print("cases=14")
 
 if __name__=="__main__":main()

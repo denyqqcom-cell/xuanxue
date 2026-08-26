@@ -1,6 +1,6 @@
 # K2 Composite Carrier Segmentation Protocol
 
-版本：2026-08-22
+版本：2026-08-27
 阶段：K2B / Deep Closure
 状态：ACTIVE
 
@@ -63,3 +63,41 @@ QM-SRC-0023 的 185 页连续视觉复核推翻了这个假设。该载体实际
 遇到载体结构与旧 schema 冲突时，优先修改 schema，不修改事实。
 
 不能因为工程结构已经存在，就把新读到的材料压扁成旧结构需要的样子。
+
+## 7. 作者归属的认识论边界
+
+2026-08-27 对已经接受的 segment 做反向复核后，确认旧字段 `author_basis=CONTENT_VERIFIED` 容易产生一个语义越级：
+
+> “载体内可以看到作者署名/编者归属说明”被下游误读成“历史作者身份已经得到独立验证”。
+
+两者必须拆开：
+
+`SOURCE INTERNAL ATTRIBUTION != HISTORICAL AUTHORSHIP VERIFICATION`
+
+因此新增：
+
+`knowledge/K2_SEGMENT_AUTHORSHIP_STATUS.jsonl`
+
+作为 post-acceptance epistemic overlay。历史 `K2_SOURCE_SEGMENTS.jsonl` 不静默重写，effective segment view 在验证阶段叠加 `author_claim_status`。
+
+当前状态定义：
+
+- `SOURCE_INTERNAL_ATTRIBUTION`：题名页、正文署名、编者说明等只证明**这个载体如何归属作者**；
+- `EXTERNALLY_VERIFIED`：保留给未来具有独立外部作者核验引用的状态；当前没有任何 accepted segment 获得该状态；
+- `UNKNOWN`：没有可靠作者归属证据。
+
+当前 fail-closed 规则：
+
+1. `CONTENT_VERIFIED` 只能得到 `SOURCE_INTERNAL_ATTRIBUTION`；
+2. `TITLE_PAGE` 也只能得到 `SOURCE_INTERNAL_ATTRIBUTION`；
+3. `UNKNOWN` 不得被 overlay 提升为来源内部作者归属；
+4. `EXTERNALLY_VERIFIED` 必须携带独立 `external_evidence_refs`，且不能仅依赖 `CONTENT_VERIFIED/TITLE_PAGE`；
+5. 一个名字在载体里出现、一本现代汇编说“某人撰”、文件名标某作者，都不能单独解决历史真伪问题。
+
+本轮对三条历史已接受记录做 effective 降格而非删改：
+
+- `QM-SRC-0023#SEG-001`：薛凤祚 → `SOURCE_INTERNAL_ATTRIBUTION`；
+- `QM-SRC-0024#SEG-002`：趙普 → `SOURCE_INTERNAL_ATTRIBUTION`；
+- `QM-SRC-0013#SEG-002`：程道生 → `SOURCE_INTERNAL_ATTRIBUTION`。
+
+这里“降格”只针对**作者身份信用层级**，不否定载体确实包含这些署名/归属陈述，也不改变 segment 页码、作品边界或 domain route。

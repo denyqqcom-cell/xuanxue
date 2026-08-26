@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/denyqqcom-cell/xuanxue/knowledge/schema/segment_authorship_status.schema.json",
+  "title": "K2 Segment Authorship Status",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "segment_id",
+    "author_claim_status",
+    "review_status",
+    "reason",
+    "external_evidence_refs"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "k2-segment-authorship-status-v1"
+    },
+    "segment_id": {
+      "type": "string",
+      "pattern": "^[A-Z]+-SRC-[0-9]{4}#SEG-[0-9]{3}$"
+    },
+    "author_claim_status": {
+      "enum": [
+        "SOURCE_INTERNAL_ATTRIBUTION",
+        "EXTERNALLY_VERIFIED",
+        "UNKNOWN"
+      ]
+    },
+    "review_status": {
+      "const": "REVIEWED"
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "external_evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "uniqueItems": true
+    }
+  }
+}
