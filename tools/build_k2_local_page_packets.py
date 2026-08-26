@@ -278,6 +278,59 @@ def text_layer_is_semantically_readable(pages):
     return not (len(significant_families) >= 4 and dominant_ratio < 0.75)
 
 
+def text_layer_has_semantic_coverage(pages):
+    """Reject probable repeated overlay/watermark layers without source body.
+
+    A scanned book can carry a perfectly readable Unicode advertisement or
+    watermark on every page while the actual book body exists only as page
+    images. Such a file must not become TEXT_DIRECT merely because the overlay
+    is non-empty and linguistically readable. We fail closed only when there is
+    enough page-level signal and the extracted layer is simultaneously short,
+    highly repetitive, and low-diversity across the document.
+    """
+    normalized = []
+    for page in pages or []:
+        if not isinstance(page, str):
+            continue
+        compact = " ".join(page.split())
+        if compact:
+            normalized.append(compact)
+
+    # Small samples do not provide enough evidence to classify repetition.
+    if len(normalized) < 8:
+        return True
+
+    signature_counts = {}
+    semantic_lengths = []
+    for compact in normalized:
+        signature_counts[compact] = signature_counts.get(compact, 0) + 1
+        semantic_lengths.append(sum(
+            1 for ch in compact
+            if unicodedata.category(ch).startswith(("L", "N"))
+        ))
+
+    semantic_lengths.sort()
+    midpoint = len(semantic_lengths) // 2
+    if len(semantic_lengths) % 2:
+        median_semantic_len = semantic_lengths[midpoint]
+    else:
+        median_semantic_len = (
+            semantic_lengths[midpoint - 1] + semantic_lengths[midpoint]
+        ) / 2
+
+    repeated_ratio = sum(
+        sorted(signature_counts.values(), reverse=True)[:3]
+    ) / len(normalized)
+    distinct_ratio = len(signature_counts) / len(normalized)
+
+    probable_overlay_only = (
+        repeated_ratio >= 0.80
+        and distinct_ratio <= 0.20
+        and median_semantic_len <= 240
+    )
+    return not probable_overlay_only
+
+
 def extract_pdf_text_pdftotext(path: Path):
     exe = shutil.which("pdftotext")
     if not exe:
@@ -347,6 +400,12 @@ def _accept_extracted_pages(pages, label, reasons):
         reasons.append(
             f"{label}: failed semantic readability check "
             "(probable embedded-font/CMap mojibake)"
+        )
+        return False
+    if not text_layer_has_semantic_coverage(pages):
+        reasons.append(
+            f"{label}: failed semantic coverage check "
+            "(probable repeated overlay/watermark without source body)"
         )
         return False
     return True
