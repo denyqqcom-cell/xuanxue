@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import copy
 import json
 import sys
 from pathlib import Path
@@ -8,6 +9,7 @@ K = ROOT / "knowledge"
 
 REGISTRY = "K2_QIMEN_TBV_REVIEW_REGISTRY.jsonl"
 REGISTRY_SHARD_DIR = "K2_QIMEN_TBV_REVIEW_REGISTRY.d"
+CORRECTIONS = "K2_QIMEN_TBV_REVIEW_CORRECTIONS.jsonl"
 STATE = "K2_QIMEN_TBV_STATE.json"
 BACKLOG = "K2_UNKNOWN_TEXTUAL_BACKLOG.json"
 DEEP_LEDGER = "K2_DEEP_READING_LEDGER.jsonl"
@@ -38,6 +40,24 @@ ALLOWED_OPERATIONAL = {
 }
 ALLOWED_CONTEXT = {"EXPLICIT", "PARTIAL", "UNCLEAR"}
 ALLOWED_CREDIT = {"STRONG", "CANDIDATE", "NOT_TESTED"}
+CORRECTION_FIELDS = {
+    "schema_version",
+    "correction_id",
+    "review_id",
+    "unit_id",
+    "reason",
+    "source_ref",
+    "review_status",
+    "patch",
+}
+ALLOWED_CORRECTION_PATCH_FIELDS = {
+    "theory_core",
+    "boundary_context",
+    "validation",
+    "scenario_contribution",
+    "falsification_requirements",
+    "source_anchor_refs",
+}
 
 
 def load_json(path: Path):
@@ -78,6 +98,83 @@ def load_registry_rows(k: Path):
         for path in sorted(shard_dir.glob("*.jsonl")):
             rows.extend(load_jsonl(path))
     return rows
+
+
+def load_effective_registry_rows(k: Path, repo: Path):
+    raw_rows = load_registry_rows(k)
+    issues = []
+    correction_path = k / CORRECTIONS
+    if not correction_path.exists():
+        return raw_rows, [f"missing TBV correction overlay: {CORRECTIONS}"]
+
+    corrections = load_jsonl(correction_path)
+    by_review = {
+        row.get("review_id"): copy.deepcopy(row)
+        for row in raw_rows
+        if isinstance(row.get("review_id"), str)
+    }
+    seen_ids = set()
+    seen_targets = set()
+
+    for idx, correction in enumerate(corrections, 1):
+        cid = correction.get("correction_id") or f"correction-{idx}"
+        if set(correction) != CORRECTION_FIELDS:
+            issues.append(f"{cid}: TBV correction fields drift")
+        if correction.get("schema_version") != "k2-qimen-tbv-review-correction-v1":
+            issues.append(f"{cid}: TBV correction schema_version mismatch")
+        if not isinstance(correction.get("correction_id"), str) or not correction.get("correction_id", "").startswith("QTBVC-"):
+            issues.append(f"{cid}: invalid TBV correction_id")
+        elif cid in seen_ids:
+            issues.append(f"duplicate TBV correction_id: {cid}")
+        else:
+            seen_ids.add(cid)
+
+        review_id = correction.get("review_id")
+        unit_id = correction.get("unit_id")
+        target_key = (review_id, unit_id)
+        if target_key in seen_targets:
+            issues.append(f"{cid}: duplicate TBV correction target {review_id}/{unit_id}")
+        else:
+            seen_targets.add(target_key)
+
+        target = by_review.get(review_id)
+        if target is None:
+            issues.append(f"{cid}: unknown TBV correction review_id {review_id}")
+        elif target.get("unit_id") != unit_id:
+            issues.append(f"{cid}: TBV correction unit_id does not match target")
+
+        reason = correction.get("reason")
+        if not isinstance(reason, str) or len(reason.strip()) < 20:
+            issues.append(f"{cid}: weak/missing TBV correction reason")
+        if correction.get("review_status") != "REVIEWED":
+            issues.append(f"{cid}: TBV correction must be REVIEWED")
+
+        source_ref = correction.get("source_ref")
+        if not isinstance(source_ref, str) or not source_ref:
+            issues.append(f"{cid}: invalid TBV correction source_ref")
+        else:
+            source_path = repo / source_ref.split("#", 1)[0]
+            if not source_path.exists():
+                issues.append(f"{cid}: missing TBV correction source_ref {source_ref}")
+            if not source_ref.startswith("knowledge/K2_DEEP_SOURCE_DISTILLATES.d/"):
+                issues.append(f"{cid}: TBV correction source_ref must bind reviewed deep-source distillate")
+
+        patch = correction.get("patch")
+        if not isinstance(patch, dict) or not patch:
+            issues.append(f"{cid}: TBV correction patch must be non-empty object")
+            continue
+        forbidden = set(patch) - ALLOWED_CORRECTION_PATCH_FIELDS
+        if forbidden:
+            issues.append(f"{cid}: forbidden TBV correction patch field(s): {sorted(forbidden)}")
+        if target is not None and not forbidden:
+            for field, value in patch.items():
+                target[field] = copy.deepcopy(value)
+
+    effective = []
+    for raw in raw_rows:
+        rid = raw.get("review_id")
+        effective.append(by_review.get(rid, copy.deepcopy(raw)))
+    return effective, issues
 
 
 def load_work_family_rows(k: Path):
@@ -178,19 +275,21 @@ def validate(repo: Path = ROOT):
     k = repo / "knowledge"
     required_paths = [
         k / REGISTRY,
+        k / CORRECTIONS,
         k / STATE,
         k / BACKLOG,
         k / DEEP_LEDGER,
         k / WORK_FAMILY,
         k / PROTOCOL,
         k / "schema" / "qimen_tbv_review.schema.json",
+        k / "schema" / "qimen_tbv_review_correction.schema.json",
         k / "schema" / "qimen_tbv_state.schema.json",
     ]
     missing = [str(p.relative_to(repo)) for p in required_paths if not p.exists()]
     if missing:
         return [f"missing TBV artifact(s): {missing}"]
 
-    registry = load_registry_rows(k)
+    registry, correction_issues = load_effective_registry_rows(k, repo)
     state = load_json(k / STATE)
     backlog = load_json(k / BACKLOG)
     deep_rows = load_jsonl(k / DEEP_LEDGER)
@@ -204,7 +303,7 @@ def validate(repo: Path = ROOT):
         if isinstance(r.get("work_family_key"), str)
     }
     work_family_ids = set(work_family_by_id)
-    issues = []
+    issues = list(correction_issues)
 
     seen_review_ids = set()
     seen_units = set()
@@ -318,12 +417,13 @@ def main():
             print(f"- {issue}", file=sys.stderr)
         raise SystemExit(1)
     state = load_json(K / STATE)
+    corrections = load_jsonl(K / CORRECTIONS)
     print("k2-qimen-tbv: PASS")
     print(
         f"status={state['status']} reviewed_units={state['reviewed_unit_count']} "
         f"deep_units={state['reviewed_deep_source_count']} "
         f"effective_deep_sources={state['effective_deep_source_coverage_count']}/{state['known_deep_visual_reviewed_source_count']} "
-        f"unknown_backlog={state['global_unknown_textual_backlog']} empirical_credit=NONE"
+        f"corrections={len(corrections)} unknown_backlog={state['global_unknown_textual_backlog']} empirical_credit=NONE"
     )
 
 

@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qimen_tbv_review_correction.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "correction_id",
+    "review_id",
+    "unit_id",
+    "reason",
+    "source_ref",
+    "review_status",
+    "patch"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "k2-qimen-tbv-review-correction-v1"},
+    "correction_id": {"type": "string", "pattern": "^QTBVC-[A-Z0-9_-]+$"},
+    "review_id": {"type": "string", "pattern": "^QTBV-[A-Z0-9_-]+$"},
+    "unit_id": {"type": "string", "minLength": 1},
+    "reason": {"type": "string", "minLength": 20},
+    "source_ref": {"type": "string", "minLength": 5},
+    "review_status": {"const": "REVIEWED"},
+    "patch": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": false,
+      "properties": {
+        "theory_core": {"type": "array", "minItems": 1},
+        "boundary_context": {"type": "object"},
+        "validation": {"type": "object"},
+        "scenario_contribution": {"type": "array", "minItems": 1},
+        "falsification_requirements": {"type": "array", "minItems": 1},
+        "source_anchor_refs": {"type": "array", "minItems": 1}
+      }
+    }
+  }
+}
