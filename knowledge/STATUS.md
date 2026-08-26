@@ -15,7 +15,7 @@ K2A Source Lineage 已由项目端验收为 `COMPLETE`。当前进入 `K2_EVIDEN
 
 K2B 工程执行权由项目主 Agent 持有；本地 AI 仅负责 GitHub→本地 fast-forward 同步，以及 canonical 本地资料/page packet 的定位、SHA256/页数/完整性校验和明确点名的单文件发布。它不运行测试/Gradle/instrumentation，不写代码或知识树，不做工程判断，也不 commit/push。
 
-Wave 1 execution lanes：TEXT_DIRECT = 21；VISUAL_REQUIRED = 16；ACCESS_REVIEW = 0。SCAN/OCR_WEAK/OCR_FAIL 没有原页视觉能力时必须诚实 BLOCKED，不得用 OCR 冒充视觉核验。
+Wave 1 execution lanes：TEXT_DIRECT = 20；VISUAL_REQUIRED = 17；ACCESS_REVIEW = 0。SCAN/OCR_WEAK/OCR_FAIL 没有原页视觉能力时必须诚实 BLOCKED，不得用 OCR 冒充视觉核验。
 
 Windows/WSL/Linux 的 source 定位不再依赖固定 private intake 路径；允许在显式 corpus roots 中按 official canonical SHA256 查找完全相同的源字节。文件名相似不能替代 hash identity。
 
