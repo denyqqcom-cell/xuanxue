@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "enumeration_compression.schema.json",
+  "type": "object",
+  "required": [
+    "compression_id", "source_id", "work_id", "canonical_sha256", "enumeration_label", "method_layer",
+    "input_domain", "generative_rule_id", "evidence_locators", "enumerated_entries_count",
+    "collapsed_structure_units", "empirical_evidence_units", "compression_policy",
+    "reconstruction_test_status", "source_credit", "empirical_credit", "claim_extraction_blocked", "review_status"
+  ],
+  "properties": {
+    "compression_id": {"type": "string", "minLength": 1},
+    "source_id": {"type": "string", "minLength": 1},
+    "work_id": {"type": "string", "minLength": 1},
+    "canonical_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "enumeration_label": {"type": "string", "minLength": 1},
+    "method_layer": {"enum": ["CALCULATION", "DIVINATION", "SELECTION_STRATEGY", "MILITARY_OPERATIONAL", "RITUAL_ESOTERIC", "TRANSMITTED_REFERENCE"]},
+    "input_domain": {"type": "string", "minLength": 1},
+    "generative_rule_id": {"type": "string", "minLength": 1},
+    "evidence_locators": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^pdf:p[1-9][0-9]*$"}},
+    "enumerated_entries_count": {"type": "integer", "minimum": 2},
+    "collapsed_structure_units": {"const": 1},
+    "empirical_evidence_units": {"const": 0},
+    "compression_policy": {"const": "DERIVED_ENUMERATION_COLLAPSE"},
+    "reconstruction_test_status": {"enum": ["UNTESTED", "PASS", "FAIL"]},
+    "source_credit": {"const": "SOURCE_STRUCTURE_ONLY"},
+    "empirical_credit": {"const": "NONE"},
+    "claim_extraction_blocked": {"const": true},
+    "review_status": {"const": "REVIEWED"}
+  },
+  "additionalProperties": false
+}

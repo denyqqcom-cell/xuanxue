@@ -1,0 +1,33 @@
+{
+  "schema_version": "k2-qimen-cognitive-reconstruction-v1",
+  "status": "OPEN",
+  "mode": "COGNITIVE_RECONSTRUCTION",
+  "active_framework": "SCRM-v0.1",
+  "framework_status": "CANDIDATE_UNTESTED",
+  "claim_extraction_blocked": true,
+  "empirical_credit": "NONE",
+  "full_corpus_mastery_claim": false,
+  "coverage_status": "INCOMPLETE",
+  "global_unknown_textual_backlog": 91,
+  "deep_visual_reviewed_source_count": 20,
+  "historical_bias_count": 15,
+  "workstreams": [
+    "CRITICAL_RETROSPECTIVE",
+    "CORPUS_COMPLETION",
+    "SCENARIO_MODELING",
+    "PROSPECTIVE_VALIDATION",
+    "THEORY_ITERATION"
+  ],
+  "gates": {
+    "theory_boundary_validation_required": true,
+    "scenario_graph_required": true,
+    "reality_anchor_required": true,
+    "competing_explanations_required": true,
+    "counterfactual_required": true,
+    "sensitivity_required": true,
+    "abstention_required": true,
+    "prospective_validation_required": true,
+    "no_book_rule_universalization": true,
+    "no_innovation_credit_without_test": true
+  }
+}

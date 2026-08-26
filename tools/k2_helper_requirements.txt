@@ -1,0 +1,2 @@
+pypdf[crypto]>=5.0.0
+pdfminer.six>=20240706

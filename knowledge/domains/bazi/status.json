@@ -1,1 +1,1 @@
-{"domain":"bazi","display_name":"八字","maturity_level":"L0_SOURCE_ONLY","sources_indexed":0,"claims_extracted":0,"conflicts_open":0,"fixtures_total":0,"fixtures_verified":0,"next_gate":"K1_CORPUS_INDEX"}
+{"domain":"bazi","display_name":"八字","maturity_level":"L1_INDEXED","sources_indexed":168,"claims_extracted":0,"conflicts_open":0,"fixtures_total":0,"fixtures_verified":0,"next_gate":"K2_SOURCE_LINEAGE"}

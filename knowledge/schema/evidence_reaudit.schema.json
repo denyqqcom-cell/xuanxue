@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "evidence_reaudit.schema.json",
+  "type": "object",
+  "required": [
+    "audit_id",
+    "evidence_id",
+    "source_id",
+    "disposition",
+    "effective_claim_readiness",
+    "independence_policy",
+    "risk_domain",
+    "rationale",
+    "review_status"
+  ],
+  "properties": {
+    "audit_id": {"type": "string", "minLength": 1},
+    "evidence_id": {"type": "string", "minLength": 1},
+    "source_id": {"type": "string", "minLength": 1},
+    "disposition": {"enum": ["KEEP", "HOLD_CONFLICT", "DOWNGRADE_NOT_CLAIM", "REJECT"]},
+    "effective_claim_readiness": {"enum": ["READY", "CONTEXT_REQUIRED", "CONFLICT_CANDIDATE", "NOT_CLAIM"]},
+    "independence_policy": {"enum": ["DEFAULT", "COURSE_FAMILY_SINGLE_VOTE", "EXCLUDED"]},
+    "risk_domain": {"enum": ["NONE", "FINANCIAL", "MEDICAL", "LEGAL_CRIMINAL"]},
+    "rationale": {"type": "string", "minLength": 1, "maxLength": 500},
+    "review_status": {"const": "REVIEWED"}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,23 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"reading_coverage.schema.json",
+  "type":"object",
+  "required":["reading_id","source_id","work_id","relation","execution_lane","verification_mode","coverage_mode","page_ranges","read_status","review_status"],
+  "properties":{
+    "reading_id":{"type":"string","minLength":1},
+    "source_id":{"type":"string","minLength":1},
+    "work_id":{"type":["string","null"]},
+    "relation":{"enum":["PRIMARY_WORK","WORK_PART","COMMENTARY_DERIVATIVE","UNKNOWN_DISCOVERY"]},
+    "execution_lane":{"enum":["TEXT_DIRECT","VISUAL_REQUIRED","ACCESS_REVIEW"]},
+    "verification_mode":{"enum":["TEXT_LAYER_FULL","VISUAL_PAGE","WHOLE_TEXT_DOCUMENT","NONE"]},
+    "coverage_mode":{"enum":["PDF_PAGES","DOCUMENT_PAGES","WHOLE_TEXT_DOCUMENT","DISCOVERY_ONLY"]},
+    "page_ranges":{"type":"array","items":{"type":"object","required":["start","end"],"properties":{"start":{"type":"integer","minimum":1},"end":{"type":"integer","minimum":1}},"additionalProperties":false}},
+    "pages_reviewed_count":{"type":["integer","null"],"minimum":0},
+    "read_status":{"enum":["NOT_STARTED","PARTIAL","COMPLETE","BLOCKED","DISCOVERY_RESOLVED","DISCOVERY_UNRESOLVED"]},
+    "evidence_count":{"type":"integer","minimum":0},
+    "blocker_code":{"type":["string","null"],"enum":["VISION_UNAVAILABLE","TEXT_EXTRACTION_FAILED","FILE_MISSING","CORRUPT_SOURCE","ACCESS_UNAVAILABLE","OTHER",null]},
+    "blocker_reason":{"type":["string","null"],"maxLength":240},
+    "review_status":{"enum":["UNREVIEWED","REVIEWED","REJECTED"]}
+  },
+  "additionalProperties":false
+}

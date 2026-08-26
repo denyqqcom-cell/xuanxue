@@ -1,0 +1,229 @@
+{
+  "claim_extraction_blocked": true,
+  "empirical_credit": "NONE",
+  "enumeration_units": [
+    {
+      "claim_eligible": false,
+      "compression_id": "K2EC-QM0010-001",
+      "effective_structure_units": 1,
+      "empirical_evidence_units": 0,
+      "enumerated_entries_count": 1080,
+      "generative_rule_id": "QM0010-TIME-QIMEN-1080-ENUM",
+      "inference_eligibility": "STRUCTURE_ONLY_RECONSTRUCTION_UNTESTED",
+      "method_layer": "CALCULATION",
+      "reconstruction_test_status": "UNTESTED",
+      "source_id": "QM-SRC-0010",
+      "work_id": "WORK-000376"
+    },
+    {
+      "claim_eligible": false,
+      "compression_id": "K2EC-QM0017-002",
+      "effective_structure_units": 1,
+      "empirical_evidence_units": 0,
+      "enumerated_entries_count": 120,
+      "generative_rule_id": "QM0017-DAY-QIMEN-120-ENUM",
+      "inference_eligibility": "STRUCTURE_ONLY_RECONSTRUCTION_UNTESTED",
+      "method_layer": "CALCULATION",
+      "reconstruction_test_status": "UNTESTED",
+      "source_id": "QM-SRC-0017",
+      "work_id": "WORK-000224"
+    },
+    {
+      "claim_eligible": false,
+      "compression_id": "K2EC-QM0017-001",
+      "effective_structure_units": 1,
+      "empirical_evidence_units": 0,
+      "enumerated_entries_count": 1080,
+      "generative_rule_id": "QM0017-TIME-QIMEN-1080-ENUM",
+      "inference_eligibility": "STRUCTURE_ONLY_RECONSTRUCTION_UNTESTED",
+      "method_layer": "CALCULATION",
+      "reconstruction_test_status": "UNTESTED",
+      "source_id": "QM-SRC-0017",
+      "work_id": "WORK-000224"
+    }
+  ],
+  "generated_from": [
+    "knowledge/K2_QCIC_V06_GATE_STATE.json",
+    "knowledge/K2_SOURCE_STANCE_REGISTRY.jsonl",
+    "knowledge/K2_ENUMERATION_COMPRESSION_REGISTRY.jsonl"
+  ],
+  "schema_version": "k2-qcic-inference-eligibility-v1",
+  "source_summaries": [
+    {
+      "author_method_candidate_count": 0,
+      "claim_eligible": false,
+      "collapsed_enumerated_entries": 1080,
+      "effective_structure_units": 1,
+      "empirical_evidence_units": 0,
+      "excluded_stance_topic_count": 0,
+      "held_stance_topic_count": 0,
+      "source_id": "QM-SRC-0010",
+      "stance_topic_count": 0
+    },
+    {
+      "author_method_candidate_count": 0,
+      "claim_eligible": false,
+      "collapsed_enumerated_entries": 0,
+      "effective_structure_units": 0,
+      "empirical_evidence_units": 0,
+      "excluded_stance_topic_count": 1,
+      "held_stance_topic_count": 1,
+      "source_id": "QM-SRC-0015",
+      "stance_topic_count": 2
+    },
+    {
+      "author_method_candidate_count": 0,
+      "claim_eligible": false,
+      "collapsed_enumerated_entries": 1200,
+      "effective_structure_units": 2,
+      "empirical_evidence_units": 0,
+      "excluded_stance_topic_count": 3,
+      "held_stance_topic_count": 1,
+      "source_id": "QM-SRC-0017",
+      "stance_topic_count": 4
+    },
+    {
+      "author_method_candidate_count": 0,
+      "claim_eligible": false,
+      "collapsed_enumerated_entries": 0,
+      "effective_structure_units": 0,
+      "empirical_evidence_units": 0,
+      "excluded_stance_topic_count": 2,
+      "held_stance_topic_count": 1,
+      "source_id": "QM-SRC-0019",
+      "stance_topic_count": 3
+    }
+  ],
+  "stance_topics": [
+    {
+      "author_method_pool_eligible": false,
+      "claim_eligible": false,
+      "effective_stance_id": "K2SS-QM0015-001",
+      "evidence_locators": [
+        "pdf:p51"
+      ],
+      "inference_eligibility": "HOLD_SOURCE_UNCERTAIN",
+      "source_id": "QM-SRC-0015",
+      "stance": "SOURCE_UNCERTAIN",
+      "topic_key": "general-predictive-reliability",
+      "work_id": "WORK-000223"
+    },
+    {
+      "author_method_pool_eligible": false,
+      "claim_eligible": false,
+      "effective_stance_id": "K2SS-QM0015-002",
+      "evidence_locators": [
+        "pdf:p51"
+      ],
+      "inference_eligibility": "EXCLUDE_NOT_AUTHOR_METHOD_POOL",
+      "source_id": "QM-SRC-0015",
+      "stance": "SOURCE_ENDORSES",
+      "topic_key": "real-data-priority-for-life-decisions",
+      "work_id": "WORK-000223"
+    },
+    {
+      "author_method_pool_eligible": false,
+      "claim_eligible": false,
+      "effective_stance_id": "K2SS-QM0017-002",
+      "evidence_locators": [
+        "pdf:p416",
+        "pdf:p417"
+      ],
+      "inference_eligibility": "EXCLUDE_SOURCE_REJECTED",
+      "source_id": "QM-SRC-0017",
+      "stance": "SOURCE_REJECTS",
+      "topic_key": "chance-external-omens-dongying",
+      "work_id": "WORK-000224"
+    },
+    {
+      "author_method_pool_eligible": false,
+      "claim_eligible": false,
+      "effective_stance_id": "K2SS-QM0017-001",
+      "evidence_locators": [
+        "pdf:p415"
+      ],
+      "inference_eligibility": "EXCLUDE_SOURCE_REJECTED",
+      "source_id": "QM-SRC-0017",
+      "stance": "SOURCE_REJECTS",
+      "topic_key": "mythic-origin-claims",
+      "work_id": "WORK-000224"
+    },
+    {
+      "author_method_pool_eligible": false,
+      "claim_eligible": false,
+      "effective_stance_id": "K2SS-QM0017-004",
+      "evidence_locators": [
+        "pdf:p418"
+      ],
+      "inference_eligibility": "HOLD_SOURCE_UNCERTAIN",
+      "source_id": "QM-SRC-0017",
+      "stance": "SOURCE_UNCERTAIN",
+      "topic_key": "scientific-status-of-remaining-spatiotemporal-reasoning",
+      "work_id": "WORK-000224"
+    },
+    {
+      "author_method_pool_eligible": false,
+      "claim_eligible": false,
+      "effective_stance_id": "K2SS-QM0017-003",
+      "evidence_locators": [
+        "pdf:p417"
+      ],
+      "inference_eligibility": "EXCLUDE_SOURCE_REJECTED",
+      "source_id": "QM-SRC-0017",
+      "stance": "SOURCE_REJECTS",
+      "topic_key": "talisman-charm-practices",
+      "work_id": "WORK-000224"
+    },
+    {
+      "author_method_pool_eligible": false,
+      "claim_eligible": false,
+      "effective_stance_id": "K2SS-QM0019-002",
+      "evidence_locators": [
+        "pdf:p109",
+        "pdf:p110",
+        "pdf:p111",
+        "pdf:p112",
+        "pdf:p113"
+      ],
+      "inference_eligibility": "EXCLUDE_NOT_AUTHOR_METHOD_POOL",
+      "source_id": "QM-SRC-0019",
+      "stance": "SOURCE_ENDORSES",
+      "topic_key": "reality-and-direct-action-priority",
+      "work_id": "WORK-000226"
+    },
+    {
+      "author_method_pool_eligible": false,
+      "claim_eligible": false,
+      "effective_stance_id": "K2SS-QM0019-003",
+      "evidence_locators": [
+        "pdf:p109",
+        "pdf:p110",
+        "pdf:p111",
+        "pdf:p112",
+        "pdf:p113"
+      ],
+      "inference_eligibility": "HOLD_SOURCE_UNCERTAIN",
+      "source_id": "QM-SRC-0019",
+      "stance": "SOURCE_UNCERTAIN",
+      "topic_key": "scientific-status-and-internal-theory-conflicts",
+      "work_id": "WORK-000226"
+    },
+    {
+      "author_method_pool_eligible": false,
+      "claim_eligible": false,
+      "effective_stance_id": "K2SS-QM0019-001",
+      "evidence_locators": [
+        "pdf:p109",
+        "pdf:p110",
+        "pdf:p111",
+        "pdf:p112",
+        "pdf:p113"
+      ],
+      "inference_eligibility": "EXCLUDE_NOT_AUTHOR_METHOD_POOL",
+      "source_id": "QM-SRC-0019",
+      "stance": "SOURCE_ENDORSES",
+      "topic_key": "traditional-authority-is-not-sufficient-validation",
+      "work_id": "WORK-000226"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"lineage_correction.schema.json",
+  "type":"object",
+  "required":[
+    "correction_id","source_id","previous_relation","previous_work_id",
+    "corrected_relation","corrected_work_id","part_label","parent_work_title",
+    "correction_basis","evidence_locators","reason","review_status"
+  ],
+  "properties":{
+    "correction_id":{"type":"string","minLength":1},
+    "source_id":{"type":"string","minLength":1},
+    "previous_relation":{"type":"string","minLength":1},
+    "previous_work_id":{"type":["string","null"]},
+    "corrected_relation":{"enum":["PRIMARY_WORK","WORK_PART","SAME_WORK_VARIANT","COMMENTARY_DERIVATIVE","UNKNOWN"]},
+    "corrected_work_id":{"type":["string","null"]},
+    "part_label":{"type":["string","null"]},
+    "parent_work_title":{"type":["string","null"]},
+    "correction_basis":{"const":"VISUAL_PAGE"},
+    "evidence_locators":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"string","pattern":"^pdf:p[1-9][0-9]*$"}},
+    "reason":{"type":"string","minLength":1,"maxLength":800},
+    "review_status":{"const":"REVIEWED"}
+  },
+  "additionalProperties":false
+}

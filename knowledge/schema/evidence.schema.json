@@ -2,18 +2,38 @@
   "$schema":"https://json-schema.org/draft/2020-12/schema",
   "$id":"evidence.schema.json",
   "type":"object",
-  "required":["evidence_id","domain","source_id","source_location","evidence_type","normalized_fact","review_status"],
+  "required":["evidence_id","domain","source_id","work_id","source_location","evidence_type","scope","normalized_fact","extraction_basis","claim_readiness","review_status","copyright_class"],
   "properties":{
     "evidence_id":{"type":"string","minLength":1},
     "domain":{"enum":["ziwei","bazi","qimen","liuyao","liuren","fengshui","common"]},
     "source_id":{"type":"string","minLength":1},
-    "source_location":{"type":"string","minLength":1},
-    "evidence_type":{"enum":["EXPLICIT_RULE","WORKED_EXAMPLE","TABLE","DIAGRAM","COMMENTARY","HISTORICAL_CLAIM","CASE_RECORD","CODE_BEHAVIOR"]},
-    "normalized_fact":{"type":"string","minLength":1},
-    "verbatim_quote":{"type":["string","null"],"maxLength":280},
+    "work_id":{"type":"string","minLength":1},
+    "source_location":{"type":"string","minLength":1,"maxLength":120},
+    "evidence_type":{"enum":["EXPLICIT_RULE","WORKED_EXAMPLE","TABLE","DIAGRAM","COMMENTARY","HISTORICAL_CLAIM","CASE_RECORD","META_METHOD"]},
+    "scope":{"enum":["STRUCTURE","ALGORITHM","SYMBOLISM","SELECTION","INTERPRETATION","TIMING","CASE","HISTORY","META_METHOD"]},
+    "topic":{"type":["string","null"],"maxLength":120},
+    "normalized_fact":{"type":"string","minLength":1,"maxLength":800},
+    "extraction_basis":{"enum":["TEXT_LAYER","VISUAL_PAGE","TABLE_READ","DIAGRAM_READ","MANUAL_TRANSCRIPTION"]},
+    "claim_readiness":{"enum":["READY","CONTEXT_REQUIRED","CONFLICT_CANDIDATE","NOT_CLAIM"]},
+    "school_ids":{"type":"array","uniqueItems":true,"items":{"type":"string"}},
+    "verbatim_quote":{"type":["string","null"],"maxLength":120},
     "review_status":{"enum":["UNREVIEWED","REVIEWED","CONFLICTED","REJECTED"]},
     "copyright_class":{"enum":["DERIVED_FACT_SAFE","SHORT_QUOTE_REVIEWED","RESEARCH_ONLY","REVIEW_REQUIRED"]},
-    "notes":{"type":"string"}
+    "voice_qualification":{
+      "type":"object",
+      "required":["voice_layer","attribution_subject","attribution_basis","source_stance","method_layer","operational_scope","independence_credit_scope"],
+      "properties":{
+        "voice_layer":{"enum":["BASE_TEXT","COMMENTARY","TRANSLATION_PARAPHRASE","EDITORIAL_FRONT_MATTER","TITLE_PAGE_ATTRIBUTION","TRADITIONAL_ATTRIBUTION_CLAIM","PUBLISHER_METADATA","UNKNOWN_VOICE"]},
+        "attribution_subject":{"type":"string","minLength":1,"maxLength":120},
+        "attribution_basis":{"enum":["EXPLICIT_AUTHORIAL_CONTEXT","EXPLICIT_QUOTATION","TITLE_PAGE","SECTION_HEADING","EDITORIAL_CONTEXT","PUBLISHER_METADATA","TRADITIONAL_ATTRIBUTION","UNKNOWN"]},
+        "source_stance":{"enum":["SOURCE_REPORTS","SOURCE_ENDORSES","SOURCE_REJECTS","SOURCE_UNCERTAIN"]},
+        "method_layer":{"enum":["STRUCTURE_CALCULATION","DIVINATION_INTERPRETATION","TRANSMITTED_REFERENCE","RITUAL_ESOTERIC","MILITARY_OPERATIONAL","HISTORICAL_EDITORIAL","METADATA","UNKNOWN"]},
+        "operational_scope":{"enum":["GENERAL_DIVINATION_CANDIDATE","STRUCTURE_ONLY","REFERENCE_ONLY","NON_OPERATIONAL","EXCLUDED_RITUAL_ESOTERIC","EXCLUDED_MILITARY_OPERATIONAL","UNRESOLVED"]},
+        "independence_credit_scope":{"enum":["SOURCE_LOCAL_ONLY","DERIVED_ENUMERATION_COLLAPSED","NO_INDEPENDENT_CREDIT","UNRESOLVED"]}
+      },
+      "additionalProperties":false
+    },
+    "notes":{"type":["string","null"],"maxLength":240}
   },
-  "additionalProperties":true
+  "additionalProperties":false
 }

@@ -1,0 +1,13 @@
+{
+  "schema_version": "k2-evidence-reaudit-v1",
+  "status": "ACTIVE",
+  "claim_extraction_blocked": true,
+  "targets": [
+    {
+      "source_id": "QM-SRC-0028",
+      "coverage": "COMPLETE",
+      "expected_evidence_count": 50,
+      "audit_basis": "FULL_SOURCE_REVIEW_PLUS_COURSE_PROVENANCE_CLOSURE"
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qimen_scenario_reasoning.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "case_id",
+    "status",
+    "question_definition",
+    "decision_objective",
+    "time_horizon",
+    "known_facts",
+    "unknowns",
+    "actors",
+    "constraints",
+    "reality_anchor",
+    "scenario_graph",
+    "symbolic_mapping_hypotheses",
+    "eligible_rule_set",
+    "boundary_conditions",
+    "competing_explanations",
+    "counterfactual_checks",
+    "sensitivity_checks",
+    "decision_tie_break_policy",
+    "abstention_condition",
+    "confidence_components",
+    "prediction",
+    "empirical_credit"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "qimen-scrm-case-v0.1"},
+    "case_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["DRAFT", "FROZEN", "OUTCOME_RECORDED"]},
+    "question_definition": {"type": "string", "minLength": 1},
+    "decision_objective": {"type": "string", "minLength": 1},
+    "time_horizon": {"type": "string", "minLength": 1},
+    "known_facts": {"type": "array", "items": {"type": "string"}},
+    "unknowns": {"type": "array", "items": {"type": "string"}},
+    "actors": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "constraints": {"type": "array", "items": {"type": "string"}},
+    "reality_anchor": {
+      "type": "object",
+      "required": ["direct_evidence", "base_rate_context", "actionable_reality_checks"],
+      "properties": {
+        "direct_evidence": {"type": "array"},
+        "base_rate_context": {"type": "array"},
+        "actionable_reality_checks": {"type": "array"}
+      },
+      "additionalProperties": false
+    },
+    "scenario_graph": {
+      "type": "object",
+      "required": ["nodes", "relations", "state_variables"],
+      "properties": {
+        "nodes": {"type": "array"},
+        "relations": {"type": "array"},
+        "state_variables": {"type": "array"}
+      },
+      "additionalProperties": false
+    },
+    "symbolic_mapping_hypotheses": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "qimen_symbolic_mapping.schema.json"}
+    },
+    "eligible_rule_set": {"type": "array", "items": {"type": "object"}},
+    "boundary_conditions": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+    "competing_explanations": {"type": "array", "minItems": 2, "items": {"type": "object"}},
+    "counterfactual_checks": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "sensitivity_checks": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+    "decision_tie_break_policy": {
+      "type": "object",
+      "required": ["applies", "candidate_outputs", "selection_rule", "selected_output", "freeze_status"],
+      "additionalProperties": false,
+      "properties": {
+        "applies": {"type": "boolean"},
+        "candidate_outputs": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "selection_rule": {"type": "string", "minLength": 1},
+        "selected_output": {"type": ["string", "null"]},
+        "freeze_status": {"enum": ["FROZEN", "NOT_APPLICABLE", "UNRESOLVED"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"applies": {"const": true}}, "required": ["applies"]},
+          "then": {
+            "properties": {
+              "candidate_outputs": {"minItems": 2},
+              "selected_output": {"type": "string", "minLength": 1},
+              "freeze_status": {"const": "FROZEN"}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"applies": {"const": false}}, "required": ["applies"]},
+          "then": {
+            "properties": {
+              "freeze_status": {"enum": ["NOT_APPLICABLE", "UNRESOLVED"]}
+            }
+          }
+        }
+      ]
+    },
+    "abstention_condition": {"type": "string", "minLength": 1},
+    "confidence_components": {
+      "type": "object",
+      "required": ["reality_evidence_strength", "source_support_strength", "model_agreement", "input_sensitivity", "overall_confidence"],
+      "additionalProperties": false,
+      "properties": {
+        "reality_evidence_strength": {"type": "number", "minimum": 0, "maximum": 1},
+        "source_support_strength": {"type": "number", "minimum": 0, "maximum": 1},
+        "model_agreement": {"type": "number", "minimum": 0, "maximum": 1},
+        "input_sensitivity": {"type": "number", "minimum": 0, "maximum": 1},
+        "overall_confidence": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "prediction": {"type": "object"},
+    "empirical_credit": {"const": "NONE"}
+  }
+}

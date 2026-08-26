@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "semantic_discovery_routing.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "routing_id", "source_id", "canonical_sha256", "routing_mode",
+    "raw_knowledge_domains", "resolved_routes", "routing_basis",
+    "evidence_locators", "segment_ids", "review_status",
+    "empirical_credit", "claim_extraction_blocked"
+  ],
+  "properties": {
+    "routing_id": {"type": "string", "minLength": 1},
+    "source_id": {"type": "string", "minLength": 1},
+    "canonical_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "routing_mode": {"enum": ["SOURCE_WIDE", "SEGMENTED"]},
+    "raw_knowledge_domains": {"const": ["UNKNOWN"]},
+    "resolved_routes": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"enum": ["ziwei", "bazi", "qimen", "liuyao", "liuren", "fengshui", "OUT_OF_SCOPE", "CARRIER_MATTER"]}
+    },
+    "routing_basis": {"enum": ["DEEP_VISUAL_REVIEW", "SEGMENT_REGISTRY_VISUAL_REVIEW"]},
+    "evidence_locators": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^pdf:p[1-9][0-9]*$"}
+    },
+    "segment_ids": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "review_status": {"const": "REVIEWED"},
+    "empirical_credit": {"const": "NONE"},
+    "claim_extraction_blocked": {"const": true}
+  }
+}

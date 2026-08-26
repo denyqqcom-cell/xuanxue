@@ -1,0 +1,41 @@
+{
+  "blockers": [
+    "K2_EVIDENCE_STATE_NOT_COMPLETE",
+    "UNKNOWN_TEXTUAL_BACKLOG_REMAINS",
+    "EVIDENCE_STATE_BLOCKS_CLAIM_EXTRACTION"
+  ],
+  "checks": {
+    "evidence_state_complete": false,
+    "evidence_state_unblocks_claim_extraction": false,
+    "project_evidence_extraction_open": true,
+    "project_k2_not_blocked": true,
+    "qcic_materialization_current": true,
+    "required_domains_consistent": true,
+    "unknown_textual_backlog_accounting_current": true,
+    "unknown_textual_backlog_cleared": false,
+    "unknown_textual_backlog_materialization_current": true
+  },
+  "claim_extraction_authorized": false,
+  "empirical_credit_path_separate": true,
+  "generated_from": [
+    "knowledge/PROJECT_STATE.json",
+    "knowledge/K2_EVIDENCE_STATE.json",
+    "knowledge/K2_QCIC_INFERENCE_ELIGIBILITY_VIEW.json",
+    "knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json"
+  ],
+  "observed_state": {
+    "evidence_state_unknown_textual_resolution_backlog": 91,
+    "evidence_status": "WAVE1_OPEN",
+    "project_next_phase": "K2_CLAIM_EXTRACTION",
+    "project_phase": "K2_EVIDENCE_EXTRACTION",
+    "qcic_claim_eligible_unit_count": 0,
+    "qcic_enumeration_unit_count": 3,
+    "qcic_stance_topic_count": 9,
+    "raw_unknown_textual_source_count": 96,
+    "resolved_by_k2_discovery_count": 5,
+    "unknown_textual_resolution_backlog": 91
+  },
+  "schema_version": "k2-claim-extraction-readiness-v1",
+  "status": "CLOSED",
+  "transition_policy": "PROJECT_REVIEW_REQUIRED_V1_NEVER_AUTO_OPENS"
+}

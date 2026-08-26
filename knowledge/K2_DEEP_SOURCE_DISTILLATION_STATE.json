@@ -1,0 +1,39 @@
+{
+  "schema_version": "k2-deep-source-distillation-v1",
+  "status": "COMPLETE",
+  "claim_extraction_blocked": true,
+  "targets": [
+    {
+      "source_id": "QM-SRC-0015",
+      "required": true
+    },
+    {
+      "source_id": "QM-SRC-0017",
+      "required": true
+    },
+    {
+      "source_id": "QM-SRC-0019",
+      "required": true
+    },
+    {
+      "source_id": "QM-SRC-0020",
+      "required": true
+    },
+    {
+      "source_id": "QM-SRC-0021",
+      "required": true
+    },
+    {
+      "source_id": "QM-SRC-0027",
+      "required": true
+    },
+    {
+      "source_id": "QM-SRC-0028",
+      "required": true
+    },
+    {
+      "source_id": "QM-SRC-0029",
+      "required": true
+    }
+  ]
+}

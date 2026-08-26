@@ -1,0 +1,20 @@
+{
+  "claim_extraction_blocked": true,
+  "generated_from": [
+    "knowledge/domains/*/sources.jsonl",
+    "knowledge/K2_SEMANTIC_DISCOVERY_ROUTING.jsonl",
+    "knowledge/K2_DEEP_READING_LEDGER.jsonl",
+    "knowledge/K2_SOURCE_SEGMENTS.jsonl"
+  ],
+  "raw_unknown_textual_source_count": 96,
+  "remaining_unknown_textual_source_count": 91,
+  "resolved_by_k2_discovery_count": 5,
+  "resolved_source_ids": [
+    "QM-SRC-0009",
+    "QM-SRC-0010",
+    "QM-SRC-0022",
+    "QM-SRC-0023",
+    "QM-SRC-0024"
+  ],
+  "schema_version": "k2-unknown-textual-backlog-v1"
+}

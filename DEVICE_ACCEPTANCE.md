@@ -2,6 +2,66 @@
 
 本清单用于 `app-integration-v3` 的人工触控与视觉验收。它不替代核心算法 fixture、Android Lint、APK 内容审计，也不把“界面正常”视为术数规则已被验证。
 
+## 自动化真机 smoke runner
+
+仓库提供 `.github/scripts/run_physical_device_acceptance.sh`，用于在**唯一一台已授权的真实 Android 设备**上运行现有 `RcDeviceAcceptanceTest` 的窄屏路径。
+
+它与 emulator runner 有意不同：
+
+- 必须只有一个 ADB target，且 `state=device`；
+- `ro.kernel.qemu=1` 时直接拒绝，不能把模拟器冒充真机；
+- 可通过 `EXPECTED_MODEL` 绑定预期型号，例如 Moto X30 Pro 使用 `XT2241-1`；
+- `SOURCE_HEAD_SHA` 必须与本地实际 `git rev-parse HEAD` 完全一致，否则拒绝生成可能被错误标记的真机证据；
+- tracked worktree 与 index 必须干净；未跟踪文件不会被 runner 自动删除，也不会被冒充成 tracked clean/dirty 结论；
+- ADB 默认从 `PATH` 使用 `adb`；若 WSL 中没有可直连真机的 Linux ADB，可通过 `ADB_BIN` 显式指向已授权且可执行的现有 Windows `adb.exe`；
+- instrumentation transport 默认是 `GRADLE_CONNECTED`，继续使用 `:app:connectedDebugAndroidTest`；
+- 对于“Windows ADB 能看到 USB 真机、但 WSL/DDMLib 的 Linux ADB server 看不到该 USB namespace”的环境，可**显式**设置 `INSTRUMENTATION_MODE=ADB_DIRECT`。该模式仍由 Gradle 构建 app/test APK，但通过同一个 `ADB_BIN` 安装 APK，并用设备上的 `am instrument` 运行完整 `RcDeviceAcceptanceTest`；
+- `ADB_DIRECT` 不属于自动 fallback：必须显式选择，且要求唯一 instrumentation target 指向 `com.xuanxue.app.debug`、完整测试数全部 OK、成功的 `INSTRUMENTATION_CODE: -1`、截图达标后才能继续；
+- 只运行 `formFactor=narrow`；
+- **不修改** `wm size`、`wm density`、深浅色模式、飞行模式或网络状态；
+- 测试前后会重新读取这些系统状态，发生漂移即 fail closed；
+- 记录 source HEAD、实际 checkout HEAD、ADB 版本、instrumentation mode/component/test count、设备型号、Android/API、APK SHA256、截图数量和 logcat 尾部；
+- 至少应取得 16 张现有 instrumentation evidence screenshot。
+
+在仓库根目录执行默认 Gradle-connected 模式：
+
+```bash
+SOURCE_HEAD_SHA="$(git rev-parse HEAD)" \
+EXPECTED_MODEL="XT2241-1" \
+bash .github/scripts/run_physical_device_acceptance.sh
+```
+
+如果当前 WSL 没有可直连真机的 Linux `adb`，但 Windows 已有与这台真机连接成功的 `adb.exe`，可显式传入其 WSL 可执行路径：
+
+```bash
+ADB_BIN="/mnt/c/path/to/platform-tools/adb.exe" \
+SOURCE_HEAD_SHA="$(git rev-parse HEAD)" \
+EXPECTED_MODEL="XT2241-1" \
+bash .github/scripts/run_physical_device_acceptance.sh
+```
+
+如果上述环境中 `ADB_BIN` 能看到真机，但 Gradle/DDMLib 的 WSL ADB server 仍然看不到 Windows USB 设备，应显式使用 direct instrumentation transport，而不是手工在 runner 外拼接测试步骤：
+
+```bash
+ADB_BIN="/mnt/c/path/to/platform-tools/adb.exe" \
+INSTRUMENTATION_MODE="ADB_DIRECT" \
+SOURCE_HEAD_SHA="$(git rev-parse HEAD)" \
+EXPECTED_MODEL="XT2241-1" \
+bash .github/scripts/run_physical_device_acceptance.sh
+```
+
+`ADB_DIRECT` 会安装或替换 debug app 与 androidTest APK，这是 instrumentation 测试本身的设备侧副作用；它仍禁止修改显示尺寸、密度、深浅色、飞行模式或网络状态。该模式会把原始 instrumentation 输出保存为 `build/physical-device-acceptance/INSTRUMENTATION.txt`，并复制到 `test-results/instrumentation.txt`。
+
+输出位于：
+
+```text
+build/physical-device-acceptance/
+```
+
+其中 `RESULT.txt` 只有在 source HEAD 与实际 checkout HEAD 一致、tracked worktree/index 干净、所选 instrumentation transport 完整成功、截图数量达标、且测试前后系统状态未发生变化时才写入 `status=PASS`。在 `ADB_DIRECT` 中，runner 还必须确认当前测试类中的所有 `@Test` 都执行成功，不能把部分手工 test 结果冒充整套验收。
+
+这条自动化只关闭窄屏真机 smoke / navigation / structural-result / crash-ANR evidence；深色模式、飞行模式、人体工学与完整人工视觉检查仍按下面清单单独验收。真机 PASS 也不等于任何术数预测获得 empirical credit。
+
 ## 建议至少覆盖
 
 - 一台窄屏手机：检查单列布局、横向时辰选择、长文本换行。
@@ -65,6 +125,7 @@
 
 ## 失败即阻止合并的项目
 
+- source HEAD 与实际 checkout HEAD 不一致，或 tracked worktree/index 存在改动。
 - 崩溃、ANR、无法返回首页。
 - 文字重叠、关键按钮被裁切或无法触控。
 - 当前时间类模块仍显示写死日期/小时。
