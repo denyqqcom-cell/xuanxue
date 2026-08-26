@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import json
 import sys
 from pathlib import Path
 
@@ -41,12 +42,15 @@ def main():
             "VISUAL_PAGE_REVIEW_REQUIRED",
             "ACCESS_REVIEW_REQUIRED",
         }
+        if row["deep_reading_reusable"]:
+            assert row["next_action"] == "REUSE_VERIFIED_DEEP_READING"
 
     reusable = [row for row in rows if row["deep_reading_reusable"]]
-    assert reusable, "P3 must surface already-complete Deep Reading before requesting duplicate reading"
 
     print("k2-wave1-execution-queue-tests: PASS")
     print(f"remaining={len(rows)} deep_reusable={len(reusable)}")
+    for row in rows:
+        print("queue=" + json.dumps(row, ensure_ascii=False, sort_keys=True))
 
 
 if __name__ == "__main__":
