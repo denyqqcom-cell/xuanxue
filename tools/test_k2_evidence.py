@@ -27,6 +27,20 @@ def main():
     assert v.expected_execution_lane(sources["A"])=="TEXT_DIRECT"
     assert v.expected_execution_lane(sources["B"])=="VISUAL_REQUIRED"
     assert v.expected_execution_lane(sources["C"])=="VISUAL_REQUIRED"
+
+    # Post-K1 visual verification is stronger than an intake-time readability
+    # guess. A verified SCAN correction must therefore change K2 execution
+    # routing without rewriting history or silently keeping TEXT_DIRECT.
+    corrected={key:dict(value) for key,value in sources.items()}
+    v.apply_verified_source_metadata(corrected,[{
+      "source_id":"A",
+      "review_status":"REVIEWED",
+      "verified_fields":{"readability":"SCAN"},
+    }])
+    assert corrected["A"]["readability"]=="SCAN",corrected["A"]
+    assert corrected["A"]["readability_basis"]=="K2_VERIFIED_SOURCE_METADATA",corrected["A"]
+    assert v.expected_execution_lane(corrected["A"])=="VISUAL_REQUIRED"
+
     issues=[]
     cov=v.range_union([{"start":1,"end":5},{"start":6,"end":10}],10,issues,"A")
     assert len(cov)==10 and not issues,(cov,issues)

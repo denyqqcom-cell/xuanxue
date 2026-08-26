@@ -111,7 +111,7 @@ official K1 file_sha256 == actual local file SHA256
 
 文件名、标题、目录位置、页数相似都不能代替 hash identity。
 
-Wave 1 当前固定为 37 个 unique-coverage reading units：`TEXT_DIRECT=21 / VISUAL_REQUIRED=16 / ACCESS_REVIEW=0`。SCAN/OCR_WEAK/OCR_FAIL 没有原页视觉能力时必须保持 BLOCKED，不得以 OCR 冒充视觉核验。
+Wave 1 当前固定为 37 个 unique-coverage reading units：`TEXT_DIRECT=20 / VISUAL_REQUIRED=17 / ACCESS_REVIEW=0`。其中 `ZW-SRC-0001` 经 K2 后验来源质量复核从 intake `TEXT_OK` 降级为有效 `SCAN` 路由；K1 intake 历史记录不改写。SCAN/OCR_WEAK/OCR_FAIL 没有原页视觉能力时必须保持 BLOCKED，不得以 OCR 冒充视觉核验。
 
 具体状态与 Gate 见：
 

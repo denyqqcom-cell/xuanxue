@@ -28,6 +28,7 @@ import re
 import shutil
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -41,6 +42,25 @@ SKIP_DIR_NAMES = {
     ".git", ".gradle", "build", "node_modules", "__pycache__",
     "K2_WAVE1_PAGE_PACKETS", "K2_PYTHON_DEPS",
 }
+
+
+# Families are deliberately coarse. The goal is not language identification;
+# it is to detect the characteristic many-unrelated-scripts pattern produced
+# by broken embedded-font/CMap decoding while leaving ordinary monolingual and
+# bilingual text alone. Japanese/Korean/CJK-related scripts are grouped so a
+# normal East-Asian document is not treated as corruption merely for mixing
+# ideographs with kana/hangul/bopomofo.
+SCRIPT_PREFIXES = (
+    "LATIN", "GREEK", "CYRILLIC", "ARMENIAN", "HEBREW", "ARABIC",
+    "THAANA", "DEVANAGARI", "BENGALI", "GURMUKHI", "GUJARATI", "ORIYA",
+    "ODIA", "TAMIL", "TELUGU", "KANNADA", "MALAYALAM", "SINHALA",
+    "THAI", "LAO", "MYANMAR", "GEORGIAN", "ETHIOPIC", "SAMARITAN",
+    "COPTIC", "CANADIAN SYLLABICS",
+)
+EAST_ASIAN_PREFIXES = (
+    "CJK UNIFIED IDEOGRAPH", "CJK COMPATIBILITY IDEOGRAPH", "HIRAGANA",
+    "KATAKANA", "HANGUL", "BOPOMOFO",
+)
 
 
 def fail(msg):
@@ -209,6 +229,108 @@ def discover_hash_matches(search_roots, target_hashes, output_dir):
     return matches
 
 
+def _letter_script_family(ch: str):
+    if not unicodedata.category(ch).startswith("L"):
+        return None
+    name = unicodedata.name(ch, "")
+    if not name:
+        return "UNKNOWN"
+    if name.startswith(EAST_ASIAN_PREFIXES):
+        return "EAST_ASIAN"
+    for prefix in SCRIPT_PREFIXES:
+        if name.startswith(prefix):
+            return prefix
+    # Keep less common scripts visible instead of silently grouping them into
+    # one bucket; a damaged CMap often sprays glyphs across exactly these names.
+    return name.split()[0]
+
+
+def text_layer_is_semantically_readable(pages):
+    """Reject obvious Unicode font/CMap mojibake without guessing language.
+
+    This is intentionally conservative. Empty-text handling remains elsewhere.
+    Short samples pass because there is not enough signal. A normal document in
+    one script, or a bilingual document in two/three scripts, also passes. We
+    reject only when letter characters are materially spread across at least
+    four unrelated script families and no family dominates the text.
+    """
+    counts = {}
+    total_letters = 0
+    for page in pages or []:
+        if not isinstance(page, str):
+            continue
+        for ch in page:
+            family = _letter_script_family(ch)
+            if family is None:
+                continue
+            total_letters += 1
+            counts[family] = counts.get(family, 0) + 1
+
+    if total_letters < 32 or not counts:
+        return True
+
+    dominant_ratio = max(counts.values()) / total_letters
+    significant_floor = max(4, int(total_letters * 0.02))
+    significant_families = [
+        family for family, count in counts.items()
+        if count >= significant_floor
+    ]
+    return not (len(significant_families) >= 4 and dominant_ratio < 0.75)
+
+
+def text_layer_has_semantic_coverage(pages):
+    """Reject probable repeated overlay/watermark layers without source body.
+
+    A scanned book can carry a perfectly readable Unicode advertisement or
+    watermark on every page while the actual book body exists only as page
+    images. Such a file must not become TEXT_DIRECT merely because the overlay
+    is non-empty and linguistically readable. We fail closed only when there is
+    enough page-level signal and the extracted layer is simultaneously short,
+    highly repetitive, and low-diversity across the document.
+    """
+    normalized = []
+    for page in pages or []:
+        if not isinstance(page, str):
+            continue
+        compact = " ".join(page.split())
+        if compact:
+            normalized.append(compact)
+
+    # Small samples do not provide enough evidence to classify repetition.
+    if len(normalized) < 8:
+        return True
+
+    signature_counts = {}
+    semantic_lengths = []
+    for compact in normalized:
+        signature_counts[compact] = signature_counts.get(compact, 0) + 1
+        semantic_lengths.append(sum(
+            1 for ch in compact
+            if unicodedata.category(ch).startswith(("L", "N"))
+        ))
+
+    semantic_lengths.sort()
+    midpoint = len(semantic_lengths) // 2
+    if len(semantic_lengths) % 2:
+        median_semantic_len = semantic_lengths[midpoint]
+    else:
+        median_semantic_len = (
+            semantic_lengths[midpoint - 1] + semantic_lengths[midpoint]
+        ) / 2
+
+    repeated_ratio = sum(
+        sorted(signature_counts.values(), reverse=True)[:3]
+    ) / len(normalized)
+    distinct_ratio = len(signature_counts) / len(normalized)
+
+    probable_overlay_only = (
+        repeated_ratio >= 0.80
+        and distinct_ratio <= 0.20
+        and median_semantic_len <= 240
+    )
+    return not probable_overlay_only
+
+
 def extract_pdf_text_pdftotext(path: Path):
     exe = shutil.which("pdftotext")
     if not exe:
@@ -270,6 +392,25 @@ def extract_pdf_text_pdfminer(path: Path):
     return pages, None
 
 
+def _accept_extracted_pages(pages, label, reasons):
+    if not any(page.strip() for page in pages):
+        reasons.append(f"{label}: returned no extractable text")
+        return False
+    if not text_layer_is_semantically_readable(pages):
+        reasons.append(
+            f"{label}: failed semantic readability check "
+            "(probable embedded-font/CMap mojibake)"
+        )
+        return False
+    if not text_layer_has_semantic_coverage(pages):
+        reasons.append(
+            f"{label}: failed semantic coverage check "
+            "(probable repeated overlay/watermark without source body)"
+        )
+        return False
+    return True
+
+
 def extract_pdf_text(path: Path):
     """Extract a page-preserving existing text layer without OCR.
 
@@ -279,25 +420,22 @@ def extract_pdf_text(path: Path):
 
     pages, reason = extract_pdf_text_pdftotext(path)
     if pages is not None:
-        if any(page.strip() for page in pages):
+        if _accept_extracted_pages(pages, "pdftotext", reasons):
             return pages, "PDFTOTEXT_LAYOUT", None, None
-        reasons.append("pdftotext: returned no extractable text")
     elif reason:
         reasons.append(f"pdftotext: {reason}")
 
     pages, reason = extract_pdf_text_pypdf(path)
     if pages is not None:
-        if any(page.strip() for page in pages):
+        if _accept_extracted_pages(pages, "pypdf", reasons):
             return pages, "PYPDF_TEXT_LAYER", None, None
-        reasons.append("pypdf: returned no extractable text")
     elif reason:
         reasons.append(f"pypdf: {reason}")
 
     pages, reason = extract_pdf_text_pdfminer(path)
     if pages is not None:
-        if any(page.strip() for page in pages):
+        if _accept_extracted_pages(pages, "pdfminer", reasons):
             return pages, "PDFMINER_TEXT_LAYER", None, None
-        reasons.append("pdfminer: returned no extractable text")
     elif reason:
         reasons.append(f"pdfminer: {reason}")
 

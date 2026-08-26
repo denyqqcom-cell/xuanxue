@@ -114,11 +114,11 @@ def main():
             assert stale not in text, f"stale local-helper test authority remains in {path}: {stale}"
         assert "EXECUTION_HELPER_ONLY" in text or "本地 AI 仅负责 GitHub→本地 fast-forward 同步" in text
 
-    expected_lanes = {"TEXT_DIRECT": 21, "VISUAL_REQUIRED": 16, "ACCESS_REVIEW": 0}
+    expected_lanes = {"TEXT_DIRECT": 20, "VISUAL_REQUIRED": 17, "ACCESS_REVIEW": 0}
     assert evidence_state["expected_execution_lanes"] == expected_lanes
-    assert "TEXT_DIRECT=21 / VISUAL_REQUIRED=16 / ACCESS_REVIEW=0" in readme
-    assert "- TEXT_DIRECT: 21" in refactor
-    assert "- VISUAL_REQUIRED: 16" in refactor
+    assert "TEXT_DIRECT=20 / VISUAL_REQUIRED=17 / ACCESS_REVIEW=0" in readme
+    assert "- TEXT_DIRECT: 20" in refactor
+    assert "- VISUAL_REQUIRED: 17" in refactor
     assert "- ACCESS_REVIEW: 0" in refactor
 
     print("local-ai-execution-boundary: PASS")

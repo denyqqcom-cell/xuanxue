@@ -29,6 +29,7 @@ def main():
     require(text, "python3 tools/test_knowledge_ci_contract.py")
     require(text, "python3 tools/test_k2_python_deps.py")
     require(text, "python tools/test_k2_python_deps.py")
+    require(text, "python3 tools/test_k2_local_page_packets.py")
     require(text, "Verify isolated K2 PDF dependency health")
 
     # K2 app/core changes need an Android-aware gate before they may be merged

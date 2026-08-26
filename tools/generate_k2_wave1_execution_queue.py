@@ -4,6 +4,9 @@ from pathlib import Path
 
 import k2_wave1_aggregate as agg
 import validate_k2_evidence_base as evidence
+import k2_execution_routing as routing
+
+routing.patch_validator_module(evidence)
 
 ROOT = Path(__file__).resolve().parents[1]
 K = ROOT / "knowledge"
