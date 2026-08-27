@@ -56,7 +56,15 @@ def coverage_issues(rows,state):
     if state.get("claim_extraction_blocked") is not True:issues.append(("STATE","claim_extraction_blocked must be true"))
     targets=state.get("targets")
     if not isinstance(targets,list) or not targets:issues.append(("STATE","targets must be non-empty array"));return issues
-    counts=Counter(r.get("source_id") for r in rows);seen=set()
+
+    by_rule={}
+    source_rules={}
+    for r in rows:
+        sid=r.get("source_id");gid=r.get("generative_rule_id")
+        if isinstance(sid,str) and isinstance(gid,str):
+            by_rule[(sid,gid)]=r
+            source_rules.setdefault(sid,set()).add(gid)
+    seen=set()
     for t in targets:
         sid=t.get("source_id") if isinstance(t,dict) else None
         if not isinstance(sid,str) or not sid:issues.append(("STATE","target source_id required"));continue
@@ -67,7 +75,37 @@ def coverage_issues(rows,state):
         required=cfg.get("required");minimum=cfg.get("minimum_rows")
         if not isinstance(required,bool):issues.append((sid,"enumeration_compression.required must be bool"))
         if not isinstance(minimum,int) or minimum<0:issues.append((sid,"enumeration_compression.minimum_rows must be non-negative int"));continue
-        if required and counts.get(sid,0)<minimum:issues.append((sid,f"required enumeration compression rows missing: have={counts.get(sid,0)} need>={minimum}"))
+
+        rule_ids=cfg.get("required_generative_rule_ids")
+        if not isinstance(rule_ids,list) or len(rule_ids)!=len(set(rule_ids)) or any(not isinstance(x,str) or not x.strip() for x in rule_ids):
+            issues.append((sid,"required_generative_rule_ids must be a unique string array"));rule_ids=[]
+        entry_counts=cfg.get("required_generator_entry_counts")
+        if not isinstance(entry_counts,dict):
+            issues.append((sid,"required_generator_entry_counts must be an object"));entry_counts={}
+        else:
+            if set(entry_counts)!=set(rule_ids):issues.append((sid,"required_generator_entry_counts keys must exactly match required_generative_rule_ids"))
+            if any(not isinstance(v,int) or v<2 for v in entry_counts.values()):issues.append((sid,"required_generator_entry_counts values must be integers >=2"))
+        method_layers=cfg.get("required_generator_method_layers")
+        if not isinstance(method_layers,dict):
+            issues.append((sid,"required_generator_method_layers must be an object"));method_layers={}
+        else:
+            if set(method_layers)!=set(rule_ids):issues.append((sid,"required_generator_method_layers keys must exactly match required_generative_rule_ids"))
+            if any(v not in METHODS for v in method_layers.values()):issues.append((sid,"required_generator_method_layers contains invalid method_layer"))
+
+        if required:
+            if not rule_ids:issues.append((sid,"required enumeration target must freeze required_generative_rule_ids"))
+            have=len(source_rules.get(sid,set()))
+            if have<minimum:issues.append((sid,f"required unique enumeration generators missing: have={have} need>={minimum}"))
+            for gid in rule_ids:
+                row=by_rule.get((sid,gid))
+                if row is None:
+                    issues.append((sid,f"required generative rule missing: {gid}"));continue
+                want_count=entry_counts.get(gid)
+                if isinstance(want_count,int) and row.get("enumerated_entries_count")!=want_count:
+                    issues.append((sid,f"required generator entry count changed: {gid} expected={want_count} actual={row.get('enumerated_entries_count')}"))
+                want_layer=method_layers.get(gid)
+                if want_layer in METHODS and row.get("method_layer")!=want_layer:
+                    issues.append((sid,f"required generator method layer changed: {gid} expected={want_layer} actual={row.get('method_layer')}"))
     return issues
 
 def validate_rows(sources,lineage,deep,rows):

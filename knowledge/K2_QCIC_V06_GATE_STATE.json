@@ -19,7 +19,10 @@
       },
       "enumeration_compression": {
         "required": false,
-        "minimum_rows": 0
+        "minimum_rows": 0,
+        "required_generative_rule_ids": [],
+        "required_generator_entry_counts": {},
+        "required_generator_method_layers": {}
       }
     },
     {
@@ -42,7 +45,19 @@
       },
       "enumeration_compression": {
         "required": true,
-        "minimum_rows": 2
+        "minimum_rows": 2,
+        "required_generative_rule_ids": [
+          "QM0017-TIME-QIMEN-1080-ENUM",
+          "QM0017-DAY-QIMEN-120-ENUM"
+        ],
+        "required_generator_entry_counts": {
+          "QM0017-TIME-QIMEN-1080-ENUM": 1080,
+          "QM0017-DAY-QIMEN-120-ENUM": 120
+        },
+        "required_generator_method_layers": {
+          "QM0017-TIME-QIMEN-1080-ENUM": "CALCULATION",
+          "QM0017-DAY-QIMEN-120-ENUM": "CALCULATION"
+        }
       }
     },
     {
@@ -63,7 +78,10 @@
       },
       "enumeration_compression": {
         "required": false,
-        "minimum_rows": 0
+        "minimum_rows": 0,
+        "required_generative_rule_ids": [],
+        "required_generator_entry_counts": {},
+        "required_generator_method_layers": {}
       }
     },
     {
@@ -76,7 +94,16 @@
       },
       "enumeration_compression": {
         "required": true,
-        "minimum_rows": 1
+        "minimum_rows": 1,
+        "required_generative_rule_ids": [
+          "QM0010-TIME-QIMEN-1080-ENUM"
+        ],
+        "required_generator_entry_counts": {
+          "QM0010-TIME-QIMEN-1080-ENUM": 1080
+        },
+        "required_generator_method_layers": {
+          "QM0010-TIME-QIMEN-1080-ENUM": "CALCULATION"
+        }
       }
     }
   ]

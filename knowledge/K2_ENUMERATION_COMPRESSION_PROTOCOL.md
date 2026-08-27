@@ -1,6 +1,6 @@
 # K2 Enumeration Compression Protocol
 
-版本：v1.1  
+版本：v1.2  
 状态：ACTIVE  
 适用阶段：K2B Deep Closure  
 Claim Extraction：BLOCKED
@@ -36,15 +36,13 @@ Claim Extraction：BLOCKED
 
 ## 3. generative_rule_id 必须唯一计数
 
-原先只限制重复 enumeration label 仍不够：同一个生成机制可以被拆成两个不同 label，然后各自获得 `collapsed_structure_units=1`。
+同一个生成机制即使被拆成多个不同 label，也不能得到多个 structure unit。
 
-因此新增硬规则：
+硬规则：
 
 > 同一 `source_id + generative_rule_id` 只能有一条 compression row。
 
 如果同一个生成机制横跨多个页段或多个子表，应在一条 row 的 input domain / evidence locators 中表达，而不是拆成多条增加 structure unit。
-
-这防止“先压缩，再通过拆标签把压缩后的单位数重新膨胀”。
 
 ## 4. reconstruction_test_status
 
@@ -74,23 +72,46 @@ Claim Extraction：BLOCKED
 
 后者只能由 prospective validation 回答。
 
-## 6. 当前落地：QM-SRC-0017
+## 6. Semantic generator coverage
 
-《奇门遁甲新述》完整阅读显示：
+此前 QCIC gate 对 mandatory enumeration target 只检查 `minimum_rows`。这仍然存在 count-only false green：删除已接受的生成机制，再补入同 source 的无关 compression row，行数不变，机器门仍可能通过。
 
-- 卷五、卷六分别展开时家阳遁540定局与阴遁540定局；
-- 卷八、卷九分别展开日家阳遁60定局与阴遁60定局。
+新增不变量：
 
-当前 registry 把：
+`ROW COUNT COVERAGE != SEMANTIC GENERATOR COVERAGE`
 
-- 1080个时家定局；
-- 120个日家定局；
+mandatory enumeration target 必须在 gate state 中冻结：
 
-分别压缩为两个 source-structure unit。
+- `required_generative_rule_ids`：当前已接受、不得被无关 generator 替代的结构身份；
+- `required_generator_entry_counts`：该 generator 当前经完整阅读确认的枚举规模；
+- `required_generator_method_layers`：该 generator 所属方法层。
 
-当前 reconstruction status 保持 UNTESTED；这只关闭“条目数=证据数”的错误，不虚报重建算法已经完成。
+`minimum_rows` 只作为粗粒度 sanity check。真正的覆盖由 generator identity 决定。
 
-## 7. 与 Evidence / Claim 的边界
+这样可以同时阻止三类静默漂移：
+
+1. 用无关 generator 替换 mandatory generator，但保持行数不变；
+2. 保留同一 generator id，却悄悄改变其结构规模；
+3. 保留同一 generator id，却把 CALCULATION 等方法层改成另一个 layer。
+
+如果后续完整阅读或重建测试证明原 generator identity/规模/layer 有误，应显式更新 registry 与 gate snapshot，并重新跑 fail-first / correction / exact-current acceptance，而不是为了维持绿灯偷偷改写。
+
+## 7. 当前落地
+
+QM-SRC-0017《奇门遁甲新述》当前冻结两个结构机制：
+
+- `QM0017-TIME-QIMEN-1080-ENUM`：时家阳遁540 + 阴遁540，共1080，CALCULATION；
+- `QM0017-DAY-QIMEN-120-ENUM`：日家阳遁60 + 阴遁60，共120，CALCULATION。
+
+QM-SRC-0010 当前冻结：
+
+- `QM0010-TIME-QIMEN-1080-ENUM`：1080个时辰盘状态展开，CALCULATION。
+
+这些数字用于描述来源中的结构枚举规模，不是 empirical sample size。
+
+当前 reconstruction status 仍保持 UNTESTED；这只关闭“条目数=证据数”和“行数=语义覆盖”的错误，不虚报重建算法已完成。
+
+## 8. 与 Evidence / Claim 的边界
 
 Enumeration Compression 只处理知识结构和证据独立性。
 
@@ -99,9 +120,9 @@ Enumeration Compression 只处理知识结构和证据独立性。
 - 提升 empirical credit；
 - 自动产生 Claim；
 - 证明某定局表现实有效；
-- 用页数或条目量替代前瞻样本。
+- 用页数、条目量或 compression row 数替代前瞻样本。
 
-## 8. Fail-closed
+## 9. Fail-closed
 
 以下任一情况必须失败：
 
@@ -114,5 +135,7 @@ Enumeration Compression 只处理知识结构和证据独立性。
 - 同一 source/generative_rule_id 被重复登记；
 - evidence locator 超出 COMPLETE VISUAL_PAGE 阅读范围；
 - source SHA 或 effective work_id 不匹配；
+- mandatory generator 被无关 generator 替换；
+- mandatory generator 的枚举规模或 method layer 无显式 gate 更新而发生漂移；
 - mandatory target 的 compression rows 被删除；
 - 本地路径泄漏进知识树。
