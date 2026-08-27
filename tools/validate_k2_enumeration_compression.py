@@ -9,10 +9,14 @@ K=ROOT/"knowledge"
 DOMAINS=["ziwei","bazi","qimen","liuyao","liuren","fengshui"]
 PATH_RE=re.compile(r"(?:/home/|/mnt/|[A-Za-z]:\\\\)")
 LOC_RE=re.compile(r"^pdf:p(\d+)$")
+SHA_RE=re.compile(r"^[0-9a-f]{64}$")
 ALLOWED={"compression_id","source_id","work_id","canonical_sha256","enumeration_label","method_layer","input_domain","generative_rule_id","evidence_locators","enumerated_entries_count","collapsed_structure_units","empirical_evidence_units","compression_policy","reconstruction_test_status","source_credit","empirical_credit","claim_extraction_blocked","review_status"}
+RECON_RESULT_ALLOWED={"reconstruction_id","source_id","work_id","canonical_sha256","compression_id","generative_rule_id","algorithm_spec_id","algorithm_spec_sha256","fixture_set_id","fixture_set_sha256","source_checkpoints","checked_states","matched_states","result","scope","empirical_credit","claim_extraction_blocked","review_status"}
 METHODS={"CALCULATION","DIVINATION","SELECTION_STRATEGY","MILITARY_OPERATIONAL","RITUAL_ESOTERIC","TRANSMITTED_REFERENCE"}
 RECON={"UNTESTED","PASS","FAIL"}
+RECON_RESULTS={"PASS","FAIL"}
 STATE_VERSION="k2-qcic-v06-machine-gates-v1"
+RECON_SCOPE="SOURCE_STRUCTURE_REPRODUCIBILITY_ONLY"
 
 def fail(msg):
     print(f"k2-enumeration-compression: FAIL: {msg}",file=sys.stderr);raise SystemExit(1)
@@ -155,11 +159,82 @@ def validate_rows(sources,lineage,deep,rows):
         if PATH_RE.search(json.dumps(r,ensure_ascii=False)):issues.append((rid,"local filesystem path leaked"))
     return issues
 
+def reconstruction_result_issues(rows,results):
+    """Bind PASS/FAIL registry status to one auditable reviewed result artifact.
+
+    This validates source-structure reproducibility only. It must never upgrade
+    empirical credit or Claim eligibility.
+    """
+    issues=[];row_by_key={};row_by_id={}
+    for r in rows:
+        sid=r.get("source_id");gid=r.get("generative_rule_id");cid=r.get("compression_id")
+        if isinstance(sid,str) and isinstance(gid,str):row_by_key[(sid,gid)]=r
+        if isinstance(cid,str):row_by_id[cid]=r
+
+    result_by_key={};ids=set()
+    for rr in results:
+        rid=rr.get("reconstruction_id") if isinstance(rr,dict) else None
+        rid=rid or "<missing>"
+        if not isinstance(rr,dict):issues.append((rid,"reconstruction result row must be object"));continue
+        if rid in ids:issues.append((rid,"duplicate reconstruction_id"))
+        ids.add(rid)
+        extra=set(rr)-RECON_RESULT_ALLOWED
+        if extra:issues.append((rid,f"unexpected reconstruction result fields: {sorted(extra)}"))
+        for f in ("reconstruction_id","source_id","work_id","compression_id","generative_rule_id","algorithm_spec_id","fixture_set_id"):
+            if not isinstance(rr.get(f),str) or not rr.get(f).strip():issues.append((rid,f"{f} must be non-empty"))
+        for f in ("canonical_sha256","algorithm_spec_sha256","fixture_set_sha256"):
+            if not isinstance(rr.get(f),str) or not SHA_RE.match(rr.get(f,"")):issues.append((rid,f"{f} must be 64 lowercase hex"))
+        checkpoints=rr.get("source_checkpoints")
+        if not isinstance(checkpoints,list) or not checkpoints or len(checkpoints)!=len(set(checkpoints)):
+            issues.append((rid,"source_checkpoints must be non-empty unique array"));checkpoints=[]
+        for loc in checkpoints:
+            if not isinstance(loc,str) or not LOC_RE.match(loc):issues.append((rid,f"invalid source checkpoint {loc!r}"))
+        checked=rr.get("checked_states");matched=rr.get("matched_states")
+        if not isinstance(checked,int) or checked<1:issues.append((rid,"checked_states must be positive int"))
+        if not isinstance(matched,int) or matched<0:issues.append((rid,"matched_states must be non-negative int"))
+        if isinstance(checked,int) and isinstance(matched,int) and matched>checked:issues.append((rid,"matched_states cannot exceed checked_states"))
+        result=rr.get("result")
+        if result not in RECON_RESULTS:issues.append((rid,"result must be PASS or FAIL"))
+        if result=="PASS" and isinstance(checked,int) and isinstance(matched,int) and matched!=checked:issues.append((rid,"PASS requires matched_states == checked_states"))
+        if result=="FAIL" and isinstance(checked,int) and isinstance(matched,int) and matched>=checked:issues.append((rid,"FAIL requires at least one unmatched checked state"))
+        if rr.get("scope")!=RECON_SCOPE:issues.append((rid,f"scope must be {RECON_SCOPE}"))
+        if rr.get("empirical_credit")!="NONE":issues.append((rid,"reconstruction result empirical_credit must be NONE"))
+        if rr.get("claim_extraction_blocked") is not True:issues.append((rid,"reconstruction result claim_extraction_blocked must be true"))
+        if rr.get("review_status")!="REVIEWED":issues.append((rid,"reconstruction result review_status must be REVIEWED"))
+        if PATH_RE.search(json.dumps(rr,ensure_ascii=False)):issues.append((rid,"local filesystem path leaked from reconstruction result"))
+
+        key=(rr.get("source_id"),rr.get("generative_rule_id"))
+        if key in result_by_key:issues.append((rid,"multiple reconstruction results for one source/generative_rule_id are not yet supported"))
+        else:result_by_key[key]=rr
+
+        row=row_by_key.get(key)
+        if row is None:
+            issues.append((rid,"reconstruction result does not match a registered source/generative_rule_id"));continue
+        if rr.get("compression_id")!=row.get("compression_id"):issues.append((rid,"compression_id mismatch with enumeration registry"))
+        if rr.get("work_id")!=row.get("work_id"):issues.append((rid,"work_id mismatch with enumeration registry"))
+        if rr.get("canonical_sha256")!=row.get("canonical_sha256"):issues.append((rid,"canonical_sha256 mismatch with enumeration registry"))
+
+    for row in rows:
+        sid=row.get("source_id") or "<missing>";gid=row.get("generative_rule_id") or "<missing>";status=row.get("reconstruction_test_status")
+        rr=result_by_key.get((row.get("source_id"),row.get("generative_rule_id")))
+        label=f"{sid}/{gid}"
+        if status=="UNTESTED":
+            if rr is not None:issues.append((label,"UNTESTED registry row may not carry a formal PASS/FAIL reconstruction result"))
+            continue
+        if status in RECON_RESULTS:
+            if rr is None:
+                issues.append((label,f"{status} requires reviewed reconstruction result artifact"));continue
+            if rr.get("result")!=status:issues.append((label,f"registry reconstruction status {status} disagrees with artifact result {rr.get('result')}"))
+    return issues
+
 def main():
     rows=load_jsonl(K/"K2_ENUMERATION_COMPRESSION_REGISTRY.jsonl")
     state=load_state(K/"K2_QCIC_V06_GATE_STATE.json")
-    issues=validate_rows(source_index(),lineage_index(),deep_reading_index(),rows)+coverage_issues(rows,state)
+    result_path=K/"K2_ENUMERATION_RECONSTRUCTION_RESULTS.jsonl"
+    if not result_path.exists():fail("missing knowledge/K2_ENUMERATION_RECONSTRUCTION_RESULTS.jsonl")
+    results=load_jsonl(result_path)
+    issues=validate_rows(source_index(),lineage_index(),deep_reading_index(),rows)+coverage_issues(rows,state)+reconstruction_result_issues(rows,results)
     if issues:fail(f"issues={len(issues)}; "+"; ".join(f"{a}: {b}" for a,b in issues[:20]))
     print("k2-enumeration-compression: PASS")
-    print(f"rows={len(rows)} collapsed_entries={sum(r.get('enumerated_entries_count',0) for r in rows)} unique_generators={len({(r.get('source_id'),r.get('generative_rule_id')) for r in rows})} required_targets={len(state.get('targets',[]))} issues=0")
+    print(f"rows={len(rows)} collapsed_entries={sum(r.get('enumerated_entries_count',0) for r in rows)} unique_generators={len({(r.get('source_id'),r.get('generative_rule_id')) for r in rows})} reconstruction_results={len(results)} required_targets={len(state.get('targets',[]))} issues=0")
 if __name__=="__main__":main()

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/xuanxue/enumeration_reconstruction_result.schema.json",
+  "title": "K2 Enumeration Reconstruction Result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "reconstruction_id",
+    "source_id",
+    "work_id",
+    "canonical_sha256",
+    "compression_id",
+    "generative_rule_id",
+    "algorithm_spec_id",
+    "algorithm_spec_sha256",
+    "fixture_set_id",
+    "fixture_set_sha256",
+    "source_checkpoints",
+    "checked_states",
+    "matched_states",
+    "result",
+    "scope",
+    "empirical_credit",
+    "claim_extraction_blocked",
+    "review_status"
+  ],
+  "properties": {
+    "reconstruction_id": {"type": "string", "minLength": 1},
+    "source_id": {"type": "string", "minLength": 1},
+    "work_id": {"type": "string", "minLength": 1},
+    "canonical_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "compression_id": {"type": "string", "minLength": 1},
+    "generative_rule_id": {"type": "string", "minLength": 1},
+    "algorithm_spec_id": {"type": "string", "minLength": 1},
+    "algorithm_spec_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "fixture_set_id": {"type": "string", "minLength": 1},
+    "fixture_set_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source_checkpoints": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^pdf:p[1-9][0-9]*$"}
+    },
+    "checked_states": {"type": "integer", "minimum": 1},
+    "matched_states": {"type": "integer", "minimum": 0},
+    "result": {"enum": ["PASS", "FAIL"]},
+    "scope": {"const": "SOURCE_STRUCTURE_REPRODUCIBILITY_ONLY"},
+    "empirical_credit": {"const": "NONE"},
+    "claim_extraction_blocked": {"const": true},
+    "review_status": {"const": "REVIEWED"}
+  }
+}
