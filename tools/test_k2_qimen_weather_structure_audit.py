@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
-"""Structure-only audit for CDAF-H2 CORE_RAIN_SIGNAL_V01.
+"""Abstract plate-state audit for CDAF-H2 CORE_RAIN_SIGNAL_V01.
 
 This test deliberately uses no weather forecast and no weather outcome data.
-It mirrors only the weather-relevant state transitions of the exact pinned
-QimenEngine blob. If that engine blob changes, the audit must be reviewed
-instead of silently reusing stale frequency numbers.
+It mirrors only the weather-relevant plate transitions of the exact pinned
+QimenEngine blob.
+
+Important: 24 terms × 3 named yuans × 5 fixed-酉 hour states is a Cartesian
+state-space audit. It is NOT a civil-date frequency model for拆补符头. The
+source method may use 残上→中→下→补上 around solar-term boundaries, so real
+calendar weighting must be audited separately before sample-duration design.
 """
 
 from __future__ import annotations
@@ -16,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE_PATH = ROOT / "ziwei-core/src/main/kotlin/com/xuanxue/qimen/QimenEngine.kt"
-EXPECTED_ENGINE_GIT_BLOB_SHA = "028747358ba78507d17b77e906222bb6739c0c32"
+EXPECTED_ENGINE_GIT_BLOB_SHA = "1912760ccd10cb4a58eb8faec06669c0d690657b"
 
 RING = [1, 8, 3, 4, 9, 2, 7, 6]
 STAR_HOME = {
@@ -41,8 +45,9 @@ JIE_QI_JU = {
     "立冬": (-1, 6, 9, 3), "小雪": (-1, 5, 8, 2), "大雪": (-1, 4, 7, 1),
 }
 
-# 17:00 HKT is 酉时. Under 五鼠遁, the 酉时干 has period five across
-# consecutive civil days, and every five-day yuan block contains each state once.
+# At a fixed 酉时 there are five possible hour-stem states across day-stem
+# classes. These are used as nominal plate inputs, not as a claim that every
+# solar term contains each named yuan for exactly five civil days.
 HOUR_STATES_17_HKT = ["癸酉", "乙酉", "丁酉", "己酉", "辛酉"]
 TARGET_PALACES = {1, 3, 6, 7}
 
@@ -151,7 +156,7 @@ def core_rain_signal_v01(state: dict) -> list[tuple[int, str, str]]:
 def main() -> None:
     actual_blob = git_blob_sha(ENGINE_PATH)
     assert actual_blob == EXPECTED_ENGINE_GIT_BLOB_SHA, (
-        "QimenEngine blob changed; weather structure audit must be reviewed: "
+        "QimenEngine blob changed; abstract weather plate-state audit must be reviewed: "
         f"expected={EXPECTED_ENGINE_GIT_BLOB_SHA} actual={actual_blob}"
     )
 
@@ -178,15 +183,16 @@ def main() -> None:
     assert hit_cardinality == Counter({1: 64})
 
     result = {
-        "audit_scope": "IMPLEMENTATION_CONTRACT_ONLY",
+        "audit_scope": "ABSTRACT_PLATE_STATE_SPACE_ONLY",
+        "civil_date_frequency_claimed": False,
         "weather_forecast_data_used": False,
         "weather_outcome_data_used": False,
         "engine_git_blob_sha": actual_blob,
-        "eligible_contract_states": total_states,
+        "abstract_contract_states": total_states,
         "core_rain_signal_trigger_states": trigger_states,
-        "trigger_rate": trigger_states / total_states,
-        "eligible_states_per_trigger": total_states / trigger_states,
-        "per_jieqi_triggers_out_of_15": EXPECTED_PER_JIEQI_TRIGGERS,
+        "state_space_density": trigger_states / total_states,
+        "per_jieqi_triggers_out_of_15_nominal_states": EXPECTED_PER_JIEQI_TRIGGERS,
+        "sample_duration_usable": False,
         "empirical_credit": "NONE",
     }
     print("K2_QIMEN_WEATHER_STRUCTURE_AUDIT=" + json.dumps(result, ensure_ascii=False, sort_keys=True))
