@@ -45,5 +45,15 @@ def main():
         raise AssertionError("ambiguous effective stance materialized")
     except ValueError:
         pass
+
+    # A count threshold is not semantic coverage. Once a reviewed source has
+    # mandatory stance topics, unrelated replacement rows must not satisfy the
+    # gate merely because the row count is unchanged.
+    semantic_state=deepcopy(STATE)
+    semantic_state["targets"][0]["source_stance"]["required_topic_keys"]=["chance-omen"]
+    unrelated=deepcopy(BASE);unrelated["topic_key"]="unrelated-topic"
+    assert coverage_issues([unrelated],semantic_state),"count-only rows substituted a required stance topic"
+    assert not coverage_issues([deepcopy(BASE)],semantic_state),"required stance topic was not recognized"
+
     print("k2-source-stance-tests: PASS")
 if __name__=="__main__":main()
