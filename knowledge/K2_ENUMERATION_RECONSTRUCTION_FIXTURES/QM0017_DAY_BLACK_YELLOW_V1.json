@@ -1,0 +1,62 @@
+{
+  "schema_version": "k2-enumeration-component-fixture-v1",
+  "fixture_set_id": "QM0017-DAY-BLACK-YELLOW-FIXTURE-V1",
+  "source_id": "QM-SRC-0017",
+  "generative_rule_id": "QM0017-DAY-QIMEN-120-ENUM",
+  "component_id": "TWELVE_BLACK_YELLOW_ROAD",
+  "scope": "COMPONENT_ONLY_NOT_FULL_GENERATOR",
+  "source_rule_checkpoint": "pdf:p281",
+  "cases": [
+    {
+      "case_id": "QM0017-BY-001",
+      "context": "阳遁丙午日",
+      "day_branch": "午",
+      "source_checkpoints": ["pdf:p285"],
+      "expected": {
+        "子": ["金匮", "黄"], "丑": ["天德", "黄"], "寅": ["白虎", "黑"], "卯": ["玉堂", "黄"],
+        "辰": ["天牢", "黑"], "巳": ["玄武", "黑"], "午": ["司命", "黄"], "未": ["勾陈", "黑"],
+        "申": ["青龙", "黄"], "酉": ["明堂", "黄"], "戌": ["天刑", "黑"], "亥": ["朱雀", "黑"]
+      }
+    },
+    {
+      "case_id": "QM0017-BY-002",
+      "context": "阴遁乙卯日",
+      "day_branch": "卯",
+      "source_checkpoints": ["pdf:p286"],
+      "expected": {
+        "子": ["司命", "黄"], "丑": ["勾陈", "黑"], "寅": ["青龙", "黄"], "卯": ["明堂", "黄"],
+        "辰": ["天刑", "黑"], "巳": ["朱雀", "黑"], "午": ["金匮", "黄"], "未": ["天德", "黄"],
+        "申": ["白虎", "黑"], "酉": ["玉堂", "黄"], "戌": ["天牢", "黑"], "亥": ["玄武", "黑"]
+      }
+    },
+    {
+      "case_id": "QM0017-BY-003",
+      "context": "冬至后甲子日六十定局首例",
+      "day_branch": "子",
+      "source_checkpoints": ["pdf:p294", "pdf:p295"],
+      "expected": {
+        "子": ["金匮", "黄"], "丑": ["天德", "黄"], "寅": ["白虎", "黑"], "卯": ["玉堂", "黄"],
+        "辰": ["天牢", "黑"], "巳": ["玄武", "黑"], "午": ["司命", "黄"], "未": ["勾陈", "黑"],
+        "申": ["青龙", "黄"], "酉": ["明堂", "黄"], "戌": ["天刑", "黑"], "亥": ["朱雀", "黑"]
+      }
+    },
+    {
+      "case_id": "QM0017-BY-004",
+      "context": "冬至后乙丑日六十定局第二例",
+      "day_branch": "丑",
+      "source_checkpoints": ["pdf:p295", "pdf:p296"],
+      "expected": {
+        "子": ["天刑", "黑"], "丑": ["朱雀", "黑"], "寅": ["金匮", "黄"], "卯": ["天德", "黄"],
+        "辰": ["白虎", "黑"], "巳": ["玉堂", "黄"], "午": ["天牢", "黑"], "未": ["玄武", "黑"],
+        "申": ["司命", "黄"], "酉": ["勾陈", "黑"], "戌": ["青龙", "黄"], "亥": ["明堂", "黄"]
+      }
+    }
+  ],
+  "limitations": [
+    "只验证十二黑黄道这一可独立定义的结构组件，不验证完整日家奇门六十定局。",
+    "不覆盖八门、九星、喜神、天乙贵人、截路空亡、五不遇时或来源中的吉凶断语。",
+    "组件测试通过不得把 QM0017-DAY-QIMEN-120-ENUM 的 reconstruction_test_status 从 UNTESTED 提升为 PASS。",
+    "不产生 empirical credit，不开放 Claim Extraction。"
+  ],
+  "review_status": "REVIEWED"
+}
