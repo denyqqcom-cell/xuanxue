@@ -69,7 +69,7 @@ For parameterized or weighted rules, an ablation or counterfactual must ask whet
 
 ## 5. Evidence-credit separation
 
-The following credits must remain distinct:
+The following credits must remain distinct. In particular, **source fidelity** means only that the source has been represented faithfully; it is not a synonym for empirical validity.
 
 ```text
 SOURCE CREDIT
