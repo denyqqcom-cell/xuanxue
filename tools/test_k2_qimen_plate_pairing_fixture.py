@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Source-grounded chart-only plate-pairing fixture for QM-SRC-0021.
 
-No weather forecast/outcome data are read. This test binds the already pinned
+No weather forecast/outcome data are read. This test binds the pinned
 QimenEngine implementation mirror to one explicit source chart and verifies
 that the nine-star movement carries the source-associated heaven-plate stem.
 """
@@ -18,8 +18,10 @@ from test_k2_qimen_weather_structure_audit import (
 
 
 def futou_yuan(day_gz: str) -> str:
+    # Five-day 拆补符头: each yuan begins on a 甲 or 己 day.
+    # Do not replace this with the ten-unit 六甲旬首 boundary.
     s = seq_of(day_gz[0], day_gz[1])
-    base = s - (s % 10)
+    base = s - (s % 5)
     gan = "甲乙丙丁戊己庚辛壬癸"
     zhi = "子丑寅卯辰巳午未申酉戌亥"
     ft = gan[base % 10] + zhi[base % 12]
@@ -40,6 +42,10 @@ def main() -> None:
     # QM-SRC-0021 algorithm chapter: 2004-05-29 戊申日戊午时,
     # 小满, 符头法下元 -> 阳遁八局, 甲寅旬, 值符天辅.
     assert futou_yuan("戊申") == "下元"
+
+    # Independent dated source metadata: 2002-08-01 辛丑日壬申时,
+    # 大暑. Nearest five-day head is 己亥 -> 中元 -> 阴遁一局.
+    assert futou_yuan("辛丑") == "中元"
 
     state = implementation_state(1, 8, "戊午")
 
