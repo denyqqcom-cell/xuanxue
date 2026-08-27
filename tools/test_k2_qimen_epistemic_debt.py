@@ -18,7 +18,7 @@ def main():
 
     rows = v.load_jsonl(K / "K2_QIMEN_EPISTEMIC_DEBT.jsonl")
     bias_ids = v.known_bias_ids(ROOT)
-    assert len(rows) >= 7
+    assert len(rows) >= 10
 
     # Unresolved recurrence can never silently promote itself.
     mutated = copy.deepcopy(rows)
@@ -51,11 +51,27 @@ def main():
     issues = v.validate_rows(mutated, ROOT, bias_ids)
     expect_issue(issues, "cannot be REPAIRED")
 
-    # The protocol must explicitly reject magic-count promotion.
     protocol = (K / "K2_QIMEN_EPISTEMIC_DEBT_PROTOCOL.md").read_text(encoding="utf-8")
+
+    # The protocol must explicitly reject magic-count promotion.
     mutated_protocol = protocol.replace("THREE_SUCCESSES != VALIDATION", "")
     issues = v.validate_protocol(mutated_protocol)
     expect_issue(issues, "THREE_SUCCESSES != VALIDATION")
+
+    # Fractional scores and percentages are not validation credit unless calibrated.
+    mutated_protocol = protocol.replace("UNCALIBRATED_SCORE != VALIDATION_CREDIT", "")
+    issues = v.validate_protocol(mutated_protocol)
+    expect_issue(issues, "UNCALIBRATED_SCORE != VALIDATION_CREDIT")
+
+    # A more coherent story cannot become an empirical proxy.
+    mutated_protocol = protocol.replace("NARRATIVE_COHERENCE != EMPIRICAL_VALIDITY", "")
+    issues = v.validate_protocol(mutated_protocol)
+    expect_issue(issues, "NARRATIVE_COHERENCE != EMPIRICAL_VALIDITY")
+
+    # One failure cannot silently be relabeled as a theory boundary.
+    mutated_protocol = protocol.replace("BOUNDARY_CLAIM_REQUIRES_COMPETING_CAUSES", "")
+    issues = v.validate_protocol(mutated_protocol)
+    expect_issue(issues, "BOUNDARY_CLAIM_REQUIRES_COMPETING_CAUSES")
 
     # The schema itself must encode fail-closed promotion and zero empirical credit.
     schema = v.load_json(K / "schema" / "qimen_epistemic_debt.schema.json")
@@ -64,8 +80,14 @@ def main():
     issues = v.validate_schema_contract(mutated_schema)
     expect_issue(issues, "promotion_status=BLOCKED")
 
+    # The schema may not drop a recurrence category without the validator noticing.
+    mutated_schema = copy.deepcopy(schema)
+    mutated_schema["properties"]["category"]["enum"].remove("NARRATIVE_COHERENCE")
+    issues = v.validate_schema_contract(mutated_schema)
+    expect_issue(issues, "category coverage drift")
+
     print("k2-qimen-epistemic-debt-tests: PASS")
-    print("negative_cases=7 base_contract=PASS")
+    print("negative_cases=11 base_contract=PASS")
 
 
 if __name__ == "__main__":
