@@ -5,6 +5,7 @@
 抽象结构审计：`knowledge/K2_QIMEN_CDAF_H2_IMPLEMENTATION_STRUCTURE_AUDIT_V01.md`  
 真实公历审计：`knowledge/K2_QIMEN_CDAF_H2_REAL_CALENDAR_AUDIT_V01.md`  
 Calendar control：`knowledge/K2_QIMEN_CDAF_H2_CALENDAR_EQUIVALENCE_CONTROL_V01.md`  
+Sample/serial plan：`knowledge/K2_QIMEN_CDAF_H2_SERIAL_DEPENDENCE_SAMPLE_PLAN_V01.md`  
 Empirical Credit：`NONE`
 
 ## 1. 为什么需要 amendment
@@ -97,7 +98,7 @@ Gate 0 关闭前至少需要：
 
 ## 4. Gate B — CALENDAR_EQUIVALENCE_CONTROL
 
-状态：`CONTROL_PROTOCOL_DEFINED / BATCH_SCHEDULE_NOT_FROZEN / BLOCKING`
+状态：`MACHINE_STRUCTURE_VERIFIED / BATCH_SCHEDULE_NOT_FROZEN / BLOCKING`
 
 真实公历审计把问题从普通的“季节性混杂”提升成更严格的 calendar equivalence：
 
@@ -112,9 +113,35 @@ v0.1 已冻结 control family 的定义，不使用 weather outcome 选 control�
 - `M2_SHAM_PLUS_1`：在每一次实际节气段内部，把 CORE signal 序列循环平移 `+1日`；
 - `M2_SHAM_MINUS_1`：同段循环平移 `-1日`。
 
-两套 sham 保留同一节气段的 trigger 数量和节气 propensity，并大体保留局部 trigger 聚集结构，只破坏“具体日期的 exact plate alignment”。详见：
+两套 sham 保留同一节气段的 trigger 数量和节气 propensity，只破坏“具体日期的 exact plate alignment”。详见：
 
 `K2_QIMEN_CDAF_H2_CALENDAR_EQUIVALENCE_CONTROL_V01.md`
+
+### 4.1 机器结构验证
+
+`QimenWeatherCalendarEquivalenceAuditTest` 已对 pinned engine 的 2000–2099 真实 civil calendar 执行结构审计，K2 App UI CI run `33113150132` = SUCCESS。
+
+结果：
+
+```text
+complete_segment_count = 2399
+complete_segment_days  = 36509
+mixed_segments         = 2000
+all_zero_segments      = 399
+
+original_triggers      = 6498
+plus_1_triggers        = 6498
+minus_1_triggers       = 6498
+
+plus_1_hamming_days    = 10352
+minus_1_hamming_days   = 10352
+
+audit_schedule_sha256 = 2760b8e94ada03b0a9d0e2b6dcae6ef27b73df31089f741536eddb5ab29710da
+```
+
+24 个节气逐项满足 original / +1 / -1 的 trigger counts 完全相同；两套 sham 又都在 10,352 个 civil-date positions 上改变 exact alignment。生成过程没有读取 HKO forecast 或 rainfall outcome。
+
+这证明的是 `CONTROL_STRUCTURE_CREDIT`，不是 plate/predictive/empirical credit。
 
 未来若要讨论 exact plate-alignment credit，必要条件至少是：
 
@@ -126,12 +153,14 @@ M2_ORIGINAL > M2_SHAM_MINUS_1
 
 即使满足，也只能讨论“这个预注册时间变换的精确相位在该模型类中更有区分力”，不能宣称出现了独立于时间的信息源。
 
-Gate B 剩余关闭条件：
+Gate B 剩余 Batch-specific 关闭条件：
 
-- Batch horizon 冻结后生成完整 sham schedule；
+- Batch horizon 冻结后重新生成该 Batch 的完整 sham schedule；
 - schedule 生成必须只读取 calendar/engine，不读取 HKO forecast/outcome；
-- segment identity、边界日、+1/-1 规则进入 Freeze；
+- segment identity、边界日、+1/-1 规则和 schedule hash 进入 Freeze；
 - original 与两套 sham 共用同一 M1、outcome、exclusion、loss 和 serial-dependence treatment。
+
+本次100年 audit hash 不能冒充未来 Batch schedule hash。
 
 ## 5. Gate C — REAL_CALENDAR_FUTOU_FREQUENCY
 
@@ -169,24 +198,35 @@ Gate B 剩余关闭条件：
 
 ## 6. Gate D — SERIAL_DEPENDENCE / SAMPLE_ADEQUACY
 
-状态：`OPEN / BLOCKING`
+状态：`METHOD_DEFINED / BATCH_PARAMETERS_NOT_FROZEN / BLOCKING`
 
-真实公历 trigger structure 已知后，统计设计仍不能直接用 17.79% 计算样本量，因为 M2 真正与 M1 分叉还要求：
+方法设计已落盘：
 
-`M1 == NO_RAIN10 && CORE_RAIN_SIGNAL_V01 == TRUE`
+`K2_QIMEN_CDAF_H2_SERIAL_DEPENDENCE_SAMPLE_PLAN_V01.md`
 
-该 discordant opportunity rate 尚未在未知 outcome 的正式 Batch 中观察。
+v0.1 现在固定：
 
-同时 signal 最大连续触发4日、最长非触发空窗33日，天气本身也具有序列依赖。
+- cadence：每日 HKO 16:30 PSR / 17:00 HKT Freeze；
+- 最小时间覆盖：从真实节气段起点开始，连续 `48` 个完整节气段；
+- 若且仅若 Outcome 未读取且任一 pre-outcome information count `<80`，再增加完整 `24` 段；
+- 最大 horizon：`72` 个完整节气段；
+- 三个最低 pre-outcome information counts：Original-vs-M1、Original-vs-+1、Original-vs--1，各 `>=80`；
+- Outcome 只允许在 acquisition 正式关闭后统一进入研究表；
+- Outcome QC 后若 evaluable information 任一 `<80`，同一 Batch 直接 `INSUFFICIENT_INFORMATION_AFTER_OUTCOME_QC`，不得重新开放补样本；
+- primary estimands：三个模型对比的 daily paired accuracy delta；
+- serial dependence：Bartlett calendar-lag HAC，固定 `HAC_MAX_LAG=30 civil days`；
+- family-wise alpha：0.05，三个 primary contrasts 用 Bonferroni 单侧阈值，`Z_CRITICAL=2.1280452342`；
+- success / no increment / calendar alignment not distinguished / inconclusive / insufficient-information 已分别定义。
 
-Batch 前仍需冻结：
+80 是 sample-planning floor，不是“80例验证有效”。它不授予经验信用。
 
-- sampling cadence / analysis unit；
-- planned duration 或合法 non-outcome-driven stopping rule；
-- original vs M1 与 original vs ±1 sham 的 paired primary statistic；
-- serial-dependence treatment；
-- minimum discordant/information threshold；
-- success / failure / insufficient-information decision rule。
+Gate D 剩余 Batch-specific 关闭条件：
+
+- 实际起始节气段进入 Freeze；
+- 48/72 horizon、80门槛、HAC=30、三重比较阈值进入 Freeze；
+- outcome quarantine / unlock procedure 进入 Batch contract；
+- frozen station panel 与 data-completeness policy 确认；
+- sample-plan exact file/hash 进入 Freeze。
 
 ## 7. 当前优先顺序
 
@@ -195,11 +235,11 @@ Batch 前仍需冻结：
         ↓
 A. PLATE_PAIRING_VALIDATION [PARTIAL]
         ↓
-B. CALENDAR_EQUIVALENCE_CONTROL [PROTOCOL DEFINED / SCHEDULE NOT FROZEN]
+B. CALENDAR_EQUIVALENCE_CONTROL [MACHINE VERIFIED / BATCH SCHEDULE NOT FROZEN]
         ↓
 C. REAL_CALENDAR_FUTOU_FREQUENCY [CLOSED FOR PINNED ENGINE]
         ↓
-D. SERIAL_DEPENDENCE / SAMPLE_ADEQUACY [OPEN]
+D. SERIAL_DEPENDENCE / SAMPLE_ADEQUACY [METHOD DEFINED / BATCH PARAMETERS NOT FROZEN]
         ↓
 E. Batch preregistration
         ↓
@@ -210,7 +250,7 @@ G. Outcome
 H. Batch Review
 ```
 
-Gate C 的完成不允许越过更靠前的 Gate 0/A/B。
+Gate C 的完成、Gate B/D 的方法定义，都不允许越过更靠前的 Gate 0/A。
 
 ## 8. 当前状态口径
 
@@ -224,9 +264,9 @@ WEATHER_JU_METHOD_CANDIDATE         = CHAI_BU_FUTOU
 
 JU_METHOD_VALIDATION                = OPEN
 PLATE_PAIRING_VALIDATION            = PARTIAL
-CALENDAR_EQUIVALENCE_CONTROL        = PROTOCOL_DEFINED_NOT_BATCH_FROZEN
+CALENDAR_EQUIVALENCE_CONTROL        = MACHINE_VERIFIED_NOT_BATCH_FROZEN
 REAL_CALENDAR_FUTOU_FREQUENCY       = CLOSED_FOR_PINNED_ENGINE_STRUCTURE_ONLY
-SERIAL_DEPENDENCE_SAMPLE_GATE       = OPEN
+SERIAL_DEPENDENCE_SAMPLE_GATE       = METHOD_DEFINED_NOT_BATCH_FROZEN
 
 BATCH_READY                         = false
 BATCH                               = NONE
