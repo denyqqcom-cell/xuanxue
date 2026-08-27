@@ -28,6 +28,7 @@ RECURRENT_BIAS => PROMOTION_BLOCKED
 NARRATIVE_COHERENCE != EMPIRICAL_VALIDITY
 CONTEXT_FIT != OUTCOME_EVIDENCE
 BOUNDARY_CLAIM_REQUIRES_COMPETING_CAUSES
+CONTROL_COMPLEXITY != EMPIRICAL_PROGRESS
 NEGATIVE_EVIDENCE_IS_FIRST_CLASS
 BASELINE_OR_COUNTERFACTUAL_REQUIRED
 ```
@@ -43,6 +44,7 @@ Interpretation:
 - A coherent story is a communication and internal-consistency property, not evidence that the story is true. If multiple stories fit the same known context, the model must specify what future observation would discriminate among them.
 - Context fit can help define applicability, but selecting the story that best matches already-known background cannot by itself earn outcome credit.
 - A failure does not automatically prove a system boundary. Theory limitation, execution error, query definition, scale mismatch, base rate, contamination and chance remain competing causes until a design can distinguish them.
+- More schemas, gates and tests can improve auditability, but control complexity is not empirical progress. A new control must demonstrate marginal detection value beyond existing controls and must have a consolidation or deletion rule when it is redundant.
 - Traditional longevity is a provenance fact, not immunity from falsification. Gradual iteration may preserve a rule as a hypothesis, but a repeatedly failing rule must be downgradable or removable.
 - Writing a self-critique does not close the issue. Closure requires a control that can detect recurrence and a prospective test that can fail.
 
@@ -79,6 +81,8 @@ For narrative or scenario rules, the test must preserve rival explanations and f
 
 For boundary claims, the test must vary the suspected boundary variable while holding the procedure as stable as practicable. A single failure may generate a boundary hypothesis, never close the causal attribution.
 
+For meta-controls, the relevant ablation is itself a control test: use predefined seeded failure/recurrence cases, measure false positives and false negatives, compare overlap with existing gates, and include maintenance cost. If a new gate catches nothing that the current stack misses, it should be consolidated or removed. `CI green` is structure credit, not evidence of cognitive or empirical progress.
+
 ## 5. Evidence-credit separation
 
 The following credits must remain distinct. In particular, **source fidelity** means only that the source has been represented faithfully; it is not a synonym for empirical validity.
@@ -97,7 +101,7 @@ EMPIRICAL CREDIT
 = unknown-outcome performance survived a predefined test
 ```
 
-Only the last category can support empirical promotion, and this protocol grants none.
+Only the last category can support empirical promotion, and this protocol grants none. Additional controls may increase structure credit only when they add non-redundant audit value; their count or pass rate cannot be converted into empirical credit.
 
 ## 6. Negative evidence
 
@@ -117,9 +121,10 @@ A new theory component must answer:
 - Which boundary conditions make it inapplicable?
 - Which negative cases are retained rather than discarded?
 - Which rival explanation makes a different prediction, and what observation separates them?
+- What existing rule or control can this replace, simplify or render unnecessary?
 - Does the same result survive an unknown-outcome, frozen procedure?
 
-If these questions are unanswered, the component remains a hypothesis regardless of elegance, narrative coherence, traditional status, source count, or author confidence.
+If these questions are unanswered, the component remains a hypothesis regardless of elegance, narrative coherence, audit complexity, traditional status, source count, or author confidence.
 
 ## 8. Relationship to existing controls
 
@@ -132,6 +137,8 @@ This protocol complements rather than replaces:
 - `K2_QIMEN_PRACTICE_INPUT_INTEGRITY_PROTOCOL.md`
 
 The cognitive-error ledger records *what kinds of errors exist*. The epistemic-debt ledger records *where a known error resurfaced after it had already been recognized*.
+
+This protocol is also subject to its own complexity rule. New audit layers do not receive permanent status merely because they are fail-closed; redundant controls must be mergeable or deletable.
 
 ## 9. Current status
 

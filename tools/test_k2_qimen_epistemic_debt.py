@@ -18,7 +18,7 @@ def main():
 
     rows = v.load_jsonl(K / "K2_QIMEN_EPISTEMIC_DEBT.jsonl")
     bias_ids = v.known_bias_ids(ROOT)
-    assert len(rows) >= 10
+    assert len(rows) >= 11
 
     # Unresolved recurrence can never silently promote itself.
     mutated = copy.deepcopy(rows)
@@ -51,6 +51,11 @@ def main():
     issues = v.validate_rows(mutated, ROOT, bias_ids)
     expect_issue(issues, "cannot be REPAIRED")
 
+    # Every declared recurrence category must remain instantiated in the ledger.
+    mutated = [row for row in copy.deepcopy(rows) if row["category"] != "CONTROL_COMPLEXITY_ILLUSION"]
+    issues = v.validate_rows(mutated, ROOT, bias_ids)
+    expect_issue(issues, "category coverage mismatch")
+
     protocol = (K / "K2_QIMEN_EPISTEMIC_DEBT_PROTOCOL.md").read_text(encoding="utf-8")
 
     # The protocol must explicitly reject magic-count promotion.
@@ -73,6 +78,11 @@ def main():
     issues = v.validate_protocol(mutated_protocol)
     expect_issue(issues, "BOUNDARY_CLAIM_REQUIRES_COMPETING_CAUSES")
 
+    # More audit machinery is not itself cognitive or empirical progress.
+    mutated_protocol = protocol.replace("CONTROL_COMPLEXITY != EMPIRICAL_PROGRESS", "")
+    issues = v.validate_protocol(mutated_protocol)
+    expect_issue(issues, "CONTROL_COMPLEXITY != EMPIRICAL_PROGRESS")
+
     # The schema itself must encode fail-closed promotion and zero empirical credit.
     schema = v.load_json(K / "schema" / "qimen_epistemic_debt.schema.json")
     mutated_schema = copy.deepcopy(schema)
@@ -87,7 +97,7 @@ def main():
     expect_issue(issues, "category coverage drift")
 
     print("k2-qimen-epistemic-debt-tests: PASS")
-    print("negative_cases=11 base_contract=PASS")
+    print("negative_cases=13 base_contract=PASS")
 
 
 if __name__ == "__main__":

@@ -23,6 +23,7 @@ EXPECTED_CATEGORIES = {
     "UNCALIBRATED_VALIDATION_CREDIT",
     "PREMATURE_BOUNDARY_ATTRIBUTION",
     "NARRATIVE_COHERENCE",
+    "CONTROL_COMPLEXITY_ILLUSION",
 }
 EXPECTED_FIELDS = {
     "schema_version",
@@ -63,6 +64,7 @@ REQUIRED_PROTOCOL_INVARIANTS = (
     "NARRATIVE_COHERENCE != EMPIRICAL_VALIDITY",
     "CONTEXT_FIT != OUTCOME_EVIDENCE",
     "BOUNDARY_CLAIM_REQUIRES_COMPETING_CAUSES",
+    "CONTROL_COMPLEXITY != EMPIRICAL_PROGRESS",
     "NEGATIVE_EVIDENCE_IS_FIRST_CLASS",
     "BASELINE_OR_COUNTERFACTUAL_REQUIRED",
 )
@@ -243,6 +245,7 @@ def validate_protocol(protocol: str):
         "negative evidence",
         "narrative",
         "competing causes",
+        "control complexity",
         "empirical_credit = NONE",
     ):
         if needle.lower() not in protocol.lower():
@@ -252,13 +255,14 @@ def validate_protocol(protocol: str):
 
 def validate_audit(audit: str):
     issues = []
-    for did in [f"QED-{n:03d}" for n in range(1, 11)]:
+    for did in [f"QED-{n:03d}" for n in range(1, 12)]:
         if did not in audit:
             issues.append(f"retreat audit missing debt reference {did}")
     for needle in (
         "过去不是“没有反省”，而是“反省没有形成复发门禁”",
         "谨慎的任意数字仍然是任意数字",
         "故事越完整，不代表故事越真",
+        "门禁越多，不代表认知越接近真实",
         "Empirical Credit: `NONE`",
         "自己长出理论",
     ):
