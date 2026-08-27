@@ -24,6 +24,7 @@ on:
       - 'tools/test_k2_qimen_practice_input_integrity.py'
       - 'tools/validate_k2_qimen_practice_input_integrity.py'
       - 'tools/test_k2_qimen_weather_structure_audit.py'
+      - 'tools/test_k2_qimen_plate_pairing_fixture.py'
       - '.github/workflows/k2-qimen-cognitive-reconstruction.yml'
       - '.github/workflows/knowledge-engine-ci.yml'
       - 'tools/test_knowledge_ci_contract.py'
@@ -46,6 +47,7 @@ on:
       - 'tools/test_k2_qimen_practice_input_integrity.py'
       - 'tools/validate_k2_qimen_practice_input_integrity.py'
       - 'tools/test_k2_qimen_weather_structure_audit.py'
+      - 'tools/test_k2_qimen_plate_pairing_fixture.py'
       - '.github/workflows/k2-qimen-cognitive-reconstruction.yml'
       - '.github/workflows/knowledge-engine-ci.yml'
       - 'tools/test_knowledge_ci_contract.py'
@@ -74,3 +76,5 @@ jobs:
         run: python3 tools/validate_k2_qimen_practice_input_integrity.py
       - name: Test CDAF-H2 weather implementation structure audit
         run: python3 tools/test_k2_qimen_weather_structure_audit.py
+      - name: Test source-grounded Qimen plate pairing fixture
+        run: python3 tools/test_k2_qimen_plate_pairing_fixture.py
