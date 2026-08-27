@@ -7,6 +7,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import validate_k2_qimen_cognitive_reconstruction as v
+import test_k2_qimen_epistemic_debt as epistemic_debt_test
 
 
 def load_json(path):
@@ -91,6 +92,10 @@ def main():
     broken_schema["properties"]["decision_tie_break_policy"]["allOf"] = []
     issues = v.validate_scenario_schema(broken_schema)
     assert any("fail closed for multi-output selection" in x for x in issues), issues
+
+    # Second-order closure: a bias that was already recognized must not re-enter
+    # the theory under a new label without creating and discharging epistemic debt.
+    epistemic_debt_test.main()
 
     print("k2-qimen-cognitive-reconstruction-tests: PASS")
 
