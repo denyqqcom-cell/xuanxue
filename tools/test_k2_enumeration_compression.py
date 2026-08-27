@@ -5,7 +5,7 @@ from validate_k2_enumeration_compression import validate_rows,coverage_issues
 SRC={"QM-SRC-0017":{"file_sha256":"a"*64}}
 LIN={"QM-SRC-0017":{"work_id":"WORK-000224"}}
 DEEP={"QM-SRC-0017":{"read_status":"COMPLETE","verification_mode":"VISUAL_PAGE","page_end":419}}
-STATE={"schema_version":"k2-qcic-v06-machine-gates-v1","status":"ACTIVE","claim_extraction_blocked":True,"targets":[{"source_id":"QM-SRC-0017","source_stance":{"required":True,"minimum_rows":0},"enumeration_compression":{"required":True,"minimum_rows":1}}]}
+STATE={"schema_version":"k2-qcic-v06-machine-gates-v1","status":"ACTIVE","claim_extraction_blocked":True,"targets":[{"source_id":"QM-SRC-0017","source_stance":{"required":True,"minimum_rows":0},"enumeration_compression":{"required":True,"minimum_rows":1,"required_generative_rule_ids":["QM0017-TIME-ENUM"]}}]}
 BASE={
  "compression_id":"K2EC-QM0017-001","source_id":"QM-SRC-0017","work_id":"WORK-000224","canonical_sha256":"a"*64,
  "enumeration_label":"时家阴阳遁1080定局","method_layer":"CALCULATION","input_domain":"阳遁540+阴遁540",
@@ -34,5 +34,13 @@ def main():
     a=deepcopy(BASE);a["compression_id"]="A";a["enumeration_label"]="part-a"
     b=deepcopy(BASE);b["compression_id"]="B";b["enumeration_label"]="part-b";b["evidence_locators"]=["pdf:p210"]
     assert validate_rows(SRC,LIN,DEEP,[a,b]),"duplicate generative_rule_id accepted"
+
+    # A minimum row count is not semantic generator coverage. Replacing an
+    # accepted generator with an unrelated one must not keep the gate green.
+    unrelated=deepcopy(BASE);unrelated["generative_rule_id"]="QM0017-UNRELATED-ENUM"
+    assert coverage_issues([unrelated],deepcopy(STATE)),"count-only row substituted required generator"
+    malformed=deepcopy(STATE);malformed["targets"][0]["enumeration_compression"]["required_generative_rule_ids"]=["QM0017-TIME-ENUM","QM0017-TIME-ENUM"]
+    assert coverage_issues([deepcopy(BASE)],malformed),"duplicate required generator ids accepted"
+
     print("k2-enumeration-compression-tests: PASS")
 if __name__=="__main__":main()
