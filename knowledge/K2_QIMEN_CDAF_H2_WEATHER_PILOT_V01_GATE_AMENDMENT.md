@@ -2,7 +2,9 @@
 
 状态：`ACTIVE_AMENDMENT / BATCH_NOT_READY`  
 基础设计：`knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01.md`  
-结构审计：`knowledge/K2_QIMEN_CDAF_H2_IMPLEMENTATION_STRUCTURE_AUDIT_V01.md`  
+抽象结构审计：`knowledge/K2_QIMEN_CDAF_H2_IMPLEMENTATION_STRUCTURE_AUDIT_V01.md`  
+真实公历审计：`knowledge/K2_QIMEN_CDAF_H2_REAL_CALENDAR_AUDIT_V01.md`  
+Calendar control：`knowledge/K2_QIMEN_CDAF_H2_CALENDAR_EQUIVALENCE_CONTROL_V01.md`  
 Empirical Credit：`NONE`
 
 ## 1. 为什么需要 amendment
@@ -15,7 +17,7 @@ Empirical Credit：`NONE`
 - M2 只允许在 `M1=NO_RAIN10 && signal=true` 时改判；
 - outcome proxy、入样、禁用修正规则等边界。
 
-后续审计发现，正式 Batch 前不能只解决统计问题。还必须先回答：究竟使用哪一种定元法、该方法是否被来源结构验证、九星与所携天盘干是否有 chart-only fixture、以及 signal 是否只是携带节气/季节信息。
+后续审计发现，正式 Batch 前不能只解决统计问题。还必须先回答：究竟使用哪一种定元法、该方法是否被来源结构验证、九星与所携天盘干是否有 chart-only fixture、signal 的真实公历结构是什么，以及 Qimen-derived signal 与普通 calendar/time transform 在信息来源上究竟能否区分。
 
 本 amendment 不创建 Batch、不改写历史结果、不授予 empirical credit。
 
@@ -32,7 +34,7 @@ Empirical Credit：`NONE`
 
 当前实现已经把 `yuanOfFutou()` 改成回溯最近的五日甲/己符头；`xunInfo()` 的十日旬首算法保持不变。
 
-Wave1 Evidence `K2E-W1-QM-0028-0016` 已明确记录：甲或己为每元首日天干，子午卯酉为上元、寅申巳亥为中元、辰戌丑未为下元。`K2E-W1-QM-0028-0018` 另记录拆补法以实际交节时辰切换节气局数体系。
+Wave1 Evidence `K2E-W1-QM-0028-0016` 已记录：甲或己为每元首日天干，子午卯酉为上元、寅申巳亥为中元、辰戌丑未为下元。`K2E-W1-QM-0028-0018` 另记录拆补法以实际交节时辰切换节气局数体系。
 
 ### 2.2 当前候选方法
 
@@ -40,7 +42,7 @@ weather-v0.1 的排盘方法候选固定为：
 
 `WEATHER_JU_METHOD_CANDIDATE = CHAI_BU_FUTOU`
 
-原因是首个天气来源规则来自以拆补/符头体系起局的时家奇门资料；不能继续默认使用 App 的 `CHAI_BU_DAYCOUNT`，也不能在 Outcome 后切换方法寻找有利结果。
+不能继续默认使用 App 的 `CHAI_BU_DAYCOUNT`，也不能在 Outcome 后切换方法寻找有利结果。
 
 这只是候选方法冻结，不代表 `CHAI_BU_FUTOU` 已经全局验真。
 
@@ -50,7 +52,8 @@ weather-v0.1 的排盘方法候选固定为：
 
 1. 12 类甲/己五日符头类别的 source-rule regression；
 2. `辛丑 -> 最近符头己亥 -> 中元` 的算法反例，用于防止退回十日旬首实现；
-3. QM-SRC-0021 的 2004-05-29 戊午时 chart-only anchor：小满、符头法下元、阳遁八局、甲寅旬、值符天辅，并可核对外八宫九星位置。
+3. QM-SRC-0021 的 2004-05-29 戊午时 chart-only anchor：小满、符头法下元、阳遁八局、甲寅旬、值符天辅，并可核对外八宫九星位置；
+4. `%5` 修复、遗留测试纠偏和 Prospective JuMethod freeze contract 已在 `d25cdcb65668634f36bb49b29edf739716fe3afd` 后四套 CI 全绿。
 
 但当前只有一张完整 dated plate anchor，不能据此把所有日期、所有交节边界和整个 FUTOU 实现标成 VERIFIED。
 
@@ -68,11 +71,10 @@ weather-v0.1 的排盘方法候选固定为：
 
 Gate 0 关闭前至少需要：
 
-- 当前五日符头 algorithm tests 全绿；
 - 至少增加一个与 2004-05-29 不同局数/不同节气或阴遁的、原页可复核 dated JuMethod fixture；
 - fixture 的日期、时柱、节气、元、局数全部来自可追溯原页，而不是事后推回；
 - 交节边界行为至少有一个 source-grounded fixture；
-- weather Plan 明确冻结 `qimen_ju_method = CHAI_BU_FUTOU` 与 exact engine commit/blob；
+- weather Plan 保持冻结 `qimen_ju_method = CHAI_BU_FUTOU` 与 exact engine blob；
 - 若后续来源支持另一方法，只能另起 plan/model version，不得回填既有 Freeze。
 
 关闭前：
@@ -93,59 +95,95 @@ Gate 0 关闭前至少需要：
 4. weather signal 所依赖的天柱/天蓬—天盘干配对与这些 fixture 一致；
 5. 若 fixture 冲突，保留冲突并先修 engine/protocol，不允许选有利来源静默覆盖。
 
-## 4. Gate B — CALENDAR_CONFOUNDING_CONTROL
+## 4. Gate B — CALENDAR_EQUIVALENCE_CONTROL
 
-状态：`OPEN / BLOCKING`
+状态：`CONTROL_PROTOCOL_DEFINED / BATCH_SCHEDULE_NOT_FROZEN / BLOCKING`
 
-早期结构审计枚举过：
+真实公历审计把问题从普通的“季节性混杂”提升成更严格的 calendar equivalence：
 
-`24节气 × 3名义元 × 5个17:00酉时状态 = 360` 个抽象盘面合同状态，core signal 触发 64 个。
+```text
+civil datetime -> Qimen plate -> CORE_RAIN_SIGNAL_V01
+```
 
-这个 `64/360 = 17.78%` 现在只能叫：
+当前 M2 没有引入独立于时间的新外部观测源。因此即使未来 `M2 > M1`，也不能直接解释为“奇门获得了日历之外的额外信息”。
 
-`ABSTRACT_PLATE_STATE_SPACE_DENSITY`
+v0.1 已冻结 control family 的定义，不使用 weather outcome 选 control：
 
-不能再解释为“真实公历平均每5.625天触发一次”。拆补法存在交节后的残上/中/下/补上结构，真实日期对三元并非天然等权。
+- `M2_SHAM_PLUS_1`：在每一次实际节气段内部，把 CORE signal 序列循环平移 `+1日`；
+- `M2_SHAM_MINUS_1`：同段循环平移 `-1日`。
 
-即便以后用真实公历枚举重新得到触发频率，signal 仍可能携带节气/季节信息。因此 Batch preregistration 必须冻结 calendar-only control，例如：
+两套 sham 保留同一节气段的 trigger 数量和节气 propensity，并大体保留局部 trigger 聚集结构，只破坏“具体日期的 exact plate alignment”。详见：
 
-- `M1.5 = M1 + calendar/season-only comparator`；或
-- 在节气/季节 strata 内保持触发机会的 sham/negative-control signal；或
-- 其他能分离 calendar encoding 与 plate-specific mapping 的预注册方法。
+`K2_QIMEN_CDAF_H2_CALENDAR_EQUIVALENCE_CONTROL_V01.md`
 
-不得在 Outcome 后选择最有利的 control。
+未来若要讨论 exact plate-alignment credit，必要条件至少是：
+
+```text
+M2_ORIGINAL > M2_SHAM_PLUS_1
+AND
+M2_ORIGINAL > M2_SHAM_MINUS_1
+```
+
+即使满足，也只能讨论“这个预注册时间变换的精确相位在该模型类中更有区分力”，不能宣称出现了独立于时间的信息源。
+
+Gate B 剩余关闭条件：
+
+- Batch horizon 冻结后生成完整 sham schedule；
+- schedule 生成必须只读取 calendar/engine，不读取 HKO forecast/outcome；
+- segment identity、边界日、+1/-1 规则进入 Freeze；
+- original 与两套 sham 共用同一 M1、outcome、exclusion、loss 和 serial-dependence treatment。
 
 ## 5. Gate C — REAL_CALENDAR_FUTOU_FREQUENCY
 
-状态：`OPEN / BLOCKING FOR SAMPLE DESIGN`
+状态：`CLOSED_FOR_PINNED_ENGINE_STRUCTURE_ONLY`
 
-在 Gate 0 的 JuMethod 算法稳定后，必须使用真实公历时点而不是名义三元笛卡尔积重新枚举：
+已由真实 `QimenEngine` 对：
 
-- 固定 17:00 HKT；
-- 固定 `CHAI_BU_FUTOU` 候选版本；
-- 记录真实节气切换与五日符头；
-- 计算 core signal 的真实 civil-date trigger rate、节气分布、连续/聚集结构；
-- 不读取任何 HKO forecast 或 rainfall outcome。
+`2000-01-01 .. 2099-12-31` 共 `36,525` 个 civil dates，每日 `17:00 HKT`，`CHAI_BU_FUTOU`
 
-它仍只是结构频率，不授予预测 empirical credit。
+逐日枚举。
+
+结果：
+
+- core signal days：`6,498`
+- civil-date structural trigger rate：`17.79055441%`
+- max consecutive trigger days：`4`
+- max non-trigger gap：`33日`
+- 每个触发日最多 1 条 core hit path
+- 24节气触发率高度不均；冬至/惊蛰/清明/立夏为0
+- 18个阴阳九局组合只有8个会触发
+
+机器证据：
+
+- `QimenWeatherRealCalendarAuditTest` = PASS
+- K2 App UI CI run `33109453828` = SUCCESS
+- report 已作为 CI artifact 上传
+
+完整结果见：
+
+`K2_QIMEN_CDAF_H2_REAL_CALENDAR_AUDIT_V01.md`
+
+这个 gate 的 CLOSED 只表示“当前 exact engine+method 的真实日期结构已知”。若 `QimenEngine blob / CHAI_BU_FUTOU / 17:00 freeze / CORE signal` 任一改变，Gate C 自动重开。
+
+它不授予任何 weather empirical credit，也不能用17.79%直接反推未来 Batch 天数。
 
 ## 6. Gate D — SERIAL_DEPENDENCE / SAMPLE_ADEQUACY
 
 状态：`OPEN / BLOCKING`
 
-只有在真实公历 trigger structure 与 calendar confounding control 明确后，才设计统计窗口。
-
-M2 真正与 M1 分叉还要求：
+真实公历 trigger structure 已知后，统计设计仍不能直接用 17.79% 计算样本量，因为 M2 真正与 M1 分叉还要求：
 
 `M1 == NO_RAIN10 && CORE_RAIN_SIGNAL_V01 == TRUE`
 
-所以实际 paired discordant information rate 必然不高于 core trigger rate。
+该 discordant opportunity rate 尚未在未知 outcome 的正式 Batch 中观察。
+
+同时 signal 最大连续触发4日、最长非触发空窗33日，天气本身也具有序列依赖。
 
 Batch 前仍需冻结：
 
 - sampling cadence / analysis unit；
 - planned duration 或合法 non-outcome-driven stopping rule；
-- paired primary statistic；
+- original vs M1 与 original vs ±1 sham 的 paired primary statistic；
 - serial-dependence treatment；
 - minimum discordant/information threshold；
 - success / failure / insufficient-information decision rule。
@@ -153,15 +191,15 @@ Batch 前仍需冻结：
 ## 7. 当前优先顺序
 
 ```text
-0. JU_METHOD_VALIDATION
+0. JU_METHOD_VALIDATION [OPEN]
         ↓
-A. PLATE_PAIRING_VALIDATION
+A. PLATE_PAIRING_VALIDATION [PARTIAL]
         ↓
-B. CALENDAR_CONFOUNDING_CONTROL
+B. CALENDAR_EQUIVALENCE_CONTROL [PROTOCOL DEFINED / SCHEDULE NOT FROZEN]
         ↓
-C. REAL_CALENDAR_FUTOU_FREQUENCY
+C. REAL_CALENDAR_FUTOU_FREQUENCY [CLOSED FOR PINNED ENGINE]
         ↓
-D. SERIAL_DEPENDENCE / SAMPLE_ADEQUACY
+D. SERIAL_DEPENDENCE / SAMPLE_ADEQUACY [OPEN]
         ↓
 E. Batch preregistration
         ↓
@@ -172,28 +210,30 @@ G. Outcome
 H. Batch Review
 ```
 
+Gate C 的完成不允许越过更靠前的 Gate 0/A/B。
+
 ## 8. 当前状态口径
 
 ```text
-DOMAIN_DESIGN_DEFINED            = true
-SOURCE_RULE_MINIMIZED            = true
-M1_DEFINITION_DEFINED            = true
-M2_UPDATE_FUNCTION_DEFINED       = true
-OUTCOME_PROXY_POLICY_DEFINED     = true
-WEATHER_JU_METHOD_CANDIDATE      = CHAI_BU_FUTOU
+DOMAIN_DESIGN_DEFINED               = true
+SOURCE_RULE_MINIMIZED               = true
+M1_DEFINITION_DEFINED               = true
+M2_UPDATE_FUNCTION_DEFINED          = true
+OUTCOME_PROXY_POLICY_DEFINED        = true
+WEATHER_JU_METHOD_CANDIDATE         = CHAI_BU_FUTOU
 
-JU_METHOD_VALIDATION             = OPEN
-PLATE_PAIRING_VALIDATION         = PARTIAL
-CALENDAR_CONFOUNDING_CONTROL     = OPEN
-REAL_CALENDAR_FUTOU_FREQUENCY    = OPEN
-SERIAL_DEPENDENCE_SAMPLE_GATE    = OPEN
+JU_METHOD_VALIDATION                = OPEN
+PLATE_PAIRING_VALIDATION            = PARTIAL
+CALENDAR_EQUIVALENCE_CONTROL        = PROTOCOL_DEFINED_NOT_BATCH_FROZEN
+REAL_CALENDAR_FUTOU_FREQUENCY       = CLOSED_FOR_PINNED_ENGINE_STRUCTURE_ONLY
+SERIAL_DEPENDENCE_SAMPLE_GATE       = OPEN
 
-BATCH_READY                      = false
-BATCH                            = NONE
-FREEZE                           = NONE
-OUTCOME                          = NONE
-EMPIRICAL_CREDIT                 = NONE
-CLAIM_EXTRACTION                 = BLOCKED
+BATCH_READY                         = false
+BATCH                               = NONE
+FREEZE                              = NONE
+OUTCOME                             = NONE
+EMPIRICAL_CREDIT                    = NONE
+CLAIM_EXTRACTION                    = BLOCKED
 ```
 
 如果其他文档仍以较宽松的 `DESIGN_READY` 描述 CDAF-H2，它只能理解为“已有可审计设计对象”，不得解释为“已经可以开始正式 Batch”。
