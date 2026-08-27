@@ -5,18 +5,47 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 
 /**
- * Chart-only fixture from QM-SRC-0021, algorithm chapter around printed pp.68-70.
+ * Source-grounded structural fixtures from QM-SRC-0021.
  *
- * Source states for 2004-05-29 戊午时:
- * - 甲申年 / 己巳月 / 戊申日 / 戊午时
- * - 阳遁八局
- * - 甲寅旬, 值符天辅
- * - 天辅随旬首甲寅癸移到艮8，其余九星按固定相对次序同步移动
- *
- * This fixture validates plate construction only. It imports no weather outcome
- * and grants no predictive/empirical credit.
+ * They validate calendar/plate construction only. No weather outcome or case
+ * verdict is imported, so these tests grant no predictive/empirical credit.
  */
 class QimenSourcePlateFixtureTest {
+
+    @Test
+    fun qm0021_five_day_futou_heads_map_to_source_yuan_classes() {
+        val expected = mapOf(
+            "甲子" to "上元", "甲午" to "上元", "己卯" to "上元", "己酉" to "上元",
+            "甲寅" to "中元", "甲申" to "中元", "己巳" to "中元", "己亥" to "中元",
+            "甲辰" to "下元", "甲戌" to "下元", "己丑" to "下元", "己未" to "下元",
+        )
+        expected.forEach { (futou, yuan) ->
+            assertEquals(yuan, QimenEngine.yuanOfFutou(futou), "source futou class mismatch for $futou")
+        }
+
+        // 辛丑 is not a符头 day. The nearest preceding 甲/己 five-day head is 己亥,
+        // therefore it belongs to中元. A ten-unit旬首 implementation would misclassify it.
+        assertEquals("中元", QimenEngine.yuanOfFutou("辛丑"))
+    }
+
+    @Test
+    fun qm0021_20020801_xinchou_renshen_futou_reproduces_source_yin1() {
+        val c = QimenEngine.bySolar(
+            2002, 8, 1, 16, 0,
+            QimenEngine.JuMethod.CHAI_BU_FUTOU,
+        )
+
+        assertEquals("壬午", c.yearGZ)
+        assertEquals("丁未", c.monthGZ)
+        assertEquals("辛丑", c.dayGZ)
+        assertEquals("壬申", c.hourGZ)
+        assertEquals("大暑", c.jieQi)
+        assertEquals(-1, c.yinYang)
+        assertEquals("中元", c.yuan)
+        assertEquals(1, c.ju)
+        assertEquals("甲午", c.xunShou)
+        assertEquals("CHAI_BU_FUTOU", c.juMethodUsed)
+    }
 
     @Test
     fun qm0021_20040529_wuwu_futou_reproduces_source_star_plate() {
