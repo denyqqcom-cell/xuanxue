@@ -20,6 +20,9 @@ EXPECTED_CATEGORIES = {
     "RETROSPECTIVE_REPAIR",
     "TRADITION_IMMUNITY",
     "KNOWN_BIAS_RECURRENCE",
+    "UNCALIBRATED_VALIDATION_CREDIT",
+    "PREMATURE_BOUNDARY_ATTRIBUTION",
+    "NARRATIVE_COHERENCE",
 }
 EXPECTED_FIELDS = {
     "schema_version",
@@ -53,9 +56,13 @@ REQUIRED_PROTOCOL_INVARIANTS = (
     "CASE_COUNT != INDEPENDENCE",
     "THREE_SUCCESSES != VALIDATION",
     "UNCALIBRATED_WEIGHT != MODEL",
+    "UNCALIBRATED_SCORE != VALIDATION_CREDIT",
     "TRADITIONAL_STATUS != IMMUNITY_FROM_FALSIFICATION",
     "REFLECTION_RECORD != CORRECTION",
     "RECURRENT_BIAS => PROMOTION_BLOCKED",
+    "NARRATIVE_COHERENCE != EMPIRICAL_VALIDITY",
+    "CONTEXT_FIT != OUTCOME_EVIDENCE",
+    "BOUNDARY_CLAIM_REQUIRES_COMPETING_CAUSES",
     "NEGATIVE_EVIDENCE_IS_FIRST_CLASS",
     "BASELINE_OR_COUNTERFACTUAL_REQUIRED",
 )
@@ -111,6 +118,9 @@ def validate_schema_contract(schema: dict):
         issues.append("schema must fail closed with promotion_status=BLOCKED")
     if props.get("empirical_credit", {}).get("const") != "NONE":
         issues.append("schema must keep empirical_credit=NONE")
+    categories = props.get("category", {}).get("enum")
+    if not isinstance(categories, list) or set(categories) != EXPECTED_CATEGORIES:
+        issues.append("epistemic-debt schema category coverage drift")
     release = props.get("required_before_release", {})
     release_required = release.get("required")
     if not isinstance(release_required, list) or set(release_required) != RELEASE_FIELDS:
@@ -231,6 +241,8 @@ def validate_protocol(protocol: str):
         "ablation",
         "baseline",
         "negative evidence",
+        "narrative",
+        "competing causes",
         "empirical_credit = NONE",
     ):
         if needle.lower() not in protocol.lower():
@@ -240,11 +252,13 @@ def validate_protocol(protocol: str):
 
 def validate_audit(audit: str):
     issues = []
-    for did in [f"QED-{n:03d}" for n in range(1, 8)]:
+    for did in [f"QED-{n:03d}" for n in range(1, 11)]:
         if did not in audit:
             issues.append(f"retreat audit missing debt reference {did}")
     for needle in (
         "过去不是“没有反省”，而是“反省没有形成复发门禁”",
+        "谨慎的任意数字仍然是任意数字",
+        "故事越完整，不代表故事越真",
         "Empirical Credit: `NONE`",
         "自己长出理论",
     ):
