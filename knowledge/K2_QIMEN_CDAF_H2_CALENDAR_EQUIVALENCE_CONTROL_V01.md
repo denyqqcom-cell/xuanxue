@@ -1,9 +1,10 @@
 # K2 CDAF-H2 Calendar Equivalence Control v0.1
 
-状态：`DESIGN_DEFINED / NOT_BATCH_FROZEN / NO_OUTCOME_DATA`  
+状态：`MACHINE_STRUCTURE_VERIFIED / NOT_BATCH_FROZEN / NO_OUTCOME_DATA`  
 关联假设：`CDAF-H2`  
 关联 weather design：`K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01.md`  
 真实公历审计：`K2_QIMEN_CDAF_H2_REAL_CALENDAR_AUDIT_V01.md`  
+机器结构测试：`ziwei-core/src/test/kotlin/com/xuanxue/qimen/QimenWeatherCalendarEquivalenceAuditTest.kt`  
 Empirical Credit：`NONE`
 
 ## 1. 问题升级：不是普通“季节混杂”而已
@@ -189,13 +190,74 @@ qimen_ju_method
 
 如果未来发现节气交接时刻导致17:00所属段不唯一，则该日必须由冻结的 engine calendar boundary 决定，不得人工调整。
 
-## 10. 当前 gate 状态
+## 10. 机器结构审计结果
+
+针对 pinned engine：
+
+```text
+QimenEngine blob = 1912760ccd10cb4a58eb8faec06669c0d690657b
+JuMethod          = CHAI_BU_FUTOU
+civil time        = 17:00 HKT
+calendar window   = 2000-01-01 .. 2099-12-31
+```
+
+机器测试先向窗口两端各扩 40 日，仅用于识别被 2000-01-01 / 2099-12-31 截断的节气段；正式统计只纳入完整落在100年窗口内的真实连续节气段。
+
+CI run `33113150132` 的结构结果：
+
+```text
+complete_segment_count = 2399
+complete_segment_days  = 36509
+min_segment_days       = 14
+max_segment_days       = 16
+mixed_segments         = 2000
+all_zero_segments      = 399
+all_one_segments       = 0
+
+original_triggers      = 6498
+plus_1_triggers        = 6498
+minus_1_triggers       = 6498
+
+plus_1_hamming_days    = 10352
+minus_1_hamming_days   = 10352
+
+audit_schedule_sha256 = 2760b8e94ada03b0a9d0e2b6dcae6ef27b73df31089f741536eddb5ab29710da
+```
+
+并且 24 个节气逐项满足：
+
+```text
+original_triggers_by_jieqi
+== plus_1_triggers_by_jieqi
+== minus_1_triggers_by_jieqi
+```
+
+因此当前实现已经机器验证：
+
+1. sham 不跨真实连续节气段；
+2. `+1/-1` 不改变任何节气段的 trigger count / trigger propensity；
+3. 两套 sham 都确实在大量 civil dates 上改变 exact alignment，而不是与 original 恒等；
+4. 生成过程不读取 HKO forecast；
+5. 生成过程不读取 rainfall/outcome；
+6. 这次100年 schedule hash 只是结构审计证据，不是未来 Batch 的 Freeze hash。
+
+这项通过获得的是：
+
+`CONTROL_STRUCTURE_CREDIT`
+
+不是：
+
+`PLATE_ALIGNMENT_CREDIT`、`PREDICTIVE_CREDIT` 或 `EMPIRICAL_CREDIT`。
+
+## 11. 当前 gate 状态
 
 ```text
 CALENDAR_EQUIVALENCE_CONTROL_PROTOCOL = DEFINED
+CALENDAR_EQUIVALENCE_MACHINE_AUDIT    = VERIFIED_FOR_PINNED_ENGINE
 SHAM_SCHEDULE                         = NOT_BATCH_FROZEN
 OUTCOME_DATA_USED                     = false
+PLATE_ALIGNMENT_CREDIT                = NONE
 EMPIRICAL_CREDIT                      = NONE
 ```
 
-本设计定义后，Gate B 不再是“想一个 calendar control”这一开放问题；但在 Batch horizon、engine、JuMethod 与节气段 schedule 真正冻结之前，仍不能把 Gate B 标成完整 CLOSED。
+Gate B 的“如何构造 calendar-equivalence control”及其机器结构可执行性已经关闭；但在未来 Batch horizon、engine、JuMethod 与实际节气段 schedule 真正冻结之前，**Batch-specific Gate B 仍保持 blocking**。不能把本次100年结构审计的 hash 直接拿来冒充未来实验 Freeze。
