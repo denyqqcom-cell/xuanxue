@@ -1,225 +1,190 @@
 # K2 CDAF-H2 天气信号实现结构审计 v0.1
 
-状态：`STRUCTURE_ONLY / NO_OUTCOME_DATA / NOT_EMPIRICAL_VALIDATION`  
+状态：`ABSTRACT_STATE_SPACE_ONLY / NO_OUTCOME_DATA / NOT_CIVIL_DATE_FREQUENCY / NOT_EMPIRICAL_VALIDATION`  
 关联假设：`CDAF-H2`  
 关联设计：`knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01.md`  
 审计脚本：`tools/test_k2_qimen_weather_structure_audit.py`  
 Empirical Credit：`NONE`  
 Batch：`NONE`
 
-## 1. 本审计回答什么
+## 1. 本审计现在只回答什么
 
-本审计只回答一个工程问题：
+本审计只回答：
 
-> 在当前被冻结的 QimenEngine 实现合同中，若每天固定 17:00 HKT 起局，`CORE_RAIN_SIGNAL_V01` 本身有多稀疏？
+> 在锁定的 QimenEngine 盘面实现中，把 24 节气、每节气三个**名义元局**和固定酉时的五种时干状态做笛卡尔枚举时，`CORE_RAIN_SIGNAL_V01` 在这个抽象盘面状态空间里有多稀疏？
 
-它不读取：
+它明确不回答：
 
-- 历史降雨结果；
-- HKO 历史 PSR 命中情况；
-- 任何结果后的天气叙事。
+- 一年真实民用日期里该信号多久出现一次；
+- 需要观察多少天；
+- 该信号是否能预测降雨；
+- 该信号是否优于 HKO。
 
-因此这里得到的数字没有 empirical credit，也不是“奇门天气有效率”。
+历史天气、HKO 历史 PSR 和任何 outcome 均未被读取。
 
-## 2. 引擎锁定
+## 2. 2026-08-28 纠偏：旧 FUTOU 实现混淆了两个不同对象
 
-审计锁定当前 `QimenEngine.kt` Git blob：
+审计推进到来源日期 fixture 后发现，旧 `CHAI_BU_FUTOU` 用：
 
-`028747358ba78507d17b77e906222bb6739c0c32`
+```text
+s - (s % 10)
+```
 
-脚本会按 Git blob 算法重新计算本地文件 SHA；若引擎文件发生任何变化，审计直接失败，要求重新检查，而不是继续复用旧频率。
+寻找所谓“符头”。这实际寻找的是十个干支一组的**六甲旬首**，而 QM-SRC-0021 的拆补符头是每五日一换、以甲日或己日为元首的**五日符头**。
 
-这条锁的意义是：
+两者必须分开：
 
-`implementation frequency belongs to one exact engine implementation`
+```text
+六甲旬首：10-unit grouping
+用途：旬首、遁干、旬空等
 
-而不是把旧数字错误迁移到未来修改后的盘法。
+拆补符头：5-day yuan head
+用途：上 / 中 / 下元定局
+```
 
-## 3. 为什么不需要历史日期或天气数据
+旧实现因此被修为：
 
-17:00 HKT 固定属于酉时。
+```text
+s - (s % 5)
+```
 
-按五鼠遁，酉时干只有五个状态：
+当前锁定 `QimenEngine.kt` Git blob：
+
+`1912760ccd10cb4a58eb8faec06669c0d690657b`
+
+这个修复不改 `xunInfo()` 的十日旬首逻辑。
+
+## 3. 为什么旧 360-state 数字不能再被叫作“实际触发频率”
+
+17:00 HKT 属酉时，固定酉时有五种时干状态：
 
 `癸酉 / 乙酉 / 丁酉 / 己酉 / 辛酉`
 
-它们以 5 日为周期重复，因此任意连续 5 个日干日中，这五个酉时状态各出现一次。
-
-当前 `CHAI_BU_DAYCOUNT` 实现又只接受节气内：
-
-- 第 1–5 日：上元；
-- 第 6–10 日：中元；
-- 第 11–15 日：下元；
-- 第 16 日及以后：fail closed。
-
-所以在引擎允许的合同状态中，每个节气可写成：
-
-`3个元 × 5个酉时状态 = 15 states`
-
-24 节气合计：
-
-`24 × 3 × 5 = 360 engine-eligible contract states`
-
-这里枚举的是合同状态空间，不是假装已经遍历真实公历年份。
-
-## 4. CORE_RAIN_SIGNAL_V01 实现重建
-
-审计脚本不修改 `QimenChart` API，也不向 `Gong` 新增尚未黄金盘验证的 `tianGan` 字段。
-
-它只按当前锁定引擎内部已有算法，重建 weather-v0.1 所需的 `tianYi`，然后检查：
+若只枚举：
 
 ```text
-EXISTS star IN {天柱, 天蓬}
-SUCH THAT
-  star.heaven_plate_carried_stem IN {壬, 癸}
-  AND star.palace IN {1, 3, 6, 7}
+24节气 × 3名义元局 × 5酉时状态
 ```
 
-这叫 **implementation reconstruction**，不能被重新命名为“经典盘法已经验真”。
+得到 360 个抽象合同状态。
 
-## 5. 结构审计结果
-
-总 engine-eligible contract states：`360`
-
-`CORE_RAIN_SIGNAL_V01 = TRUE`：`64`
-
-实现合同触发率：
-
-`64 / 360 = 17.777777...%`
-
-等价为平均：
-
-`每 5.625 个 engine-eligible contract states 出现 1 次 core signal`
-
-这仍然不是实际 weather batch 的 M1/M2 discordant rate，因为 M2 只有在：
-
-`M1 == NO_RAIN10 AND core signal == TRUE`
-
-时才真正改变 M1。
-
-因此真实 paired-information opportunity 一定不高于 17.78%，具体多低目前未知，不能从这里猜。
-
-## 6. 节气分布不是均匀的
-
-每个节气的分母固定为 15 个合同状态。触发数如下：
-
-| 节气 | trigger / 15 |
-|---|---:|
-| 冬至 | 0 |
-| 小寒 | 2 |
-| 大寒 | 5 |
-| 立春 | 2 |
-| 雨水 | 5 |
-| 惊蛰 | 0 |
-| 春分 | 5 |
-| 清明 | 0 |
-| 谷雨 | 2 |
-| 立夏 | 0 |
-| 小满 | 2 |
-| 芒种 | 5 |
-| 夏至 | 4 |
-| 小暑 | 2 |
-| 大暑 | 3 |
-| 立秋 | 2 |
-| 处暑 | 3 |
-| 白露 | 4 |
-| 秋分 | 3 |
-| 寒露 | 4 |
-| 霜降 | 2 |
-| 立冬 | 4 |
-| 小雪 | 2 |
-| 大雪 | 3 |
-
-范围从 `0/15` 到 `5/15`，说明信号在当前实现中带有明显的节气结构。
-
-## 7. 新发现：CALENDAR_CONFOUNDING_CONTROL 必须成为 Batch blocker
-
-weather-v0.1 原本主要防的是：
-
-- 结果后换天气规则；
-- 多条天气口诀自由搜索；
-- 外应与地域修正；
-- 天气序列相关。
-
-本次结构审计又揭示了一层：
-
-`CORE_RAIN_SIGNAL_V01` 的触发机会本身随节气明显变化。
-
-因此未来若 M2 比 M1 好，至少有两个竞争解释：
-
-1. 奇门具体盘面结构确实提供了 M1 之外的信息；
-2. 该 signal 只是间接编码了节气/季节，而 M1 的剩余误差恰好也有季节结构。
-
-只比较 `M2 vs M1` 不能自动区分这两个解释。
-
-因此 Batch 前新增硬门：
-
-`CALENDAR_CONFOUNDING_CONTROL = OPEN`
-
-后续必须预先冻结一种不读取 outcome 的控制，例如：
-
-- M1.5：M1 + 明确的 calendar/season-only comparator；或
-- 在节气/季节 strata 内构造保持触发率的 sham/negative-control signal；或
-- 其他能把“日历季节信息”与“具体盘面映射”分开的预注册设计。
-
-具体采用哪一种必须在 Batch 前确定，不能看结果后挑最有利的控制。
-
-## 8. 另一个未关闭问题：PLATE_PAIRING_VALIDATION
-
-`handoff/qimen/05_FIXTURES.jsonl` 当前没有完整九宫黄金盘；`06_CASES.md` 也记录 chart independently rebuilt = 0。
-
-因此当前 `天柱/天蓬 — heaven-plate carried stem` 的配对仍是实现层候选，而不是已被 chart-only fixture 独立确认的盘面事实。
-
-新增硬门：
-
-`PLATE_PAIRING_VALIDATION = OPEN`
-
-Batch 前至少需要建立可独立复核的 chart-only fixture，验证 weather signal 所依赖的九星位置与其所携天盘干配对。fixture 只记录盘面事实，不导入书中结果断语，也不能拿回溯案例命中率替代排盘验证。
-
-## 9. 原有统计 blocker 仍然存在
-
-`SERIAL_DEPENDENCE / SAMPLE_ADEQUACY = OPEN`
-
-17.78% 不能直接变成“需要 30 天/60 天/100 天”。
-
-原因有三：
-
-1. 只有 M1=NO_RAIN10 且 signal=true 才产生 paired discordance；
-2. 连续天气结果存在依赖；
-3. signal 自身带节气结构。
-
-所以 observation window 必须在以上两层结构问题关闭后，再根据真正的 information unit 设计。
-
-## 10. 当前三重 Batch gate
-
-截至本审计：
+但 QM-SRC-0021 的拆补法明确允许节气交接后出现：
 
 ```text
-PLATE_PAIRING_VALIDATION       = OPEN
-CALENDAR_CONFOUNDING_CONTROL   = OPEN
-SERIAL_DEPENDENCE_SAMPLE_GATE  = OPEN
-
-BATCH_READY                    = false
-BATCH                          = NONE
-FREEZE                         = NONE
-OUTCOME                        = NONE
-EMPIRICAL_CREDIT               = NONE
+残上 → 中 → 下 → 补上
 ```
 
-没有任何一项可以因为 CI 通过而自动关闭。
+即真实公历日期不会自动给每个节气的上、中、下元各恰好五天等权重。
 
-## 11. 当前可以安全得出的结论
+因此：
+
+```text
+360-state audit ≠ civil-date frequency audit
+```
+
+任何“平均每 5.625 天一次”之类表述全部撤回。
+
+## 4. 抽象盘面状态空间结果仍可保留
+
+在 360 个**名义盘面状态**中：
+
+```text
+CORE_RAIN_SIGNAL_V01 = TRUE : 64
+state-space density          : 64 / 360 = 17.777...%
+```
+
+这个数只描述映射函数在抽象状态空间中的覆盖度。
+
+不同节气的名义 15-state trigger count 为：
+
+```text
+冬至0  小寒2  大寒5  立春2  雨水5  惊蛰0
+春分5  清明0  谷雨2  立夏0  小满2  芒种5
+夏至4  小暑2  大暑3  立秋2  处暑3  白露4
+秋分3  寒露4  霜降2  立冬4  小雪2  大雪3
+```
+
+这仍提示 signal 与节气/局数结构高度相关，所以 `CALENDAR_CONFOUNDING_CONTROL` 继续是硬 blocker。
+
+## 5. 来源日期 fixture 带来的第二层验证
+
+### Fixture A — 2004-05-29 戊午时
+
+QM-SRC-0021 明确给出：
+
+```text
+甲申年 己巳月 戊申日 戊午时
+小满
+阳遁八局
+甲寅旬
+值符天辅
+```
+
+并给出转动后的九星及所携天盘奇仪。项目已建立 chart-only fixture，验证外八宫星位，并以独立结构测试复核星—所携天盘干配对。
+
+这只验证该来源盘，不等于完整九宫体系已全局毕业。
+
+### Fixture B — 2002-08-01 壬申时
+
+QM-SRC-0021 另给：
+
+```text
+壬午年 丁未月 辛丑日 壬申时
+甲午旬
+阴遁一局
+```
+
+这个日期正是发现旧 FUTOU bug 的反例：
+
+```text
+old ten-unit rollback -> 甲午 -> 错当上元 -> 大暑阴7
+correct five-day head -> 己亥 -> 中元 -> 大暑阴1
+```
+
+因此该 fixture 不使用书中“是否下雨”的结果，只用日期、干支、节气/局数验证排盘算法身份。
+
+## 6. 当前 blocker 重新排序
+
+截至本纠偏：
+
+```text
+FUTOU_ALGORITHM_REMEDIATION     = IMPLEMENTED / CI_PENDING
+JU_METHOD_VALIDATION            = OPEN
+PLATE_PAIRING_SOURCE_FIXTURE    = IMPLEMENTED / CI_PENDING
+GLOBAL_PLATE_VALIDATION         = NOT_CLAIMED
+CALENDAR_CONFOUNDING_CONTROL    = OPEN
+CIVIL_DATE_FREQUENCY_AUDIT      = OPEN
+SERIAL_DEPENDENCE_SAMPLE_GATE   = OPEN
+
+BATCH_READY                     = false
+BATCH                           = NONE
+FREEZE                          = NONE
+OUTCOME                         = NONE
+EMPIRICAL_CREDIT                = NONE
+```
+
+## 7. 下一步的正确频率审计
+
+如果 weather-v0.1 最终冻结 `CHAI_BU_FUTOU`，下一次频率审计必须直接枚举**真实公历日期**，例如固定多年窗口、每日固定 17:00 HKT 调用真实 `QimenEngine.bySolar(..., CHAI_BU_FUTOU)`，再统计：
+
+- 每日使用的节气 / 元 / 局；
+- `CORE_RAIN_SIGNAL_V01` 是否触发；
+- 季节与节气分层触发率；
+- 信号连续性与自相关结构。
+
+这一审计仍不得读取天气 outcome。
+
+只有 civil-date frequency 建立后，才能讨论 observation window；64/360 不再允许用于样本天数推算。
+
+## 8. 当前可以安全说什么
 
 可以说：
 
-> 对锁定的 QimenEngine 实现，weather-v0.1 core signal 在 360 个 engine-eligible 合同状态中触发 64 次，状态密度 17.78%，且触发机会随节气明显不均匀。
+> 当前盘面映射在 360 个抽象名义状态中有 64 个 core-signal 状态，但这只是 state-space density。来源 fixture 进一步发现并修复了五日符头与十日旬首混淆；真实 FUTOU 民用日期频率尚未建立。
 
 不可以说：
 
-- 奇门约每 5.6 天预测一次雨；
-- 这个信号有 17.78% 的准确率；
-- 这个信号已经比 HKO 好；
-- 传统天盘配对已经被程序证明；
-- weather Batch 已准备完成。
-
-下一步应先处理 `PLATE_PAIRING_VALIDATION` 与 `CALENDAR_CONFOUNDING_CONTROL`，而不是直接开始收 outcome。
+- 奇门平均每 5.625 天出现一次降雨信号；
+- 17.78% 是天气预测率或准确率；
+- 一张来源盘已经证明完整奇门盘法；
+- weather Batch 已可启动。
