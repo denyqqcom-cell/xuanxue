@@ -36,6 +36,8 @@ jobs:
         run: python3 tools/test_qm0017_day_tianyi_consistency.py
       - name: Audit QM-SRC-0017 day Xishen rule-example consistency
         run: python3 tools/test_qm0017_day_xishen_consistency.py
+      - name: Audit QM-SRC-0017 day Jielukongwang rule-example consistency
+        run: python3 tools/test_qm0017_day_jielukongwang_consistency.py
       - name: Test materialized QCIC inference eligibility
         run: python3 tools/test_k2_qcic_eligibility_view.py
       - name: Enforce current QCIC inference eligibility view

@@ -1,0 +1,51 @@
+{
+  "schema_version": "k2-source-internal-consistency-fixture-v1",
+  "fixture_id": "QM0017-DAY-JIELUKONGWANG-RULE-EXAMPLE-V1",
+  "source_id": "QM-SRC-0017",
+  "work_id": "WORK-000224",
+  "topic": "DAY_QIMEN_JIE_LU_KONG_WANG",
+  "scope": "SOURCE_INTERNAL_RULE_VS_EXAMPLE_ONLY",
+  "rule_source_checkpoints": ["pdf:p283"],
+  "stated_rule_by_day_stem": {
+    "甲": ["申", "酉"],
+    "乙": ["午", "未"],
+    "丙": ["辰", "巳"],
+    "丁": ["寅", "卯"],
+    "戊": ["子", "丑", "戌", "亥"],
+    "己": ["申", "酉"],
+    "庚": ["午", "未"],
+    "辛": ["辰", "巳"],
+    "壬": ["寅", "卯"],
+    "癸": ["子", "丑", "戌", "亥"]
+  },
+  "examples": [
+    {"case_id":"QM0017-JLKW-001","day_ganzhi":"甲子","source_checkpoints":["pdf:p294","pdf:p295"],"observed_jielukongwang_hour_branches":["申","酉"]},
+    {"case_id":"QM0017-JLKW-002","day_ganzhi":"乙丑","source_checkpoints":["pdf:p295"],"observed_jielukongwang_hour_branches":["午","未"]},
+    {"case_id":"QM0017-JLKW-003","day_ganzhi":"丙寅","source_checkpoints":["pdf:p296"],"observed_jielukongwang_hour_branches":["辰","巳"]},
+    {"case_id":"QM0017-JLKW-004","day_ganzhi":"丁卯","source_checkpoints":["pdf:p297"],"observed_jielukongwang_hour_branches":["寅","卯"]},
+    {"case_id":"QM0017-JLKW-005","day_ganzhi":"戊辰","source_checkpoints":["pdf:p298"],"observed_jielukongwang_hour_branches":["子","丑"]},
+    {"case_id":"QM0017-JLKW-006","day_ganzhi":"己巳","source_checkpoints":["pdf:p299"],"observed_jielukongwang_hour_branches":["申","酉"]},
+    {"case_id":"QM0017-JLKW-007","day_ganzhi":"庚午","source_checkpoints":["pdf:p300"],"observed_jielukongwang_hour_branches":["午","未"]},
+    {"case_id":"QM0017-JLKW-008","day_ganzhi":"辛未","source_checkpoints":["pdf:p301"],"observed_jielukongwang_hour_branches":["辰","巳"]},
+    {"case_id":"QM0017-JLKW-009","day_ganzhi":"壬申","source_checkpoints":["pdf:p302"],"observed_jielukongwang_hour_branches":["寅","卯"]},
+    {"case_id":"QM0017-JLKW-010","day_ganzhi":"癸酉","source_checkpoints":["pdf:p303","pdf:p304"],"observed_jielukongwang_hour_branches":["子","丑","戌","亥"]},
+    {"case_id":"QM0017-JLKW-011","day_ganzhi":"甲戌","source_checkpoints":["pdf:p304"],"observed_jielukongwang_hour_branches":["申","酉"]},
+    {"case_id":"QM0017-JLKW-012","day_ganzhi":"乙亥","source_checkpoints":["pdf:p305"],"observed_jielukongwang_hour_branches":["午","未"]},
+    {"case_id":"QM0017-JLKW-013","day_ganzhi":"丙子","source_checkpoints":["pdf:p306"],"observed_jielukongwang_hour_branches":["辰","巳"]}
+  ],
+  "expected_mismatches": {
+    "QM0017-JLKW-005": {"missing_expected":["戌","亥"],"unexpected_present":[]}
+  },
+  "interpretation_status": "SOURCE_INTERNAL_TENSION",
+  "resolution_status": "CONTEXT_REQUIRED",
+  "non_resolution_candidates": ["SOURCE_OMISSION", "PRINT_ERROR", "UNSTATED_CONDITION", "TRANSCRIPTION_ERROR"],
+  "epistemic_boundary": [
+    "本 fixture 只比较同一来源 pdf:p283 明文规则与 pdf:p294-p306 后续印刷实例，不调用外部传统版本来裁决。",
+    "戊辰实例仅标出子、丑为截路空亡，而 p283 对戊、癸日还列戌、亥；差异必须保留为 source-internal tension。",
+    "SOURCE_INTERNAL_TENSION 不等于已经证明作者理论错误；在缺少额外版本、排印或上下文证据时保持 CONTEXT_REQUIRED。",
+    "本审计不产生 empirical credit，不开放 Claim Extraction。"
+  ],
+  "empirical_credit": "NONE",
+  "claim_extraction_blocked": true,
+  "review_status": "REVIEWED"
+}
