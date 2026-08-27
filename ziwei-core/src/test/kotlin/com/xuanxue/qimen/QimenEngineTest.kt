@@ -30,13 +30,17 @@ class QimenEngineTest {
     }
 
     @Test
-    fun liqiuDayCountNotFutou() {
+    fun liqiuDayCountKeepsFutouMetadataSeparate() {
         val c = QimenEngine.bySolar(2026, 8, 7, 16, 0)
         assertEquals("立秋", c.jieQi)
         assertEquals("CHAI_BU_DAYCOUNT", c.juMethodUsed)
         assertEquals("上元", c.yuan)
         assertEquals(2, c.ju)
-        assertEquals("下元", c.yuanFutou)
+
+        // 2026-08-07 is 癸丑. Under the five-day拆补符头 rule the nearest
+        // preceding 甲/己 head is 己酉, which belongs to上元. This metadata is
+        // computed independently from the selected DAYCOUNT execution method.
+        assertEquals("上元", c.yuanFutou)
         assertTrue(c.jieqiDayIndex in 1..15)
     }
 
