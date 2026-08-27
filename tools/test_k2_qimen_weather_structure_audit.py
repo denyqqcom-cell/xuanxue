@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
-"""Abstract plate-state audit for CDAF-H2 CORE_RAIN_SIGNAL_V01.
+"""Structure-only audits and batch-contract gate for CDAF-H2 weather v0.1.
 
-This test deliberately uses no weather forecast and no weather outcome data.
-It mirrors only the weather-relevant plate transitions of the exact pinned
-QimenEngine blob.
+This gate deliberately uses no weather forecast and no weather outcome data.
+It has two responsibilities only:
+
+1. preserve the abstract weather-relevant plate-state audit against the exact
+   pinned QimenEngine blob; and
+2. fail closed if the CDAF-H2 sample/serial design, prospective Plan, or any
+   future CDAF-H2 Batch drifts away from the preregistered v0.1 contract.
 
 Important: 24 terms × 3 named yuans × 5 fixed-酉 hour states is a Cartesian
-state-space audit. It is NOT a civil-date frequency model for拆补符头. The
-source method may use 残上→中→下→补上 around solar-term boundaries, so real
-calendar weighting must be audited separately before sample-duration design.
+state-space audit. It is NOT a civil-date frequency model for拆补符头. Real
+calendar weighting and the +/-1 solar-term-segment shams are audited elsewhere.
 """
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import json
 from collections import Counter
@@ -20,7 +24,46 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE_PATH = ROOT / "ziwei-core/src/main/kotlin/com/xuanxue/qimen/QimenEngine.kt"
+PLAN_PATH = ROOT / "knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl"
+BATCH_PATH = ROOT / "knowledge/K2_PROSPECTIVE_BATCHES.jsonl"
+SAMPLE_PLAN_PATH = ROOT / "knowledge/K2_QIMEN_CDAF_H2_SERIAL_DEPENDENCE_SAMPLE_PLAN_V01.md"
 EXPECTED_ENGINE_GIT_BLOB_SHA = "1912760ccd10cb4a58eb8faec06669c0d690657b"
+CDAF_PLAN_ID = "K2PV-CDAF-H2"
+
+# Machine tokens for a future CDAF-H2 Batch. These live at Batch level because
+# they govern acquisition/stopping/inference for the whole series, not an
+# individual case frozen_payload.
+EXPECTED_COMPARATOR_REF = "K2PV-CDAF-H2:M1+SHAM_PLUS_1+SHAM_MINUS_1:V01"
+EXPECTED_SAMPLING_RULE = (
+    "CDAF_H2_SAMPLING_V01|START=SOLAR_TERM_SEGMENT_BOUNDARY|MIN_SEGMENTS=48|"
+    "EXTEND_IF_ANY_PREOUTCOME_INFO_LT_80=PLUS_24_SEGMENTS|MAX_SEGMENTS=72|"
+    "OUTCOME_QUARANTINED=true"
+)
+EXPECTED_PRIMARY_METRIC = (
+    "CDAF_H2_PRIMARY_V01|DELTA_M1=MEAN_D_M1|DELTA_PLUS=MEAN_D_PLUS|"
+    "DELTA_MINUS=MEAN_D_MINUS|HAC=BARTLETT|CALENDAR_LAG_DAYS=30"
+)
+EXPECTED_DECISION_RULE = (
+    "CDAF_H2_DECISION_V01|FWER_ALPHA=0.05|PRIMARY_CONTRASTS=3|"
+    "BONFERRONI_ONE_SIDED=true|Z_CRITICAL=2.1280452342|"
+    "REQUIRE_ALL_HAC_LOWER_BOUNDS_GT_0=true"
+)
+EXPECTED_STOPPING_RULE = (
+    "CDAF_H2_STOP_V01|CHECK_AT_SEGMENT=48|IF_ANY_PREOUTCOME_INFO_LT_80=EXTEND_TO_72|"
+    "CLOSE_AT_SEGMENT=72|NO_OUTCOME_PEEKING=true|NO_REOPEN_AFTER_OUTCOME_QC=true"
+)
+EXPECTED_EXCLUSION_RULE = (
+    "CDAF_H2_EXCLUSION_V01|PREOUTCOME_ONLY=true|PSR_MEDIUM=INELIGIBLE|"
+    "MISSING_1630_SNAPSHOT=INELIGIBLE|OUTCOME_DATA_QC_FAILURE=UNEVALUABLE_NOT_EXCLUDED"
+)
+EXPECTED_DUPLICATE_POLICY = "CDAF_H2_DUPLICATE_V01|TARGET_DATE_HKT_UNIQUE_WITHIN_BATCH=true"
+EXPECTED_SECONDARY_METRICS = [
+    "PREOUTCOME_INFO_COUNTS_V01",
+    "EVALUABLE_INFO_COUNTS_V01",
+    "UNIQUE_CORRECTION_DEGRADATION_V01",
+    "UNEVALUABLE_RATE_V01",
+    "PER_JIEQI_PAIRED_DELTA_V01",
+]
 
 RING = [1, 8, 3, 4, 9, 2, 7, 6]
 STAR_HOME = {
@@ -46,8 +89,7 @@ JIE_QI_JU = {
 }
 
 # At a fixed 酉时 there are five possible hour-stem states across day-stem
-# classes. These are used as nominal plate inputs, not as a claim that every
-# solar term contains each named yuan for exactly five civil days.
+# classes. These are nominal plate inputs, not a civil-calendar weighting model.
 HOUR_STATES_17_HKT = ["癸酉", "乙酉", "丁酉", "己酉", "辛酉"]
 TARGET_PALACES = {1, 3, 6, 7}
 
@@ -58,11 +100,63 @@ EXPECTED_PER_JIEQI_TRIGGERS = {
     "秋分": 3, "寒露": 4, "霜降": 2, "立冬": 4, "小雪": 2, "大雪": 3,
 }
 
+SAMPLE_PLAN_REQUIRED_MARKERS = [
+    "MIN_PREOUTCOME_INFO_PER_CONTRAST = 80",
+    "48 个完整连续 solar-term segments",
+    "MAX_SEGMENTS = 72",
+    "HAC_KERNEL   = Bartlett",
+    "HAC_MAX_LAG  = 30 civil days",
+    "FWER_ALPHA = 0.05",
+    "NUMBER_OF_PRIMARY_CONTRASTS = 3",
+    "Z_CRITICAL = 2.1280452342",
+    "INSUFFICIENT_INFORMATION_AFTER_OUTCOME_QC",
+]
+PLAN_REQUIRED_MARKERS = [
+    "K2_QIMEN_CDAF_H2_SERIAL_DEPENDENCE_SAMPLE_PLAN_V01.md v0.1",
+    "48",
+    "72",
+    "80",
+    "HAC_MAX_LAG=30",
+    "2.1280452342",
+    "Outcome",
+]
+PER_CASE_REQUIRED_FIELDS = {
+    "solar_term_segment_id",
+    "calendar_sham_plus_1_signal",
+    "calendar_sham_minus_1_signal",
+    "calendar_sham_schedule_ref",
+    "calendar_sham_schedule_hash",
+    "qimen_ju_method",
+    "qimen_engine_blob_sha",
+}
+BATCH_ONLY_FIELDS = {
+    "sampling_rule",
+    "stopping_rule",
+    "planned_case_count",
+    "primary_metric",
+    "decision_rule",
+    "HAC_MAX_LAG",
+    "MIN_PREOUTCOME_INFO_PER_CONTRAST",
+}
+
 
 def git_blob_sha(path: Path) -> str:
     data = path.read_bytes()
     header = f"blob {len(data)}\0".encode()
     return hashlib.sha1(header + data).hexdigest()
+
+
+def load_jsonl(path: Path) -> list[dict]:
+    if not path.exists():
+        return []
+    rows = []
+    for line_no, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not raw.strip():
+            continue
+        value = json.loads(raw)
+        assert isinstance(value, dict), f"{path}:{line_no} must be an object"
+        rows.append(value)
+    return rows
 
 
 def seq_of(gan: str, zhi: str) -> int:
@@ -153,6 +247,93 @@ def core_rain_signal_v01(state: dict) -> list[tuple[int, str, str]]:
     return hits
 
 
+def cdaf_h2_batch_contract_issues(batch: dict) -> list[str]:
+    issues = []
+    expected = {
+        "comparator_ref": EXPECTED_COMPARATOR_REF,
+        "sampling_rule": EXPECTED_SAMPLING_RULE,
+        "primary_metric": EXPECTED_PRIMARY_METRIC,
+        "decision_rule": EXPECTED_DECISION_RULE,
+        "stopping_rule": EXPECTED_STOPPING_RULE,
+        "exclusion_rule": EXPECTED_EXCLUSION_RULE,
+        "duplicate_case_policy": EXPECTED_DUPLICATE_POLICY,
+    }
+    if batch.get("planned_case_count") is not None:
+        issues.append("planned_case_count must be null because stopping is segment/information based")
+    for field, value in expected.items():
+        if batch.get(field) != value:
+            issues.append(f"{field} does not match CDAF-H2 v0.1 machine contract")
+    if batch.get("secondary_metrics") != EXPECTED_SECONDARY_METRICS:
+        issues.append("secondary_metrics do not match CDAF-H2 v0.1 machine contract")
+    return issues
+
+
+def synthetic_valid_cdaf_batch() -> dict:
+    return {
+        "planned_case_count": None,
+        "comparator_ref": EXPECTED_COMPARATOR_REF,
+        "sampling_rule": EXPECTED_SAMPLING_RULE,
+        "primary_metric": EXPECTED_PRIMARY_METRIC,
+        "decision_rule": EXPECTED_DECISION_RULE,
+        "secondary_metrics": EXPECTED_SECONDARY_METRICS.copy(),
+        "stopping_rule": EXPECTED_STOPPING_RULE,
+        "exclusion_rule": EXPECTED_EXCLUSION_RULE,
+        "duplicate_case_policy": EXPECTED_DUPLICATE_POLICY,
+    }
+
+
+def exercise_batch_contract_negative_cases() -> None:
+    good = synthetic_valid_cdaf_batch()
+    assert not cdaf_h2_batch_contract_issues(good)
+
+    mutations = [
+        ("planned_case_count", 80),
+        ("sampling_rule", "run until enough information"),
+        ("primary_metric", "ordinary independent Bernoulli accuracy"),
+        ("decision_rule", "pick the best of three contrasts"),
+        ("stopping_rule", "stop when p<0.05"),
+        ("exclusion_rule", "drop outcome-missing dates before scoring"),
+        ("duplicate_case_policy", "allow repeated target dates"),
+        ("secondary_metrics", ["ONLY_SUCCESSFUL_DAYS"]),
+    ]
+    for field, bad_value in mutations:
+        bad = copy.deepcopy(good)
+        bad[field] = bad_value
+        issues = cdaf_h2_batch_contract_issues(bad)
+        assert issues, f"mutation must fail closed: {field}"
+
+
+def validate_sample_and_prospective_contracts() -> int:
+    sample_text = SAMPLE_PLAN_PATH.read_text(encoding="utf-8")
+    for marker in SAMPLE_PLAN_REQUIRED_MARKERS:
+        assert marker in sample_text, f"sample plan missing frozen marker: {marker}"
+
+    plans = load_jsonl(PLAN_PATH)
+    matches = [p for p in plans if p.get("plan_id") == CDAF_PLAN_ID]
+    assert len(matches) == 1, f"expected exactly one {CDAF_PLAN_ID} plan, got {len(matches)}"
+    plan = matches[0]
+    plan_text = json.dumps(plan, ensure_ascii=False, sort_keys=True)
+    for marker in PLAN_REQUIRED_MARKERS:
+        assert marker in plan_text, f"prospective plan missing Gate-D marker: {marker}"
+
+    freeze_fields = set(plan.get("freeze_required_fields") or [])
+    missing_case_fields = PER_CASE_REQUIRED_FIELDS - freeze_fields
+    assert not missing_case_fields, f"CDAF-H2 case freeze missing fields: {sorted(missing_case_fields)}"
+    leaked_batch_fields = BATCH_ONLY_FIELDS & freeze_fields
+    assert not leaked_batch_fields, (
+        "batch-level sample/statistical rules must not be copied into each case frozen_payload: "
+        f"{sorted(leaked_batch_fields)}"
+    )
+
+    exercise_batch_contract_negative_cases()
+
+    batches = [b for b in load_jsonl(BATCH_PATH) if b.get("plan_id") == CDAF_PLAN_ID]
+    for batch in batches:
+        issues = cdaf_h2_batch_contract_issues(batch)
+        assert not issues, f"CDAF-H2 Batch contract drift: {issues[0]}"
+    return len(batches)
+
+
 def main() -> None:
     actual_blob = git_blob_sha(ENGINE_PATH)
     assert actual_blob == EXPECTED_ENGINE_GIT_BLOB_SHA, (
@@ -182,8 +363,10 @@ def main() -> None:
     }
     assert hit_cardinality == Counter({1: 64})
 
+    cdaf_batch_count = validate_sample_and_prospective_contracts()
+
     result = {
-        "audit_scope": "ABSTRACT_PLATE_STATE_SPACE_ONLY",
+        "audit_scope": "ABSTRACT_PLATE_STATE_SPACE_PLUS_PREBATCH_CONTRACT",
         "civil_date_frequency_claimed": False,
         "weather_forecast_data_used": False,
         "weather_outcome_data_used": False,
@@ -193,6 +376,9 @@ def main() -> None:
         "state_space_density": trigger_states / total_states,
         "per_jieqi_triggers_out_of_15_nominal_states": EXPECTED_PER_JIEQI_TRIGGERS,
         "sample_duration_usable": False,
+        "sample_gate_contract_ready": True,
+        "cdaf_h2_batches_present": cdaf_batch_count,
+        "batch_created_by_this_gate": False,
         "empirical_credit": "NONE",
     }
     print("K2_QIMEN_WEATHER_STRUCTURE_AUDIT=" + json.dumps(result, ensure_ascii=False, sort_keys=True))
