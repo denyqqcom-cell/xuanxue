@@ -161,9 +161,13 @@ object QimenEngine {
         else -> ""
     }
 
+    /**
+     * 拆补“五日符头”：每元第一日必为甲日或己日，向前回溯到最近的甲/己日。
+     * 这与 xunInfo() 使用的十干支“六甲旬首”不是同一对象，禁止混用。
+     */
     fun yuanOfFutou(dayGZ: String): String {
         val s = seqOf(dayGZ[0].toString(), dayGZ[1].toString())
-        val fuTou = s - (s % 10)
+        val fuTou = s - (s % 5)
         val gan = "甲乙丙丁戊己庚辛壬癸"
         val zhi = "子丑寅卯辰巳午未申酉戌亥"
         val ft = gan[fuTou % 10].toString() + zhi[fuTou % 12].toString()
