@@ -33,7 +33,8 @@
         "KNOWN_BIAS_RECURRENCE",
         "UNCALIBRATED_VALIDATION_CREDIT",
         "PREMATURE_BOUNDARY_ATTRIBUTION",
-        "NARRATIVE_COHERENCE"
+        "NARRATIVE_COHERENCE",
+        "CONTROL_COMPLEXITY_ILLUSION"
       ]
     },
     "learning_record_refs": {
