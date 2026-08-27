@@ -1,0 +1,201 @@
+# K2 CDAF-H2 Calendar Equivalence Control v0.1
+
+状态：`DESIGN_DEFINED / NOT_BATCH_FROZEN / NO_OUTCOME_DATA`  
+关联假设：`CDAF-H2`  
+关联 weather design：`K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01.md`  
+真实公历审计：`K2_QIMEN_CDAF_H2_REAL_CALENDAR_AUDIT_V01.md`  
+Empirical Credit：`NONE`
+
+## 1. 问题升级：不是普通“季节混杂”而已
+
+weather-v0.1 的 M2 没有读取独立于时间的新外部观测。
+
+它的输入链是：
+
+```text
+civil datetime
+    -> 干支 / 节气 / 阴阳遁 / 元 / 局
+    -> Qimen plate
+    -> CORE_RAIN_SIGNAL_V01
+```
+
+因此 `CORE_RAIN_SIGNAL_V01` 是时间输入的确定性变换。
+
+这意味着任何 M2 优势都至少存在一个等价解释：
+
+> 某个特定的 calendar/time feature transform 恰好对目标有预测价值。
+
+所以未来不能把 `M2 > M1` 直接写成“奇门获得了日历之外的新信息”。
+
+## 2. 本控制真正要检验什么
+
+本控制只检验更窄的问题：
+
+> 在保持节气层级的触发数量和局部时间结构时，原始 CORE_RAIN_SIGNAL 的**精确日期对齐**是否比相邻相位的 calendar sham 更有区分力？
+
+如果没有，那么 observed improvement 更可能来自：
+
+- 季节/节气 propensity；
+- 一段时间内本来就较高的降雨基础率；
+- 邻近日天气 persistence；
+- 而不是这个具体盘面映射恰好落在这一天。
+
+## 3. Solar-term-segment phase shams
+
+对未来 Batch 中每一个完整、实际发生的节气段 `S`：
+
+1. 在不读取任何 HKO forecast/outcome 的情况下，预先用冻结 engine+JuMethod 计算该段每日 `CORE_RAIN_SIGNAL_V01`；
+2. 得到二值序列：
+
+```text
+C_S = [c1, c2, ..., cn]
+```
+
+3. 定义两个固定 negative controls：
+
+```text
+SHAM_PLUS_1(S)[i]  = C_S[(i + 1) mod n]
+SHAM_MINUS_1(S)[i] = C_S[(i - 1) mod n]
+```
+
+也就是在**同一真实节气段内部循环平移一天**。
+
+## 4. 为什么不是把整年 signal 随机打乱
+
+全局随机 shuffle 会破坏：
+
+- 节气触发倾向；
+- 季节结构；
+- 局部 trigger clustering；
+- signal 在特定节气中的零触发边界。
+
+那样的 sham 太容易被原 signal 打败，不能形成有意义的负对照。
+
+节气段内 ±1 日循环平移具有以下性质：
+
+- 每一节气段 trigger 数量完全相同；
+- 每一节气段 trigger rate 完全相同；
+- trigger run structure 仅发生相位移动，不重新估计参数；
+- 不读取 weather outcome；
+- 不根据未来表现选择 shift；
+- 专门破坏“今天这个盘对应今天 outcome”的精确对齐。
+
+## 5. 三个候选模型必须共用同一个 M1
+
+对每一个 eligible case：
+
+```text
+M1 = HKO/context baseline
+```
+
+原始 M2：
+
+```text
+IF M1 == NO_RAIN10 AND CORE(D) == TRUE:
+    M2_ORIGINAL = RAIN10
+ELSE:
+    M2_ORIGINAL = M1
+```
+
+正相位 sham：
+
+```text
+IF M1 == NO_RAIN10 AND SHAM_PLUS_1(D) == TRUE:
+    M2_SHAM_PLUS_1 = RAIN10
+ELSE:
+    M2_SHAM_PLUS_1 = M1
+```
+
+负相位 sham：
+
+```text
+IF M1 == NO_RAIN10 AND SHAM_MINUS_1(D) == TRUE:
+    M2_SHAM_MINUS_1 = RAIN10
+ELSE:
+    M2_SHAM_MINUS_1 = M1
+```
+
+三者不得拥有不同的 HKO snapshot、outcome proxy、exclusion rule 或评分规则。
+
+## 6. Plate-alignment credit 的必要条件
+
+未来不能只要求：
+
+`M2_ORIGINAL > M1`
+
+若要讨论“精确 plate alignment 有增量”，至少还必须满足：
+
+```text
+M2_ORIGINAL > M2_SHAM_PLUS_1
+AND
+M2_ORIGINAL > M2_SHAM_MINUS_1
+```
+
+比较必须使用同一事前冻结的 paired loss / decision rule，并服从 serial-dependence treatment。
+
+如果 original 只胜 M1、却没有稳定胜过 ±1 sham，则：
+
+`PLATE_ALIGNMENT_CREDIT = NONE`
+
+这时不能把改进归给“具体这一天的盘面结构”。
+
+## 7. 即使 original 胜过两个 sham，也仍不能证明什么
+
+即使未来 original 同时优于两套 sham，也只能说：
+
+> 在这个预注册模型类、时间窗和 outcome 下，原始 Qimen-derived calendar transform 的精确相位比两个相邻相位 control 更有区分力。
+
+仍不能直接推出：
+
+- 奇门获得独立于时间的信息；
+- 玄学机制被证明；
+- 所有奇门天气规则有效；
+- 该结果能推广到其他地区、阈值或问题域。
+
+因为 original 与 shams 都来自同一个 calendar/time information set。
+
+## 8. 防止 control shopping
+
+v0.1 只允许：
+
+- `+1日`
+- `-1日`
+
+不得在看 Outcome 后再尝试：
+
+- +2 / +3 / +5；
+- 只保留表现最差的 sham；
+- 改成随机 shuffle；
+- 改节气 strata；
+- 改成月度/季节 strata；
+- 删除边界日。
+
+任何新的 negative-control family 都必须成为 v0.2+，进入后续新 Batch，不得回填当前 Freeze。
+
+## 9. 节气边界如何处理
+
+循环只发生在**同一次实际节气段内部**，不是把同名节气跨年份混在一起。
+
+segment identity 必须至少包含：
+
+```text
+segment_start_datetime_hkt
+jieqi_name
+engine_blob_sha
+qimen_ju_method
+```
+
+在 Batch Freeze 前可以使用完整未来 calendar/engine schedule 生成 sham，因为这些信息不包含 weather forecast/outcome。
+
+如果未来发现节气交接时刻导致17:00所属段不唯一，则该日必须由冻结的 engine calendar boundary 决定，不得人工调整。
+
+## 10. 当前 gate 状态
+
+```text
+CALENDAR_EQUIVALENCE_CONTROL_PROTOCOL = DEFINED
+SHAM_SCHEDULE                         = NOT_BATCH_FROZEN
+OUTCOME_DATA_USED                     = false
+EMPIRICAL_CREDIT                      = NONE
+```
+
+本设计定义后，Gate B 不再是“想一个 calendar control”这一开放问题；但在 Batch horizon、engine、JuMethod 与节气段 schedule 真正冻结之前，仍不能把 Gate B 标成完整 CLOSED。
