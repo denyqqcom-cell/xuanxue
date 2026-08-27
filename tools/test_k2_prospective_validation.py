@@ -9,11 +9,27 @@ def distillates():
     return [{"work_family_key":"WF-TEST-001","testable_hypotheses":[{"hypothesis_id":"H-TEST-001","status":"UNTESTED"}]}]
 
 
+def project_hypotheses():
+    return [{
+        "hypothesis_id":"CDAF-H2",
+        "origin_type":"PROJECT_GENERATED",
+        "origin_key":"CDAF-v0.1",
+        "origin_ref":"knowledge/K2_QIMEN_CONTEXTUAL_DIFFERENTIAL_ABLATION_V01.md#CDAF-H2",
+        "statement":"frozen symbolic mapping should add measurable value beyond the same context-structured baseline",
+        "status":"UNTESTED",
+        "empirical_credit":"NONE",
+        "baseline_required":True,
+        "falsification_summary":"no preregistered incremental value beyond the same context baseline falsifies the proposed increment",
+    }]
+
+
 def plan():
     return {
         "plan_id":"K2PV-TEST-001",
         "hypothesis_id":"H-TEST-001",
-        "work_family_key":"WF-TEST-001",
+        "hypothesis_origin_type":"SOURCE_DERIVED",
+        "hypothesis_origin_key":"WF-TEST-001",
+        "hypothesis_origin_ref":"knowledge/K2_WORK_FAMILY_DISTILLATES.jsonl#H-TEST-001",
         "model_name":"RELATIONAL_MODEL",
         "comparator_name":"STATIC_BASELINE",
         "question_scope":"low-risk prospective research",
@@ -29,6 +45,20 @@ def plan():
         "status":"DESIGN_READY",
         "empirical_credit":"NONE",
     }
+
+
+def project_plan():
+    p=plan()
+    p.update({
+        "plan_id":"K2PV-CDAF-H2",
+        "hypothesis_id":"CDAF-H2",
+        "hypothesis_origin_type":"PROJECT_GENERATED",
+        "hypothesis_origin_key":"CDAF-v0.1",
+        "hypothesis_origin_ref":"knowledge/K2_QIMEN_CONTEXTUAL_DIFFERENTIAL_ABLATION_V01.md#CDAF-H2",
+        "model_name":"FROZEN_SYMBOLIC_MAPPING",
+        "comparator_name":"CONTEXT_STRUCTURED_BASELINE",
+    })
+    return p
 
 
 def batch(p=None):
@@ -103,13 +133,13 @@ def outcome(f=None):
     }
 
 
-def must_pass(plans,batches=None,freezes=None,outcomes=None):
-    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [])
+def must_pass(plans,batches=None,freezes=None,outcomes=None,projects=None):
+    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [],project_hypotheses=project_hypotheses() if projects is None else projects)
     assert not issues,issues
 
 
-def must_fail(plans,batches=None,freezes=None,outcomes=None,needle=""):
-    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [])
+def must_fail(plans,batches=None,freezes=None,outcomes=None,needle="",projects=None):
+    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [],project_hypotheses=project_hypotheses() if projects is None else projects)
     assert issues,"expected failure"
     text="; ".join(f"{a}: {b}" for a,b in issues)
     assert needle in text,(needle,text)
@@ -117,9 +147,26 @@ def must_fail(plans,batches=None,freezes=None,outcomes=None,needle=""):
 
 def main():
     p=plan();must_pass([p])
+    pp=project_plan();must_pass([pp])
+    must_pass([p,pp])
 
     bad=copy.deepcopy(p);bad["hypothesis_id"]="H-NOT-FOUND"
     must_fail([bad],needle="unknown hypothesis_id")
+
+    bad=copy.deepcopy(p);bad["hypothesis_origin_type"]="PROJECT_GENERATED"
+    must_fail([bad],needle="hypothesis_origin_type does not match")
+
+    bad=copy.deepcopy(pp);bad["hypothesis_origin_key"]="WF-FAKE-SOURCE"
+    must_fail([bad],needle="hypothesis_origin_key does not match")
+
+    bad_projects=copy.deepcopy(project_hypotheses());bad_projects[0]["origin_type"]="SOURCE_DERIVED"
+    must_fail([],projects=bad_projects,needle="origin_type must be PROJECT_GENERATED")
+
+    bad_projects=copy.deepcopy(project_hypotheses());bad_projects[0]["baseline_required"]=False
+    must_fail([],projects=bad_projects,needle="must require baseline")
+
+    bad_projects=copy.deepcopy(project_hypotheses());bad_projects[0]["empirical_credit"]="WEAK"
+    must_fail([],projects=bad_projects,needle="cannot carry empirical credit")
 
     bad=copy.deepcopy(p);bad["freeze_required_fields"].remove("role_map")
     must_fail([bad],needle="missing mandatory fields")
@@ -169,6 +216,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=19")
+    print("cases=26 project_generated_origin=PASS source_derived_origin=PASS")
 
 if __name__=="__main__":main()
