@@ -21,9 +21,13 @@ KNOWN_OUTCOME_REPAIR != VALIDATION
 CASE_COUNT != INDEPENDENCE
 THREE_SUCCESSES != VALIDATION
 UNCALIBRATED_WEIGHT != MODEL
+UNCALIBRATED_SCORE != VALIDATION_CREDIT
 TRADITIONAL_STATUS != IMMUNITY_FROM_FALSIFICATION
 REFLECTION_RECORD != CORRECTION
 RECURRENT_BIAS => PROMOTION_BLOCKED
+NARRATIVE_COHERENCE != EMPIRICAL_VALIDITY
+CONTEXT_FIT != OUTCOME_EVIDENCE
+BOUNDARY_CLAIM_REQUIRES_COMPETING_CAUSES
 NEGATIVE_EVIDENCE_IS_FIRST_CLASS
 BASELINE_OR_COUNTERFACTUAL_REQUIRED
 ```
@@ -35,6 +39,10 @@ Interpretation:
 - A known-outcome failure may generate a new hypothesis; it cannot validate the repair proposed after seeing the result.
 - A raw count such as three apparent successes says nothing by itself about independence, base rate, target difficulty, stopping rule, selection, contamination, or calibration.
 - Numeric weights, half-discounts, priority scores and additive/multiplicative severity rules are parameters. They require predefined tests, baselines and ablation/counterfactual analysis; they are not upgraded by narrative plausibility.
+- A post-hoc half-point, confidence percentage, luck percentage or validation-coverage estimate is descriptive unless its scoring rule was frozen and calibrated before outcome access. Precision of notation is not precision of evidence.
+- A coherent story is a communication and internal-consistency property, not evidence that the story is true. If multiple stories fit the same known context, the model must specify what future observation would discriminate among them.
+- Context fit can help define applicability, but selecting the story that best matches already-known background cannot by itself earn outcome credit.
+- A failure does not automatically prove a system boundary. Theory limitation, execution error, query definition, scale mismatch, base rate, contamination and chance remain competing causes until a design can distinguish them.
 - Traditional longevity is a provenance fact, not immunity from falsification. Gradual iteration may preserve a rule as a hypothesis, but a repeatedly failing rule must be downgradable or removable.
 - Writing a self-critique does not close the issue. Closure requires a control that can detect recurrence and a prospective test that can fail.
 
@@ -66,6 +74,10 @@ No debt may move out of `PROMOTION_BLOCKED` merely because additional examples a
 8. a theory-impact action specifying what will be downgraded, rewritten or removed if the test fails
 
 For parameterized or weighted rules, an ablation or counterfactual must ask whether the proposed weight/component improves a predefined metric beyond a simpler baseline. If removing the component produces no meaningful deterioration, the component has not earned a place in the model.
+
+For narrative or scenario rules, the test must preserve rival explanations and freeze a discrimination criterion before the outcome. A story that merely becomes more coherent after more context arrives is not a validated explanation.
+
+For boundary claims, the test must vary the suspected boundary variable while holding the procedure as stable as practicable. A single failure may generate a boundary hypothesis, never close the causal attribution.
 
 ## 5. Evidence-credit separation
 
@@ -104,9 +116,10 @@ A new theory component must answer:
 - What changes when the component is removed?
 - Which boundary conditions make it inapplicable?
 - Which negative cases are retained rather than discarded?
+- Which rival explanation makes a different prediction, and what observation separates them?
 - Does the same result survive an unknown-outcome, frozen procedure?
 
-If these questions are unanswered, the component remains a hypothesis regardless of elegance, tradition, source count, or author confidence.
+If these questions are unanswered, the component remains a hypothesis regardless of elegance, narrative coherence, traditional status, source count, or author confidence.
 
 ## 8. Relationship to existing controls
 
