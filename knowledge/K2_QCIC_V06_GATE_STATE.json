@@ -7,7 +7,15 @@
       "source_id": "QM-SRC-0015",
       "source_stance": {
         "required": true,
-        "minimum_rows": 2
+        "minimum_rows": 2,
+        "required_topic_keys": [
+          "general-predictive-reliability",
+          "real-data-priority-for-life-decisions"
+        ],
+        "required_topic_stances": {
+          "general-predictive-reliability": "SOURCE_UNCERTAIN",
+          "real-data-priority-for-life-decisions": "SOURCE_ENDORSES"
+        }
       },
       "enumeration_compression": {
         "required": false,
@@ -18,7 +26,19 @@
       "source_id": "QM-SRC-0017",
       "source_stance": {
         "required": true,
-        "minimum_rows": 4
+        "minimum_rows": 4,
+        "required_topic_keys": [
+          "mythic-origin-claims",
+          "chance-external-omens-dongying",
+          "talisman-charm-practices",
+          "scientific-status-of-remaining-spatiotemporal-reasoning"
+        ],
+        "required_topic_stances": {
+          "mythic-origin-claims": "SOURCE_REJECTS",
+          "chance-external-omens-dongying": "SOURCE_REJECTS",
+          "talisman-charm-practices": "SOURCE_REJECTS",
+          "scientific-status-of-remaining-spatiotemporal-reasoning": "SOURCE_UNCERTAIN"
+        }
       },
       "enumeration_compression": {
         "required": true,
@@ -29,7 +49,17 @@
       "source_id": "QM-SRC-0019",
       "source_stance": {
         "required": true,
-        "minimum_rows": 3
+        "minimum_rows": 3,
+        "required_topic_keys": [
+          "traditional-authority-is-not-sufficient-validation",
+          "reality-and-direct-action-priority",
+          "scientific-status-and-internal-theory-conflicts"
+        ],
+        "required_topic_stances": {
+          "traditional-authority-is-not-sufficient-validation": "SOURCE_ENDORSES",
+          "reality-and-direct-action-priority": "SOURCE_ENDORSES",
+          "scientific-status-and-internal-theory-conflicts": "SOURCE_UNCERTAIN"
+        }
       },
       "enumeration_compression": {
         "required": false,
@@ -40,7 +70,9 @@
       "source_id": "QM-SRC-0010",
       "source_stance": {
         "required": false,
-        "minimum_rows": 0
+        "minimum_rows": 0,
+        "required_topic_keys": [],
+        "required_topic_stances": {}
       },
       "enumeration_compression": {
         "required": true,

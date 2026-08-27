@@ -5,7 +5,7 @@ from validate_k2_source_stance import validate_rows,coverage_issues,effective_st
 SRC={"QM-SRC-0017":{"file_sha256":"a"*64}}
 LIN={"QM-SRC-0017":{"work_id":"WORK-000224"}}
 DEEP={"QM-SRC-0017":{"read_status":"COMPLETE","verification_mode":"VISUAL_PAGE","page_end":419}}
-STATE={"schema_version":"k2-qcic-v06-machine-gates-v1","status":"ACTIVE","claim_extraction_blocked":True,"targets":[{"source_id":"QM-SRC-0017","source_stance":{"required":True,"minimum_rows":1},"enumeration_compression":{"required":True,"minimum_rows":0}}]}
+STATE={"schema_version":"k2-qcic-v06-machine-gates-v1","status":"ACTIVE","claim_extraction_blocked":True,"targets":[{"source_id":"QM-SRC-0017","source_stance":{"required":True,"minimum_rows":1,"required_topic_keys":["chance-omen"],"required_topic_stances":{"chance-omen":"SOURCE_REJECTS"}},"enumeration_compression":{"required":True,"minimum_rows":0}}]}
 BASE={
  "stance_id":"K2SS-QM0017-001","source_id":"QM-SRC-0017","work_id":"WORK-000224","canonical_sha256":"a"*64,
  "topic_key":"chance-omen","stance":"SOURCE_REJECTS","evidence_locators":["pdf:p416"],"stance_basis":"VISUAL_PAGE",
@@ -32,6 +32,7 @@ def main():
     new=deepcopy(BASE);new["stance_id"]="NEW";new["supersedes_stance_ids"]=["OLD"];new["stance_precedence"]=20
     assert not validate_rows(SRC,LIN,DEEP,[old,new])
     assert [r["stance_id"] for r in effective_stance_rows([old,new])]==["NEW"]
+    assert not coverage_issues([old,new],deepcopy(STATE)),"semantic coverage did not follow effective stance leaf"
     new["stance_precedence"]=5
     assert validate_rows(SRC,LIN,DEEP,[old,new]),"lower-precedence supersession accepted"
 
@@ -40,20 +41,25 @@ def main():
     a=deepcopy(BASE);a["stance_id"]="A";a["stance"]="SOURCE_REPORTS";a["stance_precedence"]=10
     b=deepcopy(BASE);b["stance_id"]="B";b["stance"]="SOURCE_REJECTS";b["stance_precedence"]=20
     assert validate_rows(SRC,LIN,DEEP,[a,b]),"ambiguous effective stance leaves accepted"
+    assert coverage_issues([a,b],deepcopy(STATE)),"ambiguous leaves satisfied semantic coverage"
     try:
         effective_stance_rows([a,b])
         raise AssertionError("ambiguous effective stance materialized")
     except ValueError:
         pass
 
-    # A count threshold is not semantic coverage. Once a reviewed source has
-    # mandatory stance topics, unrelated replacement rows must not satisfy the
-    # gate merely because the row count is unchanged.
-    semantic_state=deepcopy(STATE)
-    semantic_state["targets"][0]["source_stance"]["required_topic_keys"]=["chance-omen"]
+    # Row counts are only a coarse sanity check. Mandatory semantic topics and
+    # their accepted effective stances cannot be replaced by unrelated rows or
+    # silently inverted while keeping the same count.
     unrelated=deepcopy(BASE);unrelated["topic_key"]="unrelated-topic"
-    assert coverage_issues([unrelated],semantic_state),"count-only rows substituted a required stance topic"
-    assert not coverage_issues([deepcopy(BASE)],semantic_state),"required stance topic was not recognized"
+    assert coverage_issues([unrelated],deepcopy(STATE)),"count-only rows substituted a required stance topic"
+    inverted=deepcopy(BASE);inverted["stance"]="SOURCE_ENDORSES"
+    assert coverage_issues([inverted],deepcopy(STATE)),"required effective stance silently changed"
+
+    malformed=deepcopy(STATE);malformed["targets"][0]["source_stance"]["required_topic_keys"]=["chance-omen","chance-omen"]
+    assert coverage_issues([deepcopy(BASE)],malformed),"duplicate required_topic_keys accepted"
+    malformed=deepcopy(STATE);malformed["targets"][0]["source_stance"]["required_topic_stances"]={}
+    assert coverage_issues([deepcopy(BASE)],malformed),"topic/stance semantic contract mismatch accepted"
 
     print("k2-source-stance-tests: PASS")
 if __name__=="__main__":main()

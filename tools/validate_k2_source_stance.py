@@ -72,7 +72,13 @@ def coverage_issues(rows,state):
     if state.get("claim_extraction_blocked") is not True:issues.append(("STATE","claim_extraction_blocked must be true"))
     targets=state.get("targets")
     if not isinstance(targets,list) or not targets:issues.append(("STATE","targets must be non-empty array"));return issues
-    counts=Counter(r.get("source_id") for r in rows)
+
+    try:
+        effective=effective_stance_rows(rows)
+    except ValueError:
+        effective=[]
+    counts=Counter(r.get("source_id") for r in effective)
+    by_topic={(r.get("source_id"),r.get("topic_key")):r for r in effective}
     seen=set()
     for t in targets:
         sid=t.get("source_id") if isinstance(t,dict) else None
@@ -84,7 +90,28 @@ def coverage_issues(rows,state):
         required=cfg.get("required");minimum=cfg.get("minimum_rows")
         if not isinstance(required,bool):issues.append((sid,"source_stance.required must be bool"))
         if not isinstance(minimum,int) or minimum<0:issues.append((sid,"source_stance.minimum_rows must be non-negative int"));continue
-        if required and counts.get(sid,0)<minimum:issues.append((sid,f"required source stance rows missing: have={counts.get(sid,0)} need>={minimum}"))
+
+        topic_keys=cfg.get("required_topic_keys")
+        if not isinstance(topic_keys,list) or len(topic_keys)!=len(set(topic_keys)) or any(not isinstance(x,str) or not x.strip() for x in topic_keys):
+            issues.append((sid,"source_stance.required_topic_keys must be a unique string array"));topic_keys=[]
+        expected=cfg.get("required_topic_stances")
+        if not isinstance(expected,dict):
+            issues.append((sid,"source_stance.required_topic_stances must be an object"));expected={}
+        else:
+            if any(not isinstance(k,str) or not k.strip() for k in expected):issues.append((sid,"required_topic_stances keys must be non-empty strings"))
+            if any(v not in STANCES for v in expected.values()):issues.append((sid,"required_topic_stances contains invalid stance"))
+            if set(expected)!=set(topic_keys):issues.append((sid,"required_topic_stances keys must exactly match required_topic_keys"))
+
+        if required:
+            if not topic_keys:issues.append((sid,"required source stance target must freeze required_topic_keys"))
+            if counts.get(sid,0)<minimum:issues.append((sid,f"required effective source stance rows missing: have={counts.get(sid,0)} need>={minimum}"))
+            for topic in topic_keys:
+                leaf=by_topic.get((sid,topic))
+                if leaf is None:
+                    issues.append((sid,f"required source stance topic missing: {topic}"));continue
+                want=expected.get(topic)
+                if want in STANCES and leaf.get("stance")!=want:
+                    issues.append((sid,f"required source stance topic changed: {topic} expected={want} actual={leaf.get('stance')}"))
     return issues
 
 def validate_rows(sources,lineage,deep,rows):
