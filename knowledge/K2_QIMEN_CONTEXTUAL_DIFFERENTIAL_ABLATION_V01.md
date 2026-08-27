@@ -215,7 +215,28 @@ CDAF 因此不再问“情境推演法好不好”，而问：
 
 只有这个差分及其后续复制，才可能开始讨论“冻结后的奇门符号层是否在现实 baseline 之外提供信息”。
 
-当前状态：`UNTESTED / EMPIRICAL_CREDIT_NONE`
+当前状态：`UNTESTED / DESIGN_READY / EMPIRICAL_CREDIT_NONE`
+
+正式 provenance：
+
+- `origin_type = PROJECT_GENERATED`
+- `origin_key = CDAF-v0.1`
+- identity registry：`knowledge/K2_QIMEN_PROJECT_HYPOTHESES.jsonl`
+- prospective plan：`K2PV-CDAF-H2`
+- comparator：`CONTEXT_STRUCTURED_BASELINE (M1)`
+- candidate：`FROZEN_SYMBOLIC_MAPPING (M2)`
+
+这里的 `DESIGN_READY` 只表示：CDAF-H2 已经能够以**项目自生假设**而不是伪造 work-family 来源的方式，合法进入既有 Prospective Validation 链。它不表示实验已经开始，更不表示它被验证。
+
+截至本版本：
+
+`BATCH = 0`
+
+`FREEZE = 0`
+
+`OUTCOME = 0`
+
+因此 CDAF-H2 的 Empirical Credit 仍严格为 `NONE`。
 
 ### CDAF-H3：关系增量
 
@@ -224,6 +245,8 @@ CDAF 因此不再问“情境推演法好不好”，而问：
 如果 M2 已经足够，而 M3 没有改善或增加漂移，则 relational layer 应简化或删除，而不是继续扩张关系网。
 
 当前状态：`UNTESTED / EMPIRICAL_CREDIT_NONE`
+
+当前正式对应的 source-derived 设计为 `H-JD-001 / K2PV-JD-001`。它已经收紧为共享同一现实情境、同一冻结符号映射与同一 eligible rule pool，只允许 candidate 相对 comparator 增加 relational inference path。因此它测试的是 `M3 - M2`，而不是“复杂情境模型 vs 查表”的混合差分。
 
 ### CDAF-H4：叙事只属于表达层
 
@@ -278,6 +301,20 @@ CDAF 不自己建立第二套 prospective schema，直接复用现有 K2 Prospec
 - 若使用概率/分数，必须先有校准定义，否则保持类别输出。
 
 具体 primary metric 不在本文件中预设，因为不同 question scope 的 outcome 结构不同。必须在每个 Batch preregistration 中按目标定义，不能由本框架使用一个万能分数。
+
+尤其，**Design Plan 已存在并不自动授权创建 Batch**。在建立 `K2PV-CDAF-H2` 的第一批正式数据前，还必须明确：
+
+- 一个外生、低风险、可客观观察的 target domain；
+- outcome normalization；
+- observation cutoff；
+- sampling frame；
+- base-rate / context baseline；
+- primary metric 与 decision rule；
+- exclusion rule；
+- stopping / sample-adequacy rule；
+- candidate 与 comparator 的信息隔离方式。
+
+这些条件没有冻结之前，不为“赶进度”生成 Batch。
 
 ## 6. 消融决策树
 
@@ -336,11 +373,20 @@ CDAF 直接响应当前认知债：
 - QED-010：叙事连贯性不是现实正确性；
 - QED-011：不为本框架另造一套 schema/gate，先证明组件差分是否值得正式化。
 
+新增的 project-generated hypothesis registry 只解决**身份与 provenance 缺口**。它复用原有 Prospective Validation 的 Plan -> Batch -> Freeze -> Outcome hash-bound 链，不是第二套经验验证系统。因此它不因“新增了一个登记表”获得任何结构之外的信用。
+
 ## 9. 当前处理结论
 
 《情境推演法 v0.1》不删除，因为它是认知演化的重要历史记录；但它不再作为一个不可拆分的整体候选理论参与未来验证。
 
 从本文件开始，未来只验证**可隔离的组件增量**，不验证“整套理论感觉更好”。
+
+当前正式进入 Design Plan 的差分有两个：
+
+- `CDAF-H2 / K2PV-CDAF-H2`：项目自生，测试 `M2 - M1`；
+- `H-JD-001 / K2PV-JD-001`：来源派生，测试 `M3 - M2`。
+
+二者目前都没有 Batch/Freeze/Outcome，均不得声称已测试或已验证。
 
 当前没有任何一个 CDAF 差分获得 empirical credit。
 
