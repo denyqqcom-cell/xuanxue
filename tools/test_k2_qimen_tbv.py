@@ -33,6 +33,18 @@ def with_repo(mutator):
 
 
 def main():
+    # Deep-retreat reverse audit must preserve historical accepted TBV rows while
+    # allowing reviewed source-fidelity corrections to produce an effective view.
+    assert hasattr(gate, "CORRECTIONS"), "TBV correction overlay contract missing"
+    assert gate.CORRECTIONS == "K2_QIMEN_TBV_REVIEW_CORRECTIONS.jsonl"
+    assert hasattr(gate, "load_effective_registry_rows"), "TBV effective correction loader missing"
+    effective, correction_issues = gate.load_effective_registry_rows(ROOT / "knowledge", ROOT)
+    if correction_issues:
+        raise AssertionError(f"current TBV corrections must pass: {correction_issues[:8]}")
+    by_unit = {row["unit_id"]: row for row in effective}
+    assert "SOURCE_CONTAINS(method)" in " ".join(by_unit["QM-SRC-0015"]["theory_core"]), by_unit["QM-SRC-0015"]
+    assert "TRANSMITTED_REFERENCE_CANDIDATE" in by_unit["QM-SRC-0020"]["boundary_context"]["method_layers"], by_unit["QM-SRC-0020"]
+
     baseline = gate.validate(ROOT)
     if baseline:
         raise AssertionError(f"current TBV state must pass: {baseline[:8]}")
@@ -99,6 +111,35 @@ def main():
     issues = with_repo(family_member_mut)
     assert_issue(issues, "effective_deep_source_coverage_count drift")
     assert_issue(issues, "remaining_deep_source_tbv_ids drift")
+
+    def bad_correction_field_mut(repo):
+        path = repo / "knowledge" / gate.CORRECTIONS
+        rows = load_jsonl(path)
+        rows[0]["patch"]["empirical_credit"] = "VALIDATED"
+        write_jsonl(path, rows)
+    assert_issue(with_repo(bad_correction_field_mut), "forbidden TBV correction patch field")
+
+    def bad_correction_target_mut(repo):
+        path = repo / "knowledge" / gate.CORRECTIONS
+        rows = load_jsonl(path)
+        rows[0]["review_id"] = "QTBV-DOES-NOT-EXIST"
+        write_jsonl(path, rows)
+    assert_issue(with_repo(bad_correction_target_mut), "unknown TBV correction review_id")
+
+    def bad_correction_ref_mut(repo):
+        path = repo / "knowledge" / gate.CORRECTIONS
+        rows = load_jsonl(path)
+        rows[0]["source_ref"] = "knowledge/DOES_NOT_EXIST.jsonl"
+        write_jsonl(path, rows)
+    assert_issue(with_repo(bad_correction_ref_mut), "missing TBV correction source_ref")
+
+    def duplicate_correction_mut(repo):
+        path = repo / "knowledge" / gate.CORRECTIONS
+        rows = load_jsonl(path)
+        rows.append(copy.deepcopy(rows[0]))
+        rows[-1]["correction_id"] = "QTBVC-DUPLICATE"
+        write_jsonl(path, rows)
+    assert_issue(with_repo(duplicate_correction_mut), "duplicate TBV correction target")
 
     def protocol_training_mut(repo):
         path = repo / "knowledge" / "K2_QIMEN_TBV_PROTOCOL.md"

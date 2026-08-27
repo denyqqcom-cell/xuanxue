@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json,re,sys
+import copy,json,re,sys
 from pathlib import Path
 from collections import defaultdict
 
@@ -10,7 +10,10 @@ SPECIAL_ROUTES={"OUT_OF_SCOPE","CARRIER_MATTER","UNKNOWN"}
 RELATIONS={"WORK_PART","PRIMARY_WORK_IN_COMPOSITE","NON_WORK"}
 INDEPENDENCE={"PRIMARY_CANDIDATE","SAME_WORK_NOT_INDEPENDENT","NOT_ELIGIBLE"}
 AUTHOR_BASES={"CONTENT_VERIFIED","MANUAL_VERIFIED","TITLE_PAGE","UNKNOWN"}
-ALLOWED={"segment_id","source_id","canonical_sha256","page_start","page_end","relation","independence_class","part_label","paired_source_ids","title","title_variants","domain_routes","author","author_basis","author_evidence","evidence_locators","source_credit_scope","verification_mode","review_status"}
+AUTHOR_CLAIM_STATUSES={"SOURCE_INTERNAL_ATTRIBUTION","EXTERNALLY_VERIFIED","UNKNOWN"}
+AUTHORSHIP_SCHEMA_VERSION="k2-segment-authorship-status-v1"
+AUTHORSHIP_FIELDS={"schema_version","segment_id","author_claim_status","review_status","reason","external_evidence_refs"}
+ALLOWED={"segment_id","source_id","canonical_sha256","page_start","page_end","relation","independence_class","part_label","paired_source_ids","title","title_variants","domain_routes","author","author_basis","author_claim_status","author_evidence","evidence_locators","source_credit_scope","verification_mode","review_status"}
 SEG_ID_RE=re.compile(r"^([A-Z]+-SRC-\d{4})#SEG-(\d{3})$")
 LOC_RE=re.compile(r"^pdf:p(\d+)$")
 PATH_RE=re.compile(r"(?:/home/|/mnt/|[A-Za-z]:\\\\)")
@@ -44,6 +47,36 @@ def source_index(root=ROOT):
     return out
 
 
+def apply_author_claim_status(rows,status_rows):
+    effective=copy.deepcopy(rows);issues=[]
+    by_segment={r.get("segment_id"):r for r in effective if isinstance(r.get("segment_id"),str)}
+    seen=set()
+    for s in status_rows:
+        seg=s.get("segment_id") or "<missing>"
+        if seg in seen:issues.append((seg,"duplicate authorship status row"))
+        seen.add(seg)
+        extra=set(s)-AUTHORSHIP_FIELDS
+        if extra:issues.append((seg,f"unexpected authorship status fields: {sorted(extra)}"))
+        if s.get("schema_version")!=AUTHORSHIP_SCHEMA_VERSION:issues.append((seg,"invalid authorship status schema_version"))
+        target=by_segment.get(seg)
+        if target is None:
+            issues.append((seg,"authorship status references unknown segment_id"));continue
+        if s.get("review_status")!="REVIEWED":issues.append((seg,"authorship status review_status must be REVIEWED"))
+        status=s.get("author_claim_status")
+        if status not in AUTHOR_CLAIM_STATUSES:issues.append((seg,"invalid author_claim_status"))
+        reason=s.get("reason")
+        if not isinstance(reason,str) or not reason.strip():issues.append((seg,"authorship status reason must be non-empty"))
+        refs=s.get("external_evidence_refs")
+        if not isinstance(refs,list) or any(not isinstance(x,str) or not x.strip() for x in refs):
+            issues.append((seg,"external_evidence_refs must be string array"));refs=[]
+        if status=="EXTERNALLY_VERIFIED" and not refs:
+            issues.append((seg,"EXTERNALLY_VERIFIED requires external_evidence_refs"))
+        if status in {"SOURCE_INTERNAL_ATTRIBUTION","UNKNOWN"} and refs:
+            issues.append((seg,f"{status} must not carry external_evidence_refs"))
+        target["author_claim_status"]=status
+    return effective,issues
+
+
 def validate_rows(sources,rows):
     issues=[];seen=set();by_source=defaultdict(list)
     for r in rows:
@@ -75,14 +108,20 @@ def validate_rows(sources,rows):
         routes=r.get("domain_routes")
         if not isinstance(routes,list) or not routes or len(routes)!=len(set(routes)) or any(x not in DOMAINS|SPECIAL_ROUTES for x in routes):
             issues.append((seg,"invalid domain_routes"))
-        author=r.get("author");basis=r.get("author_basis");ae=r.get("author_evidence")
+        author=r.get("author");basis=r.get("author_basis");claim=r.get("author_claim_status");ae=r.get("author_evidence")
         if basis not in AUTHOR_BASES:issues.append((seg,"invalid author_basis"))
         if author is None:
             if basis!="UNKNOWN" or ae not in (None,""):issues.append((seg,"unknown author must remain UNKNOWN with null evidence"))
+            if claim not in (None,"UNKNOWN"):issues.append((seg,"UNKNOWN author_basis requires UNKNOWN author_claim_status"))
         else:
             if not isinstance(author,str) or not author.strip():issues.append((seg,"author must be non-empty or null"))
             if basis in {None,"","UNKNOWN"}:issues.append((seg,"known author requires verified author_basis"))
             if not isinstance(ae,str) or not ae.strip():issues.append((seg,"known author requires author_evidence"))
+            if claim not in AUTHOR_CLAIM_STATUSES:issues.append((seg,"known author requires author_claim_status"))
+            if basis=="CONTENT_VERIFIED" and claim!="SOURCE_INTERNAL_ATTRIBUTION":issues.append((seg,"CONTENT_VERIFIED may only establish SOURCE_INTERNAL_ATTRIBUTION"))
+            if basis=="TITLE_PAGE" and claim!="SOURCE_INTERNAL_ATTRIBUTION":issues.append((seg,"TITLE_PAGE may only establish SOURCE_INTERNAL_ATTRIBUTION"))
+            if claim=="UNKNOWN":issues.append((seg,"known author cannot have UNKNOWN author_claim_status"))
+            if claim=="EXTERNALLY_VERIFIED" and basis!="MANUAL_VERIFIED":issues.append((seg,"EXTERNALLY_VERIFIED requires MANUAL_VERIFIED author_basis"))
         locs=r.get("evidence_locators")
         if not isinstance(locs,list) or not locs:issues.append((seg,"evidence_locators must be non-empty array"))
         else:
@@ -133,12 +172,15 @@ def main():
     path=K/"K2_SOURCE_SEGMENTS.jsonl"
     if not path.exists():
         print("k2-source-segments: PASS")
-        print("segmented_sources=0 segments=0 issues=0")
+        print("segmented_sources=0 segments=0 authorship_statuses=0 issues=0")
         return
-    rows=load_jsonl(path);sources=source_index(ROOT);issues=validate_rows(sources,rows)
+    rows=load_jsonl(path);sources=source_index(ROOT)
+    status_rows=load_jsonl(K/"K2_SEGMENT_AUTHORSHIP_STATUS.jsonl")
+    effective,overlay_issues=apply_author_claim_status(rows,status_rows)
+    issues=overlay_issues+validate_rows(sources,effective)
     if issues:
         fail(f"issues={len(issues)}; "+"; ".join(f"{a}: {b}" for a,b in issues[:20]))
     print("k2-source-segments: PASS")
-    print(f"segmented_sources={len({r['source_id'] for r in rows})} segments={len(rows)} issues=0")
+    print(f"segmented_sources={len({r['source_id'] for r in rows})} segments={len(rows)} authorship_statuses={len(status_rows)} issues=0")
 
 if __name__=="__main__":main()

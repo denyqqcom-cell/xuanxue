@@ -1,0 +1,55 @@
+{
+  "schema_version": "k2-source-internal-consistency-fixture-v1",
+  "fixture_id": "QM0017-DAY-TIANYI-RULE-EXAMPLE-V1",
+  "source_id": "QM-SRC-0017",
+  "work_id": "WORK-000224",
+  "topic": "DAY_QIMEN_TIAN_YI_GUI_REN",
+  "scope": "SOURCE_INTERNAL_RULE_VS_EXAMPLE_ONLY",
+  "rule_source_checkpoints": ["pdf:p282", "pdf:p283"],
+  "stated_rule_by_day_stem": {
+    "甲": ["丑", "未"],
+    "乙": ["子", "申"],
+    "丙": ["酉", "亥"],
+    "丁": ["酉", "亥"],
+    "戊": ["丑", "未"],
+    "己": ["子", "申"],
+    "庚": ["寅", "午"],
+    "辛": ["寅", "午"],
+    "壬": ["卯", "巳"],
+    "癸": ["卯", "巳"]
+  },
+  "examples": [
+    {"case_id":"QM0017-TY-001","day_ganzhi":"甲子","source_checkpoints":["pdf:p294","pdf:p295"],"observed_tianyi_hour_branches":["丑","未"]},
+    {"case_id":"QM0017-TY-002","day_ganzhi":"乙丑","source_checkpoints":["pdf:p295","pdf:p296"],"observed_tianyi_hour_branches":["子","申"]},
+    {"case_id":"QM0017-TY-003","day_ganzhi":"丙寅","source_checkpoints":["pdf:p296"],"observed_tianyi_hour_branches":["亥"]},
+    {"case_id":"QM0017-TY-004","day_ganzhi":"丁卯","source_checkpoints":["pdf:p297"],"observed_tianyi_hour_branches":["酉","亥"]},
+    {"case_id":"QM0017-TY-005","day_ganzhi":"戊辰","source_checkpoints":["pdf:p298"],"observed_tianyi_hour_branches":["未"]},
+    {"case_id":"QM0017-TY-006","day_ganzhi":"己巳","source_checkpoints":["pdf:p299"],"observed_tianyi_hour_branches":["丑","未"]},
+    {"case_id":"QM0017-TY-007","day_ganzhi":"庚午","source_checkpoints":["pdf:p300"],"observed_tianyi_hour_branches":["午"]},
+    {"case_id":"QM0017-TY-008","day_ganzhi":"辛未","source_checkpoints":["pdf:p301"],"observed_tianyi_hour_branches":["寅"]},
+    {"case_id":"QM0017-TY-009","day_ganzhi":"壬申","source_checkpoints":["pdf:p302"],"observed_tianyi_hour_branches":["卯","巳"]},
+    {"case_id":"QM0017-TY-010","day_ganzhi":"癸酉","source_checkpoints":["pdf:p303"],"observed_tianyi_hour_branches":["卯","巳"]},
+    {"case_id":"QM0017-TY-011","day_ganzhi":"甲戌","source_checkpoints":["pdf:p304"],"observed_tianyi_hour_branches":["丑","未"]},
+    {"case_id":"QM0017-TY-012","day_ganzhi":"乙亥","source_checkpoints":["pdf:p305"],"observed_tianyi_hour_branches":["子","申"]},
+    {"case_id":"QM0017-TY-013","day_ganzhi":"丙子","source_checkpoints":["pdf:p306"],"observed_tianyi_hour_branches":["酉","亥"]}
+  ],
+  "expected_mismatches": {
+    "QM0017-TY-003": {"missing_expected":["酉"],"unexpected_present":[]},
+    "QM0017-TY-005": {"missing_expected":["丑"],"unexpected_present":[]},
+    "QM0017-TY-006": {"missing_expected":["子","申"],"unexpected_present":["丑","未"]},
+    "QM0017-TY-007": {"missing_expected":["寅"],"unexpected_present":[]},
+    "QM0017-TY-008": {"missing_expected":["午"],"unexpected_present":[]}
+  },
+  "interpretation_status": "SOURCE_INTERNAL_TENSION",
+  "resolution_status": "CONTEXT_REQUIRED",
+  "non_resolution_candidates": ["SOURCE_OMISSION", "PRINT_ERROR", "UNSTATED_CONDITION", "TRANSCRIPTION_ERROR"],
+  "epistemic_boundary": [
+    "本 fixture 只比较同一来源明确写出的规则与后续印刷示例，不调用外部传统版本来裁决谁对谁错。",
+    "发现不一致时必须同时保留 stated rule 与 observed example，不得为了得到统一规则而静默改写原书。",
+    "SOURCE_INTERNAL_TENSION 不等于已经证明作者理论错误；在缺少额外上下文或版本证据时保持 CONTEXT_REQUIRED。",
+    "本审计不产生 empirical credit，不开放 Claim Extraction。"
+  ],
+  "empirical_credit": "NONE",
+  "claim_extraction_blocked": true,
+  "review_status": "REVIEWED"
+}

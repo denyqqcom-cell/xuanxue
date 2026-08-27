@@ -45,7 +45,8 @@
   "generated_from": [
     "knowledge/K2_QCIC_V06_GATE_STATE.json",
     "knowledge/K2_SOURCE_STANCE_REGISTRY.jsonl",
-    "knowledge/K2_ENUMERATION_COMPRESSION_REGISTRY.jsonl"
+    "knowledge/K2_ENUMERATION_COMPRESSION_REGISTRY.jsonl",
+    "knowledge/K2_ENUMERATION_RECONSTRUCTION_RESULTS.jsonl"
   ],
   "schema_version": "k2-qcic-inference-eligibility-v1",
   "source_summaries": [

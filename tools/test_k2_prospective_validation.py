@@ -9,11 +9,21 @@ def distillates():
     return [{"work_family_key":"WF-TEST-001","testable_hypotheses":[{"hypothesis_id":"H-TEST-001","status":"UNTESTED"}]}]
 
 
+def framework_hypotheses():
+    return [
+        {"hypothesis_id":"SCRM-H6","scope_type":"FRAMEWORK","scope_ref":"SCRM-v0.2","component":"WORLD_MODEL_BEFORE_SYMBOLS","status":"UNTESTED","empirical_credit":"NONE"},
+        {"hypothesis_id":"SCRM-H7","scope_type":"FRAMEWORK","scope_ref":"SCRM-v0.2","component":"COMPARATOR_INFORMATION_PARITY","status":"UNTESTED","empirical_credit":"NONE"},
+        {"hypothesis_id":"SCRM-H8","scope_type":"FRAMEWORK","scope_ref":"SCRM-v0.2","component":"MODEL_VERSION_FREEZE","status":"UNTESTED","empirical_credit":"NONE"},
+        {"hypothesis_id":"SCRM-H9","scope_type":"FRAMEWORK","scope_ref":"SCRM-v0.2","component":"ABSTENTION_ACCOUNTABILITY","status":"UNTESTED","empirical_credit":"NONE"},
+    ]
+
+
 def plan():
     return {
         "plan_id":"K2PV-TEST-001",
         "hypothesis_id":"H-TEST-001",
-        "work_family_key":"WF-TEST-001",
+        "hypothesis_scope_type":"WORK_FAMILY",
+        "hypothesis_scope_ref":"WF-TEST-001",
         "model_name":"RELATIONAL_MODEL",
         "comparator_name":"STATIC_BASELINE",
         "question_scope":"low-risk prospective research",
@@ -29,6 +39,20 @@ def plan():
         "status":"DESIGN_READY",
         "empirical_credit":"NONE",
     }
+
+
+def scrm_plan(hypothesis_id="SCRM-H6"):
+    p=plan()
+    p["plan_id"]="K2PV-SCRM-H6-001"
+    p["hypothesis_id"]=hypothesis_id
+    p["hypothesis_scope_type"]="FRAMEWORK"
+    p["hypothesis_scope_ref"]="SCRM-v0.2"
+    p["model_name"]="SCRM-v0.2"
+    p["comparator_name"]="REALITY_ONLY_BASELINE"
+    p["freeze_required_fields"]=sorted(v.MANDATORY_FREEZE_FIELDS | {
+        "information_order","comparator_parity","model_freeze","abstention_policy"
+    })
+    return p
 
 
 def batch(p=None):
@@ -69,6 +93,34 @@ def freeze(p=None,b=None):
         "confidence":0.6,
         "abstention_condition":"required object mapping becomes ambiguous before freeze",
     }
+    if p.get("hypothesis_scope_ref")=="SCRM-v0.2":
+        payload.update({
+            "information_order":{
+                "world_model_freeze_status":"FROZEN",
+                "symbolic_inputs_hidden_until_world_freeze":True,
+                "outcome_known_at_freeze":False,
+                "information_cutoff":"T0",
+                "contamination_status":"CLEAN",
+            },
+            "comparator_parity":{
+                "shared_reality_information":True,
+                "shared_information_cutoff":"T0",
+                "symbolic_increment_isolated":True,
+                "freeze_status":"FROZEN",
+            },
+            "model_freeze":{
+                "scrm_version":"SCRM-v0.2",
+                "qcic_version":"QCIC-v0.6",
+                "method_variants":["M1"],
+                "freeze_status":"FROZEN",
+            },
+            "abstention_policy":{
+                "trigger_conditions":["mapping ambiguity"],
+                "decision_rule":"ABSTAIN when any trigger is true before output freeze",
+                "freeze_status":"FROZEN",
+                "coverage_accounting":True,
+            },
+        })
     return {
         "freeze_id":"K2PVF-CASE_001",
         "plan_id":p["plan_id"],
@@ -83,6 +135,11 @@ def freeze(p=None,b=None):
         "research_only":True,
         "status":"FROZEN",
     }
+
+
+def rehash_freeze(f):
+    f["frozen_payload_sha256"]=v.canonical_sha256(f["frozen_payload"])
+    return f
 
 
 def outcome(f=None):
@@ -103,19 +160,26 @@ def outcome(f=None):
     }
 
 
-def must_pass(plans,batches=None,freezes=None,outcomes=None):
-    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [])
+def must_pass(plans,batches=None,freezes=None,outcomes=None,frameworks=None):
+    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [],framework_hypotheses=frameworks or [])
     assert not issues,issues
 
 
-def must_fail(plans,batches=None,freezes=None,outcomes=None,needle=""):
-    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [])
+def must_fail(plans,batches=None,freezes=None,outcomes=None,frameworks=None,needle=""):
+    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [],framework_hypotheses=frameworks or [])
     assert issues,"expected failure"
     text="; ".join(f"{a}: {b}" for a,b in issues)
     assert needle in text,(needle,text)
 
 
 def main():
+    # Deep-retreat bridge contract: SCRM-v0.2 prospective cases must carry all four
+    # information-order controls through the existing PLAN -> BATCH -> FREEZE chain.
+    assert hasattr(v,"SCRM_V02_FREEZE_FIELDS"),"prospective bridge missing SCRM-v0.2 freeze contract"
+    assert v.SCRM_V02_FREEZE_FIELDS=={
+        "information_order","comparator_parity","model_freeze","abstention_policy"
+    },v.SCRM_V02_FREEZE_FIELDS
+
     p=plan();must_pass([p])
 
     bad=copy.deepcopy(p);bad["hypothesis_id"]="H-NOT-FOUND"
@@ -126,6 +190,13 @@ def main():
 
     bad=copy.deepcopy(p);bad["empirical_credit"]="STRONG"
     must_fail([bad],needle="cannot carry empirical credit")
+
+    bad=copy.deepcopy(p);bad["hypothesis_scope_ref"]="WF-WRONG"
+    must_fail([bad],needle="hypothesis scope does not match source")
+
+    sp=scrm_plan();must_pass([sp],frameworks=framework_hypotheses())
+    bad=copy.deepcopy(sp);bad["freeze_required_fields"].remove("information_order")
+    must_fail([bad],frameworks=framework_hypotheses(),needle="SCRM-v0.2 freeze fields")
 
     b=batch(p);must_pass([p],[b])
 
@@ -151,6 +222,21 @@ def main():
     badf=copy.deepcopy(f);badf["frozen_payload"]["prediction"]="CHANGED_AFTER_FREEZE"
     must_fail([p],[b],[badf],needle="frozen_payload_sha256 mismatch")
 
+    sb=batch(sp);sf=freeze(sp,sb)
+    must_pass([sp],[sb],[sf],frameworks=framework_hypotheses())
+
+    badsf=copy.deepcopy(sf);badsf["frozen_payload"]["information_order"]["symbolic_inputs_hidden_until_world_freeze"]=False;rehash_freeze(badsf)
+    must_fail([sp],[sb],[badsf],frameworks=framework_hypotheses(),needle="world model")
+
+    badsf=copy.deepcopy(sf);badsf["frozen_payload"]["comparator_parity"]["shared_reality_information"]=False;rehash_freeze(badsf)
+    must_fail([sp],[sb],[badsf],frameworks=framework_hypotheses(),needle="comparator parity")
+
+    badsf=copy.deepcopy(sf);badsf["frozen_payload"]["model_freeze"]["scrm_version"]="SCRM-v0.1";rehash_freeze(badsf)
+    must_fail([sp],[sb],[badsf],frameworks=framework_hypotheses(),needle="model version")
+
+    badsf=copy.deepcopy(sf);badsf["frozen_payload"]["abstention_policy"]["coverage_accounting"]=False;rehash_freeze(badsf)
+    must_fail([sp],[sb],[badsf],frameworks=framework_hypotheses(),needle="abstention coverage")
+
     o=outcome(f);must_pass([p],[b],[f],[o])
 
     bado=copy.deepcopy(o);bado["freeze_record_sha256"]="d"*64
@@ -169,6 +255,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=19")
+    print("cases=25")
 
 if __name__=="__main__":main()

@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 K=ROOT/"knowledge"
 
 PLAN_FIELDS={
-    "plan_id","hypothesis_id","work_family_key","model_name","comparator_name",
+    "plan_id","hypothesis_id","hypothesis_scope_type","hypothesis_scope_ref","model_name","comparator_name",
     "question_scope","unit_of_analysis","freeze_required_fields","evaluation_metrics",
     "success_condition","failure_condition","abstention_rule","leakage_controls",
     "high_risk_policy","update_policy","status","empirical_credit",
@@ -33,7 +33,17 @@ MANDATORY_FREEZE_FIELDS={
     "primary_layers","boundary_conditions","interpretation_path","prediction",
     "confidence","abstention_condition",
 }
+SCRM_V02_FREEZE_FIELDS={"information_order","comparator_parity","model_freeze","abstention_policy"}
+FRAMEWORK_HYPOTHESIS_FIELDS={"hypothesis_id","scope_type","scope_ref","component","status","empirical_credit"}
+EXPECTED_SCRM_HYPOTHESES={"SCRM-H6","SCRM-H7","SCRM-H8","SCRM-H9"}
+EXPECTED_SCRM_COMPONENTS={
+    "SCRM-H6":"WORLD_MODEL_BEFORE_SYMBOLS",
+    "SCRM-H7":"COMPARATOR_INFORMATION_PARITY",
+    "SCRM-H8":"MODEL_VERSION_FREEZE",
+    "SCRM-H9":"ABSTENTION_ACCOUNTABILITY",
+}
 EVALUATIONS={"SUCCESS","PARTIAL","FAIL","ABSTAIN","UNEVALUABLE"}
+SCOPE_TYPES={"WORK_FAMILY","FRAMEWORK"}
 PLAN_ID_RE=re.compile(r"^K2PV-[A-Z0-9-]+$")
 BATCH_ID_RE=re.compile(r"^K2PVB-[A-Z0-9_-]+$")
 FREEZE_ID_RE=re.compile(r"^K2PVF-[A-Z0-9_-]+$")
@@ -84,7 +94,33 @@ def utc_value(v):
     return datetime.strptime(v,"%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
 
-def hypothesis_index(distillates):
+def validate_framework_hypotheses(rows):
+    issues=[];seen=set()
+    for i,row in enumerate(rows,1):
+        hid=row.get("hypothesis_id") or f"row-{i}"
+        if set(row)!=FRAMEWORK_HYPOTHESIS_FIELDS:
+            issues.append((hid,f"framework hypothesis fields mismatch missing={sorted(FRAMEWORK_HYPOTHESIS_FIELDS-set(row))} extra={sorted(set(row)-FRAMEWORK_HYPOTHESIS_FIELDS)}"))
+        if not nonempty_text(row.get("hypothesis_id")):
+            issues.append((hid,"invalid framework hypothesis_id"))
+        elif row["hypothesis_id"] in seen:
+            issues.append((hid,"duplicate framework hypothesis_id"))
+        else:
+            seen.add(row["hypothesis_id"])
+        if row.get("scope_type")!="FRAMEWORK":issues.append((hid,"framework hypothesis scope_type must be FRAMEWORK"))
+        if row.get("scope_ref")!="SCRM-v0.2":issues.append((hid,"framework hypothesis scope_ref must be SCRM-v0.2"))
+        expected_component=EXPECTED_SCRM_COMPONENTS.get(row.get("hypothesis_id"))
+        if expected_component and row.get("component")!=expected_component:
+            issues.append((hid,"framework hypothesis component mismatch"))
+        if row.get("status")!="UNTESTED":issues.append((hid,"framework hypothesis status must remain UNTESTED"))
+        if row.get("empirical_credit")!="NONE":issues.append((hid,"framework hypothesis cannot carry empirical credit"))
+    missing=EXPECTED_SCRM_HYPOTHESES-seen
+    extra=seen-EXPECTED_SCRM_HYPOTHESES
+    if missing:issues.append(("SCRM-v0.2",f"missing framework hypotheses: {sorted(missing)}"))
+    if extra:issues.append(("SCRM-v0.2",f"unexpected framework hypotheses: {sorted(extra)}"))
+    return issues
+
+
+def hypothesis_index(distillates,framework_hypotheses=None):
     out={}
     for d in distillates:
         wf=d.get("work_family_key")
@@ -92,14 +128,61 @@ def hypothesis_index(distillates):
             if not isinstance(h,dict):continue
             hid=h.get("hypothesis_id")
             if not nonempty_text(hid):continue
-            if hid in out:
-                fail(f"duplicate hypothesis_id in work-family distillates: {hid}")
-            out[hid]={"work_family_key":wf,"status":h.get("status")}
+            if hid in out:fail(f"duplicate hypothesis_id in work-family distillates: {hid}")
+            out[hid]={"scope_type":"WORK_FAMILY","scope_ref":wf,"status":h.get("status")}
+    for h in framework_hypotheses or []:
+        hid=h.get("hypothesis_id")
+        if not nonempty_text(hid):continue
+        if hid in out:fail(f"duplicate hypothesis_id across sources: {hid}")
+        out[hid]={"scope_type":h.get("scope_type"),"scope_ref":h.get("scope_ref"),"status":h.get("status")}
     return out
 
 
-def validate_records(distillates,plans,batches,freezes,outcomes):
-    issues=[];hyps=hypothesis_index(distillates)
+def validate_scrm_v02_freeze_payload(payload,fid):
+    issues=[]
+    info=payload.get("information_order")
+    if not isinstance(info,dict):
+        issues.append((fid,"SCRM-v0.2 world model information_order must be object"))
+    else:
+        if info.get("world_model_freeze_status")!="FROZEN":issues.append((fid,"SCRM-v0.2 world model must be frozen before symbolic reveal"))
+        if info.get("symbolic_inputs_hidden_until_world_freeze") is not True:issues.append((fid,"SCRM-v0.2 world model must hide symbolic inputs until world freeze"))
+        if info.get("outcome_known_at_freeze") is not False:issues.append((fid,"SCRM-v0.2 world model freeze requires outcome unknown"))
+        if not nonempty_text(info.get("information_cutoff")):issues.append((fid,"SCRM-v0.2 world model requires information_cutoff"))
+        if info.get("contamination_status")!="CLEAN":issues.append((fid,"SCRM-v0.2 formal prospective world model requires CLEAN contamination status"))
+
+    parity=payload.get("comparator_parity")
+    if not isinstance(parity,dict):
+        issues.append((fid,"SCRM-v0.2 comparator parity must be object"))
+    else:
+        if parity.get("shared_reality_information") is not True:issues.append((fid,"SCRM-v0.2 comparator parity requires shared reality information"))
+        if parity.get("symbolic_increment_isolated") is not True:issues.append((fid,"SCRM-v0.2 comparator parity requires isolated symbolic increment"))
+        if parity.get("freeze_status")!="FROZEN":issues.append((fid,"SCRM-v0.2 comparator parity must be frozen"))
+        if not nonempty_text(parity.get("shared_information_cutoff")):issues.append((fid,"SCRM-v0.2 comparator parity requires shared information cutoff"))
+        if isinstance(info,dict) and nonempty_text(info.get("information_cutoff")) and parity.get("shared_information_cutoff")!=info.get("information_cutoff"):
+            issues.append((fid,"SCRM-v0.2 comparator parity cutoff must equal world-model cutoff"))
+
+    model=payload.get("model_freeze")
+    if not isinstance(model,dict):
+        issues.append((fid,"SCRM-v0.2 model version freeze must be object"))
+    else:
+        if model.get("scrm_version")!="SCRM-v0.2":issues.append((fid,"SCRM-v0.2 model version must be frozen to SCRM-v0.2"))
+        if not nonempty_text(model.get("qcic_version")):issues.append((fid,"SCRM-v0.2 model version requires qcic_version"))
+        if not string_list(model.get("method_variants")):issues.append((fid,"SCRM-v0.2 model version requires non-empty method_variants"))
+        if model.get("freeze_status")!="FROZEN":issues.append((fid,"SCRM-v0.2 model version freeze_status must be FROZEN"))
+
+    abstain=payload.get("abstention_policy")
+    if not isinstance(abstain,dict):
+        issues.append((fid,"SCRM-v0.2 abstention coverage policy must be object"))
+    else:
+        if not string_list(abstain.get("trigger_conditions")):issues.append((fid,"SCRM-v0.2 abstention policy requires trigger_conditions"))
+        if not nonempty_text(abstain.get("decision_rule")):issues.append((fid,"SCRM-v0.2 abstention policy requires decision_rule"))
+        if abstain.get("freeze_status")!="FROZEN":issues.append((fid,"SCRM-v0.2 abstention policy must be frozen"))
+        if abstain.get("coverage_accounting") is not True:issues.append((fid,"SCRM-v0.2 abstention coverage accounting must be true"))
+    return issues
+
+
+def validate_records(distillates,plans,batches,freezes,outcomes,framework_hypotheses=None):
+    issues=[];hyps=hypothesis_index(distillates,framework_hypotheses)
     plan_by_id={};seen_hyp=set()
     for p in plans:
         pid=p.get("plan_id") or "<missing>";hid=p.get("hypothesis_id")
@@ -112,8 +195,11 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         h=hyps.get(hid)
         if not h:issues.append((pid,f"unknown hypothesis_id: {hid}"))
         else:
-            if p.get("work_family_key")!=h.get("work_family_key"):issues.append((pid,"work_family_key does not match hypothesis source"))
+            if p.get("hypothesis_scope_type")!=h.get("scope_type") or p.get("hypothesis_scope_ref")!=h.get("scope_ref"):
+                issues.append((pid,"hypothesis scope does not match source"))
             if h.get("status")!="UNTESTED":issues.append((pid,"prospective design currently requires UNTESTED hypothesis"))
+        if p.get("hypothesis_scope_type") not in SCOPE_TYPES:issues.append((pid,"invalid hypothesis_scope_type"))
+        if not nonempty_text(p.get("hypothesis_scope_ref")):issues.append((pid,"hypothesis_scope_ref must be non-empty"))
         for field in ["model_name","comparator_name","question_scope","unit_of_analysis","success_condition","failure_condition","abstention_rule","high_risk_policy","update_policy"]:
             if not nonempty_text(p.get(field)):issues.append((pid,f"{field} must be non-empty text"))
         if p.get("model_name")==p.get("comparator_name"):issues.append((pid,"candidate model and comparator must differ"))
@@ -122,6 +208,9 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         else:
             missing=MANDATORY_FREEZE_FIELDS-set(req)
             if missing:issues.append((pid,f"freeze_required_fields missing mandatory fields: {sorted(missing)}"))
+            if p.get("hypothesis_scope_ref")=="SCRM-v0.2":
+                smissing=SCRM_V02_FREEZE_FIELDS-set(req)
+                if smissing:issues.append((pid,f"SCRM-v0.2 freeze fields missing: {sorted(smissing)}"))
             if len(req)!=len(set(req)):issues.append((pid,"duplicate freeze_required_fields"))
         if not string_list(p.get("evaluation_metrics")):issues.append((pid,"evaluation_metrics must be non-empty string array"))
         if not string_list(p.get("leakage_controls")):issues.append((pid,"leakage_controls must be non-empty string array"))
@@ -139,8 +228,7 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         batch_by_id[bid]=b
         plan=plan_by_id.get(pid)
         if not plan:issues.append((bid,f"unknown plan_id: {pid}"))
-        else:
-            if b.get("plan_sha256")!=canonical_sha256(plan):issues.append((bid,"plan_sha256 does not bind exact test plan"))
+        elif b.get("plan_sha256")!=canonical_sha256(plan):issues.append((bid,"plan_sha256 does not bind exact test plan"))
         if not isinstance(b.get("plan_sha256"),str) or not SHA64_RE.match(b.get("plan_sha256","")):issues.append((bid,"plan_sha256 must be lowercase sha256"))
         if utc_value(b.get("preregistered_at_utc")) is None:issues.append((bid,"preregistered_at_utc must be UTC second timestamp ending Z"))
         if not isinstance(b.get("model_commit_sha"),str) or not SHA40_RE.match(b.get("model_commit_sha","")):issues.append((bid,"model_commit_sha must be lowercase 40-char git SHA"))
@@ -187,6 +275,7 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
             if plan:
                 missing=set(plan.get("freeze_required_fields") or [])-set(payload)
                 if missing:issues.append((fid,f"frozen_payload missing plan fields: {sorted(missing)}"))
+                if plan.get("hypothesis_scope_ref")=="SCRM-v0.2":issues.extend(validate_scrm_v02_freeze_payload(payload,fid))
             conf=payload.get("confidence")
             if not isinstance(conf,(int,float)) or isinstance(conf,bool) or not 0<=conf<=1:issues.append((fid,"confidence must be numeric in [0,1]"))
             if not nonempty_text(payload.get("prediction")):issues.append((fid,"prediction must be explicit non-empty text"))
@@ -234,15 +323,20 @@ def main():
     if project.get("phase")!="K2_EVIDENCE_EXTRACTION":fail("validator only valid during K2_EVIDENCE_EXTRACTION")
     if project.get("claim_extraction_blocked") is not True:fail("Claim Extraction must remain blocked")
     distillates=load_jsonl(K/"K2_WORK_FAMILY_DISTILLATES.jsonl")
+    frameworks=load_jsonl(K/"K2_QIMEN_SCRM_PROSPECTIVE_HYPOTHESES.jsonl")
+    framework_issues=validate_framework_hypotheses(frameworks)
+    if framework_issues:fail(f"framework issues={len(framework_issues)} first={framework_issues[0][0]}: {framework_issues[0][1]}")
     plans=load_jsonl(K/"K2_PROSPECTIVE_TEST_PLANS.jsonl")
     batches=load_jsonl(K/"K2_PROSPECTIVE_BATCHES.jsonl")
     freezes=load_jsonl(K/"K2_PROSPECTIVE_FREEZES.jsonl")
     outcomes=load_jsonl(K/"K2_PROSPECTIVE_OUTCOMES.jsonl")
-    issues=validate_records(distillates,plans,batches,freezes,outcomes)
-    if issues:
-        fail(f"issues={len(issues)} first={issues[0][0]}: {issues[0][1]}")
+    issues=validate_records(distillates,plans,batches,freezes,outcomes,framework_hypotheses=frameworks)
+    plan_hypotheses={p.get("hypothesis_id") for p in plans}
+    missing_plans=EXPECTED_SCRM_HYPOTHESES-plan_hypotheses
+    if missing_plans:issues.append(("SCRM-v0.2",f"missing prospective plan(s) for framework hypotheses: {sorted(missing_plans)}"))
+    if issues:fail(f"issues={len(issues)} first={issues[0][0]}: {issues[0][1]}")
     print("k2-prospective-validation: PASS")
-    print(f"plans={len(plans)} batches={len(batches)} freezes={len(freezes)} outcomes={len(outcomes)} issues=0")
-    print("empirical_credit_upgrade_blocked=true")
+    print(f"plans={len(plans)} framework_hypotheses={len(frameworks)} batches={len(batches)} freezes={len(freezes)} outcomes={len(outcomes)} issues=0")
+    print("scrm_v02_bridge_ready=true empirical_credit_upgrade_blocked=true")
 
 if __name__=="__main__":main()

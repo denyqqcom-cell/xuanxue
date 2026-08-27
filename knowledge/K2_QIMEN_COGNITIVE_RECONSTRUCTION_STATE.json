@@ -1,8 +1,8 @@
 {
-  "schema_version": "k2-qimen-cognitive-reconstruction-v1",
+  "schema_version": "k2-qimen-cognitive-reconstruction-v2",
   "status": "OPEN",
   "mode": "COGNITIVE_RECONSTRUCTION",
-  "active_framework": "SCRM-v0.1",
+  "active_framework": "SCRM-v0.2",
   "framework_status": "CANDIDATE_UNTESTED",
   "claim_extraction_blocked": true,
   "empirical_credit": "NONE",
@@ -10,7 +10,7 @@
   "coverage_status": "INCOMPLETE",
   "global_unknown_textual_backlog": 91,
   "deep_visual_reviewed_source_count": 20,
-  "historical_bias_count": 15,
+  "historical_bias_count": 20,
   "workstreams": [
     "CRITICAL_RETROSPECTIVE",
     "CORPUS_COMPLETION",
@@ -28,6 +28,11 @@
     "abstention_required": true,
     "prospective_validation_required": true,
     "no_book_rule_universalization": true,
-    "no_innovation_credit_without_test": true
+    "no_innovation_credit_without_test": true,
+    "world_model_pre_symbolic_freeze_required": true,
+    "comparator_information_parity_required": true,
+    "model_version_freeze_required": true,
+    "abstention_coverage_accounting_required": true,
+    "dynamic_state_machine_derived_required": true
   }
 }

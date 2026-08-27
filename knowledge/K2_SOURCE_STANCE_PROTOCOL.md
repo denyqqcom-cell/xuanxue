@@ -1,6 +1,6 @@
 # K2 Source Stance Registry Protocol
 
-版本：v1.1  
+版本：v1.2  
 状态：ACTIVE  
 适用阶段：K2B Deep Closure  
 Claim Extraction：BLOCKED
@@ -92,7 +92,30 @@ Claim Extraction：BLOCKED
 
 这些记录只表达完整阅读能够定位的来源立场，不代表项目已经验证其结论。
 
-## 7. Fail-closed
+## 7. Semantic coverage gate
+
+此前 `K2_QCIC_V06_GATE_STATE.json` 只用 `minimum_rows` 约束 mandatory source。这个条件过弱：删除一条关键 stance 后，只要补入同 source 的无关 topic，行数仍然相同，机器门就可能继续绿。
+
+因此新增不变量：
+
+`ROW COUNT COVERAGE != SEMANTIC COVERAGE`
+
+对 `source_stance.required=true` 的 target，gate state 必须同时冻结：
+
+- `required_topic_keys`：当前已接受、不得被无关 topic 替换的语义主题；
+- `required_topic_stances`：每个 mandatory topic 当前接受的 effective stance。
+
+`minimum_rows` 仅保留为粗粒度 sanity check，不再承担语义完整性证明。
+
+覆盖检查必须基于 **effective stance leaf**，而不是 raw historical row 数量。已经 superseded 的旧记录继续保留审计价值，但不能膨胀当前覆盖计数，也不能替代当前 effective conclusion。
+
+如果后续更强的完整阅读证据确实推翻某个 mandatory stance，正确流程是：
+
+`new reviewed stance -> explicit supersession -> update semantic gate snapshot -> rerun fail-closed tests`
+
+而不是仅修改 topic、删除旧行或用同数量的其他记录把 CI 保持为绿色。
+
+## 8. Fail-closed
 
 以下任一情况必须失败：
 
@@ -103,5 +126,7 @@ Claim Extraction：BLOCKED
 - supersedes 指向不同来源或不同 topic；
 - superseding precedence 不高于被覆盖记录；
 - 同 source/topic 最终存在多个 effective leaves；
+- mandatory target 的 required topic 被无关 topic 替换；
+- mandatory topic 的 effective stance 与 gate snapshot 不一致且未显式更新；
 - mandatory target 的 registry rows 被删除；
 - 本地路径泄漏进知识树。

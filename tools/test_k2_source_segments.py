@@ -14,9 +14,9 @@ def source():
 
 def valid_rows():
     return [
-        {"author":"甲","author_basis":"CONTENT_VERIFIED","author_evidence":"内页署名","canonical_sha256":"a"*64,"domain_routes":["qimen"],"evidence_locators":["pdf:p1","pdf:p2"],"independence_class":"SAME_WORK_NOT_INDEPENDENT","paired_source_ids":["QM-SRC-9001"],"page_end":2,"page_start":1,"part_label":"下册","relation":"WORK_PART","review_status":"REVIEWED","segment_id":"QM-SRC-9000#SEG-001","source_credit_scope":"SEGMENT_ONLY","source_id":"QM-SRC-9000","title":"甲书下册","title_variants":[],"verification_mode":"VISUAL_PAGE"},
-        {"author":None,"author_basis":"UNKNOWN","author_evidence":None,"canonical_sha256":"a"*64,"domain_routes":["OUT_OF_SCOPE"],"evidence_locators":["pdf:p3","pdf:p5"],"independence_class":"PRIMARY_CANDIDATE","paired_source_ids":[],"page_end":5,"page_start":3,"part_label":None,"relation":"PRIMARY_WORK_IN_COMPOSITE","review_status":"REVIEWED","segment_id":"QM-SRC-9000#SEG-002","source_credit_scope":"SEGMENT_ONLY","source_id":"QM-SRC-9000","title":"乙书","title_variants":[],"verification_mode":"VISUAL_PAGE"},
-        {"author":None,"author_basis":"UNKNOWN","author_evidence":None,"canonical_sha256":"a"*64,"domain_routes":["CARRIER_MATTER"],"evidence_locators":["pdf:p6"],"independence_class":"NOT_ELIGIBLE","paired_source_ids":[],"page_end":6,"page_start":6,"part_label":None,"relation":"NON_WORK","review_status":"REVIEWED","segment_id":"QM-SRC-9000#SEG-003","source_credit_scope":"SEGMENT_ONLY","source_id":"QM-SRC-9000","title":"出版资料","title_variants":[],"verification_mode":"VISUAL_PAGE"},
+        {"author":"甲","author_basis":"CONTENT_VERIFIED","author_claim_status":"SOURCE_INTERNAL_ATTRIBUTION","author_evidence":"内页署名","canonical_sha256":"a"*64,"domain_routes":["qimen"],"evidence_locators":["pdf:p1","pdf:p2"],"independence_class":"SAME_WORK_NOT_INDEPENDENT","paired_source_ids":["QM-SRC-9001"],"page_end":2,"page_start":1,"part_label":"下册","relation":"WORK_PART","review_status":"REVIEWED","segment_id":"QM-SRC-9000#SEG-001","source_credit_scope":"SEGMENT_ONLY","source_id":"QM-SRC-9000","title":"甲书下册","title_variants":[],"verification_mode":"VISUAL_PAGE"},
+        {"author":None,"author_basis":"UNKNOWN","author_claim_status":"UNKNOWN","author_evidence":None,"canonical_sha256":"a"*64,"domain_routes":["OUT_OF_SCOPE"],"evidence_locators":["pdf:p3","pdf:p5"],"independence_class":"PRIMARY_CANDIDATE","paired_source_ids":[],"page_end":5,"page_start":3,"part_label":None,"relation":"PRIMARY_WORK_IN_COMPOSITE","review_status":"REVIEWED","segment_id":"QM-SRC-9000#SEG-002","source_credit_scope":"SEGMENT_ONLY","source_id":"QM-SRC-9000","title":"乙书","title_variants":[],"verification_mode":"VISUAL_PAGE"},
+        {"author":None,"author_basis":"UNKNOWN","author_claim_status":"UNKNOWN","author_evidence":None,"canonical_sha256":"a"*64,"domain_routes":["CARRIER_MATTER"],"evidence_locators":["pdf:p6"],"independence_class":"NOT_ELIGIBLE","paired_source_ids":[],"page_end":6,"page_start":6,"part_label":None,"relation":"NON_WORK","review_status":"REVIEWED","segment_id":"QM-SRC-9000#SEG-003","source_credit_scope":"SEGMENT_ONLY","source_id":"QM-SRC-9000","title":"出版资料","title_variants":[],"verification_mode":"VISUAL_PAGE"},
     ]
 
 
@@ -32,7 +32,20 @@ def must_fail(rows,needle):
     assert needle in text,(needle,text)
 
 
+def overlay_row(**overrides):
+    row={"schema_version":"k2-segment-authorship-status-v1","segment_id":"QM-SRC-9000#SEG-001","author_claim_status":"SOURCE_INTERNAL_ATTRIBUTION","review_status":"REVIEWED","reason":"内页署名只证明载体内部归署名，不证明历史作者身份已经外部核验。","external_evidence_refs":[]}
+    row.update(overrides);return row
+
+
 def main():
+    # Source-internal title/signature evidence proves what the carrier attributes,
+    # not the historical truth of authorship. The segment model must preserve
+    # that distinction explicitly instead of letting CONTENT_VERIFIED read as
+    # "historically verified author" downstream.
+    assert hasattr(v,"AUTHOR_CLAIM_STATUSES"), "segment author-claim epistemic contract missing"
+    assert "SOURCE_INTERNAL_ATTRIBUTION" in v.AUTHOR_CLAIM_STATUSES
+    assert "EXTERNALLY_VERIFIED" in v.AUTHOR_CLAIM_STATUSES
+
     base=valid_rows();must_pass(base)
 
     rows=copy.deepcopy(base);rows[1]["page_start"]=2
@@ -56,7 +69,29 @@ def main():
     rows=copy.deepcopy(base);rows[0]["source_credit_scope"]="CARRIER_WIDE"
     must_fail(rows,"source_credit_scope must be SEGMENT_ONLY")
 
+    rows=copy.deepcopy(base);rows[0]["author_claim_status"]="EXTERNALLY_VERIFIED"
+    must_fail(rows,"CONTENT_VERIFIED may only establish SOURCE_INTERNAL_ATTRIBUTION")
+
+    rows=copy.deepcopy(base);rows[1]["author_claim_status"]="SOURCE_INTERNAL_ATTRIBUTION"
+    must_fail(rows,"UNKNOWN author_basis requires UNKNOWN author_claim_status")
+
+    rows=copy.deepcopy(base);del rows[0]["author_claim_status"]
+    must_fail(rows,"author_claim_status")
+
+    historical=copy.deepcopy(base)
+    for row in historical:row.pop("author_claim_status",None)
+    effective,issues=v.apply_author_claim_status(historical,[overlay_row()])
+    assert not issues,issues
+    assert effective[0]["author_claim_status"]=="SOURCE_INTERNAL_ATTRIBUTION"
+    assert effective[1].get("author_claim_status") is None
+
+    _,issues=v.apply_author_claim_status(historical,[overlay_row(segment_id="QM-SRC-9999#SEG-001")])
+    assert any("unknown segment_id" in msg for _,msg in issues),issues
+
+    _,issues=v.apply_author_claim_status(historical,[overlay_row(author_claim_status="EXTERNALLY_VERIFIED")])
+    assert any("requires external_evidence_refs" in msg for _,msg in issues),issues
+
     print("k2-source-segments-tests: PASS")
-    print("cases=8")
+    print("cases=14")
 
 if __name__=="__main__":main()

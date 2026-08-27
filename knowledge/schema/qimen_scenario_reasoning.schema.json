@@ -15,21 +15,24 @@
     "constraints",
     "reality_anchor",
     "scenario_graph",
+    "information_order",
     "symbolic_mapping_hypotheses",
     "eligible_rule_set",
     "boundary_conditions",
     "competing_explanations",
+    "comparator_parity",
     "counterfactual_checks",
     "sensitivity_checks",
     "decision_tie_break_policy",
-    "abstention_condition",
+    "model_freeze",
+    "abstention_policy",
     "confidence_components",
     "prediction",
     "empirical_credit"
   ],
   "additionalProperties": false,
   "properties": {
-    "schema_version": {"const": "qimen-scrm-case-v0.1"},
+    "schema_version": {"const": "qimen-scrm-case-v0.2"},
     "case_id": {"type": "string", "minLength": 1},
     "status": {"enum": ["DRAFT", "FROZEN", "OUTCOME_RECORDED"]},
     "question_definition": {"type": "string", "minLength": 1},
@@ -59,6 +62,24 @@
       },
       "additionalProperties": false
     },
+    "information_order": {
+      "type": "object",
+      "required": [
+        "world_model_freeze_status",
+        "symbolic_inputs_hidden_until_world_freeze",
+        "outcome_known_at_freeze",
+        "information_cutoff",
+        "contamination_status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "world_model_freeze_status": {"enum": ["FROZEN", "UNRESOLVED"]},
+        "symbolic_inputs_hidden_until_world_freeze": {"type": "boolean"},
+        "outcome_known_at_freeze": {"type": "boolean"},
+        "information_cutoff": {"type": "string", "minLength": 1},
+        "contamination_status": {"enum": ["CLEAN", "CONTAMINATED", "UNKNOWN"]}
+      }
+    },
     "symbolic_mapping_hypotheses": {
       "type": "array",
       "minItems": 1,
@@ -67,6 +88,22 @@
     "eligible_rule_set": {"type": "array", "items": {"type": "object"}},
     "boundary_conditions": {"type": "array", "minItems": 1, "items": {"type": "string"}},
     "competing_explanations": {"type": "array", "minItems": 2, "items": {"type": "object"}},
+    "comparator_parity": {
+      "type": "object",
+      "required": [
+        "shared_reality_information",
+        "shared_information_cutoff",
+        "symbolic_increment_isolated",
+        "freeze_status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "shared_reality_information": {"const": true},
+        "shared_information_cutoff": {"type": "string", "minLength": 1},
+        "symbolic_increment_isolated": {"const": true},
+        "freeze_status": {"enum": ["FROZEN", "UNRESOLVED"]}
+      }
+    },
     "counterfactual_checks": {"type": "array", "minItems": 1, "items": {"type": "object"}},
     "sensitivity_checks": {"type": "array", "minItems": 1, "items": {"type": "object"}},
     "decision_tie_break_policy": {
@@ -101,7 +138,28 @@
         }
       ]
     },
-    "abstention_condition": {"type": "string", "minLength": 1},
+    "model_freeze": {
+      "type": "object",
+      "required": ["scrm_version", "qcic_version", "method_variants", "freeze_status"],
+      "additionalProperties": false,
+      "properties": {
+        "scrm_version": {"const": "SCRM-v0.2"},
+        "qcic_version": {"type": "string", "minLength": 1},
+        "method_variants": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "freeze_status": {"enum": ["FROZEN", "UNRESOLVED"]}
+      }
+    },
+    "abstention_policy": {
+      "type": "object",
+      "required": ["trigger_conditions", "decision_rule", "freeze_status", "coverage_accounting"],
+      "additionalProperties": false,
+      "properties": {
+        "trigger_conditions": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "decision_rule": {"type": "string", "minLength": 1},
+        "freeze_status": {"enum": ["FROZEN", "UNRESOLVED"]},
+        "coverage_accounting": {"const": true}
+      }
+    },
     "confidence_components": {
       "type": "object",
       "required": ["reality_evidence_strength", "source_support_strength", "model_agreement", "input_sensitivity", "overall_confidence"],
@@ -116,5 +174,25 @@
     },
     "prediction": {"type": "object"},
     "empirical_credit": {"const": "NONE"}
-  }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "FROZEN"}}, "required": ["status"]},
+      "then": {
+        "properties": {
+          "information_order": {
+            "properties": {
+              "world_model_freeze_status": {"const": "FROZEN"},
+              "symbolic_inputs_hidden_until_world_freeze": {"const": true},
+              "outcome_known_at_freeze": {"const": false},
+              "contamination_status": {"const": "CLEAN"}
+            }
+          },
+          "comparator_parity": {"properties": {"freeze_status": {"const": "FROZEN"}}},
+          "model_freeze": {"properties": {"freeze_status": {"const": "FROZEN"}}},
+          "abstention_policy": {"properties": {"freeze_status": {"const": "FROZEN"}}}
+        }
+      }
+    }
+  ]
 }

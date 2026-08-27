@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 from copy import deepcopy
+import validate_k2_enumeration_compression as v
 from validate_k2_enumeration_compression import validate_rows,coverage_issues
 
 SRC={"QM-SRC-0017":{"file_sha256":"a"*64}}
 LIN={"QM-SRC-0017":{"work_id":"WORK-000224"}}
 DEEP={"QM-SRC-0017":{"read_status":"COMPLETE","verification_mode":"VISUAL_PAGE","page_end":419}}
-STATE={"schema_version":"k2-qcic-v06-machine-gates-v1","status":"ACTIVE","claim_extraction_blocked":True,"targets":[{"source_id":"QM-SRC-0017","source_stance":{"required":True,"minimum_rows":0},"enumeration_compression":{"required":True,"minimum_rows":1}}]}
+STATE={"schema_version":"k2-qcic-v06-machine-gates-v1","status":"ACTIVE","claim_extraction_blocked":True,"targets":[{"source_id":"QM-SRC-0017","source_stance":{"required":True,"minimum_rows":0},"enumeration_compression":{"required":True,"minimum_rows":1,"required_generative_rule_ids":["QM0017-TIME-ENUM"],"required_generator_entry_counts":{"QM0017-TIME-ENUM":1080},"required_generator_method_layers":{"QM0017-TIME-ENUM":"CALCULATION"}}}]}
 BASE={
  "compression_id":"K2EC-QM0017-001","source_id":"QM-SRC-0017","work_id":"WORK-000224","canonical_sha256":"a"*64,
  "enumeration_label":"时家阴阳遁1080定局","method_layer":"CALCULATION","input_domain":"阳遁540+阴遁540",
@@ -34,5 +35,50 @@ def main():
     a=deepcopy(BASE);a["compression_id"]="A";a["enumeration_label"]="part-a"
     b=deepcopy(BASE);b["compression_id"]="B";b["enumeration_label"]="part-b";b["evidence_locators"]=["pdf:p210"]
     assert validate_rows(SRC,LIN,DEEP,[a,b]),"duplicate generative_rule_id accepted"
+
+    # A minimum row count is not semantic generator coverage. Replacing an
+    # accepted generator with an unrelated one must not keep the gate green.
+    unrelated=deepcopy(BASE);unrelated["generative_rule_id"]="QM0017-UNRELATED-ENUM"
+    assert coverage_issues([unrelated],deepcopy(STATE)),"count-only row substituted required generator"
+
+    changed_count=deepcopy(BASE);changed_count["enumerated_entries_count"]=1079
+    assert coverage_issues([changed_count],deepcopy(STATE)),"required generator structure size silently changed"
+    changed_layer=deepcopy(BASE);changed_layer["method_layer"]="DIVINATION"
+    assert coverage_issues([changed_layer],deepcopy(STATE)),"required generator method layer silently changed"
+
+    malformed=deepcopy(STATE);malformed["targets"][0]["enumeration_compression"]["required_generative_rule_ids"]=["QM0017-TIME-ENUM","QM0017-TIME-ENUM"]
+    assert coverage_issues([deepcopy(BASE)],malformed),"duplicate required generator ids accepted"
+    malformed=deepcopy(STATE);malformed["targets"][0]["enumeration_compression"]["required_generator_entry_counts"]={}
+    assert coverage_issues([deepcopy(BASE)],malformed),"generator/count semantic contract mismatch accepted"
+    malformed=deepcopy(STATE);malformed["targets"][0]["enumeration_compression"]["required_generator_method_layers"]={}
+    assert coverage_issues([deepcopy(BASE)],malformed),"generator/layer semantic contract mismatch accepted"
+
+    # A registry string must never be enough to promote structural
+    # reconstruction. PASS/FAIL requires an auditable reviewed result artifact;
+    # UNTESTED remains valid with no result artifact.
+    assert hasattr(v,"reconstruction_result_issues"),"reconstruction result artifact contract missing"
+    pass_row=deepcopy(BASE);pass_row["reconstruction_test_status"]="PASS"
+    assert v.reconstruction_result_issues([pass_row],[]),"self-declared reconstruction PASS accepted without result artifact"
+    fail_row=deepcopy(BASE);fail_row["reconstruction_test_status"]="FAIL"
+    assert v.reconstruction_result_issues([fail_row],[]),"self-declared reconstruction FAIL accepted without result artifact"
+    assert not v.reconstruction_result_issues([deepcopy(BASE)],[]),"UNTESTED incorrectly requires a result artifact"
+
+    result={
+      "reconstruction_id":"K2ER-QM0017-TIME-001","source_id":"QM-SRC-0017","work_id":"WORK-000224",
+      "canonical_sha256":"a"*64,"compression_id":"K2EC-QM0017-001","generative_rule_id":"QM0017-TIME-ENUM",
+      "algorithm_spec_id":"QM0017-TIME-ENUM-RECON-V1","algorithm_spec_sha256":"b"*64,
+      "fixture_set_id":"QM0017-TIME-ENUM-FIXTURE-V1","fixture_set_sha256":"c"*64,
+      "source_checkpoints":["pdf:p151","pdf:p152","pdf:p209"],"checked_states":3,"matched_states":3,
+      "result":"PASS","scope":"SOURCE_STRUCTURE_REPRODUCIBILITY_ONLY","empirical_credit":"NONE",
+      "claim_extraction_blocked":True,"review_status":"REVIEWED"
+    }
+    assert not v.reconstruction_result_issues([pass_row],[result]),"reviewed matching reconstruction result was rejected"
+    bad=deepcopy(result);bad["result"]="FAIL"
+    assert v.reconstruction_result_issues([pass_row],[bad]),"registry/result status mismatch accepted"
+    bad=deepcopy(result);bad["matched_states"]=2
+    assert v.reconstruction_result_issues([pass_row],[bad]),"PASS accepted with unmatched checkpoints"
+    bad=deepcopy(result);bad["empirical_credit"]="VALIDATED"
+    assert v.reconstruction_result_issues([pass_row],[bad]),"reconstruction result escaped empirical boundary"
+
     print("k2-enumeration-compression-tests: PASS")
 if __name__=="__main__":main()

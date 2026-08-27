@@ -14,6 +14,7 @@ from validate_k2_source_stance import (
 from validate_k2_enumeration_compression import (
     validate_rows as validate_enum_rows,
     coverage_issues as enum_coverage_issues,
+    reconstruction_result_issues,
     source_index as enum_source_index,
     lineage_index as enum_lineage_index,
     deep_reading_index as enum_deep_reading_index,
@@ -27,6 +28,7 @@ GENERATED_FROM=[
     "knowledge/K2_QCIC_V06_GATE_STATE.json",
     "knowledge/K2_SOURCE_STANCE_REGISTRY.jsonl",
     "knowledge/K2_ENUMERATION_COMPRESSION_REGISTRY.jsonl",
+    "knowledge/K2_ENUMERATION_RECONSTRUCTION_RESULTS.jsonl",
 ]
 
 def load_json(path):
@@ -34,6 +36,8 @@ def load_json(path):
 
 def load_jsonl(path):
     rows=[]
+    if not path.exists():
+        raise ValueError(f"missing required JSONL: {path.relative_to(ROOT)}")
     for raw in path.read_text(encoding="utf-8").splitlines():
         if raw.strip():rows.append(json.loads(raw))
     return rows
@@ -43,11 +47,13 @@ def validated_inputs(root=ROOT):
     state=load_json(k/"K2_QCIC_V06_GATE_STATE.json")
     stances=load_jsonl(k/"K2_SOURCE_STANCE_REGISTRY.jsonl")
     enums=load_jsonl(k/"K2_ENUMERATION_COMPRESSION_REGISTRY.jsonl")
+    recon_results=load_jsonl(k/"K2_ENUMERATION_RECONSTRUCTION_RESULTS.jsonl")
     issues=[]
     issues.extend(validate_stance_rows(stance_source_index(root),stance_lineage_index(root),stance_deep_reading_index(root),stances))
     issues.extend(stance_coverage_issues(stances,state))
     issues.extend(validate_enum_rows(enum_source_index(root),enum_lineage_index(root),enum_deep_reading_index(root),enums))
     issues.extend(enum_coverage_issues(enums,state))
+    issues.extend(reconstruction_result_issues(enums,recon_results))
     if issues:
         raise ValueError("invalid QCIC gate inputs: "+"; ".join(f"{a}: {b}" for a,b in issues[:20]))
     return state,stances,enums

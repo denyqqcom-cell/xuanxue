@@ -20,10 +20,10 @@
   ],
   "additionalProperties": false,
   "properties": {
-    "schema_version": {"const": "k2-qimen-cognitive-reconstruction-v1"},
+    "schema_version": {"const": "k2-qimen-cognitive-reconstruction-v2"},
     "status": {"enum": ["OPEN", "REVIEW_REQUIRED", "COMPLETE"]},
     "mode": {"const": "COGNITIVE_RECONSTRUCTION"},
-    "active_framework": {"const": "SCRM-v0.1"},
+    "active_framework": {"const": "SCRM-v0.2"},
     "framework_status": {"const": "CANDIDATE_UNTESTED"},
     "claim_extraction_blocked": {"const": true},
     "empirical_credit": {"const": "NONE"},
@@ -34,7 +34,7 @@
     "historical_bias_count": {"type": "integer", "minimum": 1},
     "workstreams": {
       "type": "array",
-      "minItems": 4,
+      "minItems": 5,
       "uniqueItems": true,
       "items": {
         "enum": [
@@ -59,7 +59,12 @@
         "abstention_required",
         "prospective_validation_required",
         "no_book_rule_universalization",
-        "no_innovation_credit_without_test"
+        "no_innovation_credit_without_test",
+        "world_model_pre_symbolic_freeze_required",
+        "comparator_information_parity_required",
+        "model_version_freeze_required",
+        "abstention_coverage_accounting_required",
+        "dynamic_state_machine_derived_required"
       ],
       "properties": {
         "theory_boundary_validation_required": {"const": true},
@@ -71,7 +76,12 @@
         "abstention_required": {"const": true},
         "prospective_validation_required": {"const": true},
         "no_book_rule_universalization": {"const": true},
-        "no_innovation_credit_without_test": {"const": true}
+        "no_innovation_credit_without_test": {"const": true},
+        "world_model_pre_symbolic_freeze_required": {"const": true},
+        "comparator_information_parity_required": {"const": true},
+        "model_version_freeze_required": {"const": true},
+        "abstention_coverage_accounting_required": {"const": true},
+        "dynamic_state_machine_derived_required": {"const": true}
       }
     }
   }
