@@ -1,0 +1,47 @@
+{
+  "schema_version": "k2-source-internal-consistency-fixture-v1",
+  "fixture_id": "QM0017-DAY-XISHEN-RULE-EXAMPLE-V1",
+  "source_id": "QM-SRC-0017",
+  "work_id": "WORK-000224",
+  "topic": "DAY_QIMEN_XI_SHEN_DIRECTION",
+  "scope": "SOURCE_INTERNAL_RULE_VS_EXAMPLE_ONLY",
+  "rule_source_checkpoints": ["pdf:p282"],
+  "stated_rule_by_day_stem": {
+    "甲": "艮",
+    "乙": "乾",
+    "丙": "坤",
+    "丁": "离",
+    "戊": "巽",
+    "己": "艮",
+    "庚": "乾",
+    "辛": "坤",
+    "壬": "离",
+    "癸": "巽"
+  },
+  "examples": [
+    {"case_id":"QM0017-XS-001","day_ganzhi":"甲子","source_checkpoints":["pdf:p294"],"observed_xishen_palace":"艮"},
+    {"case_id":"QM0017-XS-002","day_ganzhi":"乙丑","source_checkpoints":["pdf:p295"],"observed_xishen_palace":"乾"},
+    {"case_id":"QM0017-XS-003","day_ganzhi":"丙寅","source_checkpoints":["pdf:p296"],"observed_xishen_palace":"坤"},
+    {"case_id":"QM0017-XS-004","day_ganzhi":"丁卯","source_checkpoints":["pdf:p297"],"observed_xishen_palace":"离"},
+    {"case_id":"QM0017-XS-005","day_ganzhi":"戊辰","source_checkpoints":["pdf:p298"],"observed_xishen_palace":"巽"},
+    {"case_id":"QM0017-XS-006","day_ganzhi":"己巳","source_checkpoints":["pdf:p299"],"observed_xishen_palace":"艮"},
+    {"case_id":"QM0017-XS-007","day_ganzhi":"庚午","source_checkpoints":["pdf:p300"],"observed_xishen_palace":"乾"},
+    {"case_id":"QM0017-XS-008","day_ganzhi":"辛未","source_checkpoints":["pdf:p301"],"observed_xishen_palace":"坤"},
+    {"case_id":"QM0017-XS-009","day_ganzhi":"壬申","source_checkpoints":["pdf:p302"],"observed_xishen_palace":"离"},
+    {"case_id":"QM0017-XS-010","day_ganzhi":"癸酉","source_checkpoints":["pdf:p303"],"observed_xishen_palace":"巽"},
+    {"case_id":"QM0017-XS-011","day_ganzhi":"甲戌","source_checkpoints":["pdf:p304"],"observed_xishen_palace":"艮"},
+    {"case_id":"QM0017-XS-012","day_ganzhi":"乙亥","source_checkpoints":["pdf:p305"],"observed_xishen_palace":"乾"},
+    {"case_id":"QM0017-XS-013","day_ganzhi":"丙子","source_checkpoints":["pdf:p306"],"observed_xishen_palace":"坤"}
+  ],
+  "expected_mismatches": {},
+  "interpretation_status": "SOURCE_INTERNAL_CONSISTENT_IN_FIXTURE",
+  "resolution_status": "NO_TENSION_IN_FIXTURE",
+  "epistemic_boundary": [
+    "本 fixture 只比较同一来源 pdf:p282 明文喜神方位规则与 pdf:p294-p306 印刷定局标题，不调用外部传统版本裁决。",
+    "13个连续实例一致只支持该来源内部此组件在本 fixture 范围内自洽，不证明传统规则现实有效。",
+    "来源内部一致性不是独立经验样本，不能增加 empirical credit，也不能开放 Claim Extraction。"
+  ],
+  "empirical_credit": "NONE",
+  "claim_extraction_blocked": true,
+  "review_status": "REVIEWED"
+}
