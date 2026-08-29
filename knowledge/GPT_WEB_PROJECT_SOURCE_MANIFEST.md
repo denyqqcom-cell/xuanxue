@@ -1,6 +1,6 @@
 # GPT Web 项目来源 Manifest — 奇门遁甲 / Xuanxue Knowledge Engine
 
-状态：`SOURCE_PLAN_PREPARED / PROJECT_PANEL_NOT_VERIFIED / CARRIER_IDENTITY_GATE_DEFINED`  
+状态：`SOURCE_PLAN_PREPARED / PROJECT_PANEL_NOT_VERIFIED / CARRIER_IDENTITY_GATE_DEFINED / P0_METADATA_PARTIAL`  
 用途：指导 ChatGPT Web 项目“来源”添加、carrier 身份确认与后续原页复核  
 原则：`canonical source != reading note != atomic evidence != distillate != claim`
 
@@ -103,7 +103,10 @@ source-grounded rule or plate fixture
 - K1 carrier policy：`local_only=true / packaged=false / SANITIZED_METADATA_ONLY`
 - K2 lineage：`PRIMARY_WORK / WORK-000027 / PRIMARY_CANDIDATE`
 - 当前 K2：Wave1 COMPLETE；Atomic Evidence 435；已有 Deep Source Distillate
-- `K2_VERIFIED_SOURCE_METADATA.jsonl` 当前状态：`NO_ROW_FOR_QM-SRC-0021`
+- `K2_VERIFIED_SOURCE_METADATA.jsonl` 当前状态：`REVIEWED / pdf:p1 / TEXT_LAYER / title+author`
+- metadata closure：`L1 METADATA_VERIFIED = CLOSED`
+- carrier identity：`L2 CARRIER_IDENTITY_VERIFIED = OPEN`
+- target-page verification：`L3 TARGET_PAGE_VERIFIED = OPEN`
 - GPT Web 项目来源面板状态：`NEEDS_CONFIRMATION`
 - 必须添加的原因：
   - `JU_METHOD_VALIDATION`
@@ -128,6 +131,7 @@ expected_pages  = 285
 - Source ID：`QM-SRC-0028`
 - K1 title：`善天道-奇门遁甲讲义71页`
 - 作者：善天道
+- K1 author basis：`FILENAME`
 - Source type：`COURSE`
 - Canonical K1 SHA-256：`bd15a964d722e1b013367741f69460467f354dab73c927fe30409c041c060243`
 - K1 pages：`71`
@@ -135,7 +139,10 @@ expected_pages  = 285
 - K1 carrier policy：`local_only=true / packaged=false / SANITIZED_METADATA_ONLY`
 - K2 lineage：`PRIMARY_WORK / WORK-000018 / PRIMARY_CANDIDATE`
 - 当前 K2：Wave1 COMPLETE；Atomic Evidence 50
-- `K2_VERIFIED_SOURCE_METADATA.jsonl` 当前状态：`NO_ROW_FOR_QM-SRC-0028`
+- `K2_VERIFIED_SOURCE_METADATA.jsonl` 当前状态：`NO_ROW / TITLE_PAGE_OR_EXPLICIT_SIGNATURE_REVIEW_REQUIRED`
+- metadata closure：`L1 METADATA_VERIFIED = OPEN`
+- carrier identity：`L2 CARRIER_IDENTITY_VERIFIED = OPEN`
+- target-page verification：`L3 TARGET_PAGE_VERIFIED = OPEN`
 - GPT Web 项目来源面板状态：`NEEDS_CONFIRMATION`
 - 必须添加的原因：
   - 五日甲/己符头规则原页核验
@@ -143,6 +150,7 @@ expected_pages  = 285
   - 实际交节时辰切换规则
   - 拆补 / 置闰等方法边界
 - 特别要求：课程资料不能自动提升为古籍权威；它只作为一个明确 lineage 的教学来源参与交叉验证。
+- 特别限制：不能因为 K1 filename 标出“善天道”就伪造 `TITLE_PAGE` author basis；只有 carrier 原页实际支持的字段才能进入 verified metadata。
 
 ```text
 expected_sha256 = bd15a964d722e1b013367741f69460467f354dab73c927fe30409c041c060243
@@ -197,6 +205,19 @@ expected_pages  = 71
 - 用途：大体量现代应用规则交叉验证。
 
 > 修订记录：本 Manifest 旧版曾沿用 K1 初始 registry 的 `author=UNKNOWN`，但后续 K2 verified metadata 已给出 p415 的作者证据。此处已纠正，避免旧 intake metadata 压过后续人工核验。
+
+### P1-04 — QM-SRC-0017
+
+- 费秉勋《奇门遁甲新述》
+- 时代文艺出版社 1991年3月第1版
+- Canonical SHA-256：`f895e60c0cb0e52de43e1c4b17856d780499dae32cd8a058317305e5b8ca83d1`
+- 419 页
+- K2 verified metadata：`REVIEWED / pdf:p3 / VISUAL_PAGE`
+- 当前会话 carrier：SHA-256 与 K1 canonical 完全一致，`CANONICAL_CARRIER_MATCH`
+- 本轮原页复核：PDF p15-p17（printed p6-p8）
+- 方法贡献：独立支持甲/己五日 head、上中下元 branch class，并给出 `1990-01-27 壬辰 -> 大寒下元 -> 阳6` dated structural example
+- 信用边界：相关章节属于“超神接气和置闰”；只能给共享五日符头子结构与该 dated result 增加 cross-source structure credit，不能把费氏完整置闰法与 `CHAI_BU_FUTOU` 静默视为同一方法。
+- durable review：`K2_QIMEN_JU_METHOD_CROSS_SOURCE_REVIEW_V01.md`
 
 ## 5. P1 — 当前会话已有、值得加入项目来源用于古籍/现代文献交叉验证的文件
 
@@ -289,19 +310,22 @@ GATE 0 / A REVIEW
 ```text
 QM-SRC-0021_PROJECT_SOURCE_ACCESS      = NEEDS_CONFIRMATION
 QM-SRC-0021_CARRIER_IDENTITY           = NOT_REVERIFIED_IN_GPT_PROJECT
-QM-SRC-0021_K2_VERIFIED_METADATA_ROW   = MISSING
+QM-SRC-0021_K2_VERIFIED_METADATA_ROW   = REVIEWED
 QM-SRC-0021_2002_CASE_ORIGINAL_PAGE    = REVERIFICATION_REQUIRED
 
 QM-SRC-0028_PROJECT_SOURCE_ACCESS      = NEEDS_CONFIRMATION
 QM-SRC-0028_CARRIER_IDENTITY           = NOT_REVERIFIED_IN_GPT_PROJECT
-QM-SRC-0028_K2_VERIFIED_METADATA_ROW   = MISSING
+QM-SRC-0028_K2_VERIFIED_METADATA_ROW   = MISSING_TITLE_PAGE_REVIEW_REQUIRED
 
-JU_METHOD_SECOND_DATED_FIXTURE         = BLOCKED_ON_SOURCE_PAGE
+QM-SRC-0017_LOCAL_CARRIER_IDENTITY     = CANONICAL_CARRIER_MATCH
+JU_METHOD_SHARED_FIVE_DAY_HEAD_SUPPORT = MULTI_SOURCE
+JU_METHOD_SECOND_DATED_STRUCTURE       = SATISFIED_AT_SHARED_SUBSTRUCTURE_LEVEL_BY_QM-SRC-0017
+JU_METHOD_FULL_IDENTITY                = OPEN
 PLATE_PAIRING_SECOND_FIXTURE           = BLOCKED_ON_SOURCE_PAGE
-SOLAR_TERM_BOUNDARY_SOURCE_FIXTURE     = BLOCKED_ON_SOURCE_PAGE
+SOLAR_TERM_BOUNDARY_SOURCE_FIXTURE     = BLOCKED_ON_CHAI_BU_FUTOU_SPECIFIC_SOURCE_PAGE
 ```
 
-这些状态用于阻止“GitHub 已有摘要/证据，所以原书页也等于已验证”的错误推理。
+这些状态用于阻止“GitHub 已有摘要/证据，所以原书页也等于已验证”的错误推理，也阻止“两个方法某天给出相同局数，所以整套方法相同”的新错误推理。
 
 ## 10. 非主张边界
 
@@ -312,6 +336,7 @@ SOLAR_TERM_BOUNDARY_SOURCE_FIXTURE     = BLOCKED_ON_SOURCE_PAGE
 - Wave1 COMPLETE 等于全书每个命题都可靠；
 - SHA 匹配等于书中方法正确；
 - 古籍比现代教材天然更真；
-- 多来源一致即可替代前瞻验证。
+- 多来源一致即可替代前瞻验证；
+- 共享五日符头子结构等于拆补、置闰等完整 JuMethod 等价。
 
 它只建立下一轮 source-access、carrier identity 与原页复核的可执行顺序。
