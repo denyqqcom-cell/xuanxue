@@ -70,6 +70,16 @@ class QimenEngineTest {
         assertEquals(1, c.yinYang)
         assertEquals(6, c.ju)
         assertEquals("CHAI_BU_FUTOU", c.juMethodUsed)
+
+        // Negative comparator: the project's DAYCOUNT approximation must not be treated
+        // as source-equivalent merely because it is the app default. On this dated source
+        // example it must not reproduce the source's 阳遁六局 result by accident.
+        val dayCount = QimenEngine.bySolar(
+            1990, 1, 27, 12, 0,
+            QimenEngine.JuMethod.CHAI_BU_DAYCOUNT,
+        )
+        assertEquals("CHAI_BU_DAYCOUNT", dayCount.juMethodUsed)
+        assertNotEquals(6, dayCount.ju)
     }
 
     @Test
