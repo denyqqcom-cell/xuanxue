@@ -7,12 +7,15 @@ import kotlin.test.assertTrue
 class EvidenceContractTest {
 
     @Test
-    fun `qimen full board must remain experimental until golden boards exist`() {
+    fun `qimen remains experimental despite partial source grounded fixtures`() {
         val audit = MethodAuditRegistry.qimen
         assertEquals(MethodMaturity.EXPERIMENTAL, audit.maturity)
         assertTrue(audit.sourceIds.contains("handoff/qimen/HANDOFF_SUMMARY.md"))
-        assertTrue(audit.limitations.any { it.contains("完整九宫黄金盘数量为 0") })
-        assertTrue(audit.limitations.any { it.contains("实验实现") })
+        assertTrue(audit.sourceIds.contains("knowledge/K2_QIMEN_JU_METHOD_CROSS_SOURCE_REVIEW_V01.md"))
+        assertTrue(audit.summary.contains("局部 source-grounded dated fixtures"))
+        assertTrue(audit.limitations.any { it.contains("不能当作完整九宫全局黄金盘") })
+        assertTrue(audit.limitations.any { it.contains("共享甲/己五日符头子结构") && it.contains("不等于完整 JuMethod 等价") })
+        assertTrue(audit.limitations.any { it.contains("完整九宫仍属于实验实现") })
     }
 
     @Test
