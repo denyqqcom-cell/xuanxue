@@ -16,8 +16,8 @@ import com.nlf.calendar.Solar
  * - R-WUBU-001 五不遇时：时干克日干、同阴阳、干序相隔五位（fixtures 含 甲/庚、己/乙）
  * - R-QL-001 青龙返首：天盘甲/戊 加 地盘丙（一别名族）
  *
- * 重要边界：handoff 当前没有完整九宫黄金盘，且地/天/人/神盘仍有来源冲突。
- * 因此完整盘面与由盘面派生的格局仍属于实验实现；结构测试不等于完整九宫已核验。
+ * 重要边界：当前只有局部 source-grounded dated plate fixtures，尚不足以建立完整九宫全局黄金盘；
+ * 地/天/人/神盘仍有未关闭来源冲突。因此完整盘面与派生格局仍属于实验实现。
  */
 object QimenEngine {
 
@@ -70,6 +70,8 @@ object QimenEngine {
     data class Gong(
         val palace: Int,
         val diGan: String,
+        /** 当前九星随天盘转动所携的三奇六仪；与地盘干分字段保存。 */
+        val tianGan: String = "",
         val tianXing: String,
         val renMen: String,
         val shenPan: String,
@@ -326,6 +328,8 @@ object QimenEngine {
         val dayKongPalaces = dayKong.map { zhiPalace(it) }.toSet()
         val hourKongPalaces = hourKong.map { zhiPalace(it) }.toSet()
 
+        // This is the single authoritative carried-heaven-stem computation.
+        // Weather/signature audits consume Gong.tianGan instead of reimplementing it.
         val tianYi = mutableMapOf<Int, String>()
         val effectiveDunPalace = dunPalace.takeIf { it != 5 } ?: 2
         val diYiOrder = (0 until 8).map { k ->
@@ -351,6 +355,7 @@ object QimenEngine {
             Gong(
                 palace = p,
                 diGan = di[p] ?: "",
+                tianGan = tianYi[p] ?: "",
                 tianXing = tian[p] ?: "",
                 renMen = men[p] ?: "",
                 shenPan = shen[p] ?: "",
@@ -373,8 +378,8 @@ object QimenEngine {
             yuan = yuan,
             ju = ju,
             juMethod = when (juMethod) {
-                JuMethod.CHAI_BU_DAYCOUNT -> "拆补·日数分段"
-                JuMethod.CHAI_BU_FUTOU -> "拆补·符头（实验）"
+                JuMethod.CHAI_BU_DAYCOUNT -> "日数分段近似（工程默认）"
+                JuMethod.CHAI_BU_FUTOU -> "甲/己五日符头（实验）"
                 JuMethod.ZHI_RUN -> error("unreachable")
             },
             xunShou = xunShou,
