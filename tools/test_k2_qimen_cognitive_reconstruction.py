@@ -18,6 +18,22 @@ def load_jsonl(path):
     return [json.loads(x) for x in path.read_text(encoding="utf-8").splitlines() if x.strip()]
 
 
+def validate_theory_map_text(text):
+    """Minimal guard only: the map is a synthesis index, never an empirical authority."""
+    issues = []
+    required_markers = {
+        "NO_EMPIRICAL_CREDIT": "theory map must remain no-empirical-credit",
+        "Claim Extraction：`BLOCKED`": "theory map must keep claim extraction blocked",
+        "UNRESOLVED / PROSPECTIVE_COMPARISON_REQUIRED": "theory map must preserve unresolved competing models",
+        "DO_NOT_FORCE-RESOLVE": "theory map must preserve source-local ontology conflicts",
+        "不把本地图自身当作原创理论验证结果": "theory map must reject self-validation",
+    }
+    for marker, message in required_markers.items():
+        if marker not in text:
+            issues.append(message)
+    return issues
+
+
 def main():
     # Authoritative repository state must pass first.
     issues = v.validate(ROOT)
@@ -92,6 +108,29 @@ def main():
     broken_schema["properties"]["decision_tie_break_policy"]["allOf"] = []
     issues = v.validate_scenario_schema(broken_schema)
     assert any("fail closed for multi-output selection" in x for x in issues), issues
+
+    # Minimal theory-map closure: it is a source-grounded research index, not a new authority.
+    theory_map_path = ROOT / "knowledge" / "K2_QIMEN_THEORY_MAP_V1.md"
+    assert theory_map_path.exists(), "missing K2_QIMEN_THEORY_MAP_V1.md"
+    theory_map = theory_map_path.read_text(encoding="utf-8")
+    issues = validate_theory_map_text(theory_map)
+    assert not issues, issues
+
+    broken_map = theory_map.replace("NO_EMPIRICAL_CREDIT", "EMPIRICAL_CREDIT_GRANTED", 1)
+    issues = validate_theory_map_text(broken_map)
+    assert any("no-empirical-credit" in x for x in issues), issues
+
+    broken_map = theory_map.replace(
+        "UNRESOLVED / PROSPECTIVE_COMPARISON_REQUIRED",
+        "RESOLVED_BY_EDITORIAL_PREFERENCE",
+        1,
+    )
+    issues = validate_theory_map_text(broken_map)
+    assert any("unresolved competing models" in x for x in issues), issues
+
+    broken_map = theory_map.replace("DO_NOT_FORCE-RESOLVE", "FORCE_NORMALIZED", 1)
+    issues = validate_theory_map_text(broken_map)
+    assert any("source-local ontology conflicts" in x for x in issues), issues
 
     # Second-order closure: a bias that was already recognized must not re-enter
     # the theory under a new label without creating and discharging epistemic debt.
