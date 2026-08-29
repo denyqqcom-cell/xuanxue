@@ -45,6 +45,55 @@ class QimenEngineTest {
     }
 
     @Test
+    fun futouPreservesIntradaySolarTermBoundaryInsteadOfSwitchingAtMidnight() {
+        // Implementation-only regression. The boundary minute is discovered from the same
+        // lunar-java calendar dependency used by QimenEngine, so this proves that the engine
+        // preserves an intraday solar-term transition instead of collapsing it to 00:00.
+        // It is NOT an independent astronomy check and NOT the source-grounded boundary
+        // fixture still required to close JU_METHOD_VALIDATION Gate 0.
+        fun chartAt(totalMinutes: Int) = QimenEngine.bySolar(
+            2026,
+            8,
+            7,
+            totalMinutes / 60,
+            totalMinutes % 60,
+            QimenEngine.JuMethod.CHAI_BU_FUTOU,
+        )
+
+        val firstLiqiuHour = (0..23).firstOrNull { hour ->
+            QimenEngine.bySolar(
+                2026, 8, 7, hour, 0,
+                QimenEngine.JuMethod.CHAI_BU_FUTOU,
+            ).jieQi == "立秋"
+        }
+        assertTrue(firstLiqiuHour != null && firstLiqiuHour > 0)
+
+        val upperMinute = firstLiqiuHour!! * 60
+        val lowerMinute = upperMinute - 60
+        val boundaryMinute = ((lowerMinute + 1)..upperMinute).firstOrNull { minute ->
+            chartAt(minute).jieQi == "立秋"
+        }
+        assertTrue(boundaryMinute != null && boundaryMinute > 0)
+
+        val before = chartAt(boundaryMinute!! - 1)
+        val after = chartAt(boundaryMinute)
+
+        assertEquals("大暑", before.jieQi)
+        assertEquals("立秋", after.jieQi)
+        assertEquals("癸丑", before.dayGZ)
+        assertEquals(before.dayGZ, after.dayGZ)
+        assertEquals("上元", before.yuan)
+        assertEquals(before.yuan, after.yuan)
+
+        // Same civil date and same five-day head; only the actual solar-term side changed.
+        // 大暑上元=阴7, 立秋上元=阴2.
+        assertEquals(-1, before.yinYang)
+        assertEquals(-1, after.yinYang)
+        assertEquals(7, before.ju)
+        assertEquals(2, after.ju)
+    }
+
+    @Test
     fun futouSharedFiveDayHeadMatchesIndependent1990DahanFixture() {
         // Independent source cross-check: QM-SRC-0017 费秉勋《奇门遁甲新述》,
         // canonical SHA-256 f895e60c0cb0e52de43e1c4b17856d780499dae32cd8a058317305e5b8ca83d1.
