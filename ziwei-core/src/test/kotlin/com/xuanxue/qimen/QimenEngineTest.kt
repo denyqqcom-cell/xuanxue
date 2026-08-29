@@ -31,7 +31,9 @@ class QimenEngineTest {
 
     @Test
     fun liqiuDayCountKeepsFutouMetadataSeparate() {
-        val c = QimenEngine.bySolar(2026, 8, 7, 16, 0)
+        // 2026 Liqiu occurs in the evening; use 20:00 so this regression is safely
+        // after the actual transition instead of silently relying on whole-day semantics.
+        val c = QimenEngine.bySolar(2026, 8, 7, 20, 0)
         assertEquals("立秋", c.jieQi)
         assertEquals("CHAI_BU_DAYCOUNT", c.juMethodUsed)
         assertEquals("上元", c.yuan)
@@ -60,17 +62,7 @@ class QimenEngineTest {
             QimenEngine.JuMethod.CHAI_BU_FUTOU,
         )
 
-        val firstLiqiuHour = (0..23).firstOrNull { hour ->
-            QimenEngine.bySolar(
-                2026, 8, 7, hour, 0,
-                QimenEngine.JuMethod.CHAI_BU_FUTOU,
-            ).jieQi == "立秋"
-        }
-        assertTrue(firstLiqiuHour != null && firstLiqiuHour > 0)
-
-        val upperMinute = firstLiqiuHour!! * 60
-        val lowerMinute = upperMinute - 60
-        val boundaryMinute = ((lowerMinute + 1)..upperMinute).firstOrNull { minute ->
+        val boundaryMinute = (1 until 24 * 60).firstOrNull { minute ->
             chartAt(minute).jieQi == "立秋"
         }
         assertTrue(boundaryMinute != null && boundaryMinute > 0)
