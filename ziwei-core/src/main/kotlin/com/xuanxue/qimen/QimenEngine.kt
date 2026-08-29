@@ -178,13 +178,14 @@ object QimenEngine {
         }
     }
 
-    /** 节气内第几天（1 起，交节当天=1）；失败返回 0，调用方必须 fail closed。 */
+    /** 节气内第几天（1 起，交节后当天=1）；失败返回 0，调用方必须 fail closed。 */
     fun jieqiDayIndexOf(lunar: Lunar): Int = runCatching {
         val cur = lunar.solar
         val cur12 = Solar.fromYmdHms(cur.year, cur.month, cur.day, 12, 0, 0)
-        // Must use the same 24-term boundary family as bySolar(). Using getPrevJie()
-        // skips 中气 such as 冬至/处暑 and can make the day index disagree with jieQi.
-        val ps = lunar.getPrevJieQi(true)?.solar ?: return@runCatching 0
+        // Use the exact 24-term transition-time family. wholeDay=true intentionally
+        // collapses the whole transition date and would make an afternoon/evening term
+        // active from 00:00, contradicting the source rule that switches at actual交节时辰.
+        val ps = lunar.getPrevJieQi(false)?.solar ?: return@runCatching 0
         val prevNoon = Solar.fromYmdHms(ps.year, ps.month, ps.day, 12, 0, 0)
         (cur12.getJulianDay() - prevNoon.getJulianDay()).toInt() + 1
     }.getOrDefault(0)
@@ -233,9 +234,8 @@ object QimenEngine {
         val dayGZ = ec.getDayGan() + ec.getDayZhi()
         val hourGZ = ec.getTimeGan() + ec.getTimeZhi()
 
-        val jieQi = runCatching { lunar.getPrevJieQi(true)?.name }.getOrNull()
-            ?: runCatching { lunar.getPrevJieQi()?.name }.getOrNull()
-            ?: error("cannot resolve jieqi")
+        val jieQi = runCatching { lunar.getPrevJieQi(false)?.name }.getOrNull()
+            ?: error("cannot resolve exact jieqi transition")
 
         val rule = JIE_QI_JU[jieQi] ?: error("unsupported jieqi: $jieQi")
         val yinYang = rule.yinYang
