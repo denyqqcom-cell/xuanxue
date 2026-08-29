@@ -27,7 +27,9 @@ ENGINE_PATH = ROOT / "ziwei-core/src/main/kotlin/com/xuanxue/qimen/QimenEngine.k
 PLAN_PATH = ROOT / "knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl"
 BATCH_PATH = ROOT / "knowledge/K2_PROSPECTIVE_BATCHES.jsonl"
 SAMPLE_PLAN_PATH = ROOT / "knowledge/K2_QIMEN_CDAF_H2_SERIAL_DEPENDENCE_SAMPLE_PLAN_V01.md"
-EXPECTED_ENGINE_GIT_BLOB_SHA = "89ce6d53eb80e195f8fd69071f6c6c02549596da"
+EXPECTED_ENGINE_GIT_BLOB_SHA = "046825e480422eb0ac6734ea0330861bbd422997"
+SUPERSEDED_ENGINE_GIT_BLOB_SHA = "1912760ccd10cb4a58eb8faec06669c0d690657b"
+EXPECTED_CDAF_MODEL_NAME = "FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V02"
 CDAF_PLAN_ID = "K2PV-CDAF-H2"
 
 # Machine tokens for a future CDAF-H2 Batch. These live at Batch level because
@@ -177,6 +179,8 @@ def xun_info(gz: str) -> tuple[str, str]:
 
 def implementation_state(yin_yang: int, ju: int, hour_gz: str) -> dict:
     # Exact weather-relevant mirror of QimenEngine.kt at the pinned blob.
+    # It is a cross-language guard only; actual Kotlin source-pairing credit is
+    # carried by QimenSourcePlateFixtureTest reading Gong.tianGan directly.
     luo_shu = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     di: dict[int, str] = {}
     idx = luo_shu.index(ju)
@@ -234,7 +238,7 @@ def implementation_state(yin_yang: int, ju: int, hour_gz: str) -> dict:
     return {"tian": tian, "tian_yi": tian_yi}
 
 
-def core_rain_signal_v01(state: dict) -> list[tuple[int, str, str]]:
+def core_rain_signal_v01(state: dict) -> list[tuple[int, str,str]]:
     hits = []
     for palace, star in state["tian"].items():
         carried_stem = state["tian_yi"].get(palace, "")
@@ -316,6 +320,16 @@ def validate_sample_and_prospective_contracts() -> int:
     for marker in PLAN_REQUIRED_MARKERS:
         assert marker in plan_text, f"prospective plan missing Gate-D marker: {marker}"
 
+    assert plan.get("model_name") == EXPECTED_CDAF_MODEL_NAME, (
+        "active CDAF-H2 model_name must identify the reviewed V02 engine contract"
+    )
+    assert EXPECTED_ENGINE_GIT_BLOB_SHA in plan_text, (
+        "active CDAF-H2 plan must bind the exact reviewed QimenEngine blob"
+    )
+    assert SUPERSEDED_ENGINE_GIT_BLOB_SHA not in plan_text, (
+        "superseded whole-day-transition engine must not remain active in CDAF-H2 plan"
+    )
+
     freeze_fields = set(plan.get("freeze_required_fields") or [])
     missing_case_fields = PER_CASE_REQUIRED_FIELDS - freeze_fields
     assert not missing_case_fields, f"CDAF-H2 case freeze missing fields: {sorted(missing_case_fields)}"
@@ -371,6 +385,7 @@ def main() -> None:
         "weather_forecast_data_used": False,
         "weather_outcome_data_used": False,
         "engine_git_blob_sha": actual_blob,
+        "active_model_name": EXPECTED_CDAF_MODEL_NAME,
         "abstract_contract_states": total_states,
         "core_rain_signal_trigger_states": trigger_states,
         "state_space_density": trigger_states / total_states,
