@@ -65,15 +65,18 @@ object MethodAuditRegistry {
         id = "qimen",
         title = "奇门遁甲",
         maturity = MethodMaturity.EXPERIMENTAL,
-        summary = "资料交接已经把日时干支、旬首旬空、五不遇时、击刑与部分定局规则工程化；但 handoff 明确记录：没有完整九宫黄金盘，地盘走法与人盘方向仍有冲突。",
+        summary = "资料交接与当前 K2 审计已把日时干支、旬首旬空、五不遇时、击刑、部分定局规则和局部 source-grounded dated fixtures 工程化；但这些局部夹具不足以建立完整九宫全局黄金盘，JuMethod 完整方法身份、交节边界与部分盘层冲突仍未关闭。",
         verified = listOf(
-            "handoff/qimen 有 corpus manifest、规则分级、冲突表、17 条 calendar/table/map fixture",
+            "handoff/qimen 有 corpus manifest、规则分级、冲突表与 calendar/table/map fixtures",
             "可编码层包括日柱、五鼠遁、旬首旬空、五不遇时和部分静态映射",
+            "甲/己五日符头及上中下元地支分类已有跨来源结构支持；1990-01-27 大寒下元阳遁六局已进入 dated regression",
+            "QM-SRC-0021 的 2004-05-29 chart-only anchor 提供局部 dated plate / 九星位置核对，不代表全盘全局已验证",
         ),
         limitations = listOf(
-            "05_FIXTURES.jsonl 中完整九宫黄金盘数量为 0",
-            "地盘 walk / 天盘 / 门盘 / 神盘在 handoff 中被标记为未关闭冲突",
-            "当前 main 分支 QimenEngine 的完整九宫属于实验实现，不能当作已核验标准盘",
+            "已有局部 source-grounded dated plate fixture，但数量与覆盖不足，不能当作完整九宫全局黄金盘",
+            "共享甲/己五日符头子结构不等于完整 JuMethod 等价；CHAI_BU_FUTOU 的交节、超神接气、置闰等方法身份仍需分别验证",
+            "地盘 walk / 天盘 / 门盘 / 神盘的来源冲突与完整覆盖尚未全部关闭",
+            "当前 QimenEngine 的完整九宫仍属于实验实现，局部 fixture 通过不能推广成全局术理验真",
             "用户可见断语必须带 school/source_id 或省略；现代书籍长断语禁止打包进 APK",
         ),
         sourceIds = listOf(
@@ -81,6 +84,8 @@ object MethodAuditRegistry {
             "handoff/qimen/04_CONFLICTS.md",
             "handoff/qimen/05_FIXTURES.jsonl",
             "handoff/qimen/07_COPYRIGHT_GATE.md",
+            "knowledge/K2_QIMEN_JU_METHOD_CROSS_SOURCE_REVIEW_V01.md",
+            "knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01_GATE_AMENDMENT.md",
         ),
     )
 
