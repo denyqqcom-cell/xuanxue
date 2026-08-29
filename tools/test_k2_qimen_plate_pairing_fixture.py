@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Source-grounded chart-only plate-pairing fixture for QM-SRC-0021.
+"""Source-grounded chart-only plate-pairing mirror fixture for QM-SRC-0021.
 
-No weather forecast/outcome data are read. This test binds the pinned
-QimenEngine implementation mirror to one explicit source chart and verifies
-that the nine-star movement carries the source-associated heaven-plate stem.
+No weather forecast/outcome data are read. The source expected values are also
+asserted directly against the Kotlin QimenEngine in QimenSourcePlateFixtureTest;
+this Python test remains a pinned cross-language mirror/structure guard and must
+not be used to create extra source provenance.
 """
 
 from __future__ import annotations
@@ -43,10 +44,8 @@ def main() -> None:
     # 小满, 符头法下元 -> 阳遁八局, 甲寅旬, 值符天辅.
     assert futou_yuan("戊申") == "下元"
 
-    # Independent dated source metadata: 2002-08-01 辛丑日壬申时,
-    # 大暑. Nearest five-day head is 己亥 -> 中元 -> 阴遁一局.
-    assert futou_yuan("辛丑") == "中元"
-
+    # Do not restore the old 2002-08-01 date/hour assertion here. That metadata
+    # was withdrawn from golden-fixture credit and remains SOURCE_PAGE_REVERIFICATION_REQUIRED.
     state = implementation_state(1, 8, "戊午")
 
     expected_stars = {
