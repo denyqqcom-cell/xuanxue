@@ -181,7 +181,7 @@ class QimenWeatherRealCalendarAuditTest {
                 append("  \"calendar_window\": \"2000-01-01/2099-12-31\",\n")
                 append("  \"civil_time_hkt\": \"17:00\",\n")
                 append("  \"qimen_ju_method\": \"CHAI_BU_FUTOU\",\n")
-                append("  \"qimen_engine_blob_sha\": \"1912760ccd10cb4a58eb8faec06669c0d690657b\",\n")
+                append("  \"qimen_engine_blob_sha\": \"89ce6d53eb80e195f8fd69071f6c6c02549596da\",\n")
                 append("  \"weather_forecast_data_used\": false,\n")
                 append("  \"weather_outcome_data_used\": false,\n")
                 append("  \"total_civil_days\": $totalDays,\n")
