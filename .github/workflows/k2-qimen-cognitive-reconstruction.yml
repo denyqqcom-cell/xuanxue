@@ -9,6 +9,7 @@ on:
     paths:
       - 'knowledge/K2_QIMEN_COGNITIVE_*'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
+      - 'knowledge/K2_QIMEN_THEORY_MAP_V1.md'
       - 'knowledge/K2_QIMEN_TBV_*'
       - 'knowledge/K2_QIMEN_PRACTICE_*'
       - 'knowledge/K2_QIMEN_CDAF_H2_*'
@@ -32,6 +33,7 @@ on:
     paths:
       - 'knowledge/K2_QIMEN_COGNITIVE_*'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
+      - 'knowledge/K2_QIMEN_THEORY_MAP_V1.md'
       - 'knowledge/K2_QIMEN_TBV_*'
       - 'knowledge/K2_QIMEN_PRACTICE_*'
       - 'knowledge/K2_QIMEN_CDAF_H2_*'
