@@ -29,7 +29,7 @@ class QimenSourcePlateFixtureTest {
     }
 
     @Test
-    fun qm0021_20040529_wuwu_futou_reproduces_source_star_plate() {
+    fun qm0021_20040529_wuwu_futou_reproduces_source_star_and_heaven_stem_pairs() {
         val c = QimenEngine.bySolar(
             2004, 5, 29, 12, 0,
             QimenEngine.JuMethod.CHAI_BU_FUTOU,
@@ -48,20 +48,23 @@ class QimenSourcePlateFixtureTest {
         assertEquals("癸", c.dunGan)
         assertEquals("天辅", c.zhiFu)
 
-        val stars = c.gongs.associate { it.palace to it.tianXing }
-        val expectedOuterStars = mapOf(
-            1 to "天冲",
-            2 to "天心",
-            3 to "天英",
-            4 to "天芮天禽",
-            6 to "天任",
-            7 to "天蓬",
-            8 to "天辅",
-            9 to "天柱",
+        // QM-SRC-0021 printed pp68-70: lock the weather-relevant pairing itself,
+        // not merely the star positions. Gong.tianGan is the actual Kotlin Engine
+        // output, so a mirror implementation can no longer substitute for this fixture.
+        val expectedOuterPairs = mapOf(
+            1 to ("天冲" to "壬"),
+            2 to ("天心" to "丙"),
+            3 to ("天英" to "己"),
+            4 to ("天芮天禽" to "辛"),
+            6 to ("天任" to "戊"),
+            7 to ("天蓬" to "庚"),
+            8 to ("天辅" to "癸"),
+            9 to ("天柱" to "乙"),
         )
-        expectedOuterStars.forEach { (palace, expected) ->
-            assertEquals(expected, stars[palace], "source plate star mismatch at palace $palace")
-        }
+        val actualOuterPairs = c.gongs
+            .filter { it.palace != 5 }
+            .associate { it.palace to (it.tianXing to it.tianGan) }
+        assertEquals(expectedOuterPairs, actualOuterPairs)
     }
 
     @Test
@@ -80,6 +83,11 @@ class QimenSourcePlateFixtureTest {
             sourceMethod.ju,
             dayCount.ju,
             "DAYCOUNT unexpectedly became interchangeable with the source's FUTOU method; review method identity",
+        )
+        assertNotEquals(
+            sourceMethod.gongs.filter { it.palace != 5 }.associate { it.palace to (it.tianXing to it.tianGan) },
+            dayCount.gongs.filter { it.palace != 5 }.associate { it.palace to (it.tianXing to it.tianGan) },
+            "DAYCOUNT unexpectedly reproduced the source FUTOU star/heaven-stem pair map",
         )
     }
 }
