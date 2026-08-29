@@ -34,15 +34,38 @@ class InterpretersTest {
     }
 
     @Test
-    fun qimenReading() {
-        val c = QimenEngine.bySolar(2026, 8, 12, 15, 37)
+    fun qimenReadingKeepsDayCountMethodIdentityAndBoundaries() {
+        val c = QimenEngine.bySolar(
+            2026, 8, 12, 15, 37,
+            QimenEngine.JuMethod.CHAI_BU_DAYCOUNT,
+        )
         val r = XuanxueAI.qimen(c)
         assertTrue(r.items.isNotEmpty())
+        assertTrue(r.text.contains("CHAI_BU_DAYCOUNT"))
+        assertTrue(r.text.contains("工程为兼容既有行为保留的日数分段近似"))
+        assertTrue(r.text.contains("不能借其他 JuMethod 的来源信用"))
         assertTrue(r.text.contains("九宫实验边界"))
-        assertTrue(r.text.contains("完整九宫黄金盘"))
+        assertTrue(r.text.contains("全局黄金盘"))
         assertFalse(r.text.contains("八门吉凶"))
         assertFalse(r.text.contains("利出行变动"))
         assertFalse(r.text.contains("暂缓待填实"))
+    }
+
+    @Test
+    fun qimenReadingKeepsFutouMethodIdentityWithoutClaimingFullMethodEquivalence() {
+        val c = QimenEngine.bySolar(
+            1990, 1, 27, 12, 0,
+            QimenEngine.JuMethod.CHAI_BU_FUTOU,
+        )
+        val r = XuanxueAI.qimen(c)
+        assertTrue(r.items.isNotEmpty())
+        assertTrue(r.text.contains("CHAI_BU_FUTOU"))
+        assertTrue(r.text.contains("甲/己五日符头"))
+        assertTrue(r.text.contains("跨来源结构支持"))
+        assertTrue(r.text.contains("共享五日符头不等于完整拆补/置闰方法等价"))
+        assertTrue(r.text.contains("交节、超神接气与置闰政策仍需分别验证"))
+        assertFalse(r.text.contains("已经验证的传统唯一拆补法"))
+        assertFalse(r.text.contains("必然"))
     }
 
     @Test
