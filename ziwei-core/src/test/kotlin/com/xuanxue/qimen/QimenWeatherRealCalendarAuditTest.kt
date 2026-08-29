@@ -15,6 +15,8 @@ import kotlin.test.assertTrue
  * - reads no rainfall/outcome data;
  * - grants no predictive or empirical credit;
  * - uses the real QimenEngine with CHAI_BU_FUTOU at 17:00 HKT civil time;
+ * - reads the Engine's first-class Gong.tianGan instead of reconstructing a
+ *   second carried-heaven-stem algorithm inside the audit;
  * - the fixed 2000-01-01..2099-12-31 window is a calendar-structure coverage
  *   window, NOT a weather sample and NOT a stopping rule for a future Batch.
  */
@@ -22,45 +24,10 @@ class QimenWeatherRealCalendarAuditTest {
 
     private data class SignalHit(val palace: Int, val star: String, val heavenStem: String)
 
-    private fun carriedHeavenStems(c: QimenEngine.QimenChart): Map<Int, String> {
-        val ring = QimenEngine.RING.toList()
-        val di = c.gongs.associate { it.palace to it.diGan }
-
-        val rawDunPalace = di.entries.first { it.value == c.dunGan }.key
-        val effectiveDunPalace = if (rawDunPalace == 5) 2 else rawDunPalace
-
-        val effectiveHourGan = if (c.hourGZ[0] == '甲') c.dunGan else c.hourGZ[0].toString()
-        val rawHourGanPalace = di.entries.first { it.value == effectiveHourGan }.key
-        val zhiFuPalace = if (rawHourGanPalace == 5) 2 else rawHourGanPalace
-
-        val baseIdx = ring.indexOf(effectiveDunPalace)
-        require(baseIdx >= 0) { "effective dun palace must be on outer ring: $effectiveDunPalace" }
-
-        val sourceOrder = (0 until 8).map { k ->
-            if (c.yinYang > 0) ring[(baseIdx + k) % 8]
-            else ring[((baseIdx - k) % 8 + 8) % 8]
-        }
-
-        val shift = (ring.indexOf(zhiFuPalace) - ring.indexOf(effectiveDunPalace) + 8) % 8
-        val result = mutableMapOf<Int, String>()
-        for (sourcePalace in sourceOrder) {
-            val yi = di[sourcePalace].orEmpty()
-            val srcIdx = ring.indexOf(sourcePalace)
-            val targetPalace = if (c.yinYang > 0) {
-                ring[(srcIdx + shift) % 8]
-            } else {
-                ring[((srcIdx - shift) % 8 + 8) % 8]
-            }
-            result[targetPalace] = yi
-        }
-        return result
-    }
-
     private fun coreRainSignal(c: QimenEngine.QimenChart): List<SignalHit> {
-        val heavenStems = carriedHeavenStems(c)
         val targetPalaces = setOf(1, 3, 6, 7)
         return c.gongs.mapNotNull { gong ->
-            val stem = heavenStems[gong.palace].orEmpty()
+            val stem = gong.tianGan
             val isRainStar = gong.tianXing.contains("天柱") || gong.tianXing.contains("天蓬")
             if (isRainStar && stem in setOf("壬", "癸") && gong.palace in targetPalaces) {
                 SignalHit(gong.palace, gong.tianXing, stem)
@@ -171,17 +138,18 @@ class QimenWeatherRealCalendarAuditTest {
 
         val reportDir = File("build/reports")
         reportDir.mkdirs()
-        val report = File(reportDir, "qimen-weather-real-calendar-audit-v01.json")
+        val report = File(reportDir, "qimen-weather-real-calendar-audit-v02.json")
         val triggerRate = triggerDays.toDouble() / totalDays.toDouble()
 
         report.writeText(
             buildString {
                 append("{\n")
                 append("  \"audit_scope\": \"REAL_CIVIL_CALENDAR_STRUCTURE_ONLY\",\n")
+                append("  \"audit_version\": \"V02_EXACT_TRANSITION_FIRST_CLASS_HEAVEN_STEM\",\n")
                 append("  \"calendar_window\": \"2000-01-01/2099-12-31\",\n")
                 append("  \"civil_time_hkt\": \"17:00\",\n")
                 append("  \"qimen_ju_method\": \"CHAI_BU_FUTOU\",\n")
-                append("  \"qimen_engine_blob_sha\": \"89ce6d53eb80e195f8fd69071f6c6c02549596da\",\n")
+                append("  \"qimen_engine_blob_sha\": \"046825e480422eb0ac6734ea0330861bbd422997\",\n")
                 append("  \"weather_forecast_data_used\": false,\n")
                 append("  \"weather_outcome_data_used\": false,\n")
                 append("  \"total_civil_days\": $totalDays,\n")
