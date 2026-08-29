@@ -45,13 +45,19 @@ class QimenEngineTest {
     }
 
     @Test
-    fun futouReproducesIndependent1990DahanSourceFixture() {
-        // Independent source fixture: QM-SRC-0017 费秉勋《奇门遁甲新述》,
+    fun futouSharedFiveDayHeadMatchesIndependent1990DahanFixture() {
+        // Independent source cross-check: QM-SRC-0017 费秉勋《奇门遁甲新述》,
         // canonical SHA-256 f895e60c0cb0e52de43e1c4b17856d780499dae32cd8a058317305e5b8ca83d1.
-        // PDF p15-p17 (printed p6-p8) states that each局 spans five days and its
-        // first day stem must be甲/己, then gives 1990-01-27 壬辰 as belonging to
-        // the 己丑→癸巳 five-day group: 己丑 is 大寒下元, hence 阳遁六局.
-        // This is a structure-only JuMethod fixture; it grants no empirical credit.
+        // PDF p15-p17 (printed p6-p8), in the chapter on 超神接气和置闰, states that
+        // each局 spans five days and its first day stem must be甲/己, then gives
+        // 1990-01-27 壬辰 as belonging to the 己丑→癸巳 five-day group: 己丑 is
+        // 大寒下元, hence 阳遁六局.
+        //
+        // Credit boundary: this corroborates the shared five-day甲/己 head substructure
+        // and this dated 元/局 result. It does NOT identify the source's full置闰 method
+        // with CHAI_BU_FUTOU, and does not validate either method globally.
+        // The source gives a civil date, not a clock time; 12:00 below is only a safe
+        // engine sampling time well inside the 大寒 segment, not a source-claimed时柱.
         val c = QimenEngine.bySolar(
             1990, 1, 27, 12, 0,
             QimenEngine.JuMethod.CHAI_BU_FUTOU,
