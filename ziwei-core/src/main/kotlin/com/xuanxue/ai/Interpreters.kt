@@ -8,24 +8,31 @@ import com.xuanxue.ziwei.core.ZiweiAstro.Astrolabe
 /**
  * 奇门解释层。
  *
- * handoff/qimen 明确记录：当前资料有 calendar/table/map fixtures，但完整九宫黄金盘为 0，
- * 地盘 walk 与人盘方向仍有冲突。因此这里不再把完整九宫当作已核验事实去断吉凶。
+ * handoff/qimen 明确记录：当前资料有 calendar/table/map fixtures，但完整九宫只完成局部来源夹具，
+ * 地盘 walk 与人盘方向仍有冲突。因此这里不再把完整九宫当作已核验事实去断吉凶；
+ * JuMethod 身份也必须进入解释 provenance，工程默认不能被静默当成传统唯一法。
  */
 object QimenInterpreter : Interpreter<QimenChart> {
     override val toolName = "qimen_interpret"
-    override val toolDesc = "奇门基础事实整理：历法、局、日空/时空；完整九宫仅标实验"
+    override val toolDesc = "奇门基础事实整理：历法、局、日空/时空、定元实现身份；完整九宫仅标实验"
 
     override fun interpret(c: QimenChart): List<String> = buildList {
-        add("当前引擎结果：四柱【${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}】，节气【${c.jieQi}】，${c.juText}。局数与定元必须结合所选流派方法理解，不把“拆补”当成只有一种实现。")
+        add("当前引擎结果：四柱【${c.yearGZ} ${c.monthGZ} ${c.dayGZ} ${c.hourGZ}】，节气【${c.jieQi}】，${c.juText}；定元实现【${c.juMethodUsed}】。局数与定元必须结合所选方法理解，不把工程默认或“拆补”标签当成只有一种实现。")
+        when (c.juMethodUsed) {
+            "CHAI_BU_DAYCOUNT" -> add("定元实现边界：CHAI_BU_DAYCOUNT 是当前工程为兼容既有行为保留的日数分段近似；它不等同于已经验证的传统唯一拆补法，也不能借其他 JuMethod 的来源信用。")
+            "CHAI_BU_FUTOU" -> add("定元实现边界：CHAI_BU_FUTOU 的甲/己五日符头与上中下元分类已有跨来源结构支持；但共享五日符头不等于完整拆补/置闰方法等价，交节、超神接气与置闰政策仍需分别验证。")
+            "ZHI_RUN" -> add("定元实现边界：ZHI_RUN 当前未重建/未夹具验证，正常执行应 fail-closed；若这里出现可执行结果，必须视为工程异常而不是术理证据。")
+            else -> add("定元实现边界：当前 method id 未进入已登记方法身份表，不对其来源或正确性作推断。")
+        }
         add("旬法信息：时旬首【${c.xunShou}】，遁干【${c.dunGan}】，日空【${c.dayKong.joinToString("、")}】，时空【${c.hourKong.joinToString("、")}】；马星【${c.maXing}】按当前时家实现由占时支取得。日空与时空是不同盘面字段，不再揉成一个“旬空”。")
         if (c.isWuBuYu) {
             add("历法/旬法标记：当前时柱满足五不遇时 generator。这里只记录规则命中，不把该标签单独翻译成现实事件。")
         }
         if (c.patterns.isNotEmpty()) {
-            add("实验格局候选：${c.patterns.joinToString("、")}。这些候选依赖尚未由完整九宫黄金盘核验的天/地盘实现，因此不进入确定性断语。")
+            add("实验格局候选：${c.patterns.joinToString("、")}。这些候选依赖尚未完成多盘来源核验的天/地盘实现，因此不进入确定性断语。")
         }
-        add("九宫实验边界：当前引擎可以生成值符【${c.zhiFu}】、值使【${c.zhiShi}】以及星门神九宫，但 handoff/qimen/05_FIXTURES.jsonl 没有完整九宫黄金盘；因此本离线解释层不依据这些字段输出吉凶、成败或应期。")
-        add("进一步解盘需要先明确具体事体与取用依据，再区分盘面事实、取用选择、情境推演、反证条件和置信边界；缺少现实条件时不补造反馈。")
+        add("九宫实验边界：当前引擎可以生成值符【${c.zhiFu}】、值使【${c.zhiShi}】以及星门神九宫，但目前只有局部 source-grounded plate fixtures，尚不足以把完整九宫推广为全局黄金盘；因此本离线解释层不依据这些字段输出吉凶、成败或应期。")
+        add("进一步解盘需要先明确具体事体与取用依据，再区分盘面事实、方法身份、取用选择、情境推演、竞争解释、反证条件和置信边界；缺少现实条件时不补造反馈。")
     }
 }
 
