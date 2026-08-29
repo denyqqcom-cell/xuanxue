@@ -51,6 +51,7 @@ fun QimenScreen() {
     var day by remember { mutableStateOf(now.get(Calendar.DAY_OF_MONTH)) }
     var hour by remember { mutableStateOf(now.get(Calendar.HOUR_OF_DAY)) }
     var minute by remember { mutableStateOf(now.get(Calendar.MINUTE)) }
+    var juMethod by remember { mutableStateOf(QimenEngine.JuMethod.CHAI_BU_DAYCOUNT) }
     var showDatePicker by remember { mutableStateOf(false) }
     var chart by remember { mutableStateOf<QimenChart?>(null) }
     var chartError by remember { mutableStateOf<String?>(null) }
@@ -88,7 +89,7 @@ fun QimenScreen() {
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
                 Text(
-                    "handoff/qimen 当前只有历法/旬法/表/映射夹具，完整九宫黄金盘仍为 0；地盘 walk 与人盘方向仍有来源冲突。当前九宫只用于工程核对，结构测试通过不等于完整盘法已经术理验真。",
+                    "完整九宫仍只有局部来源夹具；不同定元传统也没有被合并成唯一标准。当前页面允许显式选择实验 JuMethod，工程默认不代表术理优先级。",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                 )
@@ -130,9 +131,39 @@ fun QimenScreen() {
                         }
                     }
                 }
+
+                Text("定元实现（实验）", fontWeight = FontWeight.SemiBold)
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    listOf(
+                        QimenEngine.JuMethod.CHAI_BU_DAYCOUNT to "日数分段近似",
+                        QimenEngine.JuMethod.CHAI_BU_FUTOU to "甲/己五日符头",
+                    ).forEach { (method, label) ->
+                        TextButton(onClick = { juMethod = method }) {
+                            Text(
+                                label,
+                                color = if (juMethod == method) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                fontSize = 12.sp,
+                                fontWeight = if (juMethod == method) FontWeight.Bold else FontWeight.Normal,
+                            )
+                        }
+                    }
+                }
+                Text(
+                    "默认保留日数分段只为兼容既有行为，不代表传统唯一法。甲/己五日符头已有多来源共享子结构支持，但完整拆补/置闰方法身份仍未验证；置闰实现继续 fail-closed。",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
                 Button(
                     onClick = {
-                        val result = runCatching { QimenEngine.bySolar(year, month, day, hour, minute) }
+                        val result = runCatching {
+                            QimenEngine.bySolar(year, month, day, hour, minute, juMethod)
+                        }
                         chart = result.getOrNull()
                         chartError = result.exceptionOrNull()?.message
                             ?: result.exceptionOrNull()?.javaClass?.simpleName
@@ -185,6 +216,13 @@ fun QimenScreen() {
 
 @Composable
 fun QimenResult(c: QimenChart) {
+    val methodLabel = when (c.juMethodUsed) {
+        "CHAI_BU_DAYCOUNT" -> "日数分段近似（工程兼容）"
+        "CHAI_BU_FUTOU" -> "甲/己五日符头（实验）"
+        "ZHI_RUN" -> "置闰（未实现）"
+        else -> c.juMethodUsed
+    }
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         OutlinedCard(Modifier.fillMaxWidth()) {
             Column(
@@ -197,8 +235,17 @@ fun QimenResult(c: QimenChart) {
                 Text("节气: ${c.jieQi}", fontSize = 14.sp)
                 Text("局: ${c.juText}", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 Text(
-                    "定元法: ${c.juMethod}（默认仅执行拆补·日数分段；未完成的方法必须 fail-closed）",
+                    "定元实现: $methodLabel [${c.juMethodUsed}]",
                     fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    when (c.juMethodUsed) {
+                        "CHAI_BU_DAYCOUNT" -> "这是工程日数分段近似，不等同于已验证的传统拆补法。"
+                        "CHAI_BU_FUTOU" -> "五日甲/己符头有跨来源结构支持；完整拆补/置闰政策仍需分开验证。"
+                        else -> "当前方法身份未完成来源与工程双重核验。"
+                    },
+                    fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 if (c.isWuBuYu) {
@@ -212,7 +259,7 @@ fun QimenResult(c: QimenChart) {
                     )
                 }
                 Text(
-                    "值符/值使与九宫来自当前实验转盘实现（物理环序、天禽寄坤2）；完整九宫黄金夹具仍未建立。",
+                    "值符/值使与九宫来自当前实验转盘实现（物理环序、天禽寄坤2）；完整九宫仍只有局部来源夹具，不能当成全局黄金盘。",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.error,
                 )
@@ -276,7 +323,7 @@ fun QimenResult(c: QimenChart) {
             }
         }
         Text(
-            "工程状态来源：handoff/qimen/HANDOFF_SUMMARY.md、04_CONFLICTS.md、05_FIXTURES.jsonl。研究资料本身不会打包进 APK。",
+            "工程状态来源：handoff/qimen/HANDOFF_SUMMARY.md、04_CONFLICTS.md、05_FIXTURES.jsonl 与当前 K2 source reviews。研究资料本身不会打包进 APK。",
             fontSize = 11.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
