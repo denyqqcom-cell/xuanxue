@@ -6,6 +6,7 @@
 真实公历审计：`knowledge/K2_QIMEN_CDAF_H2_REAL_CALENDAR_AUDIT_V01.md`  
 Calendar control：`knowledge/K2_QIMEN_CDAF_H2_CALENDAR_EQUIVALENCE_CONTROL_V01.md`  
 Sample/serial plan：`knowledge/K2_QIMEN_CDAF_H2_SERIAL_DEPENDENCE_SAMPLE_PLAN_V01.md`  
+JuMethod cross-source review：`knowledge/K2_QIMEN_JU_METHOD_CROSS_SOURCE_REVIEW_V01.md`  
 Empirical Credit：`NONE`
 
 ## 1. 为什么需要 amendment
@@ -24,7 +25,7 @@ Empirical Credit：`NONE`
 
 ## 2. Gate 0 — JU_METHOD_VALIDATION
 
-状态：`OPEN / BLOCKING`
+状态：`PARTIAL_MULTI_SOURCE_SHARED_STRUCTURE / FULL_METHOD_IDENTITY_OPEN / BLOCKING`
 
 ### 2.1 发现的实现错误
 
@@ -54,9 +55,20 @@ weather-v0.1 的排盘方法候选固定为：
 1. 12 类甲/己五日符头类别的 source-rule regression；
 2. `辛丑 -> 最近符头己亥 -> 中元` 的算法反例，用于防止退回十日旬首实现；
 3. QM-SRC-0021 的 2004-05-29 戊午时 chart-only anchor：小满、符头法下元、阳遁八局、甲寅旬、值符天辅，并可核对外八宫九星位置；
-4. `%5` 修复、遗留测试纠偏和 Prospective JuMethod freeze contract 已在 `d25cdcb65668634f36bb49b29edf739716fe3afd` 后四套 CI 全绿。
+4. `%5` 修复、遗留测试纠偏和 Prospective JuMethod freeze contract 已在 `d25cdcb65668634f36bb49b29edf739716fe3afd` 后四套 CI 全绿；
+5. QM-SRC-0017 费秉勋《奇门遁甲新述》canonical carrier（SHA-256 `f895e60c0cb0e52de43e1c4b17856d780499dae32cd8a058317305e5b8ca83d1`）提供独立 cross-source corroboration：PDF p15-p16 明确五日一局、甲/己为局头及上中下元地支分类；PDF p17 给出 `1990-01-27 壬辰 -> 己丑五日组 -> 大寒下元 -> 阳遁六局` 的 dated structural example；
+6. 该 1990 dated fixture 已进入真实 `QimenEngine` regression，并在 Knowledge Engine V1 CI #768 的 stable-core test 中通过 `壬辰 / 大寒 / 下元 / 阳6` 断言。
 
-但当前只有一张完整 dated plate anchor，不能据此把所有日期、所有交节边界和整个 FUTOU 实现标成 VERIFIED。
+但第5项的信用必须严格限界：QM-SRC-0017 的相关章节属于“超神接气和置闰”语境。它独立支持的是**共享五日甲/己符头子结构**与该 dated 元/局结果，不意味着费氏完整置闰法与 `CHAI_BU_FUTOU` 等价，也不能把一个流派的来源信用迁移给另一个流派未被该来源陈述的交节/置闰政策。
+
+因此当前认识是：
+
+```text
+SAME OUTPUT != SAME METHOD
+SHARED SUBSTRUCTURE != METHOD EQUIVALENCE
+```
+
+目前仍只有一张足以承担完整九宫核对的 dated plate anchor；JuMethod 的交节边界与完整 method identity 也尚未关闭，所以不能把当前 FUTOU 实现标成 VERIFIED。
 
 ### 2.4 未通过来源证据的 fixture 必须降级
 
@@ -68,15 +80,27 @@ weather-v0.1 的排盘方法候选固定为：
 
 不得为了让测试通过而把程序输出反写成“原书事实”，也不得把未留 provenance 的旧学习笔记当黄金盘。
 
-### 2.5 关闭条件
+### 2.5 证据粒度纪律
 
-Gate 0 关闭前至少需要：
+旧关闭条件曾要求每个 JuMethod fixture 都同时提供“日期、时柱、节气、元、局数”。这把**日级定元/定局命题**与**完整时盘命题**错误地绑成同一证据粒度。
 
-- 至少增加一个与 2004-05-29 不同局数/不同节气或阴遁的、原页可复核 dated JuMethod fixture；
-- fixture 的日期、时柱、节气、元、局数全部来自可追溯原页，而不是事后推回；
-- 交节边界行为至少有一个 source-grounded fixture；
+现在改为：
+
+`SOURCE GRANULARITY MUST BE SUFFICIENT FOR THE ASSERTED CLAIM`
+
+- 若只测试五日符头、元、局等日级方法结构，原页给出 civil date + 日干支 + 元/局关系即可；测试中选择的安全 clock time 只能是计算采样参数，不得回写成 source fact；
+- 若测试完整 plate、值符值使、九星八门或时盘关系，则必须有足够的来源时辰/时柱与盘面字段；
+- 若测试交节边界，则必须有足以定位 boundary side 的 source-grounded 时间信息。
+
+### 2.6 剩余关闭条件
+
+Gate 0 关闭前仍至少需要：
+
+- `CHAI_BU_FUTOU` 特有的实际交节切换政策至少有一个 source-grounded boundary fixture，而不是只靠一般规则文字；
+- 完整 method vector 必须把 `DAY_GROUPING / YUAN_CLASSIFICATION / SOLAR_TERM_POLICY / SUPER_CONNECT_POLICY / LEAP_POLICY / JU_LOOKUP` 分开，禁止因为局数偶然一致而静默合并拆补与置闰；
 - weather Plan 保持冻结 `qimen_ju_method = CHAI_BU_FUTOU` 与 exact engine blob；
-- 若后续来源支持另一方法，只能另起 plan/model version，不得回填既有 Freeze。
+- 若后续来源支持另一方法，只能另起 plan/model version，不得回填既有 Freeze；
+- Gate A 所需完整 dated plate fixture 继续按更高字段粒度独立验证，不能由仅有日级元/局的 1990 例替代。
 
 关闭前：
 
@@ -231,7 +255,7 @@ Gate D 剩余 Batch-specific 关闭条件：
 ## 7. 当前优先顺序
 
 ```text
-0. JU_METHOD_VALIDATION [OPEN]
+0. JU_METHOD_VALIDATION [PARTIAL / FULL-METHOD IDENTITY OPEN]
         ↓
 A. PLATE_PAIRING_VALIDATION [PARTIAL]
         ↓
@@ -262,7 +286,8 @@ M2_UPDATE_FUNCTION_DEFINED          = true
 OUTCOME_PROXY_POLICY_DEFINED        = true
 WEATHER_JU_METHOD_CANDIDATE         = CHAI_BU_FUTOU
 
-JU_METHOD_VALIDATION                = OPEN
+JU_METHOD_VALIDATION                = PARTIAL_MULTI_SOURCE_SHARED_STRUCTURE
+JU_METHOD_FULL_IDENTITY             = OPEN
 PLATE_PAIRING_VALIDATION            = PARTIAL
 CALENDAR_EQUIVALENCE_CONTROL        = MACHINE_VERIFIED_NOT_BATCH_FROZEN
 REAL_CALENDAR_FUTOU_FREQUENCY       = CLOSED_FOR_PINNED_ENGINE_STRUCTURE_ONLY
