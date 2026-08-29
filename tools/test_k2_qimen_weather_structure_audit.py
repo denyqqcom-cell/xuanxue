@@ -27,7 +27,7 @@ ENGINE_PATH = ROOT / "ziwei-core/src/main/kotlin/com/xuanxue/qimen/QimenEngine.k
 PLAN_PATH = ROOT / "knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl"
 BATCH_PATH = ROOT / "knowledge/K2_PROSPECTIVE_BATCHES.jsonl"
 SAMPLE_PLAN_PATH = ROOT / "knowledge/K2_QIMEN_CDAF_H2_SERIAL_DEPENDENCE_SAMPLE_PLAN_V01.md"
-EXPECTED_ENGINE_GIT_BLOB_SHA = "1912760ccd10cb4a58eb8faec06669c0d690657b"
+EXPECTED_ENGINE_GIT_BLOB_SHA = "89ce6d53eb80e195f8fd69071f6c6c02549596da"
 CDAF_PLAN_ID = "K2PV-CDAF-H2"
 
 # Machine tokens for a future CDAF-H2 Batch. These live at Batch level because
