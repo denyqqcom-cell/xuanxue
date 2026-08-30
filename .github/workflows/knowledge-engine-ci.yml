@@ -102,6 +102,10 @@ jobs:
         run: python3 tools/test_k2_batch_manifest_bindings.py
       - name: Enforce prospective Batch manifest bindings
         run: python3 tools/validate_k2_batch_manifest_bindings.py
+      - name: Test weather pre-Batch candidate fail-closed cases
+        run: python3 tools/test_k2_weather_prereg_candidate.py
+      - name: Enforce weather pre-Batch candidate contract
+        run: python3 tools/validate_k2_weather_prereg_candidate.py
       - name: Test isolated K2 dependency health gate
         run: python3 tools/test_k2_python_deps.py
       - name: Test K2 evidence fail-closed cases
