@@ -7,7 +7,7 @@ Outcome：`NONE`
 Empirical Credit：`NONE`  
 Claim Extraction：`BLOCKED`
 
-> 当前 pre-Batch gate 状态以 `knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V03.md` 为准。本文件继续定义 domain/M1/M2/outcome 的基础协议；后续发现的 JuMethod、plate-pairing、calendar-equivalence 与 sample/serial blockers 不在此处被较早文字覆盖。
+> 当前 pre-Batch gate 状态以 `knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V04.md` 为准。本文件继续定义 domain/M1/M2/outcome 的基础协议；后续发现的 JuMethod、plate-pairing、calendar-equivalence 与 sample/serial blockers 不在此处被较早文字覆盖。
 
 ## 1. 研究问题
 
@@ -76,7 +76,7 @@ Medium 在打开奇门盘前即排除，因为该区间跨越 50%，项目不以
 
 `该九星所在宫的 heaven-plate carried stem = 壬或癸`
 
-不得在结果后改成“地盘壬癸也算”或“同宫任意位置出现壬癸都算”。当前 active V02 Engine 将该层作为 `Gong.tianGan` 一等字段暴露，weather audit 必须直接读取该字段，不得自行重写第二套配对算法。
+不得在结果后改成“地盘壬癸也算”或“同宫任意位置出现壬癸都算”。当前 active V03 Engine 将该层作为 `Gong.tianGan` 一等字段暴露，weather audit 必须直接读取该字段，不得自行重写第二套配对算法。
 
 善天道《奇门遁甲精华》另有天气用神列表：天柱=雨师、壬癸/天蓬=主雨、天英/景门=主晴、天辅=风。它只作为文本回声和候选来源，不给 QM0021 增加经验票数，也不把其额外用神加入 v0.1。
 
@@ -182,7 +182,7 @@ Batch preregistration 时一次性冻结：
 
 较早版本曾把 blocker 简化成单一 `SERIAL_DEPENDENCE / SAMPLE_ADEQUACY`，随后又把 Gate 0/A 都列为 OPEN。后续 source/implementation audit 与 Gate A 正交化已经再次修正该状态。
 
-当前必须按 active Gate Amendment V03 保持：
+当前必须按 active Gate Amendment V04 保持：
 
 ```text
 Gate 0  JU_METHOD_VALIDATION
@@ -195,11 +195,11 @@ Gate A  WEATHER-RELEVANT PLATE PAIRING
         = CLOSED FOR STAR + CARRIED-HEAVEN-STEM CONSTRUCTION ONLY
 
 Gate B  CALENDAR_EQUIVALENCE_CONTROL
-        = V02 machine structure VERIFIED
+        = V03 machine structure VERIFIED
         + future Batch exact sham schedule NOT FROZEN
 
 Gate C  REAL_CALENDAR_FUTOU_FREQUENCY
-        = CLOSED for current V02 pinned-engine structure only
+        = CLOSED for current V03 pinned-engine structure only
 
 Gate D  SERIAL_DEPENDENCE / SAMPLE_ADEQUACY
         = method defined
@@ -234,8 +234,8 @@ M1 baseline definition                = CLOSED FOR V0.1
 M2 update function                    = CLOSED FOR V0.1
 public outcome proxy policy           = DEFINED FOR PRE-BATCH FREEZE
 modifiers/exceptions                  = DISABLED
-active model                          = FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V02
-current QimenEngine blob              = 046825e480422eb0ac6734ea0330861bbd422997
+active model                          = FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V03
+current QimenEngine blob              = 3a741348b46a43ef1f2e2bffe7c0a8be12ec42cd
 JuMethod source boundary validation   = CLOSED FOR WEATHER-V0.1 METHOD IDENTITY ONLY
 weather star/heaven-stem plate layer  = CLOSED BY A1+A2 ORTHOGONAL FIXTURES
 Global plate validation               = NOT CLAIMED
