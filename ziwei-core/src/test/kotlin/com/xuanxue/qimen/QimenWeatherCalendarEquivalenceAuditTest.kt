@@ -19,6 +19,11 @@ import kotlin.test.assertTrue
  *
  * The 2000-01-01..2099-12-31 window is an audit window only. The generated
  * schedule hash is NOT a future Batch Freeze and grants no empirical credit.
+ *
+ * V03 repin note: the source-grounded 值使门 center-count correction is outside
+ * CORE_RAIN_SIGNAL_V01, but the whole-engine identity changed. The exact V02
+ * phase-sham schedule hash is retained below as a comparator assertion so
+ * V02 evidence cannot be silently inherited by a changed engine.
  */
 class QimenWeatherCalendarEquivalenceAuditTest {
 
@@ -189,19 +194,36 @@ class QimenWeatherCalendarEquivalenceAuditTest {
         val scheduleHash = sha256Hex(schedule.toString())
         assertEquals(64, scheduleHash.length)
 
+        // Exact V02 -> V03 deterministic equivalence checks. The schedule hash
+        // covers every complete-segment date and its original/+1/-1 signal bits.
+        assertEquals(2_399, completeSegments.size)
+        assertEquals(36_510, totalSegmentDays)
+        assertEquals(14, minSegmentDays)
+        assertEquals(16, maxSegmentDays)
+        assertEquals(2_000, mixedSegments)
+        assertEquals(399, allZeroSegments)
+        assertEquals(0, allOneSegments)
+        assertEquals(6_498, originalTriggers)
+        assertEquals(6_498, plusTriggers)
+        assertEquals(6_498, minusTriggers)
+        assertEquals(10_344, plusHamming)
+        assertEquals(10_344, minusHamming)
+        assertEquals("e7ccd47461a5f75b3e89ffcf2743ab6939521ad27a493ecd6cebf39517ba845f", scheduleHash)
+
         val reportDir = File("build/reports")
         reportDir.mkdirs()
-        val report = File(reportDir, "qimen-weather-calendar-equivalence-audit-v02.json")
+        val report = File(reportDir, "qimen-weather-calendar-equivalence-audit-v03.json")
         report.writeText(
             buildString {
                 append("{\n")
                 append("  \"audit_scope\": \"SOLAR_TERM_SEGMENT_PHASE_SHAM_STRUCTURE_ONLY\",\n")
-                append("  \"audit_version\": \"V02_EXACT_TRANSITION_FIRST_CLASS_HEAVEN_STEM\",\n")
+                append("  \"audit_version\": \"V03_ENGINE_REPIN_ZHISHI_CENTER_COUNT_FIX\",\n")
                 append("  \"calendar_window\": \"2000-01-01/2099-12-31\",\n")
                 append("  \"boundary_scan_padding_days\": 40,\n")
                 append("  \"civil_time_hkt\": \"17:00\",\n")
                 append("  \"qimen_ju_method\": \"CHAI_BU_FUTOU\",\n")
-                append("  \"qimen_engine_blob_sha\": \"046825e480422eb0ac6734ea0330861bbd422997\",\n")
+                append("  \"qimen_engine_blob_sha\": \"3a741348b46a43ef1f2e2bffe7c0a8be12ec42cd\",\n")
+                append("  \"v02_weather_relevant_structure_equivalent\": true,\n")
                 append("  \"sham_policy\": \"WITHIN_COMPLETE_SOLAR_TERM_SEGMENT_CYCLIC_PLUS_MINUS_1_DAY\",\n")
                 append("  \"weather_forecast_data_used\": false,\n")
                 append("  \"weather_outcome_data_used\": false,\n")
