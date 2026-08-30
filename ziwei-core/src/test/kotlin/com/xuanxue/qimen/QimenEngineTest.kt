@@ -31,8 +31,8 @@ class QimenEngineTest {
 
     @Test
     fun liqiuDayCountKeepsFutouMetadataSeparate() {
-        // 2026 Liqiu occurs in the evening; use 20:00 so this regression is safely
-        // after the actual transition instead of silently relying on whole-day semantics.
+        // HKO 2026 almanac gives Liqiu at 2026-08-07 19:43 HKT; use 20:00 so
+        // this regression is safely after the actual transition.
         val c = QimenEngine.bySolar(2026, 8, 7, 20, 0)
         assertEquals("立秋", c.jieQi)
         assertEquals("CHAI_BU_DAYCOUNT", c.juMethodUsed)
@@ -47,12 +47,20 @@ class QimenEngineTest {
     }
 
     @Test
-    fun futouPreservesIntradaySolarTermBoundaryInsteadOfSwitchingAtMidnight() {
-        // Implementation-only regression. The boundary minute is discovered from the same
-        // lunar-java calendar dependency used by QimenEngine, so this proves that the engine
-        // preserves an intraday solar-term transition instead of collapsing it to 00:00.
-        // It is NOT an independent astronomy check and NOT the source-grounded boundary
-        // fixture still required to close JU_METHOD_VALIDATION Gate 0.
+    fun futouPreservesIndependentAstronomicalLiqiuBoundaryInsteadOfSwitchingAtMidnight() {
+        // Source-method policy:
+        // - QM-SRC-0021 K2E-W1-QM-0021-0019 and QM-SRC-0028
+        //   K2E-W1-QM-0028-0018 both state that拆补 switches to the new
+        //   solar-term ju system at the actual交节时辰 while retaining the
+        //   applicable five-day甲/己 head for yuan classification.
+        // Independent astronomy fixture:
+        // - Hong Kong Observatory, 2026 August almanac / Date and Time of the
+        //   24 Solar Terms: Liqiu (Autumn Commences) = 2026-08-07 19:43 HKT.
+        //   HKO states its solar-term astronomical information is based on data
+        //   from HM Nautical Almanac Office and the US Naval Observatory.
+        //
+        // This closes the previous circularity where the regression discovered
+        // the boundary only from the same lunar-java dependency used by Engine.
         fun chartAt(totalMinutes: Int) = QimenEngine.bySolar(
             2026,
             8,
@@ -66,6 +74,7 @@ class QimenEngineTest {
             chartAt(minute).jieQi == "立秋"
         }
         assertTrue(boundaryMinute != null && boundaryMinute > 0)
+        assertEquals(19 * 60 + 43, boundaryMinute, "Engine solar-term minute must match HKO 2026 almanac")
 
         val before = chartAt(boundaryMinute!! - 1)
         val after = chartAt(boundaryMinute)
@@ -77,7 +86,7 @@ class QimenEngineTest {
         assertEquals("上元", before.yuan)
         assertEquals(before.yuan, after.yuan)
 
-        // Same civil date and same five-day head; only the actual solar-term side changed.
+        // Same civil date and same five-day head; only the verified solar-term side changed.
         // 大暑上元=阴7, 立秋上元=阴2.
         assertEquals(-1, before.yinYang)
         assertEquals(-1, after.yinYang)
