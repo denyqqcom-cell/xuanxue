@@ -1,30 +1,33 @@
 # K2 CDAF-H2 Weather Pilot — Pre-Batch Gate Amendment v0.2
 
-状态：`ACTIVE_AUTHORITY / V01_HISTORY_PRESERVED / BATCH_NOT_READY`  
+SUPERSEDED_BY = `knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V03.md`
+
+状态：`HISTORICAL_AUTHORITY / SUPERSEDED_BY_V03 / BATCH_NOT_READY`  
 基础设计：`knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01.md`  
 历史前件：`knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01_GATE_AMENDMENT.md`  
 JuMethod review：`knowledge/K2_QIMEN_JU_METHOD_CROSS_SOURCE_REVIEW_V01.md`  
 Epistemic discipline：`knowledge/K2_QIMEN_EPISTEMIC_DEBT_PROTOCOL.md`  
-active model：`FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V02`  
+active model at this historical checkpoint：`FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V02`  
 QimenEngine blob：`046825e480422eb0ac6734ea0330861bbd422997`  
 Empirical Credit：`NONE`
 
 ## 1. Authority / supersession rule
 
-本文件是 weather-v0.1 当前 gate 状态的 active authority。
+本文件保存 weather-v0.1 在 Gate A 正交化之前的历史 gate 状态，不再是 current authority。
 
 V01 amendment 不删除、不重写，继续保存当时的真实认知状态，包括曾经把 Gate 0 写成：
 
 `SOURCE_BOUNDARY_FIXTURE_OPEN / BLOCKING`
 
-后续 source review、独立天文边界 regression 与方法向量拆分已经使该状态过时。因此：
+后续 source review、独立天文边界 regression 与方法向量拆分使 Gate 0 状态过时；随后 Gate A orthogonalization 又使本 V02 的“第二张 dated plate”条件成为历史前件。因此：
 
 ```text
 V01 = historical audit trail
-V02 = current gate authority
+V02 = historical audit trail before Gate A orthogonalization
+V03 = current gate authority
 ```
 
-保留 V01 的目的不是维护旧结论，而是让“错误如何被发现、如何被修正”可追踪。
+本文件以下正文继续保留 V02 当时的真实判断，不因后来修正而回写成“当时就知道”。
 
 ## 2. Gate 0 — JU_METHOD_VALIDATION
 
@@ -129,7 +132,7 @@ palace -> (tianXing, Gong.tianGan)
 
 外八宫已通过 source expected pairing regression；weather audit 也直接读取 Engine 一等字段 `Gong.tianGan`，不再在 audit 内重算一个镜像 heaven-stem map。
 
-Gate A 仍缺：
+Gate A 在 V02 当时仍缺：
 
 1. 第二张**独立来源** dated complete plate；
 2. 必须有足够的日期/时辰/时柱 provenance；
@@ -138,7 +141,9 @@ Gate A 仍缺：
 5. 只拿盘面做实现验证，不导入来源的事件结果或断语；
 6. 若第二来源与 Engine/第一来源冲突，保留冲突并先调查，不得挑对自己有利的版本。
 
-因此：
+该条件后来由 `K2_QIMEN_GATE_A_ORTHOGONALIZATION_REVIEW_V01.md` 反审并拆成 A1/A2；本节保留为历史状态，不再作为 current blocker。
+
+因此本历史 checkpoint 当时仍记录：
 
 `GLOBAL_PLATE_VALIDATION = NOT_CLAIMED`
 
@@ -245,7 +250,7 @@ CONTEXT FIT
 
 自创理论也不享有优先权。任何 project-generated component 必须能被 ablation、counterfactual、unknown-outcome test 推翻，并允许在失败后被降级、删除或简化。
 
-## 8. Current active status
+## 8. V02 historical status
 
 ```text
 DOMAIN_DESIGN_DEFINED               = true
@@ -275,10 +280,10 @@ EMPIRICAL_CREDIT                    = NONE
 CLAIM_EXTRACTION                    = BLOCKED
 ```
 
-## 9. Next blocker
+## 9. Historical next blocker
 
-当前最靠前的真实 blocker 已从 Gate 0 移到 Gate A：
+V02 当时记录的最靠前 blocker 是：
 
 `SECOND_INDEPENDENT_DATED_COMPLETE_PLATE`
 
-在它完成前，不创建 weather Batch。
+该 blocker 后来被 Gate A orthogonalization 证明混合了 Gate 0 与 Gate A 的不同验证对象；current 状态以 V03 为准。
