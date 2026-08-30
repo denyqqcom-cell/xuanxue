@@ -1,0 +1,28 @@
+name: K2 Qimen P2 Execution Readiness
+
+on:
+  pull_request:
+    paths:
+      - 'knowledge/K2_QIMEN_P2_ROLE_MAP_*'
+      - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
+      - 'knowledge/K2_PROSPECTIVE_BATCHES.jsonl'
+      - 'knowledge/schema/qimen_p2_*'
+      - 'tools/k2_qimen_p2_*'
+      - 'tools/test_k2_qimen_p2_*'
+      - 'tools/validate_k2_qimen_p2_*'
+      - '.github/workflows/k2-qimen-p2-execution-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  p2-execution-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test P2 post-repin audit fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_post_repin_audit.py
+      - name: Enforce P2 post-repin execution-readiness state
+        run: python3 tools/validate_k2_qimen_p2_post_repin_audit.py

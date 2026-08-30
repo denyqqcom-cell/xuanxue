@@ -1,0 +1,50 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V04",
+  "version": "0.4",
+  "status": "POST_REPIN_AUDITED_EXECUTION_BLOCKED",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V03",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "post_repin_audit_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_POST_REPIN_AUDIT_V01.json",
+  "post_repin_audit_status": "COMPLETE_BLOCKED_EXECUTION_SUBSTRATE",
+  "execution_substrate_ready": false,
+  "open_execution_blockers": [
+    "P2-EXEC-001",
+    "P2-EXEC-002",
+    "P2-EXEC-003",
+    "P2-EXEC-004",
+    "P2-EXEC-005",
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008",
+    "P2-EXEC-009"
+  ],
+  "batch_ready": false,
+  "batch_gate": "BLOCKED_MISSING_EXECUTION_SUBSTRATE",
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "authority": {
+    "design_semantics": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V02",
+    "plan_repin_state": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V03",
+    "current_execution_readiness": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V04"
+  },
+  "closure_rule": {
+    "required": "close all P2-EXEC-001..009 with executable machine evidence before any Batch preregistration",
+    "then": "issue a new protocol version that explicitly sets execution_substrate_ready=true and re-evaluates batch_ready",
+    "forbidden": [
+      "retroactive outcome use",
+      "silent plan mutation",
+      "treating generic manifest validation as P2 execution validation"
+    ]
+  },
+  "non_claims": [
+    "POST_REPIN_AUDITED does not mean Batch-ready.",
+    "DESIGN_READY does not mean execution-ready.",
+    "CI success does not validate QRM-H1.",
+    "No Batch, Freeze, Outcome or empirical credit exists."
+  ]
+}

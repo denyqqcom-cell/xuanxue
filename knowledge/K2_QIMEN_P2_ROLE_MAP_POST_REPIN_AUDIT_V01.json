@@ -1,0 +1,215 @@
+{
+  "audit_id": "K2-QIMEN-P2-ROLE-MAP-POST-REPIN-AUDIT-V01",
+  "audit_stage": "PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "audited_parent_head": "e4aed3c5cb2d40ee89f9a5e314234cafec62fef7",
+  "audited_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V03",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "audit_result": "POST_REPIN_COMPLETE_EXECUTION_BLOCKED",
+  "contract_state": "MACHINE_CONTRACT_GREEN_DOES_NOT_IMPLY_EXECUTION_READY",
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_gate": "BLOCKED_MISSING_EXECUTION_SUBSTRATE",
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "post_repin_checks": [
+    {
+      "check_id": "P2-POST-C01",
+      "subject": "active plan exact-field binding and provenance",
+      "status": "PASS",
+      "evidence": [
+        "K2PV-QRM-002 is the active QRM plan",
+        "hypothesis_origin_key=P2-ROLE-MAP-v0.2",
+        "all V02 future freeze field names are carried by freeze_required_fields"
+      ]
+    },
+    {
+      "check_id": "P2-POST-C02",
+      "subject": "V02 single-difference estimand lock survives plan serialization",
+      "status": "PARTIAL_BLOCKED",
+      "evidence": [
+        "plan prose preserves P2-C1/P2-C2/P2-C3 semantics",
+        "active plan does not carry a machine-structured estimand_lock object or bridge_model_name binding"
+      ]
+    },
+    {
+      "check_id": "P2-POST-C03",
+      "subject": "representation parity and complexity budgets can be materialized without lane-specific expansion",
+      "status": "BLOCKED",
+      "evidence": [
+        "freeze field names exist",
+        "no P2 execution manifest materializer or budget enforcement implementation is registered"
+      ]
+    },
+    {
+      "check_id": "P2-POST-C04",
+      "subject": "blinding/isolation and denominator policies have executable fixtures",
+      "status": "BLOCKED",
+      "evidence": [
+        "protocol clauses exist",
+        "no P2 blind-lane runner or denominator/ABSTAIN scorer implementation is registered"
+      ]
+    },
+    {
+      "check_id": "P2-POST-C05",
+      "subject": "deterministic generators and reproducibility fixture can be hashed before Batch",
+      "status": "BLOCKED",
+      "evidence": [
+        "determinism requirements exist",
+        "no canonical generator contract schema, reproducibility fixture pipeline, or P2 freeze serializer is registered"
+      ]
+    }
+  ],
+  "blockers": [
+    {
+      "blocker_id": "P2-EXEC-001",
+      "capability": "MACHINE_STRUCTURED_ESTIMAND_BINDING",
+      "status": "OPEN_BLOCKER",
+      "reason": "K2PV-QRM-002 preserves C1/C2/C3 in prose but does not machine-bind the exact three-lane estimand graph in the plan record.",
+      "closure_requires": [
+        "machine-structured lane identities A/A_PRIME/B",
+        "machine-structured P2-C1/P2-C2/P2-C3 candidate/comparator/only-difference contract",
+        "validator that rejects component-credit laundering"
+      ],
+      "expected_artifact_paths": [
+        "knowledge/schema/qimen_p2_execution_freeze.schema.json"
+      ]
+    },
+    {
+      "blocker_id": "P2-EXEC-002",
+      "capability": "CANONICAL_GENERATOR_FREEZE_SHAPE",
+      "status": "OPEN_BLOCKER",
+      "reason": "V02 requires versioned+hashed mapping generators, but the future freeze fields do not yet have a canonical machine schema for ref/version/hash/seed semantics.",
+      "closure_requires": [
+        "canonical generator descriptor schema",
+        "hash algorithm and canonical serialization",
+        "lane generator identity binding"
+      ],
+      "expected_artifact_paths": [
+        "knowledge/schema/qimen_p2_generator_descriptor.schema.json"
+      ]
+    },
+    {
+      "blocker_id": "P2-EXEC-003",
+      "capability": "REPRESENTATION_MANIFEST_MATERIALIZER",
+      "status": "OPEN_BLOCKER",
+      "reason": "Representation parity is a protocol clause only; no executable materializer binds shared world-variable/symbol/feature/rule/prediction manifests.",
+      "closure_requires": [
+        "deterministic manifest materialization",
+        "shared-manifest hash equality across all lanes"
+      ],
+      "expected_artifact_paths": [
+        "tools/k2_qimen_p2_materialize_representation.py"
+      ]
+    },
+    {
+      "blocker_id": "P2-EXEC-004",
+      "capability": "DETERMINISTIC_ROLE_LAYER_GENERATORS",
+      "status": "OPEN_BLOCKER",
+      "reason": "Comparator, bridge and candidate generator fields exist, but no executable deterministic generator interface is registered.",
+      "closure_requires": [
+        "three frozen generator implementations or one lane-parameterized deterministic implementation",
+        "same-input exact-map test"
+      ],
+      "expected_artifact_paths": [
+        "tools/k2_qimen_p2_generate_mapping.py"
+      ]
+    },
+    {
+      "blocker_id": "P2-EXEC-005",
+      "capability": "COMPLEXITY_BUDGET_ENFORCEMENT",
+      "status": "OPEN_BLOCKER",
+      "reason": "Equal role/branch/rule-trace/information/tool budgets are declared but not machine-enforced.",
+      "closure_requires": [
+        "budget counter",
+        "symmetric hard-fail policy",
+        "parity fixture"
+      ],
+      "expected_artifact_paths": [
+        "tools/k2_qimen_p2_enforce_budget.py"
+      ]
+    },
+    {
+      "blocker_id": "P2-EXEC-006",
+      "capability": "BLINDING_AND_CROSS_LANE_ISOLATION_RUNNER",
+      "status": "OPEN_BLOCKER",
+      "reason": "Neutral labels, frozen lane order and no cross-lane intermediate output are not backed by an isolated execution runner.",
+      "closure_requires": [
+        "frozen-seed lane order",
+        "separate lane state",
+        "unblind only after all prediction freezes"
+      ],
+      "expected_artifact_paths": [
+        "tools/k2_qimen_p2_run_blinded_lanes.py"
+      ]
+    },
+    {
+      "blocker_id": "P2-EXEC-007",
+      "capability": "ABSTAIN_DENOMINATOR_SCORER",
+      "status": "OPEN_BLOCKER",
+      "reason": "ABSTAIN retention and coverage-penalized scoring are declared but have no P2-specific executable scorer.",
+      "closure_requires": [
+        "fixed denominator",
+        "no silent drop",
+        "symmetric technical-unevaluable handling",
+        "coverage-penalized metric fixture"
+      ],
+      "expected_artifact_paths": [
+        "tools/k2_qimen_p2_score.py"
+      ]
+    },
+    {
+      "blocker_id": "P2-EXEC-008",
+      "capability": "EXACT_REPRODUCIBILITY_FIXTURE_PIPELINE",
+      "status": "OPEN_BLOCKER",
+      "reason": "A reproducibility_fixture_hash field exists, but there is no pipeline that generates and replays an exact pre-Batch fixture.",
+      "closure_requires": [
+        "canonical fixture generation",
+        "hash binding",
+        "same-input same-lane exact replay"
+      ],
+      "expected_artifact_paths": [
+        "tools/k2_qimen_p2_repro_fixture.py"
+      ]
+    },
+    {
+      "blocker_id": "P2-EXEC-009",
+      "capability": "P2_FREEZE_SERIALIZER",
+      "status": "OPEN_BLOCKER",
+      "reason": "The generic Batch manifest binder validates manifest identity but does not serialize or validate all P2-specific freeze fields and parity invariants.",
+      "closure_requires": [
+        "P2-specific freeze serializer",
+        "schema validation",
+        "exact manifest hash",
+        "pre-plate-value mapping attestation"
+      ],
+      "expected_artifact_paths": [
+        "tools/k2_qimen_p2_freeze.py"
+      ]
+    }
+  ],
+  "generic_infrastructure_reuse": [
+    {
+      "ref": "tools/validate_k2_batch_manifest_bindings.py",
+      "status": "PARTIAL_REUSE_ONLY",
+      "scope": "canonical Batch manifest binding, plan/model identity, research_only and outcome_data_used=false",
+      "not_sufficient_for": "P2 role-map parity, generator determinism, blinding, denominator scoring or P2 freeze serialization"
+    }
+  ],
+  "closure_policy": {
+    "all_blockers_must_close": true,
+    "machine_evidence_required": true,
+    "new_protocol_version_required_after_closure": true,
+    "batch_creation_forbidden_until_new_protocol": true,
+    "outcome_access_forbidden_during_closure": true
+  },
+  "non_claims": [
+    "All green CI at the audited parent proves contract consistency, not P2 execution readiness.",
+    "This audit does not create a Batch or Freeze.",
+    "This audit does not validate QRM-H1.",
+    "No source or empirical credit is upgraded by identifying implementation blockers."
+  ]
+}
