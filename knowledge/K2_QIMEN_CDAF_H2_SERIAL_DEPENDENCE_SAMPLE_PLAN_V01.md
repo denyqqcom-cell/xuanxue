@@ -1,10 +1,11 @@
 # K2 CDAF-H2 Serial Dependence / Sample Adequacy Plan v0.1
 
-状态：`DESIGN_DEFINED / NOT_BATCH_FROZEN / NO_OUTCOME_DATA`  
+状态：`DESIGN_DEFINED / PRE_BATCH_CANDIDATE_MACHINE_BOUND / NOT_BATCH_FROZEN / NO_OUTCOME_DATA`  
 关联假设：`CDAF-H2`  
 关联 weather design：`K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01.md`  
-Gate amendment：`K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01_GATE_AMENDMENT.md`  
+Gate amendment：`K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V04.md`  
 Calendar control：`K2_QIMEN_CDAF_H2_CALENDAR_EQUIVALENCE_CONTROL_V01.md`  
+Pre-Batch candidate：`K2_QIMEN_CDAF_H2_PREREGISTRATION_CANDIDATE_V01.json`  
 Empirical Credit：`NONE`
 
 ## 1. 为什么“跑 N 天”不是样本充分性
@@ -298,6 +299,8 @@ DELTA_M1 <= 0
 
 ## 11. 当前 Gate D 状态
 
+方法层已经固定，且当前 pre-Batch candidate 已由机器把未来节气 schedule commitment、候选 station panel 与本统计合同绑定；但这仍不是正式 Batch preregistration。
+
 ```text
 SAMPLING_CADENCE_DEFINED             = true
 ANALYSIS_UNIT_DEFINED                = true
@@ -308,12 +311,21 @@ PRIMARY_STATISTIC_DEFINED            = true
 MULTIPLICITY_CONTROL_DEFINED         = true
 SUCCESS_FAILURE_INSUFFICIENT_DEFINED = true
 
-BATCH_SPECIFIC_START_SEGMENT         = NONE
-BATCH_SPECIFIC_48_72_HORIZON         = NOT_FROZEN
+PRE_BATCH_CANDIDATE_MANIFEST         = K2_QIMEN_CDAF_H2_PREREGISTRATION_CANDIDATE_V01.json
+CANDIDATE_FIRST_DAILY_FREEZE         = 2026-09-08 17:00 HKT
+CANDIDATE_48_SEGMENT_END             = 2028-09-06
+CANDIDATE_72_SEGMENT_END             = 2029-09-06
+CANDIDATE_SCHEDULE_SHA256            = 97f07e9d9368acbb1a3d72aa90c54276a7b460af87cef3b933b994adda6c60e5
+CANDIDATE_STATION_PANEL_COUNT        = 25
+CANDIDATE_STATION_PANEL_SHA256       = 1c8a07eee9c566486a82c3aa5b1d28144391bd93415d50479ae3a2620419a80d
+PRE_BATCH_CANDIDATE_MACHINE_BOUND    = true
+
+BATCH_SPECIFIC_START_SEGMENT         = NOT_PREREGISTERED
+BATCH_SPECIFIC_48_72_HORIZON         = NOT_BATCH_FROZEN
 OUTCOME_PANEL_FREEZE                 = NONE
 BATCH                                = NONE
 OUTCOME                              = NONE
 EMPIRICAL_CREDIT                     = NONE
 ```
 
-因此 Gate D 的**方法设计问题**已经定义，但在实际 Batch 起始节气段、station panel、engine/JuMethod、calendar sham schedule 与本文件 hash 一起进入 Freeze 前，不能标为 Batch-ready closed。
+因此 Gate D 已从“方法尚未落成机器对象”推进到“pre-Batch candidate 可审计”，但实际 Batch 仍必须在 Outcome 未知、station metadata 重新核对、起始节气边界仍有效时原子 preregister。若届时 panel 或起始条件变化，candidate 必须失效并重建，不能结果后补改。
