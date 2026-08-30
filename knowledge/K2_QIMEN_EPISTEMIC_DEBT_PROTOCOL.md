@@ -31,6 +31,9 @@ BOUNDARY_CLAIM_REQUIRES_COMPETING_CAUSES
 CONTROL_COMPLEXITY != EMPIRICAL_PROGRESS
 NEGATIVE_EVIDENCE_IS_FIRST_CLASS
 BASELINE_OR_COUNTERFACTUAL_REQUIRED
+EXTERNAL_LEARNING_REQUIRES_INTERNAL_CALIBRATION
+SYMBOL_MEANING != CASE_CONCLUSION
+APPLICABILITY_PRECONDITION_REQUIRED
 ```
 
 Interpretation:
@@ -47,6 +50,38 @@ Interpretation:
 - More schemas, gates and tests can improve auditability, but control complexity is not empirical progress. A new control must demonstrate marginal detection value beyond existing controls and must have a consolidation or deletion rule when it is redundant.
 - Traditional longevity is a provenance fact, not immunity from falsification. Gradual iteration may preserve a rule as a hypothesis, but a repeatedly failing rule must be downgradable or removable.
 - Writing a self-critique does not close the issue. Closure requires a control that can detect recurrence and a prospective test that can fail.
+- External learning is input, not progress by itself. Every substantial source-derived addition must return to an internal calibration pass asking what prior assumption it reinforces, contradicts, leaves undecidable, or tempts the project to overgeneralize.
+- A static symbol meaning is a candidate feature or traditional semantic range. It is not a case conclusion. A case conclusion requires a frozen question, role/use-god selection, relevant relations, applicability conditions, competing explanations and explicit uncertainty.
+- Applicability is not optional metadata added after interpretation. If the preconditions for activating a rule cannot be stated before the result is known, that rule remains descriptive source material or a hypothesis rather than an operational inference rule.
+
+### 2.1 Closed-retreat internal calibration loop
+
+The retreat form of continuous learning is deliberately cyclical rather than accumulative:
+
+```text
+EXTERNAL SOURCE / NEW EXPERIENCE
+    -> SOURCE MODEL
+    -> INTERNAL SELF-AUDIT
+    -> CONTEXT MODEL
+    -> SYMBOL / RULE CANDIDATE ACTIVATION
+    -> RELATIONAL INFERENCE + RIVAL EXPLANATIONS
+    -> UNKNOWN-OUTCOME TEST / NEGATIVE EVIDENCE
+    -> REVISE / DOWNGRADE / REMOVE / RETAIN-AS-HYPOTHESIS
+    -> next INTERNAL SELF-AUDIT
+```
+
+Each stage has a different job:
+
+1. `SOURCE MODEL`: represent what the source actually says, including contradictions, omissions and school-specific choices. Do not silently harmonize it with project preference.
+2. `INTERNAL SELF-AUDIT`: inspect which existing assumptions, habits or earlier conclusions are being protected by the new material. Learning that only confirms the current framework receives no special privilege.
+3. `CONTEXT MODEL`: freeze the concrete question, actors/roles, time scale, relevant real-world constraints and what would count as an answer before activating symbolic rules.
+4. `SYMBOL / RULE CANDIDATE ACTIVATION`: use source meanings only where their stated or reconstructed applicability preconditions are met. Unactivated symbols remain background facts; they do not vote on the verdict.
+5. `RELATIONAL INFERENCE + RIVAL EXPLANATIONS`: infer from relations among selected facts rather than concatenating dictionary meanings. Preserve at least the meaningful competing explanation or abstention path when the evidence does not discriminate.
+6. `UNKNOWN-OUTCOME TEST / NEGATIVE EVIDENCE`: where an empirical claim is intended, freeze the prediction and scoring before outcome access. Failure remains first-class information.
+7. `REVISE / DOWNGRADE / REMOVE`: iteration is allowed to simplify or delete. “Gradual improvement” does not mean every inherited rule survives forever under more exceptions.
+8. `NEXT INTERNAL SELF-AUDIT`: after any apparent improvement, ask what new path dependence the repair itself may have created.
+
+This loop does not require every interpretive conversation to become a formal experiment. It does require the system to distinguish source learning, case reasoning, hypothesis generation and empirical validation instead of allowing one to impersonate another.
 
 ## 3. Epistemic debt unit
 
