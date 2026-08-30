@@ -2,7 +2,7 @@
 
 状态：`ACCEPTED_FOR_WEATHER_PLATE_CONSTRUCTION / NO_EMPIRICAL_CREDIT`
 
-后续 active authority：`knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V03.md`
+后续 active authority：`knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V04.md`
 
 目的：反审旧 Gate A 把两个不同验证对象绑成一个“第二张 dated complete plate”条件的问题，避免“形式更严格”却重复给 Gate 0 的 calendar -> state 链记信用，同时真正隔离 state -> plate construction。
 
@@ -172,6 +172,8 @@ CLOSED_FOR_WEATHER_V01_STAR_HEAVEN_STEM_CONSTRUCTION
 - DAYCOUNT / ZHI_RUN / 其他起局传统；
 - 任意吉凶断语；
 - 现实预测有效性。
+
+后续 `K2_QIMEN_ZHISHI_GATE_SOURCE_REVIEW_V01.md` 用 canonical QM-SRC-0017 p24-p25 关闭了一个更窄的实现错误：值使门 travel 经过中五时必须计入 5，只有最终 target=5 才寄坤2。该 correction 不扩大本 Gate A 的 weather credit，也不把“中五寄宫的所有流派分歧”判成已解决。
 
 ## 7. 信用边界
 
