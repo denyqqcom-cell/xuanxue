@@ -124,6 +124,22 @@ object LiuYaoEngine {
         "兑" to NaJia("丁", listOf("巳", "卯", "丑", "亥", "酉", "未")),
     )
 
+    /**
+     * 京房纳甲按实际上下卦装配，而不是按整卦所属八宫把六爻统一套一张纯卦表。
+     * lineInTrigram 取 1..3；下卦使用内卦三爻，上卦使用外卦三爻。
+     */
+    private fun naJiaForLine(trigram: String, lineInTrigram: Int, outer: Boolean): Pair<String, String> {
+        require(lineInTrigram in 1..3)
+        val na = NA_JIA[trigram] ?: error("Missing NaJia table for $trigram")
+        val zhiIndex = if (outer) lineInTrigram + 2 else lineInTrigram - 1
+        val gan = if (na.gan.length >= 2) {
+            if (outer) na.gan[1] else na.gan[0]
+        } else {
+            na.gan[0]
+        }
+        return gan.toString() to na.zhi[zhiIndex]
+    }
+
     // 六神：日干起（从初爻起）
     val LIU_SHEN = listOf("青龙", "朱雀", "勾陈", "腾蛇", "白虎", "玄武")
     fun liuShenOf(dayGan: String): List<String> {
@@ -242,18 +258,17 @@ object LiuYaoEngine {
         val (palace, palaceIdx) = palaceOf(up, down) ?: ("乾宫" to 0)
         val gongWx = GUA_WUXING[palace.removeSuffix("宫")] ?: "金"
         val liuShen = liuShenOf(dayGZ[0].toString())
-        val na = NA_JIA[palace.removeSuffix("宫")] ?: NA_JIA["乾"]!!
         val shi = SHI_INDEX[palaceIdx]
         val ying = YING_INDEX[palaceIdx]
 
         val benYao = (1..6).map { i ->
-            val zhi = na.zhi[i - 1]
             val inUp = i > 3
             val guaPart = if (inUp) up else down
             val posInGua = if (inUp) i - 3 else i
+            val (gan, zhi) = naJiaForLine(guaPart, posInGua, outer = inUp)
             Yao(
                 index = i,
-                gan = na.gan[0].toString(),
+                gan = gan,
                 zhi = zhi,
                 wuxing = ZHI_WUXING[zhi] ?: "",
                 liuQin = liuQinOf(gongWx, ZHI_WUXING[zhi] ?: ""),
@@ -273,18 +288,17 @@ object LiuYaoEngine {
             val newDown = if (downYao.isNotEmpty()) flipYao(down, downYao) else down
             val newUp = if (upYao.isNotEmpty()) flipYao(up, upYao) else up
             val (bPalace, bIdx) = palaceOf(newUp, newDown) ?: ("乾宫" to 0)
-            val bNa = NA_JIA[bPalace.removeSuffix("宫")] ?: NA_JIA["乾"]!!
             val bShi = SHI_INDEX[bIdx]
             val bYing = YING_INDEX[bIdx]
             val bGongWx = GUA_WUXING[bPalace.removeSuffix("宫")] ?: "金"
             val bYao = (1..6).map { i ->
-                val zhi = bNa.zhi[i - 1]
                 val inUp = i > 3
                 val guaPart = if (inUp) newUp else newDown
                 val posInGua = if (inUp) i - 3 else i
+                val (gan, zhi) = naJiaForLine(guaPart, posInGua, outer = inUp)
                 Yao(
                     index = i,
-                    gan = bNa.gan[0].toString(),
+                    gan = gan,
                     zhi = zhi,
                     wuxing = ZHI_WUXING[zhi] ?: "",
                     liuQin = liuQinOf(bGongWx, ZHI_WUXING[zhi] ?: ""),
