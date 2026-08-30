@@ -52,7 +52,7 @@ class InterpretersTest {
     }
 
     @Test
-    fun qimenReadingKeepsFutouMethodIdentityWithoutClaimingFullMethodEquivalence() {
+    fun qimenReadingKeepsFutouMethodCreditBoundedAndContextFirst() {
         val c = QimenEngine.bySolar(
             1990, 1, 27, 12, 0,
             QimenEngine.JuMethod.CHAI_BU_FUTOU,
@@ -61,9 +61,13 @@ class InterpretersTest {
         assertTrue(r.items.isNotEmpty())
         assertTrue(r.text.contains("CHAI_BU_FUTOU"))
         assertTrue(r.text.contains("甲/己五日符头"))
-        assertTrue(r.text.contains("跨来源结构支持"))
-        assertTrue(r.text.contains("共享五日符头不等于完整拆补/置闰方法等价"))
-        assertTrue(r.text.contains("交节、超神接气与置闰政策仍需分别验证"))
+        assertTrue(r.text.contains("独立天文边界回归"))
+        assertTrue(r.text.contains("只关闭该候选方法身份"))
+        assertTrue(r.text.contains("不等于 DAYCOUNT、ZHI_RUN"))
+        assertTrue(r.text.contains("更不等于现实预测有效"))
+        assertTrue(r.text.contains("书本象意、星门神标签与格局命中只属于候选语义"))
+        assertTrue(r.text.contains("具体事体、角色/取用、时间尺度与现实约束"))
+        assertTrue(r.text.contains("竞争解释或弃权路径"))
         assertFalse(r.text.contains("已经验证的传统唯一拆补法"))
         assertFalse(r.text.contains("必然"))
     }
