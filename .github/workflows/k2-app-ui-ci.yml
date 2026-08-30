@@ -66,10 +66,13 @@ jobs:
           set -euo pipefail
           test -s ziwei-core/build/reports/qimen-weather-real-calendar-audit-v03.json
           test -s ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
+          test -s ziwei-core/build/reports/qimen-weather-prospective-schedule-candidate-v01.json
           echo '--- real-calendar FUTOU audit V03 ---'
           cat ziwei-core/build/reports/qimen-weather-real-calendar-audit-v03.json
           echo '--- calendar-equivalence sham audit V03 ---'
           cat ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
+          echo '--- prospective 72-segment schedule candidate V01 (NOT FROZEN) ---'
+          cat ziwei-core/build/reports/qimen-weather-prospective-schedule-candidate-v01.json
 
       - name: Verify debug APK exists and stays inside package boundary
         shell: bash
@@ -99,6 +102,7 @@ jobs:
             app/build/reports/lint-results-debug.html
             ziwei-core/build/reports/qimen-weather-real-calendar-audit-v03.json
             ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
+            ziwei-core/build/reports/qimen-weather-prospective-schedule-candidate-v01.json
           if-no-files-found: error
           retention-days: 7
           compression-level: 0

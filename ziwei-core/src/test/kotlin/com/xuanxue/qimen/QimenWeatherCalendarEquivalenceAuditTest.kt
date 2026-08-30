@@ -254,4 +254,152 @@ class QimenWeatherCalendarEquivalenceAuditTest {
 
         assertTrue(report.isFile && report.length() > 0L)
     }
+
+    @Test
+    fun prospective72SegmentScheduleCandidateIsDeterministicAndOutcomeBlind() {
+        // HKO Almanac 2026 displays White Dew at 2026-09-07 22:41 HKT.
+        // The research cadence freezes daily at 17:00, therefore the first
+        // whole daily sample inside that new solar-term segment is 2026-09-08.
+        // This object is a PRE-BATCH CANDIDATE only; it is not a Batch Freeze.
+        val firstDailyFreezeDate = LocalDate.of(2026, 9, 8)
+        val scanEnd = LocalDate.of(2029, 10, 1)
+
+        val priorDayChart = QimenEngine.bySolar(2026, 9, 7, 17, 0, QimenEngine.JuMethod.CHAI_BU_FUTOU)
+        val firstDayChart = QimenEngine.bySolar(2026, 9, 8, 17, 0, QimenEngine.JuMethod.CHAI_BU_FUTOU)
+        assertEquals("处暑", priorDayChart.jieQi, "17:00 on 2026-09-07 must still be before the HKO White Dew boundary")
+        assertEquals("白露", firstDayChart.jieQi, "17:00 on 2026-09-08 must be inside the new White Dew segment")
+
+        val states = mutableListOf<DayState>()
+        var date = firstDailyFreezeDate
+        while (!date.isAfter(scanEnd)) {
+            val chart = QimenEngine.bySolar(
+                date.year,
+                date.monthValue,
+                date.dayOfMonth,
+                17,
+                0,
+                QimenEngine.JuMethod.CHAI_BU_FUTOU,
+            )
+            assertEquals("CHAI_BU_FUTOU", chart.juMethodUsed)
+            assertEquals('酉', chart.hourGZ[1], "17:00 HKT civil time must remain 酉时 at $date")
+            states += DayState(date, chart.jieQi, coreRainSignal(chart).isNotEmpty())
+            date = date.plusDays(1)
+        }
+
+        val segments = mutableListOf<List<DayState>>()
+        var current = mutableListOf<DayState>()
+        for (state in states) {
+            if (current.isNotEmpty() && current.last().jieQi != state.jieQi) {
+                segments += current.toList()
+                current = mutableListOf()
+            }
+            current += state
+        }
+        if (current.isNotEmpty()) segments += current.toList()
+
+        assertTrue(segments.size >= 73, "scan must include a boundary after the 72nd candidate segment")
+        val candidateSegments = segments.take(72)
+        assertEquals(72, candidateSegments.size)
+        assertEquals("白露", candidateSegments.first().first().jieQi)
+        assertEquals(firstDailyFreezeDate, candidateSegments.first().first().date)
+        assertEquals("处暑", candidateSegments.last().first().jieQi)
+        assertTrue(candidateSegments.all { segment -> segment.size in 14..16 })
+
+        fun jieQiCounts(input: List<List<DayState>>): Map<String, Int> =
+            input.groupingBy { it.first().jieQi }.eachCount()
+
+        val prefix48Counts = jieQiCounts(candidateSegments.take(48))
+        val max72Counts = jieQiCounts(candidateSegments)
+        assertEquals(24, prefix48Counts.size)
+        assertTrue(prefix48Counts.values.all { it == 2 }, "48-segment prefix must contain every solar term exactly twice")
+        assertEquals(24, max72Counts.size)
+        assertTrue(max72Counts.values.all { it == 3 }, "72-segment maximum must contain every solar term exactly three times")
+
+        val schedule = StringBuilder()
+        val segmentJsonRows = mutableListOf<String>()
+
+        candidateSegments.forEachIndexed { index, segment ->
+            val n = segment.size
+            val original = segment.map { it.signal }
+            val plus = List(n) { i -> original[(i + 1) % n] }
+            val minus = List(n) { i -> original[(i - 1 + n) % n] }
+            assertEquals(original.count { it }, plus.count { it })
+            assertEquals(original.count { it }, minus.count { it })
+
+            fun bits(values: List<Boolean>): String = values.joinToString("") { if (it) "1" else "0" }
+
+            val originalBits = bits(original)
+            val plusBits = bits(plus)
+            val minusBits = bits(minus)
+            val segmentId = "%02d:%s:%s:%s".format(
+                index + 1,
+                segment.first().jieQi,
+                segment.first().date,
+                segment.last().date,
+            )
+
+            schedule.append(segmentId)
+                .append('|').append(originalBits)
+                .append('|').append(plusBits)
+                .append('|').append(minusBits)
+                .append('\n')
+
+            segmentJsonRows += buildString {
+                append("    {\"segment_id\":\"").append(jsonEscape(segmentId)).append("\",")
+                append("\"jieqi\":\"").append(jsonEscape(segment.first().jieQi)).append("\",")
+                append("\"first_date\":\"").append(segment.first().date).append("\",")
+                append("\"last_date\":\"").append(segment.last().date).append("\",")
+                append("\"original_bits\":\"").append(originalBits).append("\",")
+                append("\"plus_1_bits\":\"").append(plusBits).append("\",")
+                append("\"minus_1_bits\":\"").append(minusBits).append("\"}")
+            }
+        }
+
+        val scheduleHash = sha256Hex(schedule.toString())
+        assertEquals(64, scheduleHash.length)
+        assertFalse(schedule.isEmpty())
+
+        val reportDir = File("build/reports")
+        reportDir.mkdirs()
+        val report = File(reportDir, "qimen-weather-prospective-schedule-candidate-v01.json")
+        report.writeText(
+            buildString {
+                append("{\n")
+                append("  \"candidate_scope\": \"OUTCOME_BLIND_PRE_BATCH_SCHEDULE_CANDIDATE_ONLY\",\n")
+                append("  \"candidate_version\": \"K2PV-CDAF-H2-SCHEDULE-CANDIDATE-V01\",\n")
+                append("  \"status\": \"PRE_BATCH_CANDIDATE_NOT_FROZEN\",\n")
+                append("  \"plan_id\": \"K2PV-CDAF-H2\",\n")
+                append("  \"model_name\": \"FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V03\",\n")
+                append("  \"qimen_engine_blob_sha\": \"3a741348b46a43ef1f2e2bffe7c0a8be12ec42cd\",\n")
+                append("  \"qimen_ju_method\": \"CHAI_BU_FUTOU\",\n")
+                append("  \"official_start_boundary_hkt_display\": \"2026-09-07T22:41+08:00\",\n")
+                append("  \"official_start_boundary_resolution\": \"HKO_OFFICIAL_MINUTE_DISPLAY\",\n")
+                append("  \"official_start_boundary_source\": \"https://www.hko.gov.hk/en/gts/astron2026/files/2026cal09.pdf\",\n")
+                append("  \"first_daily_freeze_date_hkt\": \"$firstDailyFreezeDate\",\n")
+                append("  \"daily_freeze_time_hkt\": \"17:00\",\n")
+                append("  \"minimum_segments\": 48,\n")
+                append("  \"maximum_segments\": 72,\n")
+                append("  \"prefix_48_end_sample_date\": \"${candidateSegments[47].last().date}\",\n")
+                append("  \"maximum_72_end_sample_date\": \"${candidateSegments[71].last().date}\",\n")
+                append("  \"segment_count\": ${candidateSegments.size},\n")
+                append("  \"prefix_48_jieqi_balance_verified\": true,\n")
+                append("  \"maximum_72_jieqi_balance_verified\": true,\n")
+                append("  \"calendar_sham_policy\": \"WITHIN_COMPLETE_SOLAR_TERM_SEGMENT_CYCLIC_PLUS_MINUS_1_DAY\",\n")
+                append("  \"candidate_schedule_sha256\": \"$scheduleHash\",\n")
+                append("  \"weather_forecast_data_used\": false,\n")
+                append("  \"weather_outcome_data_used\": false,\n")
+                append("  \"batch_created\": false,\n")
+                append("  \"freeze_created\": false,\n")
+                append("  \"future_batch_schedule_frozen\": false,\n")
+                append("  \"empirical_credit\": \"NONE\",\n")
+                append("  \"segments\": [\n")
+                append(segmentJsonRows.joinToString(",\n"))
+                append("\n  ]\n")
+                append("}\n")
+            },
+            Charsets.UTF_8,
+        )
+
+        assertTrue(report.isFile && report.length() > 0L)
+    }
 }
