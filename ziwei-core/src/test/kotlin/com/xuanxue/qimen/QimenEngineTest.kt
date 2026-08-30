@@ -95,6 +95,43 @@ class QimenEngineTest {
     }
 
     @Test
+    fun qm0021ChaibuExampleSwitchesAtIndependent2004LichunBoundary() {
+        // Source fixture: QM-SRC-0021, pdf:p67-p68 / K2E-W1-QM-0021-0019.
+        // The source explicitly uses 2004-02-04 癸丑日 as its拆补 example:
+        // after entering the Liqiu/Lichun-style actual transition boundary, retain the
+        // nearest five-day head 己酉 for上元 classification, but use the NEW solar
+        // term's ju system; for 立春 this produces 阳遁八局.
+        //
+        // Independent astronomical boundary: National Astronomical Observatory
+        // of Japan, 2004 calendar almanac, gives 立春 at 2004-02-04 20:56 JST.
+        // JST is UTC+9, so the same instant is 19:56 HKT/UTC+8.
+        // This combines a source-specific post-transition expected ju with an
+        // astronomy authority outside lunar-java, rather than letting Engine
+        // choose both the boundary and the expected result.
+        val before = QimenEngine.bySolar(
+            2004, 2, 4, 19, 55,
+            QimenEngine.JuMethod.CHAI_BU_FUTOU,
+        )
+        val after = QimenEngine.bySolar(
+            2004, 2, 4, 19, 56,
+            QimenEngine.JuMethod.CHAI_BU_FUTOU,
+        )
+
+        assertEquals("癸丑", before.dayGZ)
+        assertEquals(before.dayGZ, after.dayGZ)
+        assertEquals("上元", before.yuan)
+        assertEquals(before.yuan, after.yuan)
+        assertEquals("上元", after.yuanFutou)
+
+        assertEquals("大寒", before.jieQi)
+        assertEquals("立春", after.jieQi)
+        assertEquals(1, before.yinYang)
+        assertEquals(1, after.yinYang)
+        assertEquals(3, before.ju, "one minute before independent Lichun boundary must remain 大寒上元阳3")
+        assertEquals(8, after.ju, "QM-SRC-0021 post-transition example requires 立春上元阳8")
+    }
+
+    @Test
     fun futouSharedFiveDayHeadMatchesIndependent1990DahanFixture() {
         // Independent source cross-check: QM-SRC-0017 费秉勋《奇门遁甲新述》,
         // canonical SHA-256 f895e60c0cb0e52de43e1c4b17856d780499dae32cd8a058317305e5b8ca83d1.
