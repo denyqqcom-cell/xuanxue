@@ -7,7 +7,7 @@ Outcome：`NONE`
 Empirical Credit：`NONE`  
 Claim Extraction：`BLOCKED`
 
-> 当前 pre-Batch gate 状态以 `K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01_GATE_AMENDMENT.md` 为准。本文件继续定义 domain/M1/M2/outcome 的基础协议；后续发现的 JuMethod、plate-pairing、calendar-equivalence 与 sample/serial blockers 不在此处被较早文字覆盖。
+> 当前 pre-Batch gate 状态以 `knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V02.md` 为准。本文件继续定义 domain/M1/M2/outcome 的基础协议；后续发现的 JuMethod、plate-pairing、calendar-equivalence 与 sample/serial blockers 不在此处被较早文字覆盖。
 
 ## 1. 研究问题
 

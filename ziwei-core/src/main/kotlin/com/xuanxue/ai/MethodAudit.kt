@@ -88,6 +88,7 @@ object MethodAuditRegistry {
             "handoff/qimen/07_COPYRIGHT_GATE.md",
             "knowledge/K2_QIMEN_JU_METHOD_CROSS_SOURCE_REVIEW_V01.md",
             "knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01_GATE_AMENDMENT.md",
+            "knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V02.md",
             "knowledge/K2_QIMEN_EPISTEMIC_DEBT_PROTOCOL.md",
         ),
     )
