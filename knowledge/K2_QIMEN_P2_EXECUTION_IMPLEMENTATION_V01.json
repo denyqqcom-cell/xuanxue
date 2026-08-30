@@ -1,0 +1,73 @@
+{
+  "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V01",
+  "stage": "PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "parent_head": "a0464e5831a4f0a33c985b268ea098631909febf",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V05.json",
+  "execution_contract_ref": "knowledge/K2_QIMEN_P2_EXECUTION_CONTRACT_V01.json",
+  "execution_contract_git_blob": "a52c086e6bb88e2c93e3e2d55ebbb80e4a9ad3a9",
+  "execution_contract_canonical_sha256": "218bf3dbc8e83421db34d3d8678a17b93c7e1ed981d28ba70ede02c1c145264b",
+  "generator_descriptor_schema_ref": "knowledge/schema/qimen_p2_generator_descriptor.schema.json",
+  "generator_descriptor_schema_git_blob": "4f1f9007da6af1684e068e3fd6cd0e3bd505913e",
+  "future_freeze_schema_ref": "knowledge/schema/qimen_p2_execution_freeze.schema.json",
+  "future_freeze_schema_git_blob": "7e3a595f88080c9d46c55d4f609b8305ef26376a",
+  "canonicalization_fixture_ref": "tools/testdata/qimen_p2_generator_descriptor_fixture.json",
+  "canonicalization_fixture_git_blob": "50aa3be22c54c69ca0d160280cef8a0d3a36c823",
+  "canonicalization_contract": {
+    "serialization": "UTF8_JSON_SORT_KEYS_COMPACT",
+    "hash_algorithm": "SHA256",
+    "scope": "FULL_DESCRIPTOR_OBJECT",
+    "fixture_descriptor_count": 3,
+    "fixture_hashes": {
+      "P2-A": "8dcfdd58f5b2b321afed1f55e3e2229606a0411a89f9c2bae63a36fc6e595ddb",
+      "P2-A_PRIME": "ca492c190a418f2f10fb598729a123c684325d0e0627086941ae434efced3100",
+      "P2-B": "d089d26405dc517a805b013ee604f65624ee74a300de3edce2dcc39d151401e8"
+    }
+  },
+  "closed_blockers": [
+    {
+      "blocker_id": "P2-EXEC-001",
+      "status": "CLOSED_MACHINE_CONTRACT",
+      "closure_scope": "exact A/A_PRIME/B lane identities and machine-structured P2-C1/P2-C2/P2-C3 estimand lock",
+      "evidence_refs": [
+        "knowledge/K2_QIMEN_P2_EXECUTION_CONTRACT_V01.json",
+        "knowledge/schema/qimen_p2_execution_freeze.schema.json"
+      ],
+      "does_not_claim": "no lane has been executed and no production Freeze exists"
+    },
+    {
+      "blocker_id": "P2-EXEC-002",
+      "status": "CLOSED_MACHINE_CONTRACT",
+      "closure_scope": "canonical generator descriptor ref/version/hash/seed shape and deterministic SHA256 serialization",
+      "evidence_refs": [
+        "knowledge/schema/qimen_p2_generator_descriptor.schema.json",
+        "tools/testdata/qimen_p2_generator_descriptor_fixture.json"
+      ],
+      "does_not_claim": "production mapping generators do not yet exist; P2-EXEC-004 remains open"
+    }
+  ],
+  "open_blockers": [
+    "P2-EXEC-003",
+    "P2-EXEC-004",
+    "P2-EXEC-005",
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008",
+    "P2-EXEC-009"
+  ],
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "Closing descriptor and estimand contracts does not implement Role/Layer generators.",
+    "A schema is not a production Freeze.",
+    "No Outcome was used to define these contracts.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "contract_id": "K2-QIMEN-P2-EXECUTION-CONTRACT-V01",
+  "version": "0.1",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "semantic_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V02.json",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V05.json",
+  "research_only": true,
+  "outcome_data_used": false,
+  "mapping_boundary": {
+    "mapping_before_plate_value_access": true,
+    "plate_value_access_before_mapping": false
+  },
+  "lanes": [
+    {
+      "lane_id": "P2-A",
+      "neutral_execution_label": "LANE-1",
+      "model_name": "GLOBAL_PRIORITY_CATALOG_ROLE_BASELINE_V01",
+      "role_binding_policy": "SOURCE_CATALOG_DOMAIN_SELECTION_ONLY",
+      "layer_priority_policy": "FIXED_GLOBAL",
+      "fixed_layer_priority": ["奇仪", "八门", "八神", "九星"]
+    },
+    {
+      "lane_id": "P2-A_PRIME",
+      "neutral_execution_label": "LANE-2",
+      "model_name": "GLOBAL_PRIORITY_TOPOLOGY_ROLE_ABLATION_V01",
+      "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "layer_priority_policy": "FIXED_GLOBAL",
+      "fixed_layer_priority": ["奇仪", "八门", "八神", "九星"]
+    },
+    {
+      "lane_id": "P2-B",
+      "neutral_execution_label": "LANE-3",
+      "model_name": "TOPOLOGY_CONDITIONED_ROLE_PRIORITY_V01",
+      "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "layer_priority_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "fixed_layer_priority": null
+    }
+  ],
+  "estimand_lock": {
+    "P2-C1": {
+      "candidate": "P2-A_PRIME",
+      "comparator": "P2-A",
+      "only_allowed_difference": "ROLE_BINDING_POLICY",
+      "all_other_dimensions_equal": true,
+      "credit_scope": "TOPOLOGY_ROLE_BINDING_ONLY"
+    },
+    "P2-C2": {
+      "candidate": "P2-B",
+      "comparator": "P2-A_PRIME",
+      "only_allowed_difference": "LAYER_PRIORITY_POLICY",
+      "all_other_dimensions_equal": true,
+      "credit_scope": "TOPOLOGY_CONDITIONED_LAYER_PRIORITY_ONLY"
+    },
+    "P2-C3": {
+      "candidate": "P2-B",
+      "comparator": "P2-A",
+      "only_allowed_difference": "ROLE_BINDING_PLUS_LAYER_PRIORITY",
+      "component_credit_forbidden": true,
+      "credit_scope": "FULL_BUNDLE_ONLY_NOT_COMPONENT_ATTRIBUTION"
+    }
+  },
+  "generator_descriptor_contract": {
+    "schema_ref": "knowledge/schema/qimen_p2_generator_descriptor.schema.json",
+    "canonical_serialization": "UTF8_JSON_SORT_KEYS_COMPACT",
+    "hash_algorithm": "SHA256",
+    "descriptor_hash_scope": "FULL_DESCRIPTOR_OBJECT"
+  },
+  "future_freeze_schema_ref": "knowledge/schema/qimen_p2_execution_freeze.schema.json",
+  "component_credit_guard": {
+    "P2-C1_requires_exact_single_difference": true,
+    "P2-C2_requires_exact_single_difference": true,
+    "P2-C3_cannot_award_component_credit": true
+  }
+}
