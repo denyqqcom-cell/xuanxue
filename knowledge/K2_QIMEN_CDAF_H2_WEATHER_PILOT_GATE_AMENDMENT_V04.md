@@ -1,6 +1,6 @@
 # K2 CDAF-H2 Weather Pilot — Pre-Batch Gate Amendment v0.4
 
-状态：`ACTIVE_AUTHORITY / V01_V02_V03_HISTORY_PRESERVED / ENGINE_V03_REAUDIT_IN_PROGRESS / BATCH_NOT_READY`  
+状态：`ACTIVE_AUTHORITY / V01_V02_V03_HISTORY_PRESERVED / ENGINE_V03_REAUDIT_COMPLETE / WEATHER_RELEVANT_STRUCTURAL_EQUIVALENCE_VERIFIED / BATCH_NOT_READY`  
 基础设计：`knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01.md`  
 历史 authority：`knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_V01_GATE_AMENDMENT.md`、`...V02.md`、`...V03.md`  
 JuMethod review：`knowledge/K2_QIMEN_JU_METHOD_CROSS_SOURCE_REVIEW_V01.md`  
@@ -27,7 +27,7 @@ ANY_ENGINE_BLOB_CHANGE
 
 ```text
 V03 authority = historical state before source-grounded gate correction
-V04 authority = active state during/after Engine V03 repin
+V04 authority = active state after Engine V03 repin and re-audit
 ```
 
 ## 2. Source-grounded gate correction
@@ -61,7 +61,7 @@ Knowledge Engine #828：`SUCCESS`。
 
 ## 3. Weather dependency boundary
 
-`CORE_RAIN_SIGNAL_V01` 仍只消费：
+`CORE_RAIN_SIGNAL_V01` 只消费：
 
 ```text
 palace
@@ -80,7 +80,7 @@ shenPan
 
 因此本轮 correction 没有直接修改 weather feature definition。
 
-但“没有直接依赖”不是“可以跳过 re-audit”。whole-engine blob 已改变，所以 V02 的数值结果在 V04 重跑完成前只能作为 historical comparator，不能自动复制到 V03 candidate。
+但“没有直接依赖”不等于“可以跳过 re-audit”。whole-engine blob 已改变，所以 V02 数值只作为 frozen historical comparator；V03 必须由新 blob 独立重算后才能获得结构等价信用。
 
 ## 4. Engine V03 repin
 
@@ -96,46 +96,93 @@ FREEZE = NONE
 OUTCOME = NONE
 ```
 
-old V02 candidate 不删除；其历史 audit 继续保留，但不能作为当前 V03 的 machine result。
+old V02 candidate 不删除；其历史 audit 保留并作为 V03 regression comparator，但不冒充当前 V03 machine result。
 
-## 5. Required V03 re-audits
+## 5. V03 re-audit results
 
-V04 在本文件创建时不预设“统计一定不变”。以下三组必须由新 blob 实际重新计算：
+本节结果来自 current Engine blob 的实际机器重算。没有读取 HKO forecast 或 rainfall outcome；全部 `empirical_credit=NONE`。
 
-### A. Abstract weather state-space
+### A. Abstract weather state-space — PASS
 
-必须重新验证：
+K2 Qimen Cognitive Reconstruction #223：`SUCCESS`。
 
-- 360 nominal states；
-- CORE trigger state count；
-- 每节气 nominal trigger distribution；
-- hit cardinality。
+```text
+nominal_states              = 360
+core_trigger_states         = 64
+state_space_density         = 0.17777777777777778
+hit_cardinality             = 1 on every trigger state
+per_jieqi_nominal_distribution = unchanged vs V02
+```
 
-### B. Real civil calendar
+machine audit 同时重新验证 source-grounded QM-SRC-0021 star/heaven-stem pairing fixture 在新 blob 上仍 PASS。
 
-必须重新验证固定 100-year window 下：
+### B. Real civil calendar — PASS / V02 comparator exact match
 
-- civil dates；
-- core signal days / rate；
-- trigger-run / non-trigger-gap；
-- yuan / jieqi / ju structure。
+K2 App UI #131 重新运行 `QimenWeatherRealCalendarAuditTest`，artifact：
 
-### C. Calendar-equivalence controls
+`qimen-weather-real-calendar-audit-v03.json`
 
-必须重新验证：
+```text
+calendar_window             = 2000-01-01 / 2099-12-31
+civil_time_hkt              = 17:00
+qimen_ju_method             = CHAI_BU_FUTOU
+engine_blob                 = 3a741348b46a43ef1f2e2bffe7c0a8be12ec42cd
+v02_weather_relevant_structure_equivalent = true
 
-- complete solar-term segments；
-- original/+1/-1 trigger totals；
-- Hamming differences；
-- schedule audit hash。
+total_civil_days            = 36525
+core_signal_days            = 6498
+civil_date_trigger_rate     = 0.17790554414784393
+max_consecutive_trigger_days = 4
+max_non_trigger_gap_days    = 33
+max_hits_in_one_day         = 1
 
-若 A/B/C 与 V02 数值完全一致，只允许记录：
+yuan days                   = 上元 12175 / 中元 12175 / 下元 12175
+yuan triggers               = 上元 1813 / 中元 1850 / 下元 2835
+```
+
+24 节气 day-count / trigger-count、100 年逐年 trigger counts、18 个阴阳遁×局数 day/trigger counts 也由 test 与 V02 frozen comparator 比对通过。
+
+### C. Calendar-equivalence controls — PASS / schedule identity preserved
+
+K2 App UI #131 重新运行 `QimenWeatherCalendarEquivalenceAuditTest`，artifact：
+
+`qimen-weather-calendar-equivalence-audit-v03.json`
+
+```text
+complete_segment_count      = 2399
+complete_segment_days       = 36510
+segment_length              = 14..16 days
+mixed_segments              = 2000
+all_zero_segments           = 399
+all_one_segments            = 0
+
+original_triggers           = 6498
+plus_1_triggers             = 6498
+minus_1_triggers            = 6498
+plus_1_hamming_days         = 10344
+minus_1_hamming_days        = 10344
+
+audit_schedule_sha256       = e7ccd47461a5f75b3e89ffcf2743ab6939521ad27a493ecd6cebf39517ba845f
+future_batch_schedule_frozen = false
+```
+
+该 SHA-256 与 V02 frozen comparator 完全一致，因此不是只比较 aggregate totals；完整节气段内 original / +1 / -1 signal schedule 也保持同一结构身份。
+
+### D. Correct interpretation
+
+A/B/C 全部一致后，现在可以记录：
 
 `WEATHER_RELEVANT_STRUCTURAL_EQUIVALENCE_V02_TO_V03 = VERIFIED`
 
-这不等于：
+但严禁扩张为：
 
-`FULL_ENGINE_EQUIVALENCE`。
+```text
+FULL_ENGINE_EQUIVALENCE = VERIFIED
+FULL_QIMEN_VALIDATION = VERIFIED
+PREDICTIVE_VALIDITY = VERIFIED
+```
+
+值使门逻辑已经有意改变，所以 whole-engine 本来就不等价；这里验证的只是 CDAF-H2 weather-v0.1 实际消费的结构在 V02→V03 之间没有漂移。
 
 ## 6. Gate 0 / Gate A remain narrow
 
@@ -146,7 +193,7 @@ Gate 0 = CLOSED_FOR_WEATHER_V01_CHAIBU_METHOD_IDENTITY
 Gate A = CLOSED_FOR_WEATHER_V01_STAR_HEAVEN_STEM_CONSTRUCTION
 ```
 
-原因是本轮没有修改这两个 gate 所对应的来源对象本身。
+原因是本轮没有修改这两个 gate 对应的来源对象本身，而且新 blob 下的 source fixtures 已重新通过。
 
 但完整门盘成熟度不能因为新 p24-p25 fixture 通过而升级：
 
@@ -167,26 +214,57 @@ Gate B = future Batch exact +/-1 sham schedule not frozen
 Gate D = Batch horizon/start/station-panel/statistical contract not frozen
 ```
 
-即使 V03 re-audits 全部恢复 PASS，也不自动创建 Batch。
+这里的 `audit_schedule_sha256` 只是 2000-2099 structure audit identity，明确 `future_batch_schedule_frozen=false`；不能偷换成未来 prospective Batch Freeze。
 
-## 8. Current active status at creation
+V03 re-audits 全部 PASS 也不自动创建 Batch。
+
+## 8. Current active status after re-audit
 
 ```text
-JU_METHOD_VALIDATION                = CLOSED_NARROWLY
-PLATE_PAIRING_VALIDATION            = CLOSED_NARROWLY_FOR_STAR_HEAVEN_STEM
-ZHISHI_CENTER_COUNT_SOURCE_FIXTURE  = PASS_AFTER_FAIL_FIRST_CORRECTION
-ENGINE_V03_CORE_REGRESSION          = PASS_KNOWLEDGE_CI_828
-ABSTRACT_WEATHER_V03_REAUDIT        = PENDING
-REAL_CALENDAR_V03_REAUDIT           = PENDING
-CALENDAR_EQUIVALENCE_V03_REAUDIT    = PENDING
-WEATHER_RELEVANT_V02_V03_EQUIVALENCE = NOT_YET_CLAIMED
+JU_METHOD_VALIDATION                 = CLOSED_NARROWLY
+PLATE_PAIRING_VALIDATION             = CLOSED_NARROWLY_FOR_STAR_HEAVEN_STEM
+ZHISHI_CENTER_COUNT_SOURCE_FIXTURE   = PASS_AFTER_FAIL_FIRST_CORRECTION
+ENGINE_V03_CORE_REGRESSION           = PASS
+ABSTRACT_WEATHER_V03_REAUDIT         = PASS
+REAL_CALENDAR_V03_REAUDIT            = PASS
+CALENDAR_EQUIVALENCE_V03_REAUDIT     = PASS
+WEATHER_RELEVANT_V02_V03_EQUIVALENCE = VERIFIED
 
-BATCH_READY                         = false
-BATCH                               = NONE
-FREEZE                              = NONE
-OUTCOME                             = NONE
-EMPIRICAL_CREDIT                    = NONE
-CLAIM_EXTRACTION                    = BLOCKED
+BATCH_READY                          = false
+BATCH                                = NONE
+FREEZE                               = NONE
+OUTCOME                              = NONE
+EMPIRICAL_CREDIT                     = NONE
+CLAIM_EXTRACTION                     = BLOCKED
 ```
 
-完成 A/B/C 重跑后，本文件只允许按真实机器结果从 `PENDING` 更新；任何差异都必须保留并调查，不得为了恢复旧数字而调 Engine、CORE signal 或 audit code。
+## 9. Repository / Android acceptance closure at this checkpoint
+
+Exact source head before this documentation-only closure commit：
+
+`cff35f3e3cbd1934c1d18470ad91a7a71a9d42e5`
+
+五套机器门禁均完成：
+
+```text
+K2 Qimen Cognitive Reconstruction #223 = SUCCESS
+K2 QCIC v0.6 Machine Gates #292        = SUCCESS
+Knowledge Engine V1 CI #836            = SUCCESS
+K2 App UI CI #131                       = SUCCESS
+V1.0 Emulator Acceptance #43            = SUCCESS
+```
+
+Android 35 / API 35 emulator acceptance：
+
+```text
+NARROW / LIGHT = 5 tests, 0 skipped, 0 failed
+WIDE / DARK    = 5 tests, 0 skipped, 0 failed
+narrow evidence screenshots pulled = 16
+wide evidence screenshots pulled   = 16
+```
+
+这提供产品/布局 instrumentation credit，不提供玄学有效性信用，也不替代真实 Moto X30 Pro physical-device acceptance。
+
+CI 中仍有非阻塞维护警告：当前 Android Gradle Plugin 8.5.2 官方测试上限为 compileSdk 34，而项目 compileSdk=35；另有 emulator console 5554 启动提示，但 ADB、Android boot 与两轮 `connectedDebugAndroidTest` 均实际成功。警告保留为工程维护债，不改写成验收失败，也不静默删除。
+
+任何后续 Engine / CORE / JuMethod / sham / sample-stat contract 变化，继续执行同一 fail-closed 规则：重新升 model/version、重新审计，历史结果不得回填。
