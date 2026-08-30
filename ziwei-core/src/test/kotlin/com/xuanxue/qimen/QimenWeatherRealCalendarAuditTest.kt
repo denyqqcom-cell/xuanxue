@@ -19,6 +19,11 @@ import kotlin.test.assertTrue
  *   second carried-heaven-stem algorithm inside the audit;
  * - the fixed 2000-01-01..2099-12-31 window is a calendar-structure coverage
  *   window, NOT a weather sample and NOT a stopping rule for a future Batch.
+ *
+ * V03 repin note: the Engine change is a source-grounded 值使门 center-count
+ * correction outside CORE_RAIN_SIGNAL_V01. The exact V02 weather-relevant
+ * structural totals below are retained as comparator assertions so a future
+ * whole-engine change cannot silently inherit V02 evidence by assumption.
  */
 class QimenWeatherRealCalendarAuditTest {
 
@@ -136,20 +141,47 @@ class QimenWeatherRealCalendarAuditTest {
         assertTrue(triggerDays < totalDays, "CORE_RAIN_SIGNAL_V01 must not be structurally tautological")
         assertEquals(totalDays, hitCardinality.values.sum())
 
+        // Exact V02 -> V03 weather-relevant comparator. These assertions are
+        // source/outcome blind: they compare deterministic calendar structure only.
+        assertEquals(6_498, triggerDays)
+        assertEquals(4, maxTriggerRun)
+        assertEquals(33L, maxNonTriggerGap)
+        assertEquals(1, maxHitsInOneDay)
+        assertEquals(mapOf("上元" to 12_175, "中元" to 12_175, "下元" to 12_175), daysByYuan)
+        assertEquals(mapOf("上元" to 1_813, "中元" to 1_850, "下元" to 2_835), triggersByYuan)
+        assertEquals(
+            mapOf(
+                "处暑" to 309, "夏至" to 420, "大寒" to 492, "大暑" to 313, "大雪" to 296,
+                "寒露" to 403, "小寒" to 196, "小暑" to 210, "小满" to 208, "小雪" to 197,
+                "春分" to 507, "白露" to 412, "秋分" to 306, "立冬" to 398, "立春" to 198,
+                "立秋" to 208, "芒种" to 522, "谷雨" to 206, "雨水" to 497, "霜降" to 200,
+            ),
+            triggersByJieqi,
+        )
+        assertEquals(
+            mapOf(
+                "YANG-2" to 808, "YANG-3" to 403, "YANG-6" to 1_615,
+                "YIN-2" to 408, "YIN-3" to 816, "YIN-4" to 1_224,
+                "YIN-5" to 407, "YIN-6" to 817,
+            ),
+            juTriggerCounts,
+        )
+
         val reportDir = File("build/reports")
         reportDir.mkdirs()
-        val report = File(reportDir, "qimen-weather-real-calendar-audit-v02.json")
+        val report = File(reportDir, "qimen-weather-real-calendar-audit-v03.json")
         val triggerRate = triggerDays.toDouble() / totalDays.toDouble()
 
         report.writeText(
             buildString {
                 append("{\n")
                 append("  \"audit_scope\": \"REAL_CIVIL_CALENDAR_STRUCTURE_ONLY\",\n")
-                append("  \"audit_version\": \"V02_EXACT_TRANSITION_FIRST_CLASS_HEAVEN_STEM\",\n")
+                append("  \"audit_version\": \"V03_ENGINE_REPIN_ZHISHI_CENTER_COUNT_FIX\",\n")
                 append("  \"calendar_window\": \"2000-01-01/2099-12-31\",\n")
                 append("  \"civil_time_hkt\": \"17:00\",\n")
                 append("  \"qimen_ju_method\": \"CHAI_BU_FUTOU\",\n")
-                append("  \"qimen_engine_blob_sha\": \"046825e480422eb0ac6734ea0330861bbd422997\",\n")
+                append("  \"qimen_engine_blob_sha\": \"3a741348b46a43ef1f2e2bffe7c0a8be12ec42cd\",\n")
+                append("  \"v02_weather_relevant_structure_equivalent\": true,\n")
                 append("  \"weather_forecast_data_used\": false,\n")
                 append("  \"weather_outcome_data_used\": false,\n")
                 append("  \"total_civil_days\": $totalDays,\n")
