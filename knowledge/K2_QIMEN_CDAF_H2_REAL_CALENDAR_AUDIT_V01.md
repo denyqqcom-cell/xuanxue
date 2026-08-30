@@ -1,35 +1,38 @@
 # K2 CDAF-H2 真实公历 FUTOU 结构审计 v0.1
 
-状态：`STRUCTURE_AUDIT_COMPLETE_FOR_PINNED_ENGINE / NO_WEATHER_OUTCOME / NO_EMPIRICAL_CREDIT`  
+状态：`V02_STRUCTURE_AUDIT_COMPLETE_FOR_PINNED_ENGINE / NO_WEATHER_OUTCOME / NO_EMPIRICAL_CREDIT`  
 关联设计：`K2PV-CDAF-H2`  
+active model：`FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V02`  
 方法：`CHAI_BU_FUTOU`  
-QimenEngine blob：`1912760ccd10cb4a58eb8faec06669c0d690657b`  
+QimenEngine blob：`046825e480422eb0ac6734ea0330861bbd422997`  
 审计窗口：`2000-01-01 .. 2099-12-31`，每日 `17:00 HKT`  
 天气预报数据：`未使用`  
 天气 Outcome：`未使用`  
 Empirical Credit：`NONE`
 
-## 1. 为什么要做真实公历审计
+## 1. 为什么必须重新做 V02 真实公历审计
 
 早期结构审计用：
 
 `24节气 × 3名义元 × 5个酉时状态 = 360`
 
-得到 `64/360 = 17.78%`。
+得到 `64/360 = 17.78%`。这个值只能描述抽象盘面笛卡尔状态空间，不能直接解释为真实 civil-date 触发频率。
 
-这个值只能描述一个抽象盘面笛卡尔状态空间，不能直接解释为真实公历日期触发频率。拆补法的节气交接、甲己五日符头与真实日期序列必须由实际历法运行才能确定。
+随后又发现旧候选 Engine 使用 whole-day 节气切换，会把交节日从 00:00 起全部归入新节气；而项目保存的拆补规则要求按实际交节时辰切换。V02 因而改用 exact transition，并把九星所携天盘干正式暴露为 `Gong.tianGan`，weather audit 不再自行重写 carried-heaven-stem 算法。
 
-因此本轮直接调用真实 `QimenEngine.bySolar(..., CHAI_BU_FUTOU)`，逐日生成 100 个完整公历年的 17:00 HKT 盘。测试文件：
+因此旧 real-calendar report 即使聚合数字与新结果部分相同，也不能继续承担 V02 provenance。必须对当前 exact Engine 重新逐日运行。
+
+测试文件：
 
 `ziwei-core/src/test/kotlin/com/xuanxue/qimen/QimenWeatherRealCalendarAuditTest.kt`
 
-CI 报告：
+V02 CI 报告：
 
-`ziwei-core/build/reports/qimen-weather-real-calendar-audit-v01.json`
+`ziwei-core/build/reports/qimen-weather-real-calendar-audit-v02.json`
 
-GitHub Actions run：`33109453828`，App UI CI = SUCCESS。
+GitHub Actions：K2 App UI CI #86，run `33264988516` = SUCCESS。
 
-## 2. 总体结果
+## 2. V02 总体结果
 
 真实 civil dates：`36,525`
 
@@ -37,7 +40,7 @@ GitHub Actions run：`33109453828`，App UI CI = SUCCESS。
 
 真实日期结构触发率：
 
-`6498 / 36525 = 0.1779055441 = 17.79055441%`
+`6498 / 36525 = 0.17790554414784393 = 17.79055441%`
 
 最长连续触发：`4日`
 
@@ -50,122 +53,138 @@ GitHub Actions run：`33109453828`，App UI CI = SUCCESS。
 - `0 hit = 30,027日`
 - `1 hit = 6,498日`
 
-因此这个 signal 在当前引擎中不是恒真，也不是罕见到几乎不出现，但具有明显聚集和长空窗。
+这个 signal 在当前 Engine 中不是恒真，也不是极端稀疏，但有明显的 calendar clustering 与长空窗。
 
-这个 17.79% 与旧抽象状态空间 17.78% 数值接近，只说明长期状态权重碰巧接近；不能反过来证明旧 `360-state` 可以代替真实公历枚举。
+V02 与旧候选聚合 `6,498` 恰好相同，不能反过来证明旧 whole-day transition 实现正确。边界 regression 已直接证明旧实现的交节日语义错误；总数相同只能说明低维 aggregate 恰好相等。
 
-## 3. 三元的真实日数与触发并不等价
+## 3. 三元真实日数相等，但触发倾向明显不同
 
-100年窗口中：
+100年窗口中三元日数恰好各为 `12,175日`，但触发数为：
 
-- 上元：`12,175日`，触发 `1,814`，约 `14.90%`
-- 中元：`12,175日`，触发 `1,849`，约 `15.19%`
-- 下元：`12,175日`，触发 `2,835`，约 `23.29%`
+- 上元：`1,813`，约 `14.8912%`
+- 中元：`1,850`，约 `15.1951%`
+- 下元：`2,835`，约 `23.2854%`
 
-三元总日数在这个完整100年窗口中刚好相等，但 signal 条件对下元的触发倾向明显更高。因此“元本身在样本中等权”不能消除 calendar/ju confounding。
+所以即使三元在这个窗口里总日数等权，signal 仍对不同元具有明显不同 propensity。不能把“样本日数相等”误写成 calendar confounding 已消除。
 
-## 4. 节气结构非常强
+## 4. 节气结构依旧非常强
 
-以下节气在整个100年窗口中 `0` 次触发：
+V02 真实 `days_by_jieqi` 与 `triggers_by_jieqi` 显示，以下节气在整个100年窗口中 `0` 次触发：
 
-- 冬至：`0 / 1472`
-- 惊蛰：`0 / 1501`
+- 冬至：`0 / 1473`
+- 惊蛰：`0 / 1505`
 - 清明：`0 / 1529`
-- 立夏：`0 / 1554`
+- 立夏：`0 / 1555`
 
 高触发节气包括：
 
-- 芒种：`525 / 1570 ≈ 33.44%`
-- 雨水：`497 / 1492 ≈ 33.31%`
-- 大寒：`491 / 1474 ≈ 33.31%`
-- 春分：`505 / 1517 ≈ 33.29%`
-- 寒露：`404 / 1513 ≈ 26.70%`
+- 芒种：`522 / 1570 ≈ 33.25%`
+- 春分：`507 / 1515 ≈ 33.47%`
+- 雨水：`497 / 1491 ≈ 33.33%`
+- 大寒：`492 / 1477 ≈ 33.31%`
+- 寒露：`403 / 1513 ≈ 26.64%`
 - 立冬：`398 / 1491 ≈ 26.69%`
 
-这不是天气结果，而是 signal 自身的日历结构。
+这里的百分比全部是 **signal 自身的日历结构**，不是天气发生率，也不是预测准确率。
 
 ## 5. 阴阳九局结构更强
 
-100年真实日期中，18 个 `阴/阳 × 九局` 组合只有 8 个出现 signal：
+V02 的 `ju_day_counts / ju_trigger_counts` 显示，18 个 `阴/阳 × 九局` 组合中仍只有 8 个出现 signal：
 
-- 阳2：`809 / 2021 ≈ 40.03%`
-- 阳3：`404 / 2020 = 20.00%`
-- 阳6：`1614 / 2018 ≈ 79.98%`
-- 阴2：`407 / 2038 ≈ 19.97%`
-- 阴3：`815 / 2040 ≈ 39.95%`
-- 阴4：`1223 / 2038 ≈ 60.01%`
-- 阴5：`408 / 2037 ≈ 20.03%`
-- 阴6：`818 / 2043 ≈ 40.04%`
+- 阳2：`808 / 2019 ≈ 40.0198%`
+- 阳3：`403 / 2017 ≈ 19.9802%`
+- 阳6：`1615 / 2019 ≈ 79.9901%`
+- 阴2：`408 / 2040 = 20.0000%`
+- 阴3：`816 / 2040 = 40.0000%`
+- 阴4：`1224 / 2040 = 60.0000%`
+- 阴5：`407 / 2037 ≈ 19.9804%`
+- 阴6：`817 / 2041 ≈ 40.0294%`
 
 其余组合：
 
 `阳1/4/5/7/8/9、阴1/7/8/9 = 0`。
 
-这说明 `CORE_RAIN_SIGNAL_V01` 在当前算法下高度受 Ju/历法状态约束，而不是在所有时间均匀寻找“雨象”。
+因此 `CORE_RAIN_SIGNAL_V01` 高度受 Ju/历法状态约束，而不是在所有时间均匀寻找“雨象”。
 
-## 6. 对 CDAF-H2 的方法学影响：从 calendar confounding 升级为 calendar equivalence 问题
+## 6. 年度结构稳定，但不能被当成 IID
 
-当前 weather-v0.1 的奇门盘只以日期时间作为输入；`CORE_RAIN_SIGNAL_V01` 又是该盘的确定性函数。
+100个年度的 trigger count 大多落在 `63..68` 之间。这个稳定性只是长期 deterministic calendar structure 的表现，不能把每天视作独立 Bernoulli trial。
 
-因此：
+同时：
 
-`calendar/time -> Qimen plate -> CORE_RAIN_SIGNAL_V01`
+```text
+max_consecutive_trigger_days = 4
+max_non_trigger_gap_days     = 33
+```
 
-从信息论角度，M2 在这个设计里没有引入一个独立于时间的外部观测源。任何具体 signal 都可以等价写成某个更复杂的 calendar/time deterministic function。
+说明信号机会有明显的连续性与空窗。未来正式 weather Batch 必须保留 serial-dependence treatment。
 
-所以未来即使：
+## 7. 对 CDAF-H2 的方法学影响：calendar equivalence 仍是核心限制
+
+当前 weather-v0.1 的奇门盘只以日期时间作为输入；`CORE_RAIN_SIGNAL_V01` 是该盘的确定性函数：
+
+```text
+calendar/time -> Qimen plate -> CORE_RAIN_SIGNAL_V01
+```
+
+因此 M2 在这个设计里没有引入一个独立于时间的外部观测源。
+
+未来即使：
 
 `M2 > M1`
 
 也不能直接解释为：
 
-`奇门盘获得了独立于日历的额外现实信息。`
+`奇门获得了独立于日历的额外现实信息。`
 
-最多只能先得到：
+最多只能先讨论：在事前冻结的 comparator 与模型复杂度下，这个具体 Qimen-derived 时间变换是否比指定 calendar-equivalence controls 有额外区分力。
 
-> 在预先冻结的模型复杂度和 comparator 约束下，这个特定的奇门时间变换可能比指定的较简单日历 baseline 更有预测/压缩价值。
+若要获得 exact plate-alignment credit，至少还必须同时优于冻结的 `+1日 / -1日` 同节气段 sham。即便如此，也不能推出超出 calendar/time information set 的新信息来源。
 
-若要主张 plate-specific mapping 的价值，至少需要与复杂度匹配、事前冻结的 calendar-only comparator 或 negative control 比较；即使胜出，也仍是“特定变换在该模型类中表现更好”，不是证明超出时间输入的信息来源。
+## 8. 对 Sample Adequacy 的影响
 
-这是比普通季节性控制更严格的边界。
+不能用 `17.79055441%` 直接计算正式 weather Batch 需要多少天，因为真正产生 M1/M2 prediction discordance 还要求：
 
-## 7. 对 Sample Adequacy 的影响
+```text
+M1 == NO_RAIN10
+AND
+CORE_RAIN_SIGNAL_V01 == TRUE
+```
 
-不能用 `17.79%` 直接计算正式 weather Batch 需要多少天，因为真正产生 M1/M2 差异还要求：
+目前没有读取历史 HKO PSR/outcome 来估计这个 joint opportunity rate，这一点是刻意保持 outcome-blind。
 
-`M1 == NO_RAIN10 && CORE_RAIN_SIGNAL_V01 == TRUE`
+正式 sample plan 因此继续使用预先冻结的完整 solar-term segments、pre-outcome information counts 与 serial-dependence contract，而不是用 6498/36525 倒推“需要 N 天”。
 
-目前没有读取任何 HKO PSR 历史数据，所以这个 discordant-opportunity rate 未知。
+## 9. Gate 状态
 
-此外 signal 最大连续触发4日、最大非触发空窗33日，说明观察机会有时间聚集性。未来样本设计必须保留 serial dependence，不得把 6,498 个结构日视为 IID Bernoulli 样本。
+对当前 exact method+engine：
 
-## 8. Gate 状态
+`REAL_CALENDAR_FUTOU_FREQUENCY = CLOSED_FOR_V02_PINNED_ENGINE_STRUCTURE_ONLY`
 
-对 exact method+engine：
+关闭仅表示：
 
-`REAL_CALENDAR_FUTOU_FREQUENCY = CLOSED_FOR_PINNED_ENGINE_STRUCTURE_ONLY`
-
-关闭仅表示：真实 civil-date signal 结构已经被机器遍历并留档。
+> 当前 V02 Engine、CHAI_BU_FUTOU、17:00 HKT、CORE_RAIN_SIGNAL_V01 的真实 civil-date signal 结构已经被机器遍历并留档。
 
 它不表示：
 
 - `JU_METHOD_VALIDATION` 已全局关闭；
 - `PLATE_PAIRING_VALIDATION` 已全局关闭；
-- calendar equivalence 已解决；
+- calendar equivalence 已解决到未来 Batch Freeze；
 - Batch 已准备好；
 - signal 有预测价值。
 
 只要 `CHAI_BU_FUTOU` 实现、QimenEngine blob、17:00 freeze time 或 CORE signal 定义发生变化，本审计必须重新运行，旧结构频率不得继承。
 
-## 9. 当前可安全使用的数字
+## 10. 当前可安全使用的数字
 
 可以说：
 
-> 对 QimenEngine blob `1912760...`、CHAI_BU_FUTOU、17:00 HKT，在 2000-01-01 至 2099-12-31 的 36,525 个真实 civil dates 中，CORE_RAIN_SIGNAL_V01 结构性触发 6,498 日（17.7906%）。该 signal 对节气、元和阴阳九局高度不均匀。
+> 对 QimenEngine V02 blob `046825e480422eb0ac6734ea0330861bbd422997`、CHAI_BU_FUTOU、17:00 HKT，在 2000-01-01 至 2099-12-31 的 36,525 个真实 civil dates 中，CORE_RAIN_SIGNAL_V01 结构性触发 6,498 日（17.79055441%）。该 signal 对节气、元和阴阳九局高度不均匀。该结果由 K2 App UI CI #86 在无 weather forecast/outcome 数据条件下重新生成。
 
 不可以说：
 
 - 它有17.79%的天气准确率；
 - 奇门每5.6天预测一次雨；
-- 未来 Batch 只需按 17.79% 反推样本天数；
+- V01/V02 总数相同证明旧 whole-day Engine 正确；
+- 未来 Batch 只需按17.79%反推样本天数；
 - M2 若优于 M1 就证明奇门产生了独立于日历的额外信息。
