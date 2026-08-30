@@ -9,7 +9,7 @@ import com.nlf.calendar.Solar
  * 规则来源（handoff/qimen/03_RULES.jsonl + 04_CONFLICTS.md）：
  * - R-YI-001  地盘九仪 戊己庚辛壬癸丁丙乙，戊起局数宫，阳遁顺飞/阴遁逆飞（数字飞泊）
  * - R-SKY-001 值符星移到"时干"（时干为甲 -> 旬首遁干）所在宫；天禽寄坤2
- * - R-GATE-HOME 5宫无门，寄坤2；值使门随时支（阳顺阴逆，环序）
+ * - R-GATE-HOME 5宫无门，寄坤2；值使门随时支（阳顺阴逆，九宫数序计中五；终点5寄坤2）
  * - R-SPIRIT-001 神盘：小值符随值符星宫，阳遁顺/阴遁逆（环序）
  * - R-JU-001/002/003 定元方法必须显式区分；未重建的方法 fail closed
  * - R-HIT-XING 六仪击刑：戊3 己2 庚8 辛9 壬4 癸4
@@ -301,12 +301,22 @@ object QimenEngine {
         val branches = "子丑寅卯辰巳午未申酉戌亥"
         val hSteps = (branches.indexOf(hourGZ[1].toString()) - branches.indexOf(zhiOfXunShou) + 12) % 12
         val zhiShiSrcPalace = if (dunPalace == 5) 2 else dunPalace
-        var target = zhiShiSrcPalace
+
+        // QM-SRC-0017 printed p24-p25: "直使随时宫". The source counts the
+        // nine-palace numeric sequence itself, including 中五 as a real step.
+        // Example: 阴遁九局戊戌时 starts at 甲午辛 in 乾6 and explicitly counts
+        // 6 -> 5 -> 4 -> 3 -> 2. Therefore center 5 must NOT be skipped while
+        // travelling; only a FINAL target at 5 is hosted to 坤2 because 5宫无门.
+        var rawTarget = dunPalace
         repeat(hSteps) {
-            val next = if (yinYang > 0) (if (target == 9) 1 else target + 1)
-            else (if (target == 1) 9 else target - 1)
-            target = if (next == 5) (if (yinYang > 0) 6 else 4) else next
+            rawTarget = if (yinYang > 0) {
+                if (rawTarget == 9) 1 else rawTarget + 1
+            } else {
+                if (rawTarget == 1) 9 else rawTarget - 1
+            }
         }
+        val target = if (rawTarget == 5) 2 else rawTarget
+
         val men = mutableMapOf<Int, String>()
         val srcGateIdx = ring.indexOf(zhiShiSrcPalace)
         val targetIdx = ring.indexOf(target)
