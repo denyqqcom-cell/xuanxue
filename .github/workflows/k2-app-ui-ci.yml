@@ -7,6 +7,9 @@ on:
     paths:
       - 'app/**'
       - 'ziwei-core/**'
+      - 'knowledge/K2_QIMEN_CDAF_H2_PREREGISTRATION_CANDIDATE_V01.json'
+      - 'tools/validate_k2_weather_prereg_candidate.py'
+      - 'tools/test_k2_weather_prereg_candidate.py'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
       - 'gradle/**'
@@ -21,6 +24,9 @@ on:
     paths:
       - 'app/**'
       - 'ziwei-core/**'
+      - 'knowledge/K2_QIMEN_CDAF_H2_PREREGISTRATION_CANDIDATE_V01.json'
+      - 'tools/validate_k2_weather_prereg_candidate.py'
+      - 'tools/test_k2_weather_prereg_candidate.py'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
       - 'gradle/**'
@@ -73,6 +79,9 @@ jobs:
           cat ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
           echo '--- prospective 72-segment schedule candidate V01 (NOT FROZEN) ---'
           cat ziwei-core/build/reports/qimen-weather-prospective-schedule-candidate-v01.json
+
+      - name: Bind generated weather schedule to committed pre-Batch candidate
+        run: python3 tools/validate_k2_weather_prereg_candidate.py --generated-schedule ziwei-core/build/reports/qimen-weather-prospective-schedule-candidate-v01.json
 
       - name: Verify debug APK exists and stays inside package boundary
         shell: bash
