@@ -7,7 +7,7 @@ Outcome：`NONE`
 Empirical Credit：`NONE`  
 Claim Extraction：`BLOCKED`
 
-> 当前 pre-Batch gate 状态以 `knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V02.md` 为准。本文件继续定义 domain/M1/M2/outcome 的基础协议；后续发现的 JuMethod、plate-pairing、calendar-equivalence 与 sample/serial blockers 不在此处被较早文字覆盖。
+> 当前 pre-Batch gate 状态以 `knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V03.md` 为准。本文件继续定义 domain/M1/M2/outcome 的基础协议；后续发现的 JuMethod、plate-pairing、calendar-equivalence 与 sample/serial blockers 不在此处被较早文字覆盖。
 
 ## 1. 研究问题
 
@@ -180,22 +180,23 @@ Batch preregistration 时一次性冻结：
 
 ## 9. 当前 pre-Batch blockers
 
-较早版本曾把 blocker 简化成单一 `SERIAL_DEPENDENCE / SAMPLE_ADEQUACY`。后续 source/implementation audit 证明这种口径过早。
+较早版本曾把 blocker 简化成单一 `SERIAL_DEPENDENCE / SAMPLE_ADEQUACY`，随后又把 Gate 0/A 都列为 OPEN。后续 source/implementation audit 与 Gate A 正交化已经再次修正该状态。
 
-当前必须按 active Gate Amendment 同时保持：
+当前必须按 active Gate Amendment V03 保持：
 
 ```text
 Gate 0  JU_METHOD_VALIDATION
-        = implementation boundary PASS
-        + source-grounded actual-transition boundary fixture OPEN
+        = CLOSED FOR WEATHER-V0.1 CHAI_BU METHOD IDENTITY
+        + NOT GLOBAL VALIDATION
 
-Gate A  PLATE_PAIRING_VALIDATION
-        = one direct Kotlin source plate PASS
-        + second independent dated plate OPEN
+Gate A  WEATHER-RELEVANT PLATE PAIRING
+        = A1 QM-SRC-0021 DATED END-TO-END PASS
+        + A2 QM-SRC-0017 INDEPENDENT STATE-DEFINED PASS
+        = CLOSED FOR STAR + CARRIED-HEAVEN-STEM CONSTRUCTION ONLY
 
 Gate B  CALENDAR_EQUIVALENCE_CONTROL
         = V02 machine structure VERIFIED
-        + future Batch schedule NOT FROZEN
+        + future Batch exact sham schedule NOT FROZEN
 
 Gate C  REAL_CALENDAR_FUTOU_FREQUENCY
         = CLOSED for current V02 pinned-engine structure only
@@ -209,7 +210,7 @@ Gate D  SERIAL_DEPENDENCE / SAMPLE_ADEQUACY
 
 `BATCH_READY = false`
 
-不得为了制造进度随手写“20例”“30例”“三次命中”，也不得因为 Gate C 已关闭就越过 Gate 0/A。
+不得因为 Gate 0/A 已局部关闭就直接创建 Batch；Gate B/D 仍需在任何 Outcome 前完成 exact Batch Freeze。不得为了制造进度随手写“20例”“30例”“三次命中”。
 
 ## 10. 失败与解释边界
 
@@ -235,8 +236,9 @@ public outcome proxy policy           = DEFINED FOR PRE-BATCH FREEZE
 modifiers/exceptions                  = DISABLED
 active model                          = FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V02
 current QimenEngine blob              = 046825e480422eb0ac6734ea0330861bbd422997
-JuMethod source boundary validation   = OPEN
-second independent plate fixture      = OPEN
+JuMethod source boundary validation   = CLOSED FOR WEATHER-V0.1 METHOD IDENTITY ONLY
+weather star/heaven-stem plate layer  = CLOSED BY A1+A2 ORTHOGONAL FIXTURES
+Global plate validation               = NOT CLAIMED
 calendar-equivalence Batch schedule   = NOT FROZEN
 sample/serial Batch parameters        = NOT FROZEN
 Batch                                 = NONE
