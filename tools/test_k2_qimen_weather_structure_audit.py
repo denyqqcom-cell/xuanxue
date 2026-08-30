@@ -27,9 +27,10 @@ ENGINE_PATH = ROOT / "ziwei-core/src/main/kotlin/com/xuanxue/qimen/QimenEngine.k
 PLAN_PATH = ROOT / "knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl"
 BATCH_PATH = ROOT / "knowledge/K2_PROSPECTIVE_BATCHES.jsonl"
 SAMPLE_PLAN_PATH = ROOT / "knowledge/K2_QIMEN_CDAF_H2_SERIAL_DEPENDENCE_SAMPLE_PLAN_V01.md"
-EXPECTED_ENGINE_GIT_BLOB_SHA = "046825e480422eb0ac6734ea0330861bbd422997"
+EXPECTED_ENGINE_GIT_BLOB_SHA = "3a741348b46a43ef1f2e2bffe7c0a8be12ec42cd"
+PREVIOUS_ENGINE_GIT_BLOB_SHA = "046825e480422eb0ac6734ea0330861bbd422997"
 SUPERSEDED_ENGINE_GIT_BLOB_SHA = "1912760ccd10cb4a58eb8faec06669c0d690657b"
-EXPECTED_CDAF_MODEL_NAME = "FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V02"
+EXPECTED_CDAF_MODEL_NAME = "FROZEN_SYMBOLIC_MAPPING_WITH_CALENDAR_EQUIVALENCE_CONTROLS_V03"
 CDAF_PLAN_ID = "K2PV-CDAF-H2"
 
 # Machine tokens for a future CDAF-H2 Batch. These live at Batch level because
@@ -321,10 +322,13 @@ def validate_sample_and_prospective_contracts() -> int:
         assert marker in plan_text, f"prospective plan missing Gate-D marker: {marker}"
 
     assert plan.get("model_name") == EXPECTED_CDAF_MODEL_NAME, (
-        "active CDAF-H2 model_name must identify the reviewed V02 engine contract"
+        "active CDAF-H2 model_name must identify the reviewed V03 engine contract"
     )
     assert EXPECTED_ENGINE_GIT_BLOB_SHA in plan_text, (
         "active CDAF-H2 plan must bind the exact reviewed QimenEngine blob"
+    )
+    assert PREVIOUS_ENGINE_GIT_BLOB_SHA not in plan_text, (
+        "previous V02 engine must not remain active after the pre-Batch V03 repin"
     )
     assert SUPERSEDED_ENGINE_GIT_BLOB_SHA not in plan_text, (
         "superseded whole-day-transition engine must not remain active in CDAF-H2 plan"
