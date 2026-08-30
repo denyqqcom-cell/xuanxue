@@ -44,8 +44,38 @@ class LiuYaoEngineTest {
     }
 
     @Test
+    fun mixedHexagramUsesActualLowerAndUpperTrigramNaJia() {
+        // 2026-08-29 竞品复核用例的结构核心：艮上乾下 = 山天大畜（艮宫二世）。
+        // 京房纳甲必须下乾取内卦甲子/甲寅/甲辰，上艮取外卦丙戌/丙子/丙寅；
+        // 不得把整卦因为属于艮宫就六爻全部套成艮卦纳甲。
+        val c = LiuYaoEngine.byNumbers(7, 1, 3, 2026, 8, 29, 2)
+        assertEquals("山天大畜", c.benGua.name)
+        assertEquals("艮宫", c.benGua.palace)
+        assertEquals(2, c.benGua.palaceIndex)
+        assertEquals(
+            listOf("甲子", "甲寅", "甲辰", "丙戌", "丙子", "丙寅"),
+            c.benGua.yao.map { it.gan + it.zhi },
+        )
+        assertEquals(
+            listOf("妻财", "官鬼", "兄弟", "兄弟", "妻财", "官鬼"),
+            c.benGua.yao.map { it.liuQin },
+        )
+        assertEquals(2, c.benGua.yao.first { it.isShi }.index)
+        assertEquals(5, c.benGua.yao.first { it.isYing }.index)
+    }
+
+    @Test
+    fun pureQianUsesJiaInnerAndRenOuter() {
+        val c = LiuYaoEngine.byNumbers(1, 1, 1, 2026, 8, 15, 10)
+        assertEquals(
+            listOf("甲子", "甲寅", "甲辰", "壬午", "壬申", "壬戌"),
+            c.benGua.yao.map { it.gan + it.zhi },
+        )
+    }
+
+    @Test
     fun bySolarKnown() {
-        // 时间起卦验证：2026-08-15（农历丙午年七月初三?）任意结果仅验证结构
+        // 时间起卦验证：2026-08-15 任意结果仅验证结构
         val c = LiuYaoEngine.bySolar(2026, 8, 15, 10)
         println("LY3 时间起卦: ${c.benGua.name}(${c.benGua.up}上${c.benGua.down}下) ${c.benGua.palace}${c.benGua.palaceIndex} 动爻=${c.dongYaoIndexes} 日=${c.dayGZ} 时=${c.hourGZ}")
         assertTrue(c.benGua.yao.size == 6)
