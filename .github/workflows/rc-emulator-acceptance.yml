@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - knowledge-engine-v1-k2
   workflow_dispatch:
 
 permissions:
