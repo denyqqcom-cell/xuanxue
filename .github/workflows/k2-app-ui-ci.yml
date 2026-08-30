@@ -64,12 +64,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -s ziwei-core/build/reports/qimen-weather-real-calendar-audit-v02.json
-          test -s ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v02.json
-          echo '--- real-calendar FUTOU audit V02 ---'
-          cat ziwei-core/build/reports/qimen-weather-real-calendar-audit-v02.json
-          echo '--- calendar-equivalence sham audit V02 ---'
-          cat ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v02.json
+          test -s ziwei-core/build/reports/qimen-weather-real-calendar-audit-v03.json
+          test -s ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
+          echo '--- real-calendar FUTOU audit V03 ---'
+          cat ziwei-core/build/reports/qimen-weather-real-calendar-audit-v03.json
+          echo '--- calendar-equivalence sham audit V03 ---'
+          cat ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
 
       - name: Verify debug APK exists and stays inside package boundary
         shell: bash
@@ -97,8 +97,8 @@ jobs:
             app/build/outputs/apk/debug/SHA256SUMS.txt
             app/build/outputs/apk/debug/K2_BUILD_INFO.txt
             app/build/reports/lint-results-debug.html
-            ziwei-core/build/reports/qimen-weather-real-calendar-audit-v02.json
-            ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v02.json
+            ziwei-core/build/reports/qimen-weather-real-calendar-audit-v03.json
+            ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
           if-no-files-found: error
           retention-days: 7
           compression-level: 0
