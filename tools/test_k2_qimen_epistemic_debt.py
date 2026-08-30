@@ -83,6 +83,17 @@ def main():
     issues = v.validate_protocol(mutated_protocol)
     expect_issue(issues, "CONTROL_COMPLEXITY != EMPIRICAL_PROGRESS")
 
+    # Closed-retreat learning must remain internally calibrating rather than accumulative.
+    for invariant in (
+        "EXTERNAL_LEARNING_REQUIRES_INTERNAL_CALIBRATION",
+        "SYMBOL_MEANING != CASE_CONCLUSION",
+        "APPLICABILITY_PRECONDITION_REQUIRED",
+    ):
+        assert invariant in protocol, f"missing internal-calibration invariant: {invariant}"
+    assert "INTERNAL SELF-AUDIT" in protocol
+    assert "RELATIONAL INFERENCE + RIVAL EXPLANATIONS" in protocol
+    assert "REVISE / DOWNGRADE / REMOVE / RETAIN-AS-HYPOTHESIS" in protocol
+
     # The schema itself must encode fail-closed promotion and zero empirical credit.
     schema = v.load_json(K / "schema" / "qimen_epistemic_debt.schema.json")
     mutated_schema = copy.deepcopy(schema)
@@ -97,7 +108,7 @@ def main():
     expect_issue(issues, "category coverage drift")
 
     print("k2-qimen-epistemic-debt-tests: PASS")
-    print("negative_cases=13 base_contract=PASS")
+    print("negative_cases=13 internal_calibration_contract=PASS base_contract=PASS")
 
 
 if __name__ == "__main__":
