@@ -1,0 +1,150 @@
+{
+  "contract_id": "K2-QIMEN-P2-ROLE-LAYER-GENERATOR-CONTRACT-V01",
+  "version": "0.1",
+  "capability": "P2-EXEC-004",
+  "status": "ACTIVE_FAIL_FIRST_CONTRACT",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "semantic_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V02.json",
+  "prior_state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V06.json",
+  "execution_contract_ref": "knowledge/K2_QIMEN_P2_EXECUTION_CONTRACT_V01.json",
+  "representation_contract_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V01.json",
+  "generator_ref": "tools/k2_qimen_p2_generate_mapping.py",
+  "mapping_input_boundary": {
+    "mapping_before_plate_value_access": true,
+    "forbidden_input_fields": [
+      "current_plate_symbol_values",
+      "current_plate_strength_or_auspiciousness",
+      "prediction",
+      "outcome",
+      "feedback",
+      "lane_peer_intermediate_output",
+      "unregistered_external_omen"
+    ]
+  },
+  "lanes": [
+    {
+      "lane_id": "P2-A",
+      "model_name": "GLOBAL_PRIORITY_CATALOG_ROLE_BASELINE_V01",
+      "role_binding_policy": "SOURCE_CATALOG_DOMAIN_SELECTION_ONLY",
+      "layer_priority_policy": "FIXED_GLOBAL",
+      "fixed_layer_priority": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ]
+    },
+    {
+      "lane_id": "P2-A_PRIME",
+      "model_name": "GLOBAL_PRIORITY_TOPOLOGY_ROLE_ABLATION_V01",
+      "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "layer_priority_policy": "FIXED_GLOBAL",
+      "fixed_layer_priority": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ]
+    },
+    {
+      "lane_id": "P2-B",
+      "model_name": "TOPOLOGY_CONDITIONED_ROLE_PRIORITY_V01",
+      "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "layer_priority_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "fixed_layer_priority": null
+    }
+  ],
+  "source_constraints": [
+    {
+      "source_key": "QM-SRC-0003",
+      "authority_refs": [
+        "K2E-W1-QM-0003-0065",
+        "K2E-W1-QM-0003-0009",
+        "K2E-W1-QM-0003-0063",
+        "K2E-W1-QM-0003-0068",
+        "knowledge/K2_BOOK_DISTILLATES_WAVE1.jsonl"
+      ],
+      "constraint": "P2-A keeps the source-faithful fixed global layer priority 奇仪->八门->八神->九星 while preserving the source's domain-specific role catalog; it may not be weakened into a no-context strawman.",
+      "globalizable_scope": "LAYER_PRIORITY_ONLY"
+    },
+    {
+      "source_key": "QM-SRC-0021",
+      "authority_refs": [
+        "K2E-W1-QM-0021-0239",
+        "K2E-W1-QM-0021-0327",
+        "K2E-W1-QM-0021-0330",
+        "knowledge/K2_DEEP_SOURCE_DISTILLATES.d/QM-SRC-0021.jsonl"
+      ],
+      "constraint": "Topology-conditioned role and primary-information-layer selection must be bound from question definition/domain/topology before current plate values; competing source-allowed mappings are preserved or abstained rather than outcome-selected.",
+      "globalizable_scope": "NONE"
+    },
+    {
+      "source_key": "WF-QM-JINHAN-YUJING-001",
+      "authority_refs": [
+        "knowledge/K2_WORK_FAMILY_DISTILLATES.jsonl"
+      ],
+      "constraint": "Role Priority is qualified by question_domain, asked_object, method_layer and symbol_instance_selector. Symbol types are not collapsed across heaven/earth plate or palace identity; directed relations remain explicit.",
+      "globalizable_scope": "NONE"
+    },
+    {
+      "source_key": "COURSE-QM-SHANTIADAO-001",
+      "authority_refs": [
+        "K2DS-QM-SRC-0027",
+        "K2DS-QM-SRC-0028",
+        "K2DS-QM-SRC-0029",
+        "knowledge/K2_DEEP_SOURCE_DISTILLATES.jsonl",
+        "knowledge/K2_SHANTIADAO_PER_BOOK_ACCEPTANCE.md"
+      ],
+      "constraint": "ROLE_CANDIDATE_LIBRARY and correction-rule candidates are frozen before plate-value/feedback access; post-feedback role switching or correction-rule repair is contamination. Course-family repeats remain a single provenance vote.",
+      "globalizable_scope": "NONE"
+    }
+  ],
+  "role_candidate_requirements": {
+    "required_fields": [
+      "role_id",
+      "question_domain",
+      "asked_object",
+      "method_layer",
+      "symbol_instance_selector",
+      "source_refs",
+      "source_scope"
+    ],
+    "symbol_instance_selector_required_fields": [
+      "symbol_type",
+      "plate_layer",
+      "instance_role",
+      "relation_direction"
+    ],
+    "source_local_role_globalization_forbidden": true,
+    "new_role_outside_shared_source_catalog_forbidden": true
+  },
+  "correction_registry_requirements": {
+    "freeze_before_plate_values": true,
+    "post_feedback_edit_forbidden": true,
+    "source_refs_required": true,
+    "source_scope_required": true,
+    "source_local_globalization_forbidden": true
+  },
+  "contamination_policy": {
+    "late_role_map_edit": "FAIL_AND_RECORD_CONTAMINATION",
+    "post_feedback_role_switch": "FAIL_AND_RECORD_CONTAMINATION",
+    "post_feedback_correction_edit": "FAIL_AND_RECORD_CONTAMINATION",
+    "unfrozen_competing_mapping_outcome_selection": "FAIL_AND_RECORD_CONTAMINATION",
+    "source_local_overgeneralization": "FAIL"
+  },
+  "research_only": true,
+  "outcome_data_used": false,
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "does_not_claim": [
+    "This contract constrains P2-EXEC-004 but does not itself close it.",
+    "No source-local role or correction rule is promoted to a universal rule by this contract.",
+    "P2-EXEC-004 closes only after fail-first evidence plus deterministic implementation and negative tests.",
+    "P2-EXEC-005..009 remain out of scope."
+  ]
+}

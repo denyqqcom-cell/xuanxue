@@ -6,6 +6,7 @@ on:
       - 'knowledge/K2_QIMEN_P2_ROLE_MAP_*'
       - 'knowledge/K2_QIMEN_P2_EXECUTION_*'
       - 'knowledge/K2_QIMEN_P2_REPRESENTATION_*'
+      - 'knowledge/K2_QIMEN_P2_ROLE_LAYER_*'
       - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
       - 'knowledge/K2_PROSPECTIVE_BATCHES.jsonl'
       - 'knowledge/K2_PROSPECTIVE_FREEZES.jsonl'
@@ -32,5 +33,7 @@ jobs:
         run: python3 tools/test_k2_qimen_p2_representation.py
       - name: Validate P2 representation materializer closure
         run: python3 tools/validate_k2_qimen_p2_representation.py
+      - name: Test P2 deterministic Role/Layer generator fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_role_layer_generators.py
       - name: Enforce current P2 execution-readiness state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
