@@ -27,5 +27,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Test P2 execution-contract fail-closed cases
         run: python3 tools/test_k2_qimen_p2_execution_contract.py
+      - name: Test P2 representation materializer fail-first cases
+        run: python3 tools/test_k2_qimen_p2_representation.py
       - name: Enforce current P2 execution-readiness state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
