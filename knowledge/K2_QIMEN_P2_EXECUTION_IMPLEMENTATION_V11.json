@@ -1,0 +1,72 @@
+{
+  "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V11",
+  "stage": "POST_DOMAIN_SOURCE_PARITY_FACTOR_LAYER_CROSSWALK_AUDITED_PRE_ONTOLOGY_DECISION_PRE_PRODUCTION_PROFILE_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "parent_head": "a79ee144ec3ef8b84ad3458e0162e2b5ff33318f",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V15.json",
+  "prior_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V10.json",
+  "domain_source_parity_audit_ref": "knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_PARITY_V01.json",
+  "factor_layer_crosswalk_audit_ref": "knowledge/K2_QIMEN_P2_FACTOR_LAYER_CROSSWALK_AUDIT_V01.json",
+  "factor_layer_crosswalk_audit_git_blob": "38679f8dda8411e09dabf220454d42685f4e7cdf",
+  "factor_layer_crosswalk_audit_canonical_sha256": "9077ef75a6eb07bc0379999e27c2a02c35fbd5744337f247575671f8c15d497d",
+  "factor_layer_crosswalk_test_ref": "tools/test_k2_qimen_p2_factor_layer_crosswalk_audit.py",
+  "factor_layer_crosswalk_test_git_blob": "398e2ae1e356229e5a28e36e9097feabb95d1a3d",
+  "fail_first_evidence": {
+    "commit_sha": "a79ee144ec3ef8b84ad3458e0162e2b5ff33318f",
+    "workflow_run_id": 33599730486,
+    "job_id": 100150537568,
+    "workflow_name": "K2 Qimen P2 Execution Readiness",
+    "run_number": 22,
+    "expected_failure": "AssertionError: missing factor/layer crosswalk audit artifact",
+    "predecessor_execution_substrate_binding_and_domain_parity_steps_passed_before_failure": true
+  },
+  "p2_ontology_001_result": {
+    "status": "CLOSED_AUDIT_NO_EXACT_CROSSWALK_ESTABLISHED",
+    "exact_factor_layer_crosswalk": "NOT_ESTABLISHED",
+    "negative_cases": 16,
+    "unmatched_first_class_factor": "地利",
+    "composite_unresolved_factor": "格局",
+    "semantic_resemblance_candidates_only": {
+      "天时": "九星",
+      "人和": "八门",
+      "神助": "八神"
+    },
+    "production_representation_materialization_allowed": false
+  },
+  "source_learning_update": {
+    "qm_src_0003": "retains the source-local fixed four-layer priority 奇仪->八门->八神->九星",
+    "qm_src_0021": "retains its workplace five-factor ontology 天时/地利/人和/神助/格局 without being silently translated into the four P2 layer ids",
+    "self_correction": "Structural resemblance is not source equivalence. Closing the audit by finding NO exact crosswalk is preferable to manufacturing one for engineering convenience."
+  },
+  "source_local_overgeneralization_check": "PASS",
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "domain_source_parity_audit_complete": true,
+  "p2_ontology_001_audit_complete": true,
+  "production_representation_materialized": false,
+  "production_complexity_budget_profile_materialized": false,
+  "production_abstention_scoring_profile_materialized": false,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_P2_ONTOLOGY_002_ADDITIVE_REPRESENTATION_OR_ALTERNATE_DOMAIN_DECISION",
+  "next_required_work": [
+    "P2-ONTOLOGY-002_DECIDE_ADDITIVE_REPRESENTATION_V02_OR_ALTERNATE_DOMAIN",
+    "RERUN_DOMAIN_SOURCE_PARITY_AFTER_ONTOLOGY_DECISION",
+    "DO_NOT_MATERIALIZE_PRODUCTION_PROFILE_UNTIL_DOMAIN_LAYER_PARITY_IS_SOURCE_FAITHFUL"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "P2-ONTOLOGY-001 is an ontology audit closure, not a predictive validation.",
+    "No exact factor-to-layer equivalence has been established.",
+    "No production representation or profile exists.",
+    "No Batch, Freeze or Outcome exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

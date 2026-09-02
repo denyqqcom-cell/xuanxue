@@ -1,0 +1,66 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V15",
+  "version": "0.15",
+  "status": "FACTOR_LAYER_CROSSWALK_AUDITED_NO_EXACT_CROSSWALK_PRE_ONTOLOGY_DECISION",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V14",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V11.json",
+  "domain_source_parity_audit_ref": "knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_PARITY_V01.json",
+  "factor_layer_crosswalk_audit": {
+    "ref": "knowledge/K2_QIMEN_P2_FACTOR_LAYER_CROSSWALK_AUDIT_V01.json",
+    "git_blob": "38679f8dda8411e09dabf220454d42685f4e7cdf",
+    "canonical_sha256": "9077ef75a6eb07bc0379999e27c2a02c35fbd5744337f247575671f8c15d497d",
+    "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE"
+  },
+  "ontology_result": {
+    "p2_ontology_001": "CLOSED_AUDIT_NO_EXACT_CROSSWALK_ESTABLISHED",
+    "role_parity": "PASS_SHARED_ROLE_INTERSECTION",
+    "exact_factor_layer_crosswalk": "NOT_ESTABLISHED",
+    "qm_src_0003_fixed_layer_priority": ["奇仪", "八门", "八神", "九星"],
+    "qm_src_0021_workplace_factor_ontology": ["天时", "地利", "人和", "神助", "格局"],
+    "semantic_candidate_links": {
+      "天时": "九星",
+      "人和": "八门",
+      "神助": "八神"
+    },
+    "semantic_candidate_links_are_equivalence": false,
+    "unmatched_first_class_factor": "地利",
+    "composite_unresolved_factor": "格局",
+    "current_four_layer_representation_source_faithful_for_lane_b": false,
+    "silent_crosswalk_forbidden": true
+  },
+  "epistemic_update": {
+    "rejected_shortcut": "Do not infer 天时=九星, 人和=八门, 神助=八神 as exact source equivalences merely from terminology resemblance, and do not drop 地利 or collapse 格局 to force five factors into four slots.",
+    "accepted_result": "The audit closes by demonstrating that the reviewed evidence does not establish an exact crosswalk.",
+    "engineering_consequence": "P2-ONTOLOGY-002 must choose between an additive Representation V02 that preserves extra ontology or an alternate domain with exact source parity; production materialization remains blocked."
+  },
+  "source_local_overgeneralization_check": "PASS",
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "domain_source_parity_audit_complete": true,
+  "p2_ontology_001_audit_complete": true,
+  "production_representation_materialized": false,
+  "production_complexity_budget_profile_materialized": false,
+  "production_abstention_scoring_profile_materialized": false,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_P2_ONTOLOGY_002_ADDITIVE_REPRESENTATION_OR_ALTERNATE_DOMAIN_DECISION",
+  "next_required_work": [
+    "P2-ONTOLOGY-002_DECIDE_ADDITIVE_REPRESENTATION_V02_OR_ALTERNATE_DOMAIN",
+    "RERUN_DOMAIN_SOURCE_PARITY_AFTER_ONTOLOGY_DECISION"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V15 does not validate workplace prediction.",
+    "No semantic candidate link is promoted to an exact source equivalence.",
+    "No production representation, profile, preregistration, Batch, Freeze or Outcome exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}
