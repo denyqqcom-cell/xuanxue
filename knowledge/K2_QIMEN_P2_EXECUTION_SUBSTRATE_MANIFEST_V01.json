@@ -1,0 +1,50 @@
+{
+  "manifest_id": "K2-QIMEN-P2-EXECUTION-SUBSTRATE-MANIFEST-V01",
+  "version": "0.1",
+  "stage": "POST_SUBSTRATE_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "substrate_head_sha": "886a0bc51ad343ed5c4f111b3f04fcf9295af761",
+  "closed_capabilities": [
+    "P2-EXEC-001",
+    "P2-EXEC-002",
+    "P2-EXEC-003",
+    "P2-EXEC-004",
+    "P2-EXEC-005",
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008",
+    "P2-EXEC-009"
+  ],
+  "contract_bindings": {
+    "execution_contract_sha256": "218bf3dbc8e83421db34d3d8678a17b93c7e1ed981d28ba70ede02c1c145264b",
+    "representation_contract_sha256": "1a7128dd4c1ba5846c1d74f78645ff7b1ea87032898bbd83f61859283182393d",
+    "role_layer_generator_contract_sha256": "5bca2e5544cadf3e1dad2f8e150dffd93b0a12b1d3295d8ab01f56b0ff18bf63",
+    "complexity_budget_contract_sha256": "ae54cb165af4c5ed999b24fad425e18051e0379809b6cbec816cd839be68439a",
+    "blinded_lane_runner_contract_sha256": "9a93bc02a8388651a50fd94423f1c89a36c984582ca4de272cfd118843758a3e",
+    "abstain_denominator_contract_sha256": "1bf117aff2ab7a54570382292b7c75d6e00fe5e28bbef595f3dcb41c7b288c25",
+    "exact_reproducibility_contract_sha256": "17473e7d22f187eb7ca3a76de82edc160d24cdae919b1c4f27109ac60f5c889b",
+    "freeze_serializer_v01_contract_sha256": "94824fb4774c57254c3546d86534156daadd8404af3a47ca4aee17fbd49570a7"
+  },
+  "implementation_bindings": {
+    "representation_materializer_git_blob": "95937fbc8697ec69e24772241ade648f96611656",
+    "role_layer_generator_git_blob": "b0640fb47525803053a92a6b0812e4209fba652c",
+    "complexity_budget_enforcer_git_blob": "c46255e8bc59daa4e8ab2ff683e9ab0378bb0d2e",
+    "blinded_lane_runner_git_blob": "f827cb26541993a04a11fe435ab51d359f1a2334",
+    "abstain_denominator_scorer_git_blob": "b3cdd066fe57950ad3037a8a27083c560326e260",
+    "exact_reproducibility_pipeline_git_blob": "e6aed9cb523c35ae03a11d346911aa2fd8d8a00a",
+    "freeze_serializer_v01_git_blob": "3c3f884e864101aaff538095516a67da4bdc243d"
+  },
+  "reproducibility_fixture_sha256": "88968c2388163efa009640ba91c9a67b68049fcbb573d86ed725a319c3130977",
+  "reproducibility_expected_report_sha256": "d486819250c8690b9d205894b17522b58fcc266bec354252752c31e9bec646df",
+  "source_local_overgeneralization": "PASS",
+  "execution_substrate_ready": true,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED"
+}

@@ -1,0 +1,146 @@
+{
+  "fixture_id": "K2-QIMEN-P2-FREEZE-SERIALIZER-V02-FIXTURE",
+  "fixture_only": true,
+  "production_freeze_created": false,
+  "purpose": "Synthetic V02 post-Batch Freeze serialization fixture; tests binding integrity only and carries no source, Batch, Outcome or empirical credit.",
+  "batch_binding": {
+    "batch_id": "SYNTHETIC-P2-BATCH-V02",
+    "batch_ref": "tools/testdata/qimen_p2_freeze_serializer_v02_fixture.json#synthetic-batch",
+    "batch_sha256": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "batch_created": true,
+    "production_batch": false
+  },
+  "freeze_payload": {
+    "schema_version": "0.2",
+    "artifact_kind": "P2_EXECUTION_FREEZE",
+    "plan_id": "K2PV-QRM-002",
+    "hypothesis_id": "QRM-H1",
+    "plan_amendment_sha256": "d39db1528905b2d008720e2c1f45c2d723ce20aaf1df99c8b7fb7ed132e13de3",
+    "execution_substrate_manifest_sha256": "bee308bfb52e18829f558d576e6ea581aae0580de625aa6206bdbf84ef5fa3d5",
+    "execution_contract_sha256": "218bf3dbc8e83421db34d3d8678a17b93c7e1ed981d28ba70ede02c1c145264b",
+    "mapping_boundary": {
+      "mapping_before_plate_value_access": true,
+      "plate_value_access_before_mapping": false
+    },
+    "lane_bindings": [
+      {
+        "lane_id": "P2-A",
+        "model_name": "GLOBAL_PRIORITY_CATALOG_ROLE_BASELINE_V01",
+        "role_binding_policy": "SOURCE_CATALOG_DOMAIN_SELECTION_ONLY",
+        "layer_priority_policy": "FIXED_GLOBAL",
+        "fixed_layer_priority": ["奇仪", "八门", "八神", "九星"],
+        "generator": {
+          "generator_id": "P2-A-GENERATOR-V01",
+          "lane_id": "P2-A",
+          "version": "0.1",
+          "implementation_ref": "tools/k2_qimen_p2_generate_mapping.py",
+          "implementation_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "canonical_input_schema_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "canonical_output_schema_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "nondeterminism_policy": "DETERMINISTIC",
+          "seed": null
+        }
+      },
+      {
+        "lane_id": "P2-A_PRIME",
+        "model_name": "GLOBAL_PRIORITY_TOPOLOGY_ROLE_ABLATION_V01",
+        "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+        "layer_priority_policy": "FIXED_GLOBAL",
+        "fixed_layer_priority": ["奇仪", "八门", "八神", "九星"],
+        "generator": {
+          "generator_id": "P2-A-PRIME-GENERATOR-V01",
+          "lane_id": "P2-A_PRIME",
+          "version": "0.1",
+          "implementation_ref": "tools/k2_qimen_p2_generate_mapping.py",
+          "implementation_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "canonical_input_schema_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "canonical_output_schema_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "nondeterminism_policy": "DETERMINISTIC",
+          "seed": null
+        }
+      },
+      {
+        "lane_id": "P2-B",
+        "model_name": "TOPOLOGY_CONDITIONED_ROLE_PRIORITY_V01",
+        "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+        "layer_priority_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+        "fixed_layer_priority": null,
+        "generator": {
+          "generator_id": "P2-B-GENERATOR-V01",
+          "lane_id": "P2-B",
+          "version": "0.1",
+          "implementation_ref": "tools/k2_qimen_p2_generate_mapping.py",
+          "implementation_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "canonical_input_schema_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "canonical_output_schema_sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "nondeterminism_policy": "DETERMINISTIC",
+          "seed": null
+        }
+      }
+    ],
+    "estimand_lock": {
+      "P2-C1": {
+        "candidate": "P2-A_PRIME",
+        "comparator": "P2-A",
+        "only_allowed_difference": "ROLE_BINDING_POLICY",
+        "all_other_dimensions_equal": true,
+        "credit_scope": "TOPOLOGY_ROLE_BINDING_ONLY"
+      },
+      "P2-C2": {
+        "candidate": "P2-B",
+        "comparator": "P2-A_PRIME",
+        "only_allowed_difference": "LAYER_PRIORITY_POLICY",
+        "all_other_dimensions_equal": true,
+        "credit_scope": "TOPOLOGY_CONDITIONED_LAYER_PRIORITY_ONLY"
+      },
+      "P2-C3": {
+        "candidate": "P2-B",
+        "comparator": "P2-A",
+        "only_allowed_difference": "ROLE_BINDING_PLUS_LAYER_PRIORITY",
+        "component_credit_forbidden": true,
+        "credit_scope": "FULL_BUNDLE_ONLY_NOT_COMPONENT_ATTRIBUTION"
+      }
+    },
+    "shared_representation": {
+      "representation_id": "SYNTHETIC-P2-REPRESENTATION-V02",
+      "representation_contract_sha256": "1a7128dd4c1ba5846c1d74f78645ff7b1ea87032898bbd83f61859283182393d",
+      "combined_representation_sha256": "ffd03de592528cc90803496f742582d15a8fb1ad52de82a2445c1440afc59e73",
+      "world_variable_manifest_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "symbol_vocabulary_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "feature_extraction_manifest_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+      "eligible_rule_pool_sha256": "5555555555555555555555555555555555555555555555555555555555555555",
+      "prediction_schema_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+    },
+    "complexity_budget": {
+      "formula_id": "P2_SHARED_COMPLEXITY_FORMULA_V01",
+      "contract_sha256": "ae54cb165af4c5ed999b24fad425e18051e0379809b6cbec816cd839be68439a",
+      "profile_id": "P2-SYNTHETIC-COMPLEXITY-PROFILE-V02",
+      "profile_sha256": "97fd91603795bcee2ae6e1200ca95274880ca651c8b53f540854e87eacd1bffe",
+      "max_roles_per_question": 4,
+      "max_layers_per_question": 4,
+      "max_symbol_instances_per_question": 4,
+      "max_total_units_per_lane": 10,
+      "max_role_bindings_per_symbol_instance": 2
+    },
+    "blinding": {
+      "contract_sha256": "9a93bc02a8388651a50fd94423f1c89a36c984582ca4de272cfd118843758a3e",
+      "lane_blinding_protocol": "P2_BLINDED_ISOLATED_V01",
+      "lane_order_seed": 1729,
+      "cross_lane_isolation_policy": "FRESH_STATE_NO_CROSS_LANE_CACHE"
+    },
+    "denominator_policy": {
+      "contract_sha256": "1bf117aff2ab7a54570382292b7c75d6e00fe5e28bbef595f3dcb41c7b288c25",
+      "primary_denominator_policy": "COUNT_ALL_FROZEN_INCLUDED_CASES_PER_CONTRAST",
+      "abstention_scoring_profile_id": "P2-SYNTHETIC-ABSTENTION-PROFILE-V02",
+      "abstention_scoring_profile_sha256": "cf4a640457f42d7587c5bd42704ecd0147fd1ab6493f6e26618dc908c915399a",
+      "technical_unevaluable_policy": "RETAIN_SYMMETRICALLY"
+    },
+    "reproducibility": {
+      "contract_sha256": "17473e7d22f187eb7ca3a76de82edc160d24cdae919b1c4f27109ac60f5c889b",
+      "fixture_hash": "88968c2388163efa009640ba91c9a67b68049fcbb573d86ed725a319c3130977",
+      "expected_report_sha256": "d486819250c8690b9d205894b17522b58fcc266bec354252752c31e9bec646df"
+    },
+    "research_only": true,
+    "outcome_data_used": false
+  }
+}

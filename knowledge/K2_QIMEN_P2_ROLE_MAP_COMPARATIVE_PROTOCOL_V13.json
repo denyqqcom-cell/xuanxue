@@ -1,0 +1,78 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V13",
+  "version": "0.13",
+  "status": "POST_SUBSTRATE_BINDING_MACHINE_HARDENED_PRE_STATISTICAL_PREREGISTRATION",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V12",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V09.json",
+  "historical_plan_preservation": {
+    "base_plan_id": "K2PV-QRM-002",
+    "base_plan_not_rewritten": true,
+    "future_authority_amendment_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_PLAN_AMENDMENT_V01.json",
+    "future_authority_amendment_sha256": "d39db1528905b2d008720e2c1f45c2d723ce20aaf1df99c8b7fb7ed132e13de3"
+  },
+  "execution_substrate": {
+    "manifest_ref": "knowledge/K2_QIMEN_P2_EXECUTION_SUBSTRATE_MANIFEST_V01.json",
+    "manifest_sha256": "bee308bfb52e18829f558d576e6ea581aae0580de625aa6206bdbf84ef5fa3d5",
+    "closed_execution_blockers": ["P2-EXEC-001", "P2-EXEC-002", "P2-EXEC-003", "P2-EXEC-004", "P2-EXEC-005", "P2-EXEC-006", "P2-EXEC-007", "P2-EXEC-008", "P2-EXEC-009"],
+    "ready": true
+  },
+  "post_substrate_binding_hardening": {
+    "fail_first_commit": "220c3f917e3f3bd1bcfb4a55c83fd8cad3da7e11",
+    "fail_first_run_id": 33595848108,
+    "resolved_findings": [
+      "FREEZE_COMPLEXITY_BUDGET_BINDING_DRIFT",
+      "ACTIVE_PLAN_FREEZE_BINDING_DRIFT",
+      "REPRESENTATION_COMBINED_IDENTITY_NOT_FROZEN",
+      "BLINDING_CONTRACT_IDENTITY_NOT_FROZEN",
+      "DENOMINATOR_SCORING_CONTRACT_NOT_FROZEN"
+    ],
+    "freeze_schema_v02_ref": "knowledge/schema/qimen_p2_execution_freeze_v02.schema.json",
+    "freeze_schema_v02_sha256": "955d8c107cf5a4a7d830868b26967817aa8d85474f08b73203c43cf85d139c01",
+    "freeze_serializer_v02_contract_ref": "knowledge/K2_QIMEN_P2_FREEZE_SERIALIZER_CONTRACT_V02.json",
+    "freeze_serializer_v02_contract_sha256": "d8d2e289f057d62e0961cc8014d3e0ca2f82f458f1b50c1b804d7f75b888e4a4",
+    "pre_batch_binding_contract_ref": "knowledge/K2_QIMEN_P2_PRE_BATCH_BINDING_CONTRACT_V01.json",
+    "pre_batch_binding_contract_sha256": "c911db67093fe8d6d4a6bdaa20a98fad618f533b1c87352bc50aeb940d9473e9",
+    "historical_v01_schema_preserved": true,
+    "post_substrate_binding_ready": true
+  },
+  "future_freeze_boundary": {
+    "representation_identity_and_combined_hash_required": true,
+    "complexity_formula_and_exact_profile_hash_required": true,
+    "same_complexity_profile_all_lanes": true,
+    "blinding_contract_hash_and_pre_freeze_seed_required": true,
+    "denominator_contract_and_abstention_profile_hash_required": true,
+    "exact_reproducibility_contract_fixture_and_report_hash_required": true,
+    "production_freeze_requires_preexisting_preregistered_batch": true,
+    "serializer_cannot_create_batch": true,
+    "serializer_cannot_persist_freeze": true,
+    "outcome_feedback_fields_forbidden": true
+  },
+  "source_local_overgeneralization_check": {
+    "status": "PASS_CARRIED_FROM_EXECUTION_SUBSTRATE",
+    "basis": [
+      "P2-EXEC-004 source-constrained Role/Layer generator audit",
+      "P2-EXEC-005..009 successor validators",
+      "execution substrate manifest binds the exact audited contracts and implementations"
+    ],
+    "guard": "V13 changes research-contract binding only. It creates no new Role, Layer, correction, topology, symbol meaning or source-derived rule."
+  },
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_CONCRETE_STATISTICAL_PREREGISTRATION_AND_PRODUCTION_PROFILE_MATERIALIZATION",
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V13 closes a binding-integrity defect, not an empirical test.",
+    "No production representation or budget/scoring profile has yet been frozen.",
+    "No primary metric, decision rule, sampling rule or stopping rule has yet been preregistered for a real P2 Batch.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}
