@@ -72,5 +72,7 @@ jobs:
         run: python3 tools/test_k2_qimen_p2_factor_layer_crosswalk_audit.py
       - name: Decide source-grounded ontology path before Representation V02
         run: python3 tools/test_k2_qimen_p2_ontology_decision.py
+      - name: Test shared-superset Representation V02 fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_representation_v02.py
       - name: Enforce historical P2 execution-contract state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
