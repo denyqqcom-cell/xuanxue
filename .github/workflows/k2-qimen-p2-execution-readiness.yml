@@ -15,6 +15,7 @@ on:
       - 'knowledge/K2_QIMEN_P2_PRE_BATCH_*'
       - 'knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_*'
       - 'knowledge/K2_QIMEN_P2_FACTOR_LAYER_*'
+      - 'knowledge/K2_QIMEN_P2_ONTOLOGY_*'
       - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
       - 'knowledge/K2_PROSPECTIVE_BATCHES.jsonl'
       - 'knowledge/K2_PROSPECTIVE_FREEZES.jsonl'
@@ -69,5 +70,7 @@ jobs:
         run: python3 tools/test_k2_qimen_p2_domain_source_parity.py
       - name: Audit source-grounded factor/layer crosswalk before ontology decision
         run: python3 tools/test_k2_qimen_p2_factor_layer_crosswalk_audit.py
+      - name: Decide source-grounded ontology path before Representation V02
+        run: python3 tools/test_k2_qimen_p2_ontology_decision.py
       - name: Enforce historical P2 execution-contract state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
