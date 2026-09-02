@@ -49,11 +49,12 @@ def main():
     prereg = load(PREREG)
     validate_preregistration(copy.deepcopy(prereg), copy.deepcopy(contract))
 
-    assert abs(exact_binomial_upper_tail(80, 40) - 1.0) < 1e-15
+    assert exact_binomial_upper_tail(80, 0) == 1.0
+    assert 0.5 < exact_binomial_upper_tail(80, 40) < 0.6
     assert exact_binomial_upper_tail(80, 60) < contract["confirmatory_test"]["per_contrast_alpha"]
 
     passing = evaluate_contrast(
-        denominator=120,
+        denominator=240,
         candidate_wins=62,
         comparator_wins=18,
         resolved_outcome_cases_total=200,
@@ -92,7 +93,7 @@ def main():
     negative_cases += 1
 
     low_info = evaluate_contrast(
-        denominator=120,
+        denominator=240,
         candidate_wins=55,
         comparator_wins=15,
         resolved_outcome_cases_total=200,
@@ -107,8 +108,8 @@ def main():
 
     low_effect = evaluate_contrast(
         denominator=240,
-        candidate_wins=47,
-        comparator_wins=33,
+        candidate_wins=45,
+        comparator_wins=35,
         resolved_outcome_cases_total=200,
         resolved_outcome_cases_by_topology={"JOB_SEARCH": 70, "PROMOTION": 65, "TRANSFER_OR_ROLE_CHANGE": 65},
         contamination=False,
@@ -120,7 +121,7 @@ def main():
     negative_cases += 1
 
     contaminated = evaluate_contrast(
-        denominator=120,
+        denominator=240,
         candidate_wins=62,
         comparator_wins=18,
         resolved_outcome_cases_total=200,
@@ -133,7 +134,7 @@ def main():
     negative_cases += 1
 
     insufficient_outcome = evaluate_contrast(
-        denominator=120,
+        denominator=240,
         candidate_wins=62,
         comparator_wins=18,
         resolved_outcome_cases_total=170,

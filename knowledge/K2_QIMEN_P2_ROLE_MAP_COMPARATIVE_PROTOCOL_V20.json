@@ -1,0 +1,132 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V20",
+  "version": "0.20",
+  "status": "CONCRETE_STATISTICAL_PREREGISTRATION_CLOSED_PRE_BATCH_REGISTRY",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V19",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V16.json",
+  "production_representation": {
+    "ref": "knowledge/K2_QIMEN_P2_PRODUCTION_REPRESENTATION_V01.json",
+    "git_blob": "5459936c725726c834879e5c22f5ef77cf37c35d",
+    "shared_representation_sha256": "a440ef84f42b5798ab6bf8b8e5d802b554b2ba05a35810f67eb9f69eebd48fbb",
+    "shared_role_ids": ["asker", "organization", "superior", "peer", "subordinate"],
+    "shared_atomic_context_universe": ["奇仪", "八门", "八神", "九星", "九宫"],
+    "derived_composites": ["格局"],
+    "same_feature_universe_all_lanes": true
+  },
+  "lane_priority_semantics": {
+    "P2-A": {
+      "policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "ranked_subset": ["奇仪", "八门", "八神", "九星"],
+      "visible_unranked_context": ["九宫"]
+    },
+    "P2-A_PRIME": {
+      "policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "ranked_subset": ["奇仪", "八门", "八神", "九星"],
+      "visible_unranked_context": ["九宫"]
+    },
+    "P2-B": {
+      "policy_form": "QUESTION_DOMAIN_CONDITIONED_PARTIAL_PRIORITY_OR_PRIMARY_LAYER",
+      "primary_atomic_context_set": ["奇仪", "八门"],
+      "primary_set_internal_order": "UNORDERED",
+      "supporting_visible_context": ["八神", "九星", "九宫"],
+      "workplace_total_order_status": "NOT_SOURCE_ESTABLISHED"
+    }
+  },
+  "production_scope": {
+    "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+    "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+    "representation_eligible_question_topologies": ["JOB_SEARCH", "PROMOTION", "TRANSFER_OR_ROLE_CHANGE", "ORGANIZATIONAL_RELATIONSHIP"],
+    "primary_statistical_batch_topologies": ["JOB_SEARCH", "PROMOTION", "TRANSFER_OR_ROLE_CHANGE"],
+    "primary_excluded_topologies": ["ORGANIZATIONAL_RELATIONSHIP"],
+    "primary_exclusion_reason": "OBJECTIVE_SHARED_BINARY_OUTCOME_CONTRACT_NOT_FROZEN_FOR_GENERAL_ORGANIZATIONAL_RELATIONSHIP_V01",
+    "unsupported_topology_action": "ABSTAIN_OR_OUT_OF_SCOPE_FAIL_CLOSED",
+    "high_impact_employment_decision_use_forbidden": true,
+    "scope_may_not_expand_after_batch_start": true
+  },
+  "shared_profiles": {
+    "ref": "knowledge/K2_QIMEN_P2_SHARED_PROFILES_V01.json",
+    "git_blob": "e859a56f393782f923935ddc358c7dc767ff1048",
+    "complexity_profile_id": "P2-WORKPLACE-COMPLEXITY-PROFILE-V01",
+    "abstention_profile_id": "P2-WORKPLACE-ABSTENTION-SCORING-PROFILE-V01",
+    "abstain_metric_value": 0.0,
+    "technical_unevaluable_metric_value": 0.0,
+    "coverage_penalty_mode": "COUNT_IN_PRIMARY_DENOMINATOR_WITH_FROZEN_METRIC_VALUE",
+    "metric_binding": "BOUND_BY_STATISTICAL_PREREGISTRATION_V01_TO_COVERAGE_PENALIZED_BINARY_ACCURACY_V01",
+    "same_profiles_all_lanes_or_blind_outputs": true
+  },
+  "statistical_preregistration": {
+    "ref": "knowledge/K2_QIMEN_P2_STATISTICAL_PREREGISTRATION_V01.json",
+    "git_blob": "4cc3de63c8509fb00893d9cf788f17224f389014",
+    "contract_ref": "knowledge/K2_QIMEN_P2_STATISTICAL_PREREGISTRATION_CONTRACT_V01.json",
+    "contract_git_blob": "212f4955927870c140a91bf6b6763a9c9938ddad",
+    "status": "CLOSED_CONCRETE_PREREGISTRATION",
+    "primary_metric": "COVERAGE_PENALIZED_BINARY_ACCURACY_V01",
+    "confirmatory_test": "EXACT_ONE_SIDED_MCNEMAR_BINOMIAL_V01",
+    "familywise_alpha": 0.05,
+    "per_contrast_alpha": 0.016666666666666666,
+    "practical_effect_floor": 0.05,
+    "target_cases_per_topology": 80,
+    "target_total_cases": 240,
+    "outcome_horizon_days": 90,
+    "maximum_acquisition_window_days": 365,
+    "resolved_outcome_floor_per_topology": 60,
+    "resolved_outcome_floor_total": 180,
+    "discordant_pair_floor_per_contrast": 80,
+    "one_included_case_per_asker_per_future_batch": true,
+    "eligibility_manifest_frozen_before_lane_execution": true,
+    "same_batch_reopen_on_insufficient_information_forbidden": true
+  },
+  "contrast_estimands": {
+    "P2-C1": {
+      "candidate": "P2-A_PRIME",
+      "comparator": "P2-A",
+      "only_allowed_difference": "ROLE_BINDING_POLICY",
+      "credit_scope": "TOPOLOGY_ROLE_BINDING_ONLY"
+    },
+    "P2-C2": {
+      "candidate": "P2-B",
+      "comparator": "P2-A_PRIME",
+      "only_allowed_difference": "PRIORITY_POLICY",
+      "credit_scope": "TOPOLOGY_CONDITIONED_LAYER_PRIORITY_ONLY"
+    },
+    "P2-C3": {
+      "candidate": "P2-B",
+      "comparator": "P2-A",
+      "only_allowed_difference": "ROLE_BINDING_PLUS_PRIORITY_POLICY",
+      "credit_scope": "FULL_BUNDLE_ONLY_NOT_COMPONENT_ATTRIBUTION",
+      "component_credit_forbidden": true
+    }
+  },
+  "closure_self_audit": {
+    "exact_binomial_boundary_fixture_corrected": true,
+    "resolved_outcomes_cannot_exceed_denominator_fixture_corrected": true,
+    "low_effect_fixture_now_below_0_05": true,
+    "case_selection_and_repeat_asker_guard_strengthened": true,
+    "guard_weakening_used": false,
+    "outcome_data_used": false
+  },
+  "production_representation_materialized": true,
+  "production_complexity_budget_profile_materialized": true,
+  "production_abstention_scoring_profile_materialized": true,
+  "statistical_preregistration_allowed": true,
+  "statistical_preregistration_ready": true,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_P2_PREBATCH_BATCH_005_FUTURE_BATCH_REGISTRY_AND_EXPLICIT_START_BOUNDARY",
+  "next_required_work": "P2-PREBATCH-BATCH-005_MATERIALIZE_FUTURE_BATCH_REGISTRY_AND_START_BOUNDARY_FAIL_FIRST",
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V20 closes a concrete statistical preregistration gate only; it does not create or start a Batch.",
+    "No statistical threshold, quota or horizon is claimed as a Qimen source rule.",
+    "The primary exclusion of ORGANIZATIONAL_RELATIONSHIP is methodological and prospective, not a source-semantic rejection.",
+    "The independence guard reduces repeated-case dependence risk but does not prove independent sampling.",
+    "No Freeze, Outcome or empirical credit exists and QRM-H1 remains UNTESTED."
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "preregistration_id": "K2-QIMEN-P2-STATISTICAL-PREREGISTRATION-V01",
+  "version": "0.1",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "contract_ref": "knowledge/K2_QIMEN_P2_STATISTICAL_PREREGISTRATION_CONTRACT_V01.json",
+  "contract_git_blob": "212f4955927870c140a91bf6b6763a9c9938ddad",
+  "evaluator_ref": "tools/k2_qimen_p2_statistical_preregistration.py",
+  "evaluator_git_blob": "041c160c9e0c4aa6de8867913b9f921070a4fe00",
+  "shared_profiles_ref": "knowledge/K2_QIMEN_P2_SHARED_PROFILES_V01.json",
+  "shared_profiles_git_blob": "e859a56f393782f923935ddc358c7dc767ff1048",
+  "profile_metric_binding": {
+    "status": "BOUND_BY_THIS_PREREGISTRATION_WITHOUT_REWRITING_SHARED_PROFILES_V01",
+    "primary_metric_id": "COVERAGE_PENALIZED_BINARY_ACCURACY_V01",
+    "metric_range": [0.0, 1.0],
+    "abstain_metric_value": 0.0,
+    "technical_unevaluable_metric_value": 0.0,
+    "compatibility": "PASS_EXACT_ZERO_VALUE_MATCH",
+    "future_metric_or_profile_change_requires_new_version_before_future_batch": true
+  },
+  "eligibility_and_dependence_guard": {
+    "eligibility_must_be_decidable_before_lane_execution": true,
+    "required_pre_lane_fields": [
+      "case_id",
+      "question_topology",
+      "asker_identity_hash",
+      "target_object_hash",
+      "case_freeze_timestamp",
+      "outcome_deadline_timestamp",
+      "outcome_ascertainment_route",
+      "eligibility_reason_code"
+    ],
+    "allowed_eligibility_reason_codes": [
+      "ELIGIBLE_JOB_SEARCH",
+      "ELIGIBLE_PROMOTION",
+      "ELIGIBLE_TRANSFER_OR_ROLE_CHANGE"
+    ],
+    "one_included_case_per_asker_per_future_batch": true,
+    "duplicate_target_event_record_forbidden": true,
+    "outcome_ascertainment_route_must_be_frozen_pre_lane": true,
+    "outcome_known_or_partially_revealed_at_freeze_forbidden": true,
+    "post_prediction_replacement_forbidden": true,
+    "note": "This conservative guard reduces repeated-case dependence and case-selection discretion but does not claim proof of statistical independence."
+  },
+  "primary_scope": {
+    "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+    "research_only": true,
+    "no_employment_decision_advice": true,
+    "primary_batch_topologies": ["JOB_SEARCH", "PROMOTION", "TRANSFER_OR_ROLE_CHANGE"],
+    "representation_supported_but_primary_batch_excluded": ["ORGANIZATIONAL_RELATIONSHIP"],
+    "exclusion_reason": "No sufficiently objective shared binary outcome contract is frozen for general organizational-relationship questions in V01; exclusion is prospective and methodological, not source-semantic.",
+    "scope_expansion_after_batch_start_forbidden": true
+  },
+  "outcome_contract": {
+    "event_horizon_days": 90,
+    "clock": "CALENDAR_DAYS_FROM_CASE_FREEZE_TIMESTAMP",
+    "labels": ["EVENT_OCCURS", "EVENT_DOES_NOT_OCCUR"],
+    "topology_events": {
+      "JOB_SEARCH": "FORMAL_OFFER_RECEIVED_FOR_EXACT_PRE_FROZEN_TARGET_POSITION_OR_APPLICATION_WITHIN_HORIZON",
+      "PROMOTION": "FORMAL_DOCUMENTED_PROMOTION_OR_LEVEL_INCREASE_EFFECTIVE_WITHIN_HORIZON",
+      "TRANSFER_OR_ROLE_CHANGE": "FORMAL_DOCUMENTED_TEAM_ROLE_OR_REPORTING_LINE_CHANGE_EFFECTIVE_WITHIN_HORIZON"
+    },
+    "target_object_must_be_unique_before_lane_execution": true,
+    "outcome_definition_must_be_frozen_before_lane_execution": true,
+    "outcome_value_must_be_unknown_at_prediction_freeze": true,
+    "outcome_missing_after_horizon": "OUTCOME_UNEVALUABLE_RETAIN_IN_PRIMARY_DENOMINATOR_WITH_SYMMETRIC_ZERO_SCORE",
+    "raw_sensitive_document_storage_required": false,
+    "deidentified_outcome_record_required": true
+  },
+  "prediction_contract": {
+    "labels": ["EVENT_OCCURS", "EVENT_DOES_NOT_OCCUR"],
+    "confidence_semantics": "PROBABILITY_ASSIGNED_TO_PREDICTED_LABEL",
+    "confidence_min": 0.5,
+    "confidence_max": 1.0,
+    "same_prediction_schema_all_lanes": true,
+    "abstain_is_legal_output": true,
+    "technical_unevaluable_is_legal_output": true
+  },
+  "primary_metric": {
+    "metric_id": "COVERAGE_PENALIZED_BINARY_ACCURACY_V01",
+    "direction": "HIGHER_IS_BETTER",
+    "predicted_correct_score": 1.0,
+    "predicted_incorrect_score": 0.0,
+    "abstain_score": 0.0,
+    "technical_unevaluable_score": 0.0,
+    "outcome_unevaluable_score": 0.0,
+    "denominator": "ALL_FROZEN_INCLUDED_CASES_PER_CONTRAST",
+    "paired_delta": "MEAN(CANDIDATE_CASE_SCORE - COMPARATOR_CASE_SCORE)",
+    "compatible_with_frozen_abstention_profile": true,
+    "secondary_metrics": ["BINARY_BRIER_SCORE_FROM_FROZEN_CONFIDENCE", "CALIBRATION_ERROR", "COVERAGE_RATE", "ABSTENTION_RATE", "TECHNICAL_UNEVALUABLE_RATE", "OUTCOME_UNEVALUABLE_RATE"],
+    "secondary_metrics_cannot_rescue_failed_primary": true
+  },
+  "confirmatory_test": {
+    "test_id": "EXACT_ONE_SIDED_MCNEMAR_BINOMIAL_V01",
+    "discordant_definition": "CASES_WHERE_CANDIDATE_AND_COMPARATOR_BINARY_CORRECTNESS_SCORES_DIFFER",
+    "null_conditional_candidate_win_probability": 0.5,
+    "alternative": "CANDIDATE_GREATER_THAN_COMPARATOR",
+    "family": ["P2-C1", "P2-C2", "P2-C3"],
+    "familywise_alpha": 0.05,
+    "multiplicity_correction": "BONFERRONI_THREE_ONE_SIDED_CONTRASTS",
+    "per_contrast_alpha": 0.016666666666666666,
+    "p_value_rule": "EXACT_BINOMIAL_UPPER_TAIL_ON_CANDIDATE_WINS_GIVEN_DISCORDANT_PAIRS",
+    "practical_effect_floor_paired_accuracy_delta": 0.05,
+    "contrast_pass_requires": ["PAIRED_ACCURACY_DELTA_GTE_0.05", "EXACT_ONE_SIDED_P_LTE_0.016666666666666666", "DISCORDANT_PAIR_INFORMATION_FLOOR_MET", "NO_CONTAMINATION_GATE_FAILURE"]
+  },
+  "sampling_rule": {
+    "rule_id": "STRATIFIED_FIRST_ELIGIBLE_FIXED_QUOTA_V01",
+    "target_cases_per_topology": 80,
+    "target_total_cases": 240,
+    "topology_order_irrelevant": true,
+    "within_topology_selection": "FIRST_ELIGIBLE_CASES_BY_CASE_FREEZE_TIMESTAMP",
+    "same_case_set_all_lanes": true,
+    "case_inclusion_before_lane_execution": true,
+    "duplicate_case_id_forbidden": true,
+    "same_asker_same_target_object_duplicate_forbidden": true,
+    "outcome_dependent_case_selection_forbidden": true,
+    "post_prediction_case_replacement_forbidden": true
+  },
+  "stopping_rule": {
+    "rule_id": "NON_OUTCOME_DRIVEN_QUOTA_OR_TIME_CAP_V01",
+    "acquisition_target": "80_FROZEN_INCLUDED_CASES_PER_PRIMARY_TOPOLOGY",
+    "maximum_acquisition_window_days": 365,
+    "window_anchor": "FUTURE_BATCH_START_TIMESTAMP",
+    "acquisition_closes_when": "ALL_THREE_TOPOLOGY_QUOTAS_FILLED_OR_365_CALENDAR_DAYS_ELAPSE_WHICHEVER_FIRST",
+    "outcome_values_may_not_change_acquisition": true,
+    "closed_acquisition_may_not_reopen": true,
+    "final_outcome_qc_wait_days_after_last_included_case": 90,
+    "insufficient_information_may_not_trigger_same_batch_extension": true
+  },
+  "minimum_information_floor": {
+    "resolved_outcome_cases_per_topology": 60,
+    "resolved_outcome_cases_total": 180,
+    "discordant_pairs_per_contrast": 80,
+    "all_floors_required": true,
+    "floor_checked_only_after_acquisition_closed_and_followup_complete": true,
+    "if_any_floor_fails": "INSUFFICIENT_INFORMATION_NO_EMPIRICAL_CREDIT_NO_REOPEN",
+    "floor_values_are_project_research_design_choices_not_qimen_source_claims": true
+  },
+  "contrast_attribution": {
+    "P2-C1": {"candidate": "P2-A_PRIME", "comparator": "P2-A", "credit_scope": "TOPOLOGY_ROLE_BINDING_ONLY"},
+    "P2-C2": {"candidate": "P2-B", "comparator": "P2-A_PRIME", "credit_scope": "TOPOLOGY_CONDITIONED_LAYER_PRIORITY_ONLY"},
+    "P2-C3": {"candidate": "P2-B", "comparator": "P2-A", "credit_scope": "FULL_BUNDLE_ONLY_NOT_COMPONENT_ATTRIBUTION", "component_credit_forbidden": true},
+    "QRM_H1_bundle_support_requires": "P2-C3_PASS",
+    "component_credit_requires_own_contrast_pass": true,
+    "failed_component_contrast_cannot_be_rescued_by_C3": true
+  },
+  "contamination_gate": {
+    "post_feedback_role_switch": "FAIL",
+    "post_feedback_priority_edit": "FAIL",
+    "post_feedback_rule_edit": "FAIL",
+    "lane_specific_case_exclusion": "FAIL",
+    "cross_lane_intermediate_output": "FAIL",
+    "outcome_selected_mapping": "FAIL",
+    "outcome_selected_stopping_or_sample_extension": "FAIL",
+    "profile_or_metric_change_after_batch_start": "FAIL_AND_REQUIRE_FUTURE_VERSION"
+  },
+  "design_provenance": {
+    "statistical_choices_origin": "PROJECT_GENERATED_METHODOLOGICAL_PREREGISTRATION",
+    "qimen_source_semantic_credit": "NONE",
+    "empirical_credit_before_future_batch": "NONE",
+    "rationale": "Statistics, quotas, horizons and effect thresholds are research design controls chosen prospectively; they are not derived from or asserted by Qimen source texts."
+  },
+  "locked_before_future_batch": true,
+  "outcome_data_used": false,
+  "statistical_preregistration_ready": true,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "This is a preregistered research design, not evidence that QRM-H1 is true.",
+    "Statistics, quotas, horizons, effect thresholds and independence guards are methodological choices rather than Qimen doctrine.",
+    "The general ORGANIZATIONAL_RELATIONSHIP topology remains outside the primary Batch until a future prospectively versioned objective outcome contract exists.",
+    "No Batch, Freeze or Outcome has been created and empirical credit remains NONE."
+  ]
+}
