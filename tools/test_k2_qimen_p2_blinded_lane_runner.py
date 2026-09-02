@@ -51,6 +51,9 @@ def main():
     bad_payloads = copy.deepcopy(FIXTURE["lane_payloads"]); bad_payloads["P2-B"]["question_id"] = "other-question"
     expect_fail(lambda: build_blinded_plan(bad_payloads, FIXTURE["execution_order_seed"]), "question identity")
 
+    bad_payloads = copy.deepcopy(FIXTURE["lane_payloads"]); bad_payloads["P2-A"]["lane_id"] = "P2-A"
+    expect_fail(lambda: build_blinded_plan(bad_payloads, FIXTURE["execution_order_seed"]), "lane identity")
+
     plan2 = build_blinded_plan(FIXTURE["lane_payloads"], FIXTURE["execution_order_seed"])
     first = plan2["execution_order"][0]
     plan2["snapshots"][first]["payload"]["fixture_signal"] = 999
@@ -64,6 +67,10 @@ def main():
     plan4["shared_mutable_state"] = {"cache": {}}
     expect_fail(lambda: execute_blinded(plan4), "shared mutable")
 
+    plan_peer = build_blinded_plan(FIXTURE["lane_payloads"], FIXTURE["execution_order_seed"])
+    plan_peer["worker_context"] = {"lane_peer_output": {"blind_id": "BLIND-002"}}
+    expect_fail(lambda: execute_blinded(plan_peer), "peer output")
+
     plan5 = build_blinded_plan(FIXTURE["lane_payloads"], FIXTURE["execution_order_seed"])
     plan5["execution_order"] = list(reversed(plan5["execution_order"]))
     out5 = execute_blinded(plan5)
@@ -71,7 +78,7 @@ def main():
     b = {r["blind_id"]: r["output_sha256"] for r in out5["execution_log"]}
     assert a == b, "execution order changed lane outputs"
 
-    print("k2-qimen-p2-blinded-lane-runner-tests: PASS negative_cases=10 lanes=3")
+    print("k2-qimen-p2-blinded-lane-runner-tests: PASS negative_cases=12 lanes=3")
 
 
 if __name__ == "__main__":
