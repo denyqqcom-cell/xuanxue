@@ -1,7 +1,7 @@
 {
   "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V15",
   "stage": "POST_RESTRICTED_PRODUCTION_REPRESENTATION_AND_SHARED_PROFILES_PRE_STATISTICAL_PREREGISTRATION_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
-  "parent_head": "4795009b17bef3a667615b3aabb987d914bc11eb",
+  "parent_head": "ea3c97eb84ec882811bf3e030e6f08106beafc39",
   "active_plan_id": "K2PV-QRM-002",
   "hypothesis_id": "QRM-H1",
   "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V19.json",
@@ -18,10 +18,10 @@
   "shared_profiles_sha256": "0f904b1d84b101dea21e1b852d4dda6dcc5422c0ababf39765e114b3f2409e85",
   "production_profile_materializer_ref": "tools/k2_qimen_p2_materialize_production_profile.py",
   "production_profile_materializer_git_blob": "f8cb8a7f57337e190f72deaf7b9dff56b3c58023",
-  "production_profile_test_ref": "tools/test_k2_qimen_p2_production_profile.py",
-  "production_profile_test_git_blob": "642a1556b148e2009144f3e0884460bca523ef70",
-  "production_profile_validator_ref": "tools/validate_k2_qimen_p2_production_profile.py",
-  "production_profile_validator_git_blob": "577954c12fdf66e10de803e69889a7a7b66ee62e",
+  "production_profile_test_ref": "tools/test_k2_qimen_p2_production_profile_v02.py",
+  "production_profile_test_git_blob": "febecbe43962d134cf8fc397e6ed4d5283b4b455",
+  "production_profile_validator_ref": "tools/validate_k2_qimen_p2_production_profile_v02.py",
+  "production_profile_validator_git_blob": "da9a5beabeec9808f7d4192228304be98bb2bfc6",
   "fail_first_evidence": {
     "commit_sha": "4795009b17bef3a667615b3aabb987d914bc11eb",
     "workflow_run_id": 33605949544,
@@ -29,6 +29,17 @@
     "workflow_name": "K2 Qimen P2 Execution Readiness",
     "run_number": 30,
     "expected_failure": "ModuleNotFoundError: No module named 'k2_qimen_p2_materialize_production_profile'",
+    "all_predecessor_p2_steps_passed_before_failure": true
+  },
+  "closure_repair_evidence": {
+    "commit_sha": "ea3c97eb84ec882811bf3e030e6f08106beafc39",
+    "workflow_run_id": 33606809624,
+    "job_id": 100172562150,
+    "workflow_name": "K2 Qimen P2 Execution Readiness",
+    "run_number": 31,
+    "failure": "AssertionError: negative_cases == 16",
+    "diagnosis": "TEST_ACCOUNTING_DRIFT_EXPECTED_16_ACTUAL_17",
+    "repair": "SUCCESSOR_TEST_RECOUNTS_17_NEGATIVE_CASES_WITHOUT_WEAKENING_GUARDS",
     "all_predecessor_p2_steps_passed_before_failure": true
   },
   "p2_prebatch_profile_003": {
@@ -73,6 +84,7 @@
       "technical_unevaluable_metric_value": 0.0,
       "coverage_penalty_mode": "COUNT_IN_PRIMARY_DENOMINATOR_WITH_FROZEN_METRIC_VALUE"
     },
+    "negative_test_count": 17,
     "statistical_metric_binding": "PENDING_STATISTICAL_PREREGISTRATION",
     "metric_scale_guard": "FUTURE_PRIMARY_METRIC_MUST_BE_COMPATIBLE_WITH_0.0_ABSTENTION_VALUE_OR_PROFILE_MUST_VERSION_BEFORE_BATCH"
   },
@@ -81,6 +93,7 @@
     "priority_rule": "P2-A/P2-A_PRIME retain the source-local four-item ranking with 九宫 visible but unranked; P2-B retains a source-scoped unordered 奇仪+八门 primary set with 八神/九星/九宫 supporting.",
     "complexity_rule": "The 5/5/5/15/1 limits are engineering research-envelope caps derived from shared role/context cardinality, not claimed as source or Qimen doctrine.",
     "abstention_rule": "ABSTAIN and technical UNEVALUABLE remain in the primary denominator with a frozen 0.0 research-profile value; its compatibility with the eventual primary metric must be explicitly preregistered.",
+    "self_correction": "The first closure attempt miscounted 17 fail-closed cases as 16. The successor test preserves every guard, corrects only the accounting expectation, and records the failed closure attempt rather than hiding it.",
     "empirical_credit_delta": "NONE"
   },
   "execution_substrate_ready": true,
