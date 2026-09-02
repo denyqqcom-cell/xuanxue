@@ -1,0 +1,165 @@
+{
+  "decision_id": "K2-QIMEN-P2-ONTOLOGY-DECISION-V01",
+  "version": "0.1",
+  "capability": "P2-ONTOLOGY-002",
+  "stage": "POST_FACTOR_LAYER_AUDIT_PRE_SHARED_SUPERSET_REPRESENTATION_V02_PRE_DOMAIN_PARITY_RERUN_PRE_PRODUCTION_PROFILE_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+  "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+  "prior_audit_ref": "knowledge/K2_QIMEN_P2_FACTOR_LAYER_CROSSWALK_AUDIT_V01.json",
+  "source_inputs": [
+    "QM-SRC-0003",
+    "QM-SRC-0021"
+  ],
+  "source_evidence_refs": [
+    "K2E-W1-QM-0003-0065",
+    "K2E-W1-QM-0021-0007",
+    "K2E-W1-QM-0021-0239",
+    "K2E-W1-QM-0021-0346",
+    "K2E-W1-QM-0021-0347"
+  ],
+  "source_evidence_interpretation": {
+    "K2E-W1-QM-0003-0065": "QM-SRC-0003 explicitly fixes global information priority 奇仪->八门->八神->九星.",
+    "K2E-W1-QM-0021-0007": "QM-SRC-0021 explicitly defines 九星天盘/九宫地盘/八门人盘/八神神盘 and respectively assigns 天时/地利/人和/神助 analysis roles. This is stronger than semantic resemblance.",
+    "K2E-W1-QM-0021-0239": "The workplace method combines 天时/地利/人和/神助/格局 as five evaluation factors; this does not establish a total workplace ordering among them.",
+    "K2E-W1-QM-0021-0346": "QM-SRC-0021 treats 星/门/神/仪/九宫 as condition-side information around the selected 主, supporting a shared atomic context superset that includes 奇仪 and 九宫.",
+    "K2E-W1-QM-0021-0347": "Problem type can change the primary observed layer: general auspiciousness emphasizes 九星, travel 八门, burial/relocation 九宫. It supports partial/domain-conditioned priority, not an invented total workplace order."
+  },
+  "self_correction": {
+    "status": "P2_ONTOLOGY_001_PARTIAL_CONCLUSION_SUPERSEDED",
+    "reason": "OVERLOOKED_EXPLICIT_QM_SRC_0021_FOUR_PLATE_FACTOR_STRUCTURE",
+    "prior_audit_preserved_as_historical_record": true,
+    "silent_rewrite_forbidden": true,
+    "correction": "The earlier labels 天时->九星, 人和->八门, 神助->八神 as semantic resemblance only were too conservative because K2E-W1-QM-0021-0007 explicitly supplies these structural roles and also supplies 地利->九宫. The full five-factor ontology still is not isomorphic to the old four-layer P2 representation because 格局 is composite and 奇仪 is not one of those five factor labels.",
+    "empirical_credit_delta": "NONE"
+  },
+  "source_grounded_crosswalk": {
+    "status": "PARTIAL_EXACT_STRUCTURE_ESTABLISHED_FULL_ONTOLOGY_NOT_ISOMORPHIC",
+    "explicit_factor_component_map": [
+      {
+        "factor_id": "天时",
+        "component_id": "九星",
+        "status": "SOURCE_EXPLICIT_STRUCTURE",
+        "source_ref": "K2E-W1-QM-0021-0007",
+        "equivalence_scope": "QM_SRC_0021_FOUR_PLATE_ANALYSIS_ROLE"
+      },
+      {
+        "factor_id": "地利",
+        "component_id": "九宫",
+        "status": "SOURCE_EXPLICIT_STRUCTURE",
+        "source_ref": "K2E-W1-QM-0021-0007",
+        "equivalence_scope": "QM_SRC_0021_FOUR_PLATE_ANALYSIS_ROLE"
+      },
+      {
+        "factor_id": "人和",
+        "component_id": "八门",
+        "status": "SOURCE_EXPLICIT_STRUCTURE",
+        "source_ref": "K2E-W1-QM-0021-0007",
+        "equivalence_scope": "QM_SRC_0021_FOUR_PLATE_ANALYSIS_ROLE"
+      },
+      {
+        "factor_id": "神助",
+        "component_id": "八神",
+        "status": "SOURCE_EXPLICIT_STRUCTURE",
+        "source_ref": "K2E-W1-QM-0021-0007",
+        "equivalence_scope": "QM_SRC_0021_FOUR_PLATE_ANALYSIS_ROLE"
+      }
+    ],
+    "格局": "DERIVED_COMPOSITE_NOT_ATOMIC_LAYER",
+    "奇仪": "ATOMIC_CONTEXT_COMPONENT_NO_FIVE_FACTOR_EQUIVALENT",
+    "full_five_factor_to_existing_four_layer_isomorphism": false
+  },
+  "architecture_decision": {
+    "decision": "BUILD_SHARED_SUPERSET_REPRESENTATION_V02",
+    "rejected_route": "SWITCH_DOMAIN_ONLY_TO_AVOID_ONTOLOGY_MISMATCH",
+    "rationale": "The source record now supports a common atomic context universe spanning 奇仪/八门/八神/九星/九宫. Preserving that superset for every lane is more source-faithful than deleting 地利/九宫, collapsing 格局, or changing domains merely to fit Representation V01.",
+    "shared_atomic_context_universe": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星",
+      "九宫"
+    ],
+    "derived_composites": [
+      "格局"
+    ],
+    "same_feature_universe_all_lanes": true,
+    "lane_specific_feature_vocabulary_forbidden": true,
+    "格局_may_not_be_counted_as_atomic_layer": true,
+    "九宫_may_not_be_dropped": true,
+    "representation_v01_status": "HISTORICAL_EXECUTION_SUBSTRATE_FIXTURE_NOT_PRODUCTION_DOMAIN_AUTHORITY"
+  },
+  "priority_policy_implications": {
+    "P2-A": {
+      "source_ranked_subset": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ],
+      "visible_but_unranked_context": [
+        "九宫"
+      ],
+      "invent_rank_for_九宫_forbidden": true
+    },
+    "P2-A_PRIME": {
+      "source_ranked_subset": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ],
+      "visible_but_unranked_context": [
+        "九宫"
+      ],
+      "invent_rank_for_九宫_forbidden": true
+    },
+    "P2-B": {
+      "source_priority_form": "QUESTION_DOMAIN_CONDITIONED_PARTIAL_PRIORITY_OR_PRIMARY_LAYER",
+      "workplace_total_order_status": "NOT_SOURCE_ESTABLISHED",
+      "unsupported_total_order_action": "ABSTAIN_FAIL_CLOSED",
+      "outcome_selected_priority_forbidden": true,
+      "known_source_primary_layer_examples": {
+        "GENERAL_AUSPICIOUSNESS": "九星",
+        "TRAVEL_AVOIDANCE": "八门",
+        "BURIAL_OR_RELOCATION": "九宫"
+      }
+    }
+  },
+  "estimand_guard": {
+    "C1_role_map_and_priority_policy_may_differ": true,
+    "C2_only_priority_policy_may_differ": true,
+    "C3_only_role_map_may_differ": true,
+    "shared_feature_visibility_required": true,
+    "shared_complexity_formula_required": true,
+    "representation_v02_must_precede_domain_parity_rerun": true,
+    "production_profile_materialization_before_parity_rerun": "FORBIDDEN"
+  },
+  "pre_batch_gate": {
+    "p2_ontology_002": "CLOSED_ARCHITECTURE_DECISION",
+    "representation_v02_design_authorized": true,
+    "production_representation_materialized": false,
+    "domain_source_parity_ready": false,
+    "production_complexity_budget_profile_materialized": false,
+    "production_abstention_scoring_profile_materialized": false,
+    "statistical_preregistration_ready": false,
+    "batch_ready": false,
+    "batch_creation_allowed": false,
+    "next_required_work": "P2-PREBATCH-REP-001_SHARED_SUPERSET_REPRESENTATION_V02_CONTRACT_AND_FAIL_FIRST"
+  },
+  "source_local_overgeneralization_check": "PASS",
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "Recovering an explicit source structure corrects source interpretation only; it is not predictive or metaphysical validation.",
+    "The workplace domain still lacks a source-established total P2-B priority order.",
+    "Representation V02 is authorized for design only and is not materialized by this decision.",
+    "No production profile, statistical preregistration, Batch, Freeze or Outcome is created.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

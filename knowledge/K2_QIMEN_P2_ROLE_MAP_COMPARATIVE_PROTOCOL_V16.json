@@ -1,0 +1,97 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V16",
+  "version": "0.16",
+  "status": "ONTOLOGY_ARCHITECTURE_DECIDED_SHARED_SUPERSET_V02_PENDING",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V15",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V12.json",
+  "ontology_decision": {
+    "ref": "knowledge/K2_QIMEN_P2_ONTOLOGY_DECISION_V01.json",
+    "git_blob": "23b15e8375012c2aa8f2cbc5df682b41d0862b29",
+    "canonical_sha256": "e39978fd0cbde438b3e36061ac0cc8a3be19602e839745ed7b5c99e988454d27"
+  },
+  "epistemic_correction": {
+    "prior_status": "P2-ONTOLOGY-001 treated 天时/人和/神助 links as semantic candidates and 地利 as unmatched.",
+    "corrected_status": "QM-SRC-0021 evidence 0007 explicitly maps 天时->九星, 地利->九宫, 人和->八门, 神助->八神 within its four-plate analysis structure.",
+    "historical_record_preserved": true,
+    "empirical_credit_delta": "NONE"
+  },
+  "representation_v02_decision": {
+    "route": "SHARED_SUPERSET",
+    "shared_atomic_context_universe": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星",
+      "九宫"
+    ],
+    "derived_composites": [
+      "格局"
+    ],
+    "same_feature_universe_all_lanes": true,
+    "lane_specific_feature_vocabulary_forbidden": true,
+    "representation_v01_not_production_authority": true
+  },
+  "lane_priority_semantics": {
+    "P2-A": {
+      "ranked_subset": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ],
+      "visible_unranked_context": [
+        "九宫"
+      ]
+    },
+    "P2-A_PRIME": {
+      "ranked_subset": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ],
+      "visible_unranked_context": [
+        "九宫"
+      ]
+    },
+    "P2-B": {
+      "policy_form": "QUESTION_DOMAIN_CONDITIONED_PARTIAL_PRIORITY_OR_PRIMARY_LAYER",
+      "workplace_total_order": "NOT_SOURCE_ESTABLISHED",
+      "unsupported_total_order": "ABSTAIN_FAIL_CLOSED"
+    }
+  },
+  "estimand_guard": {
+    "C1": "ROLE_MAP_PLUS_PRIORITY_POLICY",
+    "C2": "PRIORITY_POLICY_ONLY",
+    "C3": "ROLE_MAP_ONLY",
+    "shared_feature_visibility_required": true,
+    "shared_complexity_formula_required": true
+  },
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "p2_ontology_002": "CLOSED_ARCHITECTURE_DECISION",
+  "representation_v02_materialized": false,
+  "domain_source_parity_ready": false,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_SHARED_SUPERSET_REPRESENTATION_V02_AND_DOMAIN_SOURCE_PARITY_RERUN_AND_STATISTICAL_PREREGISTRATION",
+  "next_required_work": [
+    "P2-PREBATCH-REP-001_SHARED_SUPERSET_REPRESENTATION_V02_CONTRACT_AND_FAIL_FIRST",
+    "RERUN_DOMAIN_SOURCE_PARITY_ON_REPRESENTATION_V02"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V16 is a pre-Batch architecture state, not predictive evidence.",
+    "The workplace P2-B total order is not source-established.",
+    "No production Representation V02 exists yet.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}
