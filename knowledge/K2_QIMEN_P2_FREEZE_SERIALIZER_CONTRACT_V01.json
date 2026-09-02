@@ -1,0 +1,78 @@
+{
+  "contract_id": "K2-QIMEN-P2-FREEZE-SERIALIZER-CONTRACT-V01",
+  "version": "0.1",
+  "capability": "P2-EXEC-009",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "stage": "SERIALIZER_IMPLEMENTATION_ONLY_PRE_BATCH",
+  "failure_policy": "FAIL_CLOSED",
+  "serializer_boundary": {
+    "serializer_is_pure": true,
+    "serializer_does_not_create_batch": true,
+    "serializer_does_not_persist_freeze": true,
+    "production_freeze_requires_preexisting_batch": true,
+    "batch_binding_included_in_serialized_bytes": true,
+    "fixture_mode_requires_synthetic_batch": true
+  },
+  "batch_binding_contract": {
+    "required_fields": [
+      "batch_id",
+      "batch_ref",
+      "batch_sha256",
+      "batch_created",
+      "production_batch"
+    ],
+    "batch_created_must_be_true": true,
+    "batch_sha256_algorithm": "SHA256"
+  },
+  "payload_contract": {
+    "schema_ref": "knowledge/schema/qimen_p2_execution_freeze.schema.json",
+    "schema_version": "0.1",
+    "artifact_kind": "P2_EXECUTION_FREEZE",
+    "research_only": true,
+    "outcome_data_used": false,
+    "reproducibility_fixture_hash_required": true
+  },
+  "canonicalization": {
+    "encoding": "UTF-8",
+    "json_sort_keys": true,
+    "separators": [
+      ",",
+      ":"
+    ],
+    "ensure_ascii": false,
+    "floats_forbidden": true,
+    "hash_algorithm": "SHA256"
+  },
+  "immutability": {
+    "verification_recomputes_sha256_over_exact_bytes": true,
+    "any_byte_mutation_invalidates": true,
+    "post_serialization_mutation_forbidden": true
+  },
+  "forbidden_fields": [
+    "outcome",
+    "outcome_value",
+    "observed_outcome",
+    "feedback",
+    "score",
+    "winner_lane",
+    "post_feedback_edit",
+    "runtime_timestamp",
+    "now",
+    "current_time",
+    "persist",
+    "output_path"
+  ],
+  "fixture_policy": {
+    "fixture_only": true,
+    "synthetic_batch_only": true,
+    "production_freeze_created": false,
+    "source_claim": false,
+    "empirical_claim": false
+  },
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED"
+}

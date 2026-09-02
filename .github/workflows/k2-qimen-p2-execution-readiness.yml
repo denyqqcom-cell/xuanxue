@@ -11,6 +11,7 @@ on:
       - 'knowledge/K2_QIMEN_P2_BLINDED_LANE_*'
       - 'knowledge/K2_QIMEN_P2_ABSTAIN_DENOMINATOR_*'
       - 'knowledge/K2_QIMEN_P2_EXACT_REPRODUCIBILITY_*'
+      - 'knowledge/K2_QIMEN_P2_FREEZE_SERIALIZER_*'
       - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
       - 'knowledge/K2_PROSPECTIVE_BATCHES.jsonl'
       - 'knowledge/K2_PROSPECTIVE_FREEZES.jsonl'
@@ -55,5 +56,9 @@ jobs:
         run: python3 tools/test_k2_qimen_p2_exact_reproducibility.py
       - name: Validate P2 ABSTAIN/denominator successor and exact reproducibility closure
         run: python3 tools/validate_k2_qimen_p2_exact_reproducibility.py
+      - name: Test P2 Freeze serializer fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_freeze_serializer.py
+      - name: Validate P2 exact reproducibility successor and Freeze serializer closure
+        run: python3 tools/validate_k2_qimen_p2_freeze_serializer.py
       - name: Enforce historical P2 execution-contract state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
