@@ -1,0 +1,78 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V06",
+  "version": "0.6",
+  "status": "PARTIAL_EXECUTION_SUBSTRATE_REPRESENTATION_BOUND",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V05",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V02.json",
+  "execution_contract_ref": "knowledge/K2_QIMEN_P2_EXECUTION_CONTRACT_V01.json",
+  "representation_contract_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V01.json",
+  "representation_contract_canonical_sha256": "1a7128dd4c1ba5846c1d74f78645ff7b1ea87032898bbd83f61859283182393d",
+  "closed_execution_blockers": [
+    "P2-EXEC-001",
+    "P2-EXEC-002",
+    "P2-EXEC-003"
+  ],
+  "open_execution_blockers": [
+    "P2-EXEC-004",
+    "P2-EXEC-005",
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008",
+    "P2-EXEC-009"
+  ],
+  "closure_scope": {
+    "P2-EXEC-001": "machine-structured A/A_PRIME/B lane graph and exact C1/C2/C3 estimand contract",
+    "P2-EXEC-002": "canonical versioned+hashed generator descriptor shape and deterministic canonicalization",
+    "P2-EXEC-003": "deterministic materialization of one shared world-variable/symbol/feature/rule/prediction representation and exact equality of its hashes across all three lane bindings",
+    "explicitly_not_closed": [
+      "production deterministic Role/Layer generators",
+      "complexity-budget enforcement",
+      "blinded isolated lane execution",
+      "ABSTAIN/denominator scoring",
+      "exact production reproducibility fixture pipeline",
+      "P2 production Freeze serialization"
+    ]
+  },
+  "representation_parity": {
+    "world_variable_manifest_shared": true,
+    "lane_specific_world_variable_addition_forbidden": true,
+    "symbol_vocabulary_shared": true,
+    "feature_extraction_manifest_shared": true,
+    "eligible_rule_pool_shared": true,
+    "prediction_schema_shared": true,
+    "lane_specific_representation_addition_forbidden": true
+  },
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_gate": "BLOCKED_REMAINING_EXECUTION_SUBSTRATE_P2_EXEC_004_TO_009",
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "authority": {
+    "design_semantics": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V02",
+    "plan_repin_history": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V03",
+    "post_repin_audit_history": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V04",
+    "estimand_generator_contract_state": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V05",
+    "current_execution_readiness": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V06"
+  },
+  "next_required_work": [
+    "P2-EXEC-004 deterministic Role/Layer generators",
+    "P2-EXEC-005 complexity budget enforcement",
+    "P2-EXEC-006 blinding/isolation runner",
+    "P2-EXEC-007 ABSTAIN/denominator scorer",
+    "P2-EXEC-008 exact reproducibility fixture pipeline",
+    "P2-EXEC-009 P2 Freeze serializer"
+  ],
+  "non_claims": [
+    "V06 is not execution-ready.",
+    "V06 is not Batch-ready.",
+    "Representation parity machinery is not Role/Layer generator validation.",
+    "No Batch, Freeze, Outcome or empirical credit exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

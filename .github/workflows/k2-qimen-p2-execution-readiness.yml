@@ -5,6 +5,7 @@ on:
     paths:
       - 'knowledge/K2_QIMEN_P2_ROLE_MAP_*'
       - 'knowledge/K2_QIMEN_P2_EXECUTION_*'
+      - 'knowledge/K2_QIMEN_P2_REPRESENTATION_*'
       - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
       - 'knowledge/K2_PROSPECTIVE_BATCHES.jsonl'
       - 'knowledge/K2_PROSPECTIVE_FREEZES.jsonl'
@@ -27,7 +28,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Test P2 execution-contract fail-closed cases
         run: python3 tools/test_k2_qimen_p2_execution_contract.py
-      - name: Test P2 representation materializer fail-first cases
+      - name: Test P2 representation materializer fail-closed cases
         run: python3 tools/test_k2_qimen_p2_representation.py
+      - name: Validate P2 representation materializer closure
+        run: python3 tools/validate_k2_qimen_p2_representation.py
       - name: Enforce current P2 execution-readiness state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
