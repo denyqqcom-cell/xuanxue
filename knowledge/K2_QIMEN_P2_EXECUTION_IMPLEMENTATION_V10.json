@@ -1,0 +1,63 @@
+{
+  "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V10",
+  "stage": "POST_SUBSTRATE_PRE_PRODUCTION_PROFILE_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "parent_head": "58b08f0894ae23ea71f206773f1ef97e017488cc",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V14.json",
+  "prior_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V09.json",
+  "domain_source_parity_audit_ref": "knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_PARITY_V01.json",
+  "domain_source_parity_audit_git_blob": "1ce5134724b8dc7ec12dff66b5036c74b1beaede",
+  "domain_source_parity_audit_canonical_sha256": "ffbb04e8ca2502c97148c86af6f94813fe06c0eab2ae802633e06007ca8af70e",
+  "domain_source_parity_test_ref": "tools/test_k2_qimen_p2_domain_source_parity.py",
+  "domain_source_parity_test_git_blob": "88f37cc42bbb29342b9bb9dd5e664cf3c3658a0a",
+  "fail_first_evidence": {
+    "commit_sha": "58b08f0894ae23ea71f206773f1ef97e017488cc",
+    "workflow_run_id": 33598582735,
+    "job_id": 100147061465,
+    "workflow_name": "K2 Qimen P2 Execution Readiness",
+    "run_number": 20,
+    "expected_failure": "AssertionError: missing production-domain source-parity audit artifact",
+    "predecessor_execution_substrate_and_post_substrate_binding_steps_passed_before_failure": true
+  },
+  "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+  "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+  "domain_audit_result": {
+    "role_parity": "PASS_SHARED_ROLE_INTERSECTION",
+    "layer_parity": "BLOCKED_SOURCE_ONTOLOGY_MISMATCH",
+    "domain_source_parity_audit_complete": true,
+    "domain_source_parity_ready": false,
+    "production_representation_materialization_allowed": false
+  },
+  "source_learning_update": {
+    "qm_src_0003": "supports the exact fixed global priority 奇仪->八门->八神->九星 and overlapping workplace role candidates",
+    "qm_src_0021": "supports overlapping workplace roles but presents a five-factor 天时/地利/人和/神助/格局 framework rather than an exact ranking over the current four P2 layer ids",
+    "self_correction": "Do not invent a factor-to-layer crosswalk merely to make P2 executable; the source ontology mismatch is promoted to an explicit engineering blocker."
+  },
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "production_representation_materialized": false,
+  "production_complexity_budget_profile_materialized": false,
+  "production_abstention_scoring_profile_materialized": false,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_SOURCE_GROUNDED_LAYER_ONTOLOGY_RESOLUTION_AND_CONCRETE_STATISTICAL_PREREGISTRATION",
+  "next_required_work": [
+    "P2-ONTOLOGY-001_SOURCE_GROUNDED_FACTOR_TO_LAYER_CROSSWALK_AUDIT",
+    "P2-ONTOLOGY-002_DECIDE_ADDITIVE_REPRESENTATION_V02_OR_ALTERNATE_DOMAIN",
+    "RERUN_DOMAIN_SOURCE_PARITY_BEFORE_ANY_PRODUCTION_PROFILE_MATERIALIZATION"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "Role parity is source-structure credit only and does not validate workplace prediction.",
+    "The layer ontology blocker is not permission to silently map 天时/地利/人和/神助/格局 into the current four-layer P2 representation.",
+    "No production profile or statistical preregistration exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V14",
+  "version": "0.14",
+  "status": "DOMAIN_SOURCE_PARITY_AUDITED_LAYER_ONTOLOGY_BLOCKED",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V13",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V10.json",
+  "domain_source_parity_audit": {
+    "ref": "knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_PARITY_V01.json",
+    "git_blob": "1ce5134724b8dc7ec12dff66b5036c74b1beaede",
+    "canonical_sha256": "ffbb04e8ca2502c97148c86af6f94813fe06c0eab2ae802633e06007ca8af70e",
+    "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+    "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE"
+  },
+  "source_parity_result": {
+    "role_parity": "PASS_SHARED_ROLE_INTERSECTION",
+    "layer_parity": "BLOCKED_SOURCE_ONTOLOGY_MISMATCH",
+    "shared_role_ids": ["asker", "organization", "superior", "peer", "subordinate"],
+    "current_p2_layer_vocabulary": ["奇仪", "八门", "八神", "九星"],
+    "qm_src_0003_fixed_priority": ["奇仪", "八门", "八神", "九星"],
+    "qm_src_0021_workplace_factor_ontology": ["天时", "地利", "人和", "神助", "格局"],
+    "silent_factor_to_layer_crosswalk_forbidden": true,
+    "source_faithful_topology_priority_currently_available": false
+  },
+  "epistemic_update": {
+    "previous_candidate_assumption": "Workplace/social domain looked promising because both QM-SRC-0003 and QM-SRC-0021 contain role structures.",
+    "audit_correction": "Role overlap is real, but the layer comparison is not yet source-faithful: QM-SRC-0021 uses a five-factor workplace ontology that cannot be silently collapsed into the existing four P2 layer ids.",
+    "engineering_consequence": "Production representation/profile materialization must stop until the ontology mismatch is resolved prospectively or another domain satisfies exact source parity."
+  },
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "domain_source_parity_audit_complete": true,
+  "domain_source_parity_ready": false,
+  "production_representation_materialized": false,
+  "production_complexity_budget_profile_materialized": false,
+  "production_abstention_scoring_profile_materialized": false,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_SOURCE_GROUNDED_LAYER_ONTOLOGY_RESOLUTION_AND_CONCRETE_STATISTICAL_PREREGISTRATION",
+  "next_required_work": [
+    "P2-ONTOLOGY-001_SOURCE_GROUNDED_FACTOR_TO_LAYER_CROSSWALK_AUDIT",
+    "P2-ONTOLOGY-002_DECIDE_ADDITIVE_REPRESENTATION_V02_OR_ALTERNATE_DOMAIN",
+    "RERUN_DOMAIN_SOURCE_PARITY_BEFORE_ANY_PRODUCTION_PROFILE_MATERIALIZATION"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V14 is a source-parity audit result, not a predictive result.",
+    "Shared workplace roles do not validate employment or organizational prediction.",
+    "No source-local factor is universalized or silently translated.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}
