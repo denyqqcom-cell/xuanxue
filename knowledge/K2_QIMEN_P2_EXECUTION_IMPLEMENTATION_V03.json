@@ -1,0 +1,101 @@
+{
+  "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V03",
+  "stage": "PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "parent_head": "fa3fa045c03511639c78fc02334d5668126cb5f6",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V07.json",
+  "prior_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V02.json",
+  "execution_contract_ref": "knowledge/K2_QIMEN_P2_EXECUTION_CONTRACT_V01.json",
+  "representation_contract_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V01.json",
+  "role_layer_contract_ref": "knowledge/K2_QIMEN_P2_ROLE_LAYER_GENERATOR_CONTRACT_V01.json",
+  "role_layer_contract_git_blob": "8ca89fa782b3dd260db3316488a4897bb92f975b",
+  "role_layer_contract_canonical_sha256": "5bca2e5544cadf3e1dad2f8e150dffd93b0a12b1d3295d8ab01f56b0ff18bf63",
+  "generator_ref": "tools/k2_qimen_p2_generate_mapping.py",
+  "generator_git_blob": "b0640fb47525803053a92a6b0812e4209fba652c",
+  "test_ref": "tools/test_k2_qimen_p2_role_layer_generators.py",
+  "test_git_blob": "9115612b3048b1d4dc3db09736970eeaecaf64d1",
+  "validator_ref": "tools/validate_k2_qimen_p2_role_layer_generators.py",
+  "validator_git_blob": "a859576a384ea74bcebbad7c62f235e3a9fb5b87",
+  "fixture_ref": "tools/testdata/qimen_p2_role_layer_generator_fixture.json",
+  "fixture_git_blob": "e2dc87e46606cfc3637cb483a0c16bf46f19d51a",
+  "fail_first_evidence": {
+    "commit_sha": "fa3fa045c03511639c78fc02334d5668126cb5f6",
+    "workflow_run_id": 33587987744,
+    "job_id": 100116022003,
+    "workflow_name": "K2 Qimen P2 Execution Readiness",
+    "run_number": 5,
+    "expected_failure": "ModuleNotFoundError: No module named 'k2_qimen_p2_generate_mapping'",
+    "predecessor_execution_negative_cases": 14,
+    "predecessor_representation_negative_cases": 5
+  },
+  "closed_blockers": [
+    {
+      "blocker_id": "P2-EXEC-001",
+      "status": "CARRIED_CLOSED_MACHINE_CONTRACT",
+      "closure_scope": "machine-structured A/A_PRIME/B estimand binding retained"
+    },
+    {
+      "blocker_id": "P2-EXEC-002",
+      "status": "CARRIED_CLOSED_MACHINE_CONTRACT",
+      "closure_scope": "canonical generator descriptor contract retained"
+    },
+    {
+      "blocker_id": "P2-EXEC-003",
+      "status": "CARRIED_CLOSED_MACHINE_IMPLEMENTATION",
+      "closure_scope": "shared representation parity materializer retained and revalidated through successor validator"
+    },
+    {
+      "blocker_id": "P2-EXEC-004",
+      "status": "CLOSED_MACHINE_IMPLEMENTATION",
+      "closure_scope": "deterministic source-constrained three-lane Role/Layer mapping generation with pre-plate freeze boundary, layer-qualified symbol instances, source-local scope enforcement, preserved shared role catalog and contamination ledger guards",
+      "does_not_claim": "No source-local role/correction rule is universalized; no scoring, budget enforcement, blinded lane execution, Batch or Freeze is implemented here."
+    }
+  ],
+  "negative_test_count": 10,
+  "negative_test_contract": [
+    "plate values before mapping freeze fail",
+    "source-local role globalization fails",
+    "role invented outside shared source catalog fails",
+    "source-local correction globalization fails",
+    "symbol instance without plate layer fails",
+    "plate read before mapping freeze fails",
+    "Role Map edit after plate access records contamination and fails",
+    "post-feedback role switch records contamination and fails",
+    "post-feedback correction edit records contamination and fails",
+    "unfrozen competing mapping selected by outcome-hit records contamination and fails"
+  ],
+  "source_local_overgeneralization_check": {
+    "status": "PASS",
+    "basis": [
+      "QM-SRC-0003 Wave1 distillate",
+      "QM-SRC-0021 deep-source distillate",
+      "WF-QM-JINHAN-YUJING-001 work-family distillate",
+      "QM-SRC-0027/0028/0029 deep-source distillates and Shantiadao per-book acceptance",
+      "K2_QIMEN_TBV_STATE"
+    ],
+    "guard": "Only QM-SRC-0003 fixed layer priority is carried as the explicit baseline; all role/correction/topology bindings remain question-domain scoped and source-referenced."
+  },
+  "open_blockers": [
+    "P2-EXEC-005",
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008",
+    "P2-EXEC-009"
+  ],
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "P2-EXEC-004 is machine-implementation closure only, not evidence that any Role Map is empirically superior.",
+    "The synthetic topology-layer fixture order is explicitly fixture-only and is not a source claim.",
+    "P2-EXEC-005..009 remain open.",
+    "No prospective Batch, Freeze or Outcome exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

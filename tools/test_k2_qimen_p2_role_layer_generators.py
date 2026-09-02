@@ -51,6 +51,7 @@ def main():
 
     expected_catalog_roles = sorted(x["role_id"] for x in pre["source_role_catalog"])
     assert [x["role_id"] for x in lane_a["roles"]] == expected_catalog_roles
+    assert {x["role_id"] for x in lane_ap["roles"]} == set(expected_catalog_roles)
 
     assert lane_ap["roles"] == lane_b["roles"]
     assert lane_ap["correction_registry"] == lane_b["correction_registry"]
@@ -79,6 +80,11 @@ def main():
     negative_cases += 1
 
     x = copy.deepcopy(pre)
+    x["topology_role_candidates"][0]["role_id"] = "invented_role_outside_shared_catalog"
+    must_fail(SourceLocalityError, lambda: validate_pre_plate_input(x), "role outside shared source catalog")
+    negative_cases += 1
+
+    x = copy.deepcopy(pre)
     x["correction_registry"][0]["source_scope"] = "GLOBAL"
     must_fail(SourceLocalityError, lambda: validate_pre_plate_input(x), "source-local correction globalization")
     negative_cases += 1
@@ -103,7 +109,7 @@ def main():
     session.freeze_mappings()
     session.read_plate_values({"fixture": 1})
     session.read_feedback({"fixture_outcome": "known"})
-    must_fail(ContaminationError, lambda: session.attempt_role_switch("topology_peer"), "post-feedback role switch")
+    must_fail(ContaminationError, lambda: session.attempt_role_switch("peer"), "post-feedback role switch")
     assert session.contamination_ledger[-1]["kind"] == "POST_FEEDBACK_ROLE_SWITCH"
     negative_cases += 1
 
@@ -126,7 +132,7 @@ def main():
     assert session.contamination_ledger[-1]["kind"] == "UNFROZEN_COMPETING_MAPPING_OUTCOME_SELECTION"
     negative_cases += 1
 
-    assert negative_cases == 9
+    assert negative_cases == 10
     print(
         "k2-qimen-p2-role-layer-generator-tests: PASS "
         f"negative_cases={negative_cases} lanes={','.join(LANE_IDS)}"
