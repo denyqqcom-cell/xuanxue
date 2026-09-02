@@ -94,5 +94,7 @@ jobs:
         run: python3 tools/validate_k2_qimen_p2_statistical_preregistration.py
       - name: Test future P2 Batch registration binder fail-closed cases
         run: python3 tools/test_k2_qimen_p2_batch_registration.py
+      - name: Validate future P2 Batch registration machinery closure
+        run: python3 tools/validate_k2_qimen_p2_batch_registration.py
       - name: Enforce historical P2 execution-contract state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
