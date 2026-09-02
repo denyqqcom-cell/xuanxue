@@ -1,0 +1,104 @@
+{
+  "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V13",
+  "stage": "POST_SHARED_SUPERSET_REPRESENTATION_V02_MACHINE_CONTRACT_PRE_DOMAIN_PARITY_RERUN_PRE_PRODUCTION_PROFILE_PRE_STATISTICAL_PREREGISTRATION_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "parent_head": "b6fdc18a500ca311220214c59b444238b9c1a8ff",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V17.json",
+  "prior_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V12.json",
+  "ontology_decision_ref": "knowledge/K2_QIMEN_P2_ONTOLOGY_DECISION_V01.json",
+  "representation_v02_contract_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V02.json",
+  "representation_v02_contract_git_blob": "06a993535fdc992cbcbe9fff6cab4192fe1ef95c",
+  "representation_v02_contract_canonical_sha256": "ad7b30fb42510132f03dd86dd5d98a0c59653715937a2a43d970b1d58a774180",
+  "representation_v02_materializer_ref": "tools/k2_qimen_p2_materialize_representation_v02.py",
+  "representation_v02_materializer_git_blob": "2bfa07a926e772e0756959079496db330cce8a14",
+  "representation_v02_test_ref": "tools/test_k2_qimen_p2_representation_v02.py",
+  "representation_v02_test_git_blob": "6480171d0561f85fdc02b993d02cb3c1a7c20b06",
+  "representation_v02_validator_ref": "tools/validate_k2_qimen_p2_representation_v02.py",
+  "representation_v02_validator_git_blob": "13f8389c9e7eca105e1189a7fefeb49c2b3cff32",
+  "fail_first_evidence": {
+    "commit_sha": "b6fdc18a500ca311220214c59b444238b9c1a8ff",
+    "workflow_run_id": 33604272961,
+    "job_id": 100164597265,
+    "workflow_name": "K2 Qimen P2 Execution Readiness",
+    "run_number": 26,
+    "expected_failure": "ModuleNotFoundError: No module named 'k2_qimen_p2_materialize_representation_v02'",
+    "all_predecessor_p2_steps_passed_before_failure": true
+  },
+  "p2_prebatch_rep_001": {
+    "status": "CLOSED_MACHINE_CONTRACT_FIXTURE",
+    "representation_id": "QRM-P2-SHARED-SUPERSET-REPRESENTATION-V02",
+    "shared_atomic_context_universe": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星",
+      "九宫"
+    ],
+    "derived_composites": [
+      "格局"
+    ],
+    "lane_ids": [
+      "P2-A",
+      "P2-A_PRIME",
+      "P2-B"
+    ],
+    "same_feature_universe_all_lanes": true,
+    "shared_manifest_component_count": 6,
+    "priority_policy_supports_partial_order": true,
+    "unsupported_total_order_action": "ABSTAIN_FAIL_CLOSED",
+    "contract_fixture_materialization_ready": true,
+    "production_domain_instance_materialized": false
+  },
+  "epistemic_boundary": {
+    "source_structure_correction_carried_forward": true,
+    "qm_src_0003_ranked_subset": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星"
+    ],
+    "qm_src_0003_visible_unranked_context": [
+      "九宫"
+    ],
+    "qm_src_0021_explicit_four_plate_roles": {
+      "天时": "九星",
+      "地利": "九宫",
+      "人和": "八门",
+      "神助": "八神"
+    },
+    "格局": "DERIVED_COMPOSITE_NOT_ATOMIC_LAYER",
+    "workplace_total_order_status": "NOT_SOURCE_ESTABLISHED",
+    "empirical_credit_delta": "NONE"
+  },
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "p2_ontology_002_decision_complete": true,
+  "representation_v02_machine_contract_ready": true,
+  "production_representation_materialized": false,
+  "domain_source_parity_ready": false,
+  "production_complexity_budget_profile_materialized": false,
+  "production_abstention_scoring_profile_materialized": false,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_REPRESENTATION_V02_DOMAIN_SOURCE_PARITY_RERUN_AND_PRODUCTION_PROFILE_BINDING_AND_STATISTICAL_PREREGISTRATION",
+  "next_required_work": [
+    "P2-PREBATCH-PARITY-002_RERUN_DOMAIN_SOURCE_PARITY_ON_REPRESENTATION_V02",
+    "IF_PARITY_PASSES_THEN_MATERIALIZE_PRODUCTION_COMPLEXITY_AND_ABSTENTION_PROFILES",
+    "THEN_CONCRETE_STATISTICAL_PREREGISTRATION_BEFORE_BATCH"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "P2-PREBATCH-REP-001 closes only the shared Representation V02 machine contract and fixture materializer.",
+    "No production workplace representation instance has been materialized.",
+    "No domain/source parity rerun under V02 has yet passed.",
+    "No complexity profile, abstention profile or statistical preregistration exists.",
+    "No Batch, Freeze or Outcome exists and QRM-H1 remains UNTESTED."
+  ]
+}
