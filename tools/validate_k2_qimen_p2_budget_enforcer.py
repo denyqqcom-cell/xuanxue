@@ -18,16 +18,22 @@ FIXTURE_PATH = ROOT / "tools" / "testdata" / "qimen_p2_complexity_budget_fixture
 V03_PATH = K / "K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V03.json"
 V04_PATH = K / "K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V04.json"
 V07_PATH = K / "K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V07.json"
+ENFORCER_PATH = ROOT / "tools" / "k2_qimen_p2_budget_enforcer.py"
+TEST_PATH = ROOT / "tools" / "test_k2_qimen_p2_budget_enforcer.py"
 V08_PATH = K / "K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V08.json"
 BATCHES_PATH = K / "K2_PROSPECTIVE_BATCHES.jsonl"
 FREEZES_PATH = K / "K2_PROSPECTIVE_FREEZES.jsonl"
 
-EXPECTED_CONTRACT_HASH = "__PENDING_CONTRACT_HASH__"
+EXPECTED_CONTRACT_HASH = "ae54cb165af4c5ed999b24fad425e18051e0379809b6cbec816cd839be68439a"
 EXPECTED_V03_BLOB = "dd626fc6c7726487839b3353c72e3d58f1abc57b"
 EXPECTED_V07_BLOB = "a590d381c17d083049afb508b6cf1435089b02e4"
-FAIL_FIRST_COMMIT = "__PENDING_FAIL_FIRST_COMMIT__"
-FAIL_FIRST_RUN = 0
-FAIL_FIRST_JOB = 0
+EXPECTED_CONTRACT_BLOB = "458522d22c9f63cf92d58b2fe541fa4335b89ef9"
+EXPECTED_ENFORCER_BLOB = "c46255e8bc59daa4e8ab2ff683e9ab0378bb0d2e"
+EXPECTED_TEST_BLOB = "904d7a09321c13a9f909160bed9168486bed3ab3"
+EXPECTED_FIXTURE_BLOB = "332de7b78d68d4b2e1b45bbd2aa2b3d4a05aa6e2"
+FAIL_FIRST_COMMIT = "dd7aa28254331a30bee84ed253f4e8e041df0525"
+FAIL_FIRST_RUN = 33589374396
+FAIL_FIRST_JOB = 100120051816
 
 
 class ValidationError(RuntimeError):
@@ -86,6 +92,10 @@ def validate_repository():
 
     require(git_blob_sha1(V03_PATH) == EXPECTED_V03_BLOB, "V03 historical blob drift")
     require(git_blob_sha1(V07_PATH) == EXPECTED_V07_BLOB, "V07 historical blob drift")
+    require(git_blob_sha1(CONTRACT_PATH) == EXPECTED_CONTRACT_BLOB, "budget contract blob drift")
+    require(git_blob_sha1(ENFORCER_PATH) == EXPECTED_ENFORCER_BLOB, "budget enforcer blob drift")
+    require(git_blob_sha1(TEST_PATH) == EXPECTED_TEST_BLOB, "budget test blob drift")
+    require(git_blob_sha1(FIXTURE_PATH) == EXPECTED_FIXTURE_BLOB, "budget fixture blob drift")
     require(contract.get("contract_id") == "K2-QIMEN-P2-COMPLEXITY-BUDGET-CONTRACT-V01", "budget contract id drift")
     require(contract.get("capability") == "P2-EXEC-005", "budget capability drift")
     require(canonical_sha256(contract) == EXPECTED_CONTRACT_HASH, "budget contract canonical hash drift")

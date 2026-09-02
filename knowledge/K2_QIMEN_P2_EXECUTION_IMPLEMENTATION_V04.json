@@ -1,0 +1,123 @@
+{
+  "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V04",
+  "stage": "PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "parent_head": "dd7aa28254331a30bee84ed253f4e8e041df0525",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V08.json",
+  "prior_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V03.json",
+  "execution_contract_ref": "knowledge/K2_QIMEN_P2_EXECUTION_CONTRACT_V01.json",
+  "representation_contract_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V01.json",
+  "role_layer_contract_ref": "knowledge/K2_QIMEN_P2_ROLE_LAYER_GENERATOR_CONTRACT_V01.json",
+  "complexity_budget_contract_ref": "knowledge/K2_QIMEN_P2_COMPLEXITY_BUDGET_CONTRACT_V01.json",
+  "complexity_budget_contract_git_blob": "458522d22c9f63cf92d58b2fe541fa4335b89ef9",
+  "complexity_budget_contract_canonical_sha256": "ae54cb165af4c5ed999b24fad425e18051e0379809b6cbec816cd839be68439a",
+  "budget_enforcer_ref": "tools/k2_qimen_p2_budget_enforcer.py",
+  "budget_enforcer_git_blob": "c46255e8bc59daa4e8ab2ff683e9ab0378bb0d2e",
+  "budget_test_ref": "tools/test_k2_qimen_p2_budget_enforcer.py",
+  "budget_test_git_blob": "904d7a09321c13a9f909160bed9168486bed3ab3",
+  "budget_fixture_ref": "tools/testdata/qimen_p2_complexity_budget_fixture.json",
+  "budget_fixture_git_blob": "332de7b78d68d4b2e1b45bbd2aa2b3d4a05aa6e2",
+  "fail_first_evidence": {
+    "commit_sha": "dd7aa28254331a30bee84ed253f4e8e041df0525",
+    "workflow_run_id": 33589374396,
+    "job_id": 100120051816,
+    "workflow_name": "K2 Qimen P2 Execution Readiness",
+    "run_number": 7,
+    "expected_failure": "ModuleNotFoundError: No module named 'k2_qimen_p2_budget_enforcer'",
+    "predecessor_execution_negative_cases": 14,
+    "predecessor_representation_negative_cases": 5,
+    "predecessor_role_layer_negative_cases": 10
+  },
+  "closed_blockers": [
+    {
+      "blocker_id": "P2-EXEC-001",
+      "status": "CARRIED_CLOSED_MACHINE_CONTRACT",
+      "closure_scope": "machine-structured A/A_PRIME/B estimand binding retained"
+    },
+    {
+      "blocker_id": "P2-EXEC-002",
+      "status": "CARRIED_CLOSED_MACHINE_CONTRACT",
+      "closure_scope": "canonical generator descriptor contract retained"
+    },
+    {
+      "blocker_id": "P2-EXEC-003",
+      "status": "CARRIED_CLOSED_MACHINE_IMPLEMENTATION",
+      "closure_scope": "shared representation parity materializer retained"
+    },
+    {
+      "blocker_id": "P2-EXEC-004",
+      "status": "CARRIED_CLOSED_MACHINE_IMPLEMENTATION",
+      "closure_scope": "deterministic source-constrained Role/Layer mapping generation retained"
+    },
+    {
+      "blocker_id": "P2-EXEC-005",
+      "status": "CLOSED_MACHINE_IMPLEMENTATION",
+      "closure_scope": "deterministic pre-mapping complexity-budget freeze and fail-closed enforcement across PER_QUESTION, PER_LANE and PER_SYMBOL_INSTANCE with one shared formula for P2-A/P2-A_PRIME/P2-B",
+      "does_not_claim": "No universal numeric Qimen budget is asserted; numeric limits remain frozen research-profile inputs and fixture values are synthetic."
+    }
+  ],
+  "complexity_budget_semantics": {
+    "formula_id": "P2_SHARED_COMPLEXITY_FORMULA_V01",
+    "same_formula_all_lanes": true,
+    "count_domains": [
+      "PER_QUESTION",
+      "PER_LANE",
+      "PER_SYMBOL_INSTANCE"
+    ],
+    "budget_freeze_before_mapping_freeze": true,
+    "post_freeze_budget_edit_forbidden": true,
+    "plate_values_forbidden": true,
+    "outcome_forbidden": true,
+    "over_budget_action": "REJECT_QUESTION_FAIL_CLOSED",
+    "degrade_or_truncate_forbidden": true,
+    "universal_numeric_budget_claimed": false
+  },
+  "negative_test_count": 11,
+  "negative_test_contract": [
+    "lane-specific formula override fails",
+    "plate-value field in budget input fails",
+    "outcome-referencing budget formula fails",
+    "degrade-and-run over-budget policy fails",
+    "frozen budget profile mutation fails",
+    "budget source mutation after freeze fails",
+    "per-question role limit breach fails closed",
+    "per-lane total complexity limit breach fails closed",
+    "per-symbol-instance role-binding limit breach fails closed",
+    "lane-specific profile override fails",
+    "lane output peek in budget input fails"
+  ],
+  "source_local_overgeneralization_check": {
+    "status": "PASS",
+    "basis": [
+      "live successor validator re-runs P2-EXEC-004 source-grounding audit",
+      "QM-SRC-0003 Wave1 distillate",
+      "QM-SRC-0021 deep-source distillate",
+      "WF-QM-JINHAN-YUJING-001 work-family distillate",
+      "QM-SRC-0027/0028/0029 deep-source distillates and Shantiadao acceptance",
+      "K2_QIMEN_TBV_STATE"
+    ],
+    "guard": "Complexity budget counts already-scoped role/layer/symbol-instance candidates but cannot promote or rewrite source-local semantics; budget itself is methodological and source-semantic agnostic."
+  },
+  "open_blockers": [
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008",
+    "P2-EXEC-009"
+  ],
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "P2-EXEC-005 is machine-enforcement closure only and does not validate any Role Map empirically.",
+    "Fixture complexity limits are synthetic and are not universal Qimen limits.",
+    "P2-EXEC-006..009 remain open.",
+    "No prospective Batch, Freeze or Outcome exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}
