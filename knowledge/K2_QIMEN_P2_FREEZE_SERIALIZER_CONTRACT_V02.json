@@ -1,0 +1,66 @@
+{
+  "contract_id": "K2-QIMEN-P2-FREEZE-SERIALIZER-CONTRACT-V02",
+  "version": "0.2",
+  "capability": "P2-EXEC-009-POST-SUBSTRATE-HARDENING",
+  "stage": "POST_SUBSTRATE_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "failure_policy": "FAIL_CLOSED",
+  "base_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "plan_amendment_sha256": "d39db1528905b2d008720e2c1f45c2d723ce20aaf1df99c8b7fb7ed132e13de3",
+  "execution_substrate_manifest_sha256": "bee308bfb52e18829f558d576e6ea581aae0580de625aa6206bdbf84ef5fa3d5",
+  "serializer_boundary": {
+    "serializer_is_pure": true,
+    "serializer_does_not_create_batch": true,
+    "serializer_does_not_persist_freeze": true,
+    "production_freeze_requires_preexisting_batch": true,
+    "batch_binding_included_in_serialized_bytes": true,
+    "serializer_contract_hash_included_in_serialized_bytes": true,
+    "fixture_mode_requires_synthetic_batch": true
+  },
+  "batch_binding_contract": {
+    "required_fields": ["batch_id", "batch_ref", "batch_sha256", "batch_created", "production_batch"],
+    "batch_created_must_be_true": true,
+    "batch_sha256_algorithm": "SHA256"
+  },
+  "payload_contract": {
+    "schema_ref": "knowledge/schema/qimen_p2_execution_freeze_v02.schema.json",
+    "schema_version": "0.2",
+    "schema_canonical_sha256": "955d8c107cf5a4a7d830868b26967817aa8d85474f08b73203c43cf85d139c01",
+    "artifact_kind": "P2_EXECUTION_FREEZE",
+    "research_only": true,
+    "outcome_data_used": false,
+    "representation_combined_hash_required": true,
+    "modern_complexity_budget_profile_hash_required": true,
+    "blinding_contract_hash_required": true,
+    "denominator_contract_and_abstention_profile_hash_required": true,
+    "exact_reproducibility_contract_hash_required": true
+  },
+  "fixture_binding": {
+    "fixture_ref": "tools/testdata/qimen_p2_freeze_serializer_v02_fixture.json",
+    "fixture_canonical_sha256": "f70f8a10e2a38384a33902c1964068abed7f23e3468c7ef4e1a7ff548d8afde3",
+    "fixture_payload_sha256": "02c905ebbb8ae955c02fb265921d98c03a119881a67c26b0a36b638ae04dce06",
+    "fixture_values_are_source_claims": false,
+    "fixture_values_are_empirical_claims": false
+  },
+  "canonicalization": {
+    "encoding": "UTF-8",
+    "json_sort_keys": true,
+    "separators": [",", ":"],
+    "ensure_ascii": false,
+    "floats_forbidden": true,
+    "hash_algorithm": "SHA256"
+  },
+  "immutability": {
+    "verification_recomputes_sha256_over_exact_bytes": true,
+    "serializer_contract_hash_recomputed": true,
+    "freeze_payload_hash_recomputed": true,
+    "any_byte_mutation_invalidates": true,
+    "post_serialization_mutation_forbidden": true
+  },
+  "forbidden_fields": ["outcome", "outcome_value", "observed_outcome", "feedback", "score", "winner_lane", "post_feedback_edit", "runtime_timestamp", "now", "current_time", "persist", "output_path"],
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED"
+}

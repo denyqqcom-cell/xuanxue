@@ -7,12 +7,25 @@ import kotlin.test.assertTrue
 class EvidenceContractTest {
 
     @Test
-    fun `qimen full board must remain experimental until golden boards exist`() {
+    fun `qimen remains experimental despite narrow weather gate closures`() {
         val audit = MethodAuditRegistry.qimen
         assertEquals(MethodMaturity.EXPERIMENTAL, audit.maturity)
         assertTrue(audit.sourceIds.contains("handoff/qimen/HANDOFF_SUMMARY.md"))
-        assertTrue(audit.limitations.any { it.contains("完整九宫黄金盘数量为 0") })
-        assertTrue(audit.limitations.any { it.contains("实验实现") })
+        assertTrue(audit.sourceIds.contains("knowledge/K2_QIMEN_JU_METHOD_CROSS_SOURCE_REVIEW_V01.md"))
+        assertTrue(audit.sourceIds.contains("knowledge/K2_QIMEN_GATE_A_ORTHOGONALIZATION_REVIEW_V01.md"))
+        assertTrue(audit.sourceIds.contains("knowledge/K2_QIMEN_CDAF_H2_WEATHER_PILOT_GATE_AMENDMENT_V03.md"))
+        assertTrue(audit.sourceIds.contains("knowledge/K2_QIMEN_EPISTEMIC_DEBT_PROTOCOL.md"))
+        assertTrue(audit.summary.contains("weather-v0.1"))
+        assertTrue(audit.summary.contains("CHAI_BU_FUTOU"))
+        assertTrue(audit.summary.contains("A1") && audit.summary.contains("A2"))
+        assertTrue(audit.verified.any { it.contains("QM-SRC-0021") && it.contains("tianGan") })
+        assertTrue(audit.verified.any { it.contains("QM-SRC-0017") && it.contains("source-derived") })
+        assertTrue(audit.limitations.any { it.contains("不能当作完整九宫全局黄金盘") })
+        assertTrue(audit.limitations.any { it.contains("DAYCOUNT") && it.contains("ZHI_RUN") && it.contains("不能迁移") })
+        assertTrue(audit.limitations.any { it.contains("门盘") && it.contains("神盘") && it.contains("尚未全部关闭") })
+        assertTrue(audit.limitations.any { it.contains("静态星门神") && it.contains("候选特征") && it.contains("竞争解释") })
+        assertTrue(audit.limitations.any { it.contains("完整九宫仍属于实验实现") })
+        assertTrue(audit.limitations.any { it.contains("现实预测有效性") })
     }
 
     @Test

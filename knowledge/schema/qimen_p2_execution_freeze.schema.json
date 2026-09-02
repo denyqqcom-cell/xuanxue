@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://denyqqcom-cell.github.io/xuanxue/schema/qimen_p2_execution_freeze.schema.json",
+  "title": "Qimen P2 Execution Freeze",
+  "description": "Future production Freeze shape only. This schema does not itself create a Freeze or authorize a Batch.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "artifact_kind",
+    "plan_id",
+    "hypothesis_id",
+    "execution_contract_sha256",
+    "mapping_boundary",
+    "lane_bindings",
+    "estimand_lock",
+    "shared_representation",
+    "complexity_budget",
+    "blinding",
+    "denominator_policy",
+    "reproducibility_fixture_hash",
+    "research_only",
+    "outcome_data_used"
+  ],
+  "properties": {
+    "schema_version": {"const": "0.1"},
+    "artifact_kind": {"const": "P2_EXECUTION_FREEZE"},
+    "plan_id": {"const": "K2PV-QRM-002"},
+    "hypothesis_id": {"const": "QRM-H1"},
+    "execution_contract_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "mapping_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mapping_before_plate_value_access", "plate_value_access_before_mapping"],
+      "properties": {
+        "mapping_before_plate_value_access": {"const": true},
+        "plate_value_access_before_mapping": {"const": false}
+      }
+    },
+    "lane_bindings": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {"$ref": "#/$defs/laneA"},
+        {"$ref": "#/$defs/laneAPrime"},
+        {"$ref": "#/$defs/laneB"}
+      ],
+      "items": false
+    },
+    "estimand_lock": {
+      "const": {
+        "P2-C1": {
+          "candidate": "P2-A_PRIME",
+          "comparator": "P2-A",
+          "only_allowed_difference": "ROLE_BINDING_POLICY",
+          "all_other_dimensions_equal": true,
+          "credit_scope": "TOPOLOGY_ROLE_BINDING_ONLY"
+        },
+        "P2-C2": {
+          "candidate": "P2-B",
+          "comparator": "P2-A_PRIME",
+          "only_allowed_difference": "LAYER_PRIORITY_POLICY",
+          "all_other_dimensions_equal": true,
+          "credit_scope": "TOPOLOGY_CONDITIONED_LAYER_PRIORITY_ONLY"
+        },
+        "P2-C3": {
+          "candidate": "P2-B",
+          "comparator": "P2-A",
+          "only_allowed_difference": "ROLE_BINDING_PLUS_LAYER_PRIORITY",
+          "component_credit_forbidden": true,
+          "credit_scope": "FULL_BUNDLE_ONLY_NOT_COMPONENT_ATTRIBUTION"
+        }
+      }
+    },
+    "shared_representation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "world_variable_manifest_sha256",
+        "symbol_vocabulary_sha256",
+        "feature_extraction_manifest_sha256",
+        "eligible_rule_pool_sha256",
+        "prediction_schema_sha256"
+      ],
+      "properties": {
+        "world_variable_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "symbol_vocabulary_sha256": {"$ref": "#/$defs/sha256"},
+        "feature_extraction_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "eligible_rule_pool_sha256": {"$ref": "#/$defs/sha256"},
+        "prediction_schema_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "complexity_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "role_multiplicity_budget",
+        "reasoning_branch_budget",
+        "rule_trace_budget",
+        "interpreter_information_budget",
+        "tool_access_budget"
+      ],
+      "properties": {
+        "role_multiplicity_budget": {"type": "integer", "minimum": 0},
+        "reasoning_branch_budget": {"type": "integer", "minimum": 0},
+        "rule_trace_budget": {"type": "integer", "minimum": 0},
+        "interpreter_information_budget": {"type": "integer", "minimum": 0},
+        "tool_access_budget": {"type": "integer", "minimum": 0}
+      }
+    },
+    "blinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lane_blinding_protocol", "lane_order_seed", "cross_lane_isolation_policy"],
+      "properties": {
+        "lane_blinding_protocol": {"type": "string", "minLength": 1},
+        "lane_order_seed": {"type": "integer"},
+        "cross_lane_isolation_policy": {"type": "string", "minLength": 1}
+      }
+    },
+    "denominator_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["primary_denominator_policy", "abstention_scoring_policy", "technical_unevaluable_policy"],
+      "properties": {
+        "primary_denominator_policy": {"type": "string", "minLength": 1},
+        "abstention_scoring_policy": {"type": "string", "minLength": 1},
+        "technical_unevaluable_policy": {"type": "string", "minLength": 1}
+      }
+    },
+    "reproducibility_fixture_hash": {"$ref": "#/$defs/sha256"},
+    "research_only": {"const": true},
+    "outcome_data_used": {"const": false}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "generator": {"$ref": "qimen_p2_generator_descriptor.schema.json"},
+    "laneA": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lane_id", "model_name", "role_binding_policy", "layer_priority_policy", "fixed_layer_priority", "generator"],
+      "properties": {
+        "lane_id": {"const": "P2-A"},
+        "model_name": {"const": "GLOBAL_PRIORITY_CATALOG_ROLE_BASELINE_V01"},
+        "role_binding_policy": {"const": "SOURCE_CATALOG_DOMAIN_SELECTION_ONLY"},
+        "layer_priority_policy": {"const": "FIXED_GLOBAL"},
+        "fixed_layer_priority": {"const": ["奇仪", "八门", "八神", "九星"]},
+        "generator": {"allOf": [{"$ref": "#/$defs/generator"}, {"properties": {"lane_id": {"const": "P2-A"}}}]}
+      }
+    },
+    "laneAPrime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lane_id", "model_name", "role_binding_policy", "layer_priority_policy", "fixed_layer_priority", "generator"],
+      "properties": {
+        "lane_id": {"const": "P2-A_PRIME"},
+        "model_name": {"const": "GLOBAL_PRIORITY_TOPOLOGY_ROLE_ABLATION_V01"},
+        "role_binding_policy": {"const": "QUESTION_TOPOLOGY_CONDITIONED"},
+        "layer_priority_policy": {"const": "FIXED_GLOBAL"},
+        "fixed_layer_priority": {"const": ["奇仪", "八门", "八神", "九星"]},
+        "generator": {"allOf": [{"$ref": "#/$defs/generator"}, {"properties": {"lane_id": {"const": "P2-A_PRIME"}}}]}
+      }
+    },
+    "laneB": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["lane_id", "model_name", "role_binding_policy", "layer_priority_policy", "fixed_layer_priority", "generator"],
+      "properties": {
+        "lane_id": {"const": "P2-B"},
+        "model_name": {"const": "TOPOLOGY_CONDITIONED_ROLE_PRIORITY_V01"},
+        "role_binding_policy": {"const": "QUESTION_TOPOLOGY_CONDITIONED"},
+        "layer_priority_policy": {"const": "QUESTION_TOPOLOGY_CONDITIONED"},
+        "fixed_layer_priority": {"type": "null"},
+        "generator": {"allOf": [{"$ref": "#/$defs/generator"}, {"properties": {"lane_id": {"const": "P2-B"}}}]}
+      }
+    }
+  }
+}

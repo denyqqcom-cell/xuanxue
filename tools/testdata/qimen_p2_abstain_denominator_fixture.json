@@ -1,0 +1,84 @@
+{
+  "fixture_id": "K2-QIMEN-P2-ABSTAIN-DENOMINATOR-FIXTURE-V01",
+  "fixture_only": true,
+  "purpose": "Synthetic post-output scoring fixture for denominator/ABSTAIN contract tests; not a production Batch, Freeze, Outcome, source claim, or empirical result.",
+  "validator_only_identity_map": {
+    "P2-A": "BLIND-001",
+    "P2-A_PRIME": "BLIND-002",
+    "P2-B": "BLIND-003"
+  },
+  "contrast_bindings": {
+    "P2-C1": {
+      "candidate_blind_id": "BLIND-002",
+      "comparator_blind_id": "BLIND-001"
+    },
+    "P2-C2": {
+      "candidate_blind_id": "BLIND-003",
+      "comparator_blind_id": "BLIND-002"
+    },
+    "P2-C3": {
+      "candidate_blind_id": "BLIND-003",
+      "comparator_blind_id": "BLIND-001"
+    }
+  },
+  "contrast_binding_frozen_before_outcome_scoring": true,
+  "frozen_case_ids": [
+    "Q-FIX-001",
+    "Q-FIX-002",
+    "Q-FIX-003",
+    "Q-FIX-004"
+  ],
+  "abstention_scoring_profile": {
+    "profile_id": "P2_FIXTURE_ABSTENTION_SCORING_PROFILE_V01",
+    "fixture_synthetic_values": true,
+    "frozen_before_outcome_scoring": true,
+    "same_for_all_blind_outputs": true,
+    "abstain_metric_value": 0.0,
+    "technical_unevaluable_metric_value": 0.0,
+    "coverage_penalty_mode": "COUNT_IN_PRIMARY_DENOMINATOR_WITH_FROZEN_METRIC_VALUE"
+  },
+  "cases": [
+    {
+      "case_id": "Q-FIX-001",
+      "included_before_lane_execution": true,
+      "blind_outputs": {
+        "BLIND-001": {"status": "PREDICTED", "metric_value": 0.2},
+        "BLIND-002": {"status": "PREDICTED", "metric_value": 0.4},
+        "BLIND-003": {"status": "PREDICTED", "metric_value": 0.6}
+      }
+    },
+    {
+      "case_id": "Q-FIX-002",
+      "included_before_lane_execution": true,
+      "blind_outputs": {
+        "BLIND-001": {"status": "PREDICTED", "metric_value": 0.8},
+        "BLIND-002": {"status": "ABSTAIN", "metric_value": null},
+        "BLIND-003": {"status": "PREDICTED", "metric_value": 0.7}
+      }
+    },
+    {
+      "case_id": "Q-FIX-003",
+      "included_before_lane_execution": true,
+      "blind_outputs": {
+        "BLIND-001": {"status": "TECHNICAL_UNEVALUABLE", "metric_value": null},
+        "BLIND-002": {"status": "TECHNICAL_UNEVALUABLE", "metric_value": null},
+        "BLIND-003": {"status": "TECHNICAL_UNEVALUABLE", "metric_value": null}
+      }
+    },
+    {
+      "case_id": "Q-FIX-004",
+      "included_before_lane_execution": true,
+      "blind_outputs": {
+        "BLIND-001": {"status": "PREDICTED", "metric_value": 0.5},
+        "BLIND-002": {"status": "PREDICTED", "metric_value": 0.5},
+        "BLIND-003": {"status": "PREDICTED", "metric_value": 0.5}
+      }
+    }
+  ],
+  "expected": {
+    "denominator_per_contrast": 4,
+    "P2-C1": {"paired_primary_delta": -0.15, "predicted_pair_count": 2, "abstain_case_count": 1, "technical_unevaluable_case_count": 1},
+    "P2-C2": {"paired_primary_delta": 0.225, "predicted_pair_count": 2, "abstain_case_count": 1, "technical_unevaluable_case_count": 1},
+    "P2-C3": {"paired_primary_delta": 0.075, "predicted_pair_count": 3, "abstain_case_count": 0, "technical_unevaluable_case_count": 1}
+  }
+}

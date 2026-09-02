@@ -1,0 +1,12 @@
+{
+  "manifest_version": "TEST_V1",
+  "batch_id": "K2PVB-BATCH_001",
+  "plan_id": "K2PV-TEST-001",
+  "model_commit_sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "research_only": true,
+  "outcome_data_used": false,
+  "contract": {
+    "scope": "generic validator fixture only"
+  },
+  "note": "test fixture only; carries no research or empirical credit"
+}

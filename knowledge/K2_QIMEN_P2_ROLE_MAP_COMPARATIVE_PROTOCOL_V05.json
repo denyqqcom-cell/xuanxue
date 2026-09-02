@@ -1,0 +1,70 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V05",
+  "version": "0.5",
+  "status": "PARTIAL_EXECUTION_SUBSTRATE_CONTRACT_BOUND",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V04",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V01.json",
+  "execution_contract_ref": "knowledge/K2_QIMEN_P2_EXECUTION_CONTRACT_V01.json",
+  "execution_contract_canonical_sha256": "218bf3dbc8e83421db34d3d8678a17b93c7e1ed981d28ba70ede02c1c145264b",
+  "closed_execution_blockers": ["P2-EXEC-001", "P2-EXEC-002"],
+  "open_execution_blockers": [
+    "P2-EXEC-003",
+    "P2-EXEC-004",
+    "P2-EXEC-005",
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008",
+    "P2-EXEC-009"
+  ],
+  "closure_scope": {
+    "P2-EXEC-001": "machine-structured A/A_PRIME/B lane graph and exact C1/C2/C3 estimand contract",
+    "P2-EXEC-002": "canonical versioned+hashed generator descriptor shape and deterministic canonicalization",
+    "explicitly_not_closed": [
+      "representation manifest materialization",
+      "production deterministic Role/Layer generators",
+      "complexity-budget enforcement",
+      "blinded isolated lane execution",
+      "ABSTAIN/denominator scoring",
+      "exact production reproducibility fixture",
+      "P2 production Freeze serialization"
+    ]
+  },
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_gate": "BLOCKED_REMAINING_EXECUTION_SUBSTRATE_P2_EXEC_003_TO_009",
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "authority": {
+    "design_semantics": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V02",
+    "plan_repin_history": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V03",
+    "post_repin_audit_history": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V04",
+    "current_execution_readiness": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V05"
+  },
+  "generic_plan_registry_policy": {
+    "K2PV_QRM_002_must_remain_generic_schema_compatible": true,
+    "p2_specific_machine_contract_must_be_external_to_generic_plan_row": true,
+    "reason": "tools/validate_k2_prospective_validation.py enforces an exact generic PLAN_FIELDS set; P2-specific estimand structure is therefore bound by the separate execution contract rather than ad-hoc keys in the generic plan row."
+  },
+  "next_required_work": [
+    "P2-EXEC-003 representation manifest materializer",
+    "P2-EXEC-004 deterministic Role/Layer generators",
+    "P2-EXEC-005 complexity budget enforcement",
+    "P2-EXEC-006 blinding/isolation runner",
+    "P2-EXEC-007 ABSTAIN/denominator scorer",
+    "P2-EXEC-008 exact reproducibility fixture pipeline",
+    "P2-EXEC-009 P2 Freeze serializer"
+  ],
+  "non_claims": [
+    "V05 is not execution-ready.",
+    "V05 is not Batch-ready.",
+    "No production mapping generator has been validated by closing P2-EXEC-002.",
+    "No Batch, Freeze, Outcome or empirical credit exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

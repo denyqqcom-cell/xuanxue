@@ -1,0 +1,48 @@
+{
+  "fixture_only": true,
+  "purpose": "generator descriptor canonicalization and lane-binding shape; this is not a production generator or Freeze",
+  "descriptors": [
+    {
+      "descriptor": {
+        "generator_id": "FIXTURE-COMPARATOR-GEN",
+        "lane_id": "P2-A",
+        "version": "fixture-0.1",
+        "implementation_ref": "tools/testdata/fixture-comparator-gen.py",
+        "implementation_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "canonical_input_schema_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "canonical_output_schema_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "nondeterminism_policy": "DETERMINISTIC",
+        "seed": null
+      },
+      "canonical_sha256": "8dcfdd58f5b2b321afed1f55e3e2229606a0411a89f9c2bae63a36fc6e595ddb"
+    },
+    {
+      "descriptor": {
+        "generator_id": "FIXTURE-BRIDGE-GEN",
+        "lane_id": "P2-A_PRIME",
+        "version": "fixture-0.1",
+        "implementation_ref": "tools/testdata/fixture-bridge-gen.py",
+        "implementation_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "canonical_input_schema_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "canonical_output_schema_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "nondeterminism_policy": "DETERMINISTIC",
+        "seed": null
+      },
+      "canonical_sha256": "ca492c190a418f2f10fb598729a123c684325d0e0627086941ae434efced3100"
+    },
+    {
+      "descriptor": {
+        "generator_id": "FIXTURE-CANDIDATE-GEN",
+        "lane_id": "P2-B",
+        "version": "fixture-0.1",
+        "implementation_ref": "tools/testdata/fixture-candidate-gen.py",
+        "implementation_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "canonical_input_schema_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+        "canonical_output_schema_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "nondeterminism_policy": "DETERMINISTIC",
+        "seed": null
+      },
+      "canonical_sha256": "d089d26405dc517a805b013ee604f65624ee74a300de3edce2dcc39d151401e8"
+    }
+  ]
+}

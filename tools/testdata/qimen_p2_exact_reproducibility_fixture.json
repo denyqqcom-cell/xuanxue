@@ -1,0 +1,100 @@
+{
+  "fixture_id": "K2-QIMEN-P2-EXACT-REPRODUCIBILITY-FIXTURE-V01",
+  "fixture_only": true,
+  "purpose": "Synthetic deterministic boundary sentinels for P2 execution reproducibility. They test byte-exact replay and do not assert calendar, plate or Qimen correctness.",
+  "boundary_semantics": "REPRODUCIBILITY_SENTINEL_NOT_CALENDAR_CORRECTNESS_CLAIM",
+  "cases": [
+    {
+      "fixture_case_id": "FX-EMPTY-PLATE-BOUNDARY",
+      "frozen_input": {
+        "question_id": "fixture-empty-plate-boundary",
+        "time_source": {
+          "source_id": "FROZEN_FIXTURE_CLOCK",
+          "local_datetime": "2030-01-01T12:00:00+08:00",
+          "timezone": "Asia/Hong_Kong",
+          "utc_offset": "+08:00"
+        },
+        "calendar_boundary": {
+          "boundary_kind": "EMPTY_PLATE_BOUNDARY",
+          "boundary_marker": "EMPTY-PLATE-SENTINEL",
+          "fixture_synthetic_label": true
+        },
+        "nondeterminism_seed": 8004,
+        "payload": {
+          "plate_state_token": "EMPTY-PLATE-SENTINEL",
+          "symbol_instances": [],
+          "boundary_note": "synthetic empty-state sentinel only"
+        }
+      }
+    },
+    {
+      "fixture_case_id": "FX-LEAP-MONTH-BOUNDARY",
+      "frozen_input": {
+        "question_id": "fixture-leap-month-boundary",
+        "time_source": {
+          "source_id": "FROZEN_FIXTURE_CLOCK",
+          "local_datetime": "2030-06-01T12:00:00+08:00",
+          "timezone": "Asia/Hong_Kong",
+          "utc_offset": "+08:00"
+        },
+        "calendar_boundary": {
+          "boundary_kind": "LEAP_MONTH_BOUNDARY",
+          "boundary_marker": "LEAP-MONTH-SENTINEL",
+          "fixture_synthetic_label": true
+        },
+        "nondeterminism_seed": 8001,
+        "payload": {
+          "lunar_month_token": "LEAP-MONTH-SENTINEL",
+          "boundary_side": "AT_SENTINEL",
+          "boundary_note": "synthetic leap-month sentinel only"
+        }
+      }
+    },
+    {
+      "fixture_case_id": "FX-SOLAR-TERM-BOUNDARY",
+      "frozen_input": {
+        "question_id": "fixture-solar-term-boundary",
+        "time_source": {
+          "source_id": "FROZEN_FIXTURE_CLOCK",
+          "local_datetime": "2030-02-04T16:00:00+08:00",
+          "timezone": "Asia/Hong_Kong",
+          "utc_offset": "+08:00"
+        },
+        "calendar_boundary": {
+          "boundary_kind": "SOLAR_TERM_BOUNDARY",
+          "boundary_marker": "SOLAR-TERM-SENTINEL",
+          "fixture_synthetic_label": true
+        },
+        "nondeterminism_seed": 8002,
+        "payload": {
+          "solar_term_token": "SOLAR-TERM-SENTINEL",
+          "boundary_side": "AT_SENTINEL",
+          "boundary_note": "synthetic solar-term sentinel only"
+        }
+      }
+    },
+    {
+      "fixture_case_id": "FX-ZI-HOUR-23-DAY-ROLLOVER",
+      "frozen_input": {
+        "question_id": "fixture-zi-hour-23-rollover",
+        "time_source": {
+          "source_id": "FROZEN_FIXTURE_CLOCK",
+          "local_datetime": "2030-01-01T23:00:00+08:00",
+          "timezone": "Asia/Hong_Kong",
+          "utc_offset": "+08:00"
+        },
+        "calendar_boundary": {
+          "boundary_kind": "ZI_HOUR_23_DAY_ROLLOVER",
+          "boundary_marker": "23:00-LOCAL-SENTINEL",
+          "fixture_synthetic_label": true
+        },
+        "nondeterminism_seed": 8003,
+        "payload": {
+          "day_rollover_policy_token": "ZI_HOUR_23_LOCAL",
+          "boundary_side": "AT_23_00",
+          "boundary_note": "synthetic 23:00 rollover sentinel only"
+        }
+      }
+    }
+  ]
+}

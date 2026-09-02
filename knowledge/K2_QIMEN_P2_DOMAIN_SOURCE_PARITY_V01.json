@@ -1,0 +1,131 @@
+{
+  "audit_id": "K2-QIMEN-P2-DOMAIN-SOURCE-PARITY-V01",
+  "version": "0.1",
+  "stage": "POST_SUBSTRATE_PRE_PRODUCTION_PROFILE_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+  "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+  "source_inputs": [
+    "QM-SRC-0003",
+    "QM-SRC-0021"
+  ],
+  "source_authority_refs": {
+    "QM-SRC-0003": [
+      "K2E-W1-QM-0003-0002",
+      "K2E-W1-QM-0003-0007",
+      "K2E-W1-QM-0003-0009",
+      "K2E-W1-QM-0003-0010",
+      "K2E-W1-QM-0003-0017",
+      "K2E-W1-QM-0003-0020",
+      "K2E-W1-QM-0003-0065",
+      "K2D-W1-QM-SRC-0003"
+    ],
+    "QM-SRC-0021": [
+      "K2E-W1-QM-0021-0239",
+      "K2E-W1-QM-0021-0240",
+      "K2E-W1-QM-0021-0249",
+      "K2E-W1-QM-0021-0330",
+      "K2DS-QM-SRC-0021"
+    ]
+  },
+  "role_parity": {
+    "status": "PASS_SHARED_ROLE_INTERSECTION",
+    "shared_roles": [
+      {
+        "role_id": "asker",
+        "shared_symbol_candidates": ["日干"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0009", "K2E-W1-QM-0003-0010"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239"]
+        },
+        "pre_plate_disambiguation_required": false
+      },
+      {
+        "role_id": "organization",
+        "shared_symbol_candidates": ["开门"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0007", "K2E-W1-QM-0003-0020"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239", "K2E-W1-QM-0021-0240"]
+        },
+        "pre_plate_disambiguation_required": false
+      },
+      {
+        "role_id": "superior",
+        "shared_symbol_candidates": ["年干", "值符"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0009", "K2E-W1-QM-0003-0017"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239", "K2E-W1-QM-0021-0330"]
+        },
+        "pre_plate_disambiguation_required": true
+      },
+      {
+        "role_id": "peer",
+        "shared_symbol_candidates": ["月干"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0009", "K2E-W1-QM-0003-0010"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239", "K2E-W1-QM-0021-0330"]
+        },
+        "pre_plate_disambiguation_required": false
+      },
+      {
+        "role_id": "subordinate",
+        "shared_symbol_candidates": ["时干"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0009", "K2E-W1-QM-0003-0010"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239", "K2E-W1-QM-0021-0330"]
+        },
+        "pre_plate_disambiguation_required": false
+      }
+    ],
+    "role_intersection_only": true,
+    "source_unique_role_extensions_excluded": true,
+    "feedback_dependent_role_switch_forbidden": true
+  },
+  "layer_parity": {
+    "status": "BLOCKED_SOURCE_ONTOLOGY_MISMATCH",
+    "p2_current_shared_layer_vocabulary": ["奇仪", "八门", "八神", "九星"],
+    "qm_src_0003_fixed_priority": ["奇仪", "八门", "八神", "九星"],
+    "qm_src_0003_priority_ref": "K2E-W1-QM-0003-0065",
+    "qm_src_0021_workplace_factor_ontology": ["天时", "地利", "人和", "神助", "格局"],
+    "qm_src_0021_workplace_factor_ref": "K2E-W1-QM-0021-0239",
+    "ontology_mismatch_findings": [
+      "QM-SRC-0021 workplace method exposes five factors rather than an exact ranking over the current four P2 layer ids.",
+      "地利/九宫 has no explicit first-class slot in the current four-layer P2 comparison vocabulary.",
+      "格局 is composite and cannot be silently equated to 奇仪.",
+      "A plausible 天时->九星, 人和->八门, 神助->八神 crosswalk is not sufficient unless source-grounded and frozen before Outcome."
+    ],
+    "exact_crosswalk_preregistered": false,
+    "silent_crosswalk_forbidden": true,
+    "source_faithful_topology_layer_priority_available": false
+  },
+  "retrospective_failure_signal": {
+    "source_ref": "K2E-W1-QM-0021-0249",
+    "use": "METHODOLOGICAL_GUARD_ONLY",
+    "finding": "The source records a workplace occupation interpretation that changed after feedback; this supports pre-plate Role/Layer freeze and contamination accounting, not predictive validity."
+  },
+  "production_decision": {
+    "domain_source_parity_ready": false,
+    "production_representation_materialization_allowed": false,
+    "production_complexity_profile_materialization_allowed": false,
+    "production_abstention_profile_materialization_allowed": false,
+    "statistical_preregistration_allowed": false,
+    "reason": "Role intersection is source-grounded, but the layer ontology/priority comparison is not yet source-faithful under the current four-layer representation."
+  },
+  "next_required_work": [
+    "P2-ONTOLOGY-001_SOURCE_GROUNDED_FACTOR_TO_LAYER_CROSSWALK_AUDIT",
+    "P2-ONTOLOGY-002_DECIDE_ADDITIVE_REPRESENTATION_V02_OR_ALTERNATE_DOMAIN",
+    "RERUN_DOMAIN_SOURCE_PARITY_BEFORE_ANY_PRODUCTION_PROFILE_MATERIALIZATION"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "Shared source vocabulary does not validate workplace prediction.",
+    "QM-SRC-0021 is not being forced into QM-SRC-0003's four-layer ontology.",
+    "No production representation, complexity profile, abstention profile or statistical preregistration is created by this audit."
+  ]
+}

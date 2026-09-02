@@ -1,0 +1,93 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V07",
+  "version": "0.7",
+  "status": "PARTIAL_EXECUTION_SUBSTRATE_ROLE_LAYER_BOUND",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V06",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V03.json",
+  "execution_contract_ref": "knowledge/K2_QIMEN_P2_EXECUTION_CONTRACT_V01.json",
+  "representation_contract_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V01.json",
+  "role_layer_generator_contract_ref": "knowledge/K2_QIMEN_P2_ROLE_LAYER_GENERATOR_CONTRACT_V01.json",
+  "role_layer_generator_contract_canonical_sha256": "5bca2e5544cadf3e1dad2f8e150dffd93b0a12b1d3295d8ab01f56b0ff18bf63",
+  "generator_ref": "tools/k2_qimen_p2_generate_mapping.py",
+  "closed_execution_blockers": [
+    "P2-EXEC-001",
+    "P2-EXEC-002",
+    "P2-EXEC-003",
+    "P2-EXEC-004"
+  ],
+  "open_execution_blockers": [
+    "P2-EXEC-005",
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008",
+    "P2-EXEC-009"
+  ],
+  "closure_scope": {
+    "P2-EXEC-001": "machine-structured A/A_PRIME/B lane graph and exact C1/C2/C3 estimand contract",
+    "P2-EXEC-002": "canonical versioned+hashed generator descriptor shape and deterministic canonicalization",
+    "P2-EXEC-003": "deterministic shared representation materialization with exact cross-lane parity",
+    "P2-EXEC-004": "deterministic source-constrained Role/Layer generation with separate A/A_PRIME/B semantics, shared role-catalog identity, pre-plate mapping freeze, layer-qualified symbol instances, correction registry freeze and contamination guards",
+    "explicitly_not_closed": [
+      "complexity-budget enforcement",
+      "blinded isolated lane execution",
+      "ABSTAIN/denominator scoring",
+      "exact production reproducibility fixture pipeline",
+      "P2 production Freeze serialization"
+    ]
+  },
+  "lane_models": {
+    "P2-A": "GLOBAL_PRIORITY_CATALOG_ROLE_BASELINE_V01",
+    "P2-A_PRIME": "GLOBAL_PRIORITY_TOPOLOGY_ROLE_ABLATION_V01",
+    "P2-B": "TOPOLOGY_CONDITIONED_ROLE_PRIORITY_V01"
+  },
+  "mapping_boundary": {
+    "freeze_before_current_plate_symbol_values": true,
+    "feedback_before_mapping_forbidden": true,
+    "post_feedback_role_switch_forbidden": true,
+    "post_feedback_correction_edit_forbidden": true,
+    "outcome_selected_unfrozen_competing_mapping_is_contamination": true
+  },
+  "source_local_overgeneralization_check": {
+    "status": "PASS",
+    "audited_against": [
+      "QM-SRC-0003 Wave1 distillate",
+      "QM-SRC-0021 deep-source distillate",
+      "WF-QM-JINHAN-YUJING-001 work-family distillate",
+      "QM-SRC-0027/0028/0029 deep-source distillates",
+      "K2_SHANTIADAO_PER_BOOK_ACCEPTANCE.md",
+      "K2_QIMEN_TBV_STATE.json"
+    ],
+    "decisions": [
+      "QM-SRC-0003 contributes the fixed global layer-priority baseline without erasing its domain-specific role catalog.",
+      "QM-SRC-0021 topology-conditioned roles/layers remain question-domain scoped and are frozen before plate values.",
+      "Jinhan Yujing role bindings preserve question_domain, asked_object, method_layer, plate_layer and relation_direction rather than collapsing symbol instances.",
+      "Shantiadao role candidates/corrections remain source-referenced, course-family single-vote and non-editable after feedback.",
+      "Synthetic test topology layer order remains fixture-only and carries no source or empirical credit."
+    ]
+  },
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_gate": "BLOCKED_REMAINING_EXECUTION_SUBSTRATE_P2_EXEC_005_TO_009",
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "next_required_work": [
+    "P2-EXEC-005 complexity budget enforcement",
+    "P2-EXEC-006 blinding/isolation runner",
+    "P2-EXEC-007 ABSTAIN/denominator scorer",
+    "P2-EXEC-008 exact reproducibility fixture pipeline",
+    "P2-EXEC-009 P2 Freeze serializer"
+  ],
+  "non_claims": [
+    "V07 is not execution-ready or Batch-ready.",
+    "P2-EXEC-004 closure does not validate topology-conditioned Role Map as empirically superior.",
+    "Source-local constraints are not universal rules.",
+    "No Batch, Freeze, Outcome or empirical credit exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "qimen_epistemic_debt.schema.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "debt_id",
+    "category",
+    "learning_record_refs",
+    "historical_bias_refs",
+    "observed_pattern",
+    "why_prior_reflection_failed",
+    "epistemic_failure",
+    "prohibited_shortcut",
+    "promotion_status",
+    "required_before_release",
+    "theory_impact",
+    "resolution_status",
+    "empirical_credit"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {"const": "k2-qimen-epistemic-debt-v1"},
+    "debt_id": {"type": "string", "pattern": "^QED-[0-9]{3}$"},
+    "category": {
+      "enum": [
+        "SOURCE_AUTHORITY",
+        "SELF_INFERENCE_PRIVILEGE",
+        "COUNT_BASED_PROMOTION",
+        "UNCALIBRATED_PARAMETER",
+        "RETROSPECTIVE_REPAIR",
+        "TRADITION_IMMUNITY",
+        "KNOWN_BIAS_RECURRENCE",
+        "UNCALIBRATED_VALIDATION_CREDIT",
+        "PREMATURE_BOUNDARY_ATTRIBUTION",
+        "NARRATIVE_COHERENCE",
+        "CONTROL_COMPLEXITY_ILLUSION"
+      ]
+    },
+    "learning_record_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 5}
+    },
+    "historical_bias_refs": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^QCR-BIAS-[0-9]{3}$"}
+    },
+    "observed_pattern": {"type": "string", "minLength": 20},
+    "why_prior_reflection_failed": {"type": "string", "minLength": 20},
+    "epistemic_failure": {"type": "string", "minLength": 20},
+    "prohibited_shortcut": {"type": "string", "minLength": 10},
+    "promotion_status": {"const": "BLOCKED"},
+    "required_before_release": {
+      "type": "object",
+      "required": [
+        "predefined_protocol",
+        "unknown_outcome",
+        "independence_assessment",
+        "baseline_or_counterfactual",
+        "negative_evidence",
+        "falsification_rule",
+        "sample_adequacy_rule"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "predefined_protocol": {"const": true},
+        "unknown_outcome": {"const": true},
+        "independence_assessment": {"const": true},
+        "baseline_or_counterfactual": {"const": true},
+        "negative_evidence": {"const": true},
+        "falsification_rule": {"type": "string", "minLength": 20},
+        "sample_adequacy_rule": {"type": "string", "minLength": 20}
+      }
+    },
+    "theory_impact": {
+      "enum": ["REWRITE_REQUIRED", "DOWNGRADE_IF_FAILS", "REMOVE_IF_FAILS", "RETAIN_AS_HYPOTHESIS_ONLY"]
+    },
+    "resolution_status": {"enum": ["OPEN", "PARTIALLY_REPAIRED", "REPAIRED"]},
+    "empirical_credit": {"const": "NONE"}
+  }
+}

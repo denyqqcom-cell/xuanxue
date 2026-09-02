@@ -1,0 +1,115 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V18",
+  "version": "0.18",
+  "status": "REPRESENTATION_V02_DOMAIN_SOURCE_PARITY_CLOSED_RESTRICTED_PRODUCTION_PROFILE_PENDING",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V17",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V14.json",
+  "representation_v02_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V02.json",
+  "domain_source_parity_v02": {
+    "status": "CLOSED_SOURCE_STRUCTURAL_PARITY_RESTRICTED_SCOPE",
+    "ref": "knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_PARITY_V02.json",
+    "git_blob": "d3c7814f96451db2f33a60f15ef938869a5b2a98",
+    "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+    "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+    "role_parity": "PASS_SHARED_ROLE_INTERSECTION",
+    "atomic_context_parity": "PASS_SHARED_SUPERSET_SOURCE_COVERAGE",
+    "priority_policy_parity": "PASS_SOURCE_FAITHFUL_PARTIAL_POLICY_FOR_RESTRICTED_SCOPE"
+  },
+  "shared_representation": {
+    "atomic_context_universe": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星",
+      "九宫"
+    ],
+    "derived_composites": ["格局"],
+    "same_feature_visibility_all_lanes": true,
+    "lane_specific_feature_addition_forbidden": true
+  },
+  "lane_priority_semantics": {
+    "P2-A": {
+      "policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "ranked_subset": ["奇仪", "八门", "八神", "九星"],
+      "visible_unranked_context": ["九宫"],
+      "source_ref": "K2E-W1-QM-0003-0065"
+    },
+    "P2-A_PRIME": {
+      "policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "ranked_subset": ["奇仪", "八门", "八神", "九星"],
+      "visible_unranked_context": ["九宫"],
+      "source_ref": "K2E-W1-QM-0003-0065"
+    },
+    "P2-B": {
+      "policy_form": "QUESTION_DOMAIN_CONDITIONED_PARTIAL_PRIORITY_OR_PRIMARY_LAYER",
+      "primary_atomic_context_set": ["奇仪", "八门"],
+      "primary_set_internal_order": "UNORDERED",
+      "supporting_visible_context": ["八神", "九星", "九宫"],
+      "primary_relation_source_ref": "K2E-W1-QM-0021-0240",
+      "workplace_total_order_status": "NOT_SOURCE_ESTABLISHED",
+      "unsupported_topology_action": "ABSTAIN_OR_OUT_OF_SCOPE_FAIL_CLOSED"
+    }
+  },
+  "production_scope": {
+    "eligible_question_topologies": [
+      "JOB_SEARCH",
+      "PROMOTION",
+      "TRANSFER_OR_ROLE_CHANGE",
+      "ORGANIZATIONAL_RELATIONSHIP"
+    ],
+    "unsupported_topology": "ABSTAIN_OR_OUT_OF_SCOPE",
+    "high_impact_employment_decision_use_forbidden": true,
+    "scope_may_not_expand_after_outcome": true
+  },
+  "contrast_estimands": {
+    "P2-C1": {
+      "lanes": ["P2-A", "P2-B"],
+      "allowed_differences": ["ROLE_MAP", "PRIORITY_POLICY"]
+    },
+    "P2-C2": {
+      "lanes": ["P2-A_PRIME", "P2-B"],
+      "allowed_differences": ["PRIORITY_POLICY"]
+    },
+    "P2-C3": {
+      "lanes": ["P2-A", "P2-A_PRIME"],
+      "allowed_differences": ["ROLE_MAP"]
+    }
+  },
+  "production_binding_gate": {
+    "production_representation_materialization_allowed": true,
+    "production_representation_materialized": false,
+    "production_complexity_profile_materialized": false,
+    "production_abstention_profile_materialized": false,
+    "statistical_preregistration_ready": false,
+    "batch_creation_allowed": false,
+    "next_required_work": "P2-PREBATCH-PROFILE-003_MATERIALIZE_RESTRICTED_PRODUCTION_REPRESENTATION_AND_SHARED_PROFILES_FAIL_FIRST"
+  },
+  "historical_v01_domain_parity": {
+    "status": "PRESERVED_ONTOLOGY_BLOCKED_HISTORICAL_AUDIT",
+    "silently_rewritten": false,
+    "superseded_for_representation_v02": true
+  },
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "representation_v02_machine_contract_ready": true,
+  "domain_source_parity_ready": true,
+  "production_representation_materialized": false,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_RESTRICTED_PRODUCTION_REPRESENTATION_AND_SHARED_PROFILE_MATERIALIZATION_AND_STATISTICAL_PREREGISTRATION",
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V18 closes source-structural parity under Representation V02, not empirical validity.",
+    "The workplace P2-B policy remains a partial priority, not a total five-layer ranking.",
+    "No production representation/profile, statistical preregistration, Batch, Freeze or Outcome exists yet.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

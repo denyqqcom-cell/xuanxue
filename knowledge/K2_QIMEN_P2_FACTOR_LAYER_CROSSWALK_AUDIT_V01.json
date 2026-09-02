@@ -1,0 +1,114 @@
+{
+  "audit_id": "K2-QIMEN-P2-FACTOR-LAYER-CROSSWALK-AUDIT-V01",
+  "version": "0.1",
+  "stage": "POST_DOMAIN_SOURCE_PARITY_PRE_ONTOLOGY_DECISION_PRE_PRODUCTION_PROFILE_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+  "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+  "source_inputs": ["QM-SRC-0003", "QM-SRC-0021"],
+  "source_evidence_refs": [
+    "K2E-W1-QM-0003-0065",
+    "K2E-W1-QM-0021-0239",
+    "K2E-W1-QM-0021-0249",
+    "K2E-W1-QM-0021-0347"
+  ],
+  "source_evidence_interpretation": {
+    "K2E-W1-QM-0003-0065": "QM-SRC-0003 explicitly states fixed global priority 奇仪->八门->八神->九星.",
+    "K2E-W1-QM-0021-0239": "QM-SRC-0021 workplace method names roles plus five factors 天时/地利/人和/神助/格局, but does not in this evidence establish a one-to-one equivalence with the four P2 layer ids.",
+    "K2E-W1-QM-0021-0249": "Feedback-dependent occupation reinterpretation is retained only as a contamination guard; it cannot support crosswalk selection.",
+    "K2E-W1-QM-0021-0347": "QM-SRC-0021 preserves problem-dependent priority among 星/门/宫 in a quoted traditional statement; this supports ontology non-equivalence/context sensitivity, not an exact workplace factor crosswalk."
+  },
+  "ontology_audit": {
+    "qm_src_0021_factor_ontology": ["天时", "地利", "人和", "神助", "格局"],
+    "current_p2_layer_vocabulary": ["奇仪", "八门", "八神", "九星"],
+    "qm_src_0003_fixed_priority": ["奇仪", "八门", "八神", "九星"],
+    "exact_factor_layer_crosswalk": "NOT_ESTABLISHED",
+    "silent_crosswalk_forbidden": true,
+    "semantic_resemblance_is_not_equivalence": true,
+    "factor_entries": [
+      {
+        "factor_id": "天时",
+        "status": "UNRESOLVED_SEMANTIC_RESEMBLANCE_ONLY",
+        "candidate_layer": "九星",
+        "equivalence_claimed": false,
+        "basis": "SEMANTIC_RESEMBLANCE_ONLY_NOT_SOURCE_EQUIVALENCE",
+        "exact_source_equivalence_ref": null
+      },
+      {
+        "factor_id": "地利",
+        "status": "UNMATCHED_FIRST_CLASS_SPATIAL_FACTOR",
+        "candidate_layer": null,
+        "equivalence_claimed": false,
+        "basis": "P2_CURRENT_FOUR_LAYER_VOCABULARY_HAS_NO_FIRST_CLASS_PALACE_SPATIAL_LAYER",
+        "exact_source_equivalence_ref": null
+      },
+      {
+        "factor_id": "人和",
+        "status": "UNRESOLVED_SEMANTIC_RESEMBLANCE_ONLY",
+        "candidate_layer": "八门",
+        "equivalence_claimed": false,
+        "basis": "SEMANTIC_RESEMBLANCE_ONLY_NOT_SOURCE_EQUIVALENCE",
+        "exact_source_equivalence_ref": null
+      },
+      {
+        "factor_id": "神助",
+        "status": "UNRESOLVED_SEMANTIC_RESEMBLANCE_ONLY",
+        "candidate_layer": "八神",
+        "equivalence_claimed": false,
+        "basis": "SEMANTIC_RESEMBLANCE_ONLY_NOT_SOURCE_EQUIVALENCE",
+        "exact_source_equivalence_ref": null
+      },
+      {
+        "factor_id": "格局",
+        "status": "COMPOSITE_UNRESOLVED",
+        "candidate_layer": null,
+        "equivalence_claimed": false,
+        "basis": "COMPOSITE_CONFIGURATION_NOT_ATOMIC_LAYER",
+        "decomposition_source_grounded": false,
+        "exact_source_equivalence_ref": null
+      }
+    ],
+    "layer_coverage": {
+      "奇仪": "NO_EXACT_QM_SRC_0021_FACTOR_MATCH",
+      "八门": "SEMANTIC_CANDIDATE_ONLY",
+      "八神": "SEMANTIC_CANDIDATE_ONLY",
+      "九星": "SEMANTIC_CANDIDATE_ONLY"
+    },
+    "cardinality_guard": "FIVE_SOURCE_FACTORS_MUST_NOT_BE_FORCED_INTO_FOUR_LAYER_IDS",
+    "crosswalk_outcome": "NO_SOURCE_GROUNDED_EXACT_CROSSWALK_IN_CURRENT_REVIEWED_EVIDENCE"
+  },
+  "freeze_and_contamination_guards": {
+    "crosswalk_must_be_frozen_before_plate_values": true,
+    "plate_values_allowed_for_crosswalk_selection": false,
+    "outcome_or_feedback_allowed_for_crosswalk_selection": false,
+    "post_feedback_crosswalk_switch": "CONTAMINATION_FAIL_CLOSED",
+    "retrospective_failure_guard_ref": "K2E-W1-QM-0021-0249"
+  },
+  "production_decision": {
+    "p2_ontology_001_audit_complete": true,
+    "source_grounded_exact_crosswalk_available": false,
+    "production_representation_materialization_allowed": false,
+    "production_complexity_profile_materialization_allowed": false,
+    "production_abstention_profile_materialization_allowed": false,
+    "statistical_preregistration_allowed": false,
+    "batch_creation_allowed": false,
+    "decision": "DO_NOT_PATCH_REPRESENTATION_V01_WITH_UNSOURCED_CROSSWALK",
+    "next_blocker": "P2-ONTOLOGY-002_DECIDE_ADDITIVE_REPRESENTATION_V02_OR_ALTERNATE_DOMAIN"
+  },
+  "source_local_overgeneralization_check": "PASS",
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "P2-ONTOLOGY-001 closes an audit question by establishing that an exact crosswalk is not currently source-grounded; it does not create one.",
+    "天时->九星, 人和->八门 and 神助->八神 remain semantic resemblance candidates only, not source equivalences.",
+    "地利 is not dropped merely to preserve four-layer cardinality.",
+    "格局 is not collapsed into 奇仪 or any other single layer.",
+    "No production representation, profile, preregistration, Batch, Freeze or Outcome is created.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

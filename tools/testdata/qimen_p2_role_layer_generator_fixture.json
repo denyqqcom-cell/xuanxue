@@ -1,0 +1,107 @@
+{
+  "fixture_id": "K2-QIMEN-P2-ROLE-LAYER-GENERATOR-FIXTURE-V01",
+  "fixture_only": true,
+  "purpose": "Synthetic pre-plate contract fixture for deterministic generator tests; not a source claim, production Batch or Freeze.",
+  "pre_plate_input": {
+    "question_definition": "fixture-only workplace relationship question",
+    "question_domain": "fixture_work_relationships",
+    "asked_object": "fixture_workplace_actor_relationship",
+    "scenario_graph": {
+      "nodes": ["asker", "organization", "superior", "peer"],
+      "edges": [
+        {"from": "asker", "relation": "reports_to", "to": "superior"},
+        {"from": "asker", "relation": "works_with", "to": "peer"}
+      ]
+    },
+    "object_graph": {
+      "asked_object": "fixture_workplace_actor_relationship",
+      "primary_actor": "asker"
+    },
+    "method_layer": "PREDICTIVE_INTERPRETATION",
+    "source_role_catalog": [
+      {
+        "role_id": "superior",
+        "question_domain": "fixture_work_relationships",
+        "asked_object": "fixture_workplace_actor_relationship",
+        "method_layer": "PREDICTIVE_INTERPRETATION",
+        "symbol_instance_selector": {
+          "symbol_type": "stem",
+          "plate_layer": "heaven_plate",
+          "instance_role": "superior",
+          "relation_direction": "FROM_ASKER_TO_ROLE"
+        },
+        "source_refs": ["QM-SRC-0003", "K2E-W1-QM-0003-0009"],
+        "source_scope": "fixture_work_relationships"
+      },
+      {
+        "role_id": "peer",
+        "question_domain": "fixture_work_relationships",
+        "asked_object": "fixture_workplace_actor_relationship",
+        "method_layer": "PREDICTIVE_INTERPRETATION",
+        "symbol_instance_selector": {
+          "symbol_type": "stem",
+          "plate_layer": "heaven_plate",
+          "instance_role": "peer",
+          "relation_direction": "FROM_ASKER_TO_ROLE"
+        },
+        "source_refs": ["QM-SRC-0003", "K2E-W1-QM-0003-0009"],
+        "source_scope": "fixture_work_relationships"
+      }
+    ],
+    "topology_role_candidates": [
+      {
+        "role_id": "superior",
+        "question_domain": "fixture_work_relationships",
+        "asked_object": "fixture_workplace_actor_relationship",
+        "method_layer": "PREDICTIVE_INTERPRETATION",
+        "symbol_instance_selector": {
+          "symbol_type": "stem",
+          "plate_layer": "heaven_plate",
+          "instance_role": "direct_superior",
+          "relation_direction": "FROM_ASKER_TO_ROLE"
+        },
+        "source_refs": ["QM-SRC-0021", "K2E-W1-QM-0021-0330"],
+        "source_scope": "fixture_work_relationships"
+      },
+      {
+        "role_id": "peer",
+        "question_domain": "fixture_work_relationships",
+        "asked_object": "fixture_workplace_actor_relationship",
+        "method_layer": "PREDICTIVE_INTERPRETATION",
+        "symbol_instance_selector": {
+          "symbol_type": "stem",
+          "plate_layer": "earth_plate",
+          "instance_role": "peer_counterpart",
+          "relation_direction": "FROM_ROLE_TO_ASKER"
+        },
+        "source_refs": ["QM-SRC-0021", "K2E-W1-QM-0021-0330"],
+        "source_scope": "fixture_work_relationships"
+      }
+    ],
+    "topology_layer_priority": {
+      "priority": ["八门", "奇仪", "九星", "八神"],
+      "source_refs": ["QM-SRC-0021", "knowledge/K2_DEEP_SOURCE_DISTILLATES.d/QM-SRC-0021.jsonl"],
+      "source_scope": "fixture_work_relationships",
+      "fixture_synthetic_order": true
+    },
+    "correction_registry": [
+      {
+        "correction_id": "fixture_competing_mapping_preserve_or_abstain",
+        "trigger": "competing_source_allowed_mapping",
+        "action": "PRESERVE_OR_ABSTAIN",
+        "source_refs": ["QM-SRC-0021", "K2DS-QM-SRC-0029"],
+        "source_scope": "fixture_work_relationships"
+      }
+    ],
+    "competing_mappings": [
+      {
+        "mapping_id": "fixture_parent_role_option_a",
+        "source_refs": ["QM-SRC-0021", "K2E-W1-QM-0021-0327"]
+      },
+      {
+        "mapping_id": "fixture_parent_role_option_b",
+        "source_refs": ["QM-SRC-0021", "K2E-W1-QM-0021-0327"]
+      }
+    ]
+  }
+}

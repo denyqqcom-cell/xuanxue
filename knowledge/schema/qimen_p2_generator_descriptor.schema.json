@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://denyqqcom-cell.github.io/xuanxue/schema/qimen_p2_generator_descriptor.schema.json",
+  "title": "Qimen P2 Generator Descriptor",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "generator_id",
+    "lane_id",
+    "version",
+    "implementation_ref",
+    "implementation_sha256",
+    "canonical_input_schema_sha256",
+    "canonical_output_schema_sha256",
+    "nondeterminism_policy",
+    "seed"
+  ],
+  "properties": {
+    "generator_id": {"type": "string", "minLength": 1, "pattern": "^[A-Z0-9][A-Z0-9._-]*$"},
+    "lane_id": {"enum": ["P2-A", "P2-A_PRIME", "P2-B"]},
+    "version": {"type": "string", "minLength": 1},
+    "implementation_ref": {"type": "string", "pattern": "^tools/[A-Za-z0-9_./-]+\\.py$"},
+    "implementation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_input_schema_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "canonical_output_schema_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nondeterminism_policy": {"enum": ["DETERMINISTIC", "SEEDED"]},
+    "seed": {"type": ["integer", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"nondeterminism_policy": {"const": "DETERMINISTIC"}}},
+      "then": {"properties": {"seed": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"nondeterminism_policy": {"const": "SEEDED"}}},
+      "then": {"properties": {"seed": {"type": "integer"}}}
+    }
+  ]
+}

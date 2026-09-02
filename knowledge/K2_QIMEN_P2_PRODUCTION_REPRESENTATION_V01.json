@@ -1,0 +1,230 @@
+{
+  "artifact_kind": "P2_SHARED_SUPERSET_REPRESENTATION_MANIFEST_V02",
+  "representation_id": "QRM-P2-WORKPLACE-RESTRICTED-PRODUCTION-REPRESENTATION-V01",
+  "canonical_serialization": "UTF8_JSON_SORT_KEYS_COMPACT",
+  "hash_algorithm": "SHA256",
+  "shared_manifests": {
+    "world_variable_manifest": {
+      "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+      "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+      "eligible_question_topologies": [
+        "JOB_SEARCH",
+        "PROMOTION",
+        "TRANSFER_OR_ROLE_CHANGE",
+        "ORGANIZATIONAL_RELATIONSHIP"
+      ],
+      "requires_explicit_asker_and_work_object": true,
+      "unsupported_topology_action": "ABSTAIN_OR_OUT_OF_SCOPE_FAIL_CLOSED",
+      "high_impact_employment_decision_use_forbidden": true,
+      "scope_may_not_expand_after_outcome": true
+    },
+    "symbol_vocabulary": {
+      "atomic_context_layers": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星",
+        "九宫"
+      ],
+      "derived_composites": [
+        "格局"
+      ],
+      "visibility": "ALL_LANES"
+    },
+    "feature_extraction_manifest": {
+      "depth": "SHARED",
+      "derived_composite_source": "SHARED_INPUTS_ONLY",
+      "shared_role_ids": [
+        "asker",
+        "organization",
+        "superior",
+        "peer",
+        "subordinate"
+      ],
+      "shared_role_binding_candidates": {
+        "asker": [
+          "日干"
+        ],
+        "organization": [
+          "开门"
+        ],
+        "superior": [
+          "年干",
+          "值符"
+        ],
+        "peer": [
+          "月干"
+        ],
+        "subordinate": [
+          "时干"
+        ]
+      },
+      "pre_plate_disambiguation_required_for": [
+        "superior"
+      ],
+      "feedback_dependent_role_switch_forbidden": true,
+      "source_refs": [
+        "K2E-W1-QM-0003-0007",
+        "K2E-W1-QM-0003-0009",
+        "K2E-W1-QM-0003-0010",
+        "K2E-W1-QM-0003-0017",
+        "K2E-W1-QM-0003-0019",
+        "K2E-W1-QM-0003-0065",
+        "K2E-W1-QM-0021-0007",
+        "K2E-W1-QM-0021-0239",
+        "K2E-W1-QM-0021-0240",
+        "K2E-W1-QM-0021-0346"
+      ]
+    },
+    "eligible_rule_pool": {
+      "rule_scope": "RESTRICTED_SOURCE_REVIEWED_WORKPLACE_ONLY",
+      "source_refs": [
+        "K2E-W1-QM-0003-0007",
+        "K2E-W1-QM-0003-0009",
+        "K2E-W1-QM-0003-0010",
+        "K2E-W1-QM-0003-0017",
+        "K2E-W1-QM-0003-0018",
+        "K2E-W1-QM-0003-0019",
+        "K2E-W1-QM-0003-0020",
+        "K2E-W1-QM-0003-0065",
+        "K2E-W1-QM-0021-0007",
+        "K2E-W1-QM-0021-0239",
+        "K2E-W1-QM-0021-0240",
+        "K2E-W1-QM-0021-0242",
+        "K2E-W1-QM-0021-0346",
+        "K2E-W1-QM-0021-0347"
+      ],
+      "lane_specific_additions": false,
+      "source_local_scope_preserved": true,
+      "outcome_or_feedback_selected_rule_forbidden": true
+    },
+    "prediction_schema": {
+      "type": "object",
+      "required": [
+        "prediction",
+        "confidence",
+        "abstain"
+      ],
+      "prediction": {
+        "type": "string",
+        "binding": "CASE_PROTOCOL_PRE_OUTCOME_CATEGORY"
+      },
+      "confidence": {
+        "type": "number",
+        "minimum": 0.0,
+        "maximum": 1.0
+      },
+      "abstain": {
+        "type": "boolean"
+      },
+      "outcome_scoring_definition": "PENDING_STATISTICAL_PREREGISTRATION"
+    },
+    "priority_policy_schema": {
+      "policy_forms": [
+        "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+        "QUESTION_DOMAIN_CONDITIONED_PARTIAL_PRIORITY_OR_PRIMARY_LAYER"
+      ],
+      "ranked_subset_may_be_partial": true,
+      "visible_unranked_context_required_when_not_ranked": true,
+      "unsupported_total_order_action": "ABSTAIN_FAIL_CLOSED",
+      "plate_value_selected_priority_forbidden": true,
+      "outcome_or_feedback_selected_priority_forbidden": true
+    }
+  },
+  "shared_manifest_hashes": {
+    "world_variable_manifest": "927db7f71ed72fad6816833f885e6de1812236f479b287a7f553fd94c5e2c9da",
+    "symbol_vocabulary": "f2b2ae9f3594bc4de77bc7ba861190ac2ddb699c4d77d42aec766e0a037f8ef1",
+    "feature_extraction_manifest": "a6e9840c5f0f764145c6080e20a5b61488c3fe3ec1ce923abe07c8b0fd23834e",
+    "eligible_rule_pool": "d68eae721db2bdd2788fba846973adb34abeb9e969b2ef844ed7b3f0b672647b",
+    "prediction_schema": "088b6957a6a0a29b4569dec63cae9875a1bd4563864d6d4664d553a01edff3ed",
+    "priority_policy_schema": "3ba8b9b94553c6e1044015b68694f1879d737ecd8930257a07b053e764f4ad4e"
+  },
+  "shared_representation_sha256": "a440ef84f42b5798ab6bf8b8e5d802b554b2ba05a35810f67eb9f69eebd48fbb",
+  "shared_atomic_context_universe": [
+    "奇仪",
+    "八门",
+    "八神",
+    "九星",
+    "九宫"
+  ],
+  "derived_composites": [
+    "格局"
+  ],
+  "lane_bindings": [
+    {
+      "lane_id": "P2-A",
+      "shared_manifest_hashes": {
+        "world_variable_manifest": "927db7f71ed72fad6816833f885e6de1812236f479b287a7f553fd94c5e2c9da",
+        "symbol_vocabulary": "f2b2ae9f3594bc4de77bc7ba861190ac2ddb699c4d77d42aec766e0a037f8ef1",
+        "feature_extraction_manifest": "a6e9840c5f0f764145c6080e20a5b61488c3fe3ec1ce923abe07c8b0fd23834e",
+        "eligible_rule_pool": "d68eae721db2bdd2788fba846973adb34abeb9e969b2ef844ed7b3f0b672647b",
+        "prediction_schema": "088b6957a6a0a29b4569dec63cae9875a1bd4563864d6d4664d553a01edff3ed",
+        "priority_policy_schema": "3ba8b9b94553c6e1044015b68694f1879d737ecd8930257a07b053e764f4ad4e"
+      },
+      "shared_representation_sha256": "a440ef84f42b5798ab6bf8b8e5d802b554b2ba05a35810f67eb9f69eebd48fbb",
+      "shared_atomic_context_universe": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星",
+        "九宫"
+      ],
+      "derived_composites": [
+        "格局"
+      ]
+    },
+    {
+      "lane_id": "P2-A_PRIME",
+      "shared_manifest_hashes": {
+        "world_variable_manifest": "927db7f71ed72fad6816833f885e6de1812236f479b287a7f553fd94c5e2c9da",
+        "symbol_vocabulary": "f2b2ae9f3594bc4de77bc7ba861190ac2ddb699c4d77d42aec766e0a037f8ef1",
+        "feature_extraction_manifest": "a6e9840c5f0f764145c6080e20a5b61488c3fe3ec1ce923abe07c8b0fd23834e",
+        "eligible_rule_pool": "d68eae721db2bdd2788fba846973adb34abeb9e969b2ef844ed7b3f0b672647b",
+        "prediction_schema": "088b6957a6a0a29b4569dec63cae9875a1bd4563864d6d4664d553a01edff3ed",
+        "priority_policy_schema": "3ba8b9b94553c6e1044015b68694f1879d737ecd8930257a07b053e764f4ad4e"
+      },
+      "shared_representation_sha256": "a440ef84f42b5798ab6bf8b8e5d802b554b2ba05a35810f67eb9f69eebd48fbb",
+      "shared_atomic_context_universe": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星",
+        "九宫"
+      ],
+      "derived_composites": [
+        "格局"
+      ]
+    },
+    {
+      "lane_id": "P2-B",
+      "shared_manifest_hashes": {
+        "world_variable_manifest": "927db7f71ed72fad6816833f885e6de1812236f479b287a7f553fd94c5e2c9da",
+        "symbol_vocabulary": "f2b2ae9f3594bc4de77bc7ba861190ac2ddb699c4d77d42aec766e0a037f8ef1",
+        "feature_extraction_manifest": "a6e9840c5f0f764145c6080e20a5b61488c3fe3ec1ce923abe07c8b0fd23834e",
+        "eligible_rule_pool": "d68eae721db2bdd2788fba846973adb34abeb9e969b2ef844ed7b3f0b672647b",
+        "prediction_schema": "088b6957a6a0a29b4569dec63cae9875a1bd4563864d6d4664d553a01edff3ed",
+        "priority_policy_schema": "3ba8b9b94553c6e1044015b68694f1879d737ecd8930257a07b053e764f4ad4e"
+      },
+      "shared_representation_sha256": "a440ef84f42b5798ab6bf8b8e5d802b554b2ba05a35810f67eb9f69eebd48fbb",
+      "shared_atomic_context_universe": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星",
+        "九宫"
+      ],
+      "derived_composites": [
+        "格局"
+      ]
+    }
+  ],
+  "representation_parity": {
+    "same_feature_universe_all_lanes": true,
+    "lane_specific_feature_vocabulary_forbidden": true,
+    "atomic_context_layer_add_or_drop_forbidden": true,
+    "derived_composite_promoted_to_atomic_layer_forbidden": true,
+    "priority_policy_schema_shared": true,
+    "lane_specific_rule_pool_addition_forbidden": true,
+    "shared_representation_digest_all_lanes": true
+  }
+}

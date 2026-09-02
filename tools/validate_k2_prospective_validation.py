@@ -7,10 +7,14 @@ ROOT=Path(__file__).resolve().parents[1]
 K=ROOT/"knowledge"
 
 PLAN_FIELDS={
-    "plan_id","hypothesis_id","work_family_key","model_name","comparator_name",
-    "question_scope","unit_of_analysis","freeze_required_fields","evaluation_metrics",
+    "plan_id","hypothesis_id","hypothesis_origin_type","hypothesis_origin_key","hypothesis_origin_ref",
+    "model_name","comparator_name","question_scope","unit_of_analysis","freeze_required_fields","evaluation_metrics",
     "success_condition","failure_condition","abstention_rule","leakage_controls",
     "high_risk_policy","update_policy","status","empirical_credit",
+}
+PROJECT_HYPOTHESIS_FIELDS={
+    "hypothesis_id","origin_type","origin_key","origin_ref","statement","status",
+    "empirical_credit","baseline_required","falsification_summary",
 }
 BATCH_FIELDS={
     "batch_id","plan_id","plan_sha256","preregistered_at_utc","model_commit_sha","comparator_ref",
@@ -34,6 +38,7 @@ MANDATORY_FREEZE_FIELDS={
     "confidence","abstention_condition",
 }
 EVALUATIONS={"SUCCESS","PARTIAL","FAIL","ABSTAIN","UNEVALUABLE"}
+ORIGIN_TYPES={"SOURCE_DERIVED","PROJECT_GENERATED"}
 PLAN_ID_RE=re.compile(r"^K2PV-[A-Z0-9-]+$")
 BATCH_ID_RE=re.compile(r"^K2PVB-[A-Z0-9_-]+$")
 FREEZE_ID_RE=re.compile(r"^K2PVF-[A-Z0-9_-]+$")
@@ -84,8 +89,37 @@ def utc_value(v):
     return datetime.strptime(v,"%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
 
-def hypothesis_index(distillates):
-    out={}
+def validate_project_hypotheses(project_hypotheses,repo=ROOT):
+    issues=[];seen=set()
+    for idx,h in enumerate(project_hypotheses,1):
+        hid=h.get("hypothesis_id") or f"project-row-{idx}"
+        if set(h)!=PROJECT_HYPOTHESIS_FIELDS:
+            issues.append((hid,f"project hypothesis fields mismatch missing={sorted(PROJECT_HYPOTHESIS_FIELDS-set(h))} extra={sorted(set(h)-PROJECT_HYPOTHESIS_FIELDS)}"))
+        if not nonempty_text(h.get("hypothesis_id")):issues.append((hid,"project hypothesis_id must be non-empty"))
+        elif h.get("hypothesis_id") in seen:issues.append((hid,"duplicate project hypothesis_id"))
+        else:seen.add(h.get("hypothesis_id"))
+        if h.get("origin_type")!="PROJECT_GENERATED":issues.append((hid,"project hypothesis origin_type must be PROJECT_GENERATED"))
+        for field in ["origin_key","origin_ref","statement","falsification_summary"]:
+            if not nonempty_text(h.get(field)):issues.append((hid,f"{field} must be non-empty text"))
+        if h.get("status")!="UNTESTED":issues.append((hid,"project hypothesis must remain UNTESTED before prospective review"))
+        if h.get("empirical_credit")!="NONE":issues.append((hid,"project hypothesis cannot carry empirical credit before batch review"))
+        if h.get("baseline_required") is not True:issues.append((hid,"project hypothesis must require baseline"))
+        ref=h.get("origin_ref")
+        if nonempty_text(ref):
+            rel=ref.split("#",1)[0]
+            path=repo/rel
+            if not path.exists():issues.append((hid,f"project hypothesis origin_ref path missing: {rel}"))
+            else:
+                try:text=path.read_text(encoding="utf-8")
+                except Exception:text=""
+                if nonempty_text(h.get("hypothesis_id")) and h.get("hypothesis_id") not in text:
+                    issues.append((hid,"project origin artifact does not contain hypothesis_id"))
+        if PATH_RE.search(json.dumps(h,ensure_ascii=False)):issues.append((hid,"project hypothesis leaks local filesystem path"))
+    return issues
+
+
+def hypothesis_index(distillates,project_hypotheses):
+    out={};issues=[]
     for d in distillates:
         wf=d.get("work_family_key")
         for h in d.get("testable_hypotheses") or []:
@@ -93,13 +127,31 @@ def hypothesis_index(distillates):
             hid=h.get("hypothesis_id")
             if not nonempty_text(hid):continue
             if hid in out:
-                fail(f"duplicate hypothesis_id in work-family distillates: {hid}")
-            out[hid]={"work_family_key":wf,"status":h.get("status")}
-    return out
+                issues.append((hid,"duplicate hypothesis_id across prospective origins"));continue
+            out[hid]={
+                "origin_type":"SOURCE_DERIVED",
+                "origin_key":wf,
+                "origin_ref":f"knowledge/K2_WORK_FAMILY_DISTILLATES.jsonl#{hid}",
+                "status":h.get("status"),
+            }
+    for h in project_hypotheses:
+        hid=h.get("hypothesis_id")
+        if not nonempty_text(hid):continue
+        if hid in out:
+            issues.append((hid,"duplicate hypothesis_id across prospective origins"));continue
+        out[hid]={
+            "origin_type":h.get("origin_type"),
+            "origin_key":h.get("origin_key"),
+            "origin_ref":h.get("origin_ref"),
+            "status":h.get("status"),
+        }
+    return out,issues
 
 
-def validate_records(distillates,plans,batches,freezes,outcomes):
-    issues=[];hyps=hypothesis_index(distillates)
+def validate_records(distillates,plans,batches,freezes,outcomes,project_hypotheses=None,repo=ROOT):
+    project_hypotheses=project_hypotheses or []
+    issues=validate_project_hypotheses(project_hypotheses,repo)
+    hyps,hyp_issues=hypothesis_index(distillates,project_hypotheses);issues.extend(hyp_issues)
     plan_by_id={};seen_hyp=set()
     for p in plans:
         pid=p.get("plan_id") or "<missing>";hid=p.get("hypothesis_id")
@@ -112,9 +164,12 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         h=hyps.get(hid)
         if not h:issues.append((pid,f"unknown hypothesis_id: {hid}"))
         else:
-            if p.get("work_family_key")!=h.get("work_family_key"):issues.append((pid,"work_family_key does not match hypothesis source"))
+            if p.get("hypothesis_origin_type")!=h.get("origin_type"):issues.append((pid,"hypothesis_origin_type does not match registered hypothesis provenance"))
+            if p.get("hypothesis_origin_key")!=h.get("origin_key"):issues.append((pid,"hypothesis_origin_key does not match registered hypothesis provenance"))
+            if p.get("hypothesis_origin_ref")!=h.get("origin_ref"):issues.append((pid,"hypothesis_origin_ref does not match registered hypothesis provenance"))
             if h.get("status")!="UNTESTED":issues.append((pid,"prospective design currently requires UNTESTED hypothesis"))
-        for field in ["model_name","comparator_name","question_scope","unit_of_analysis","success_condition","failure_condition","abstention_rule","high_risk_policy","update_policy"]:
+        if p.get("hypothesis_origin_type") not in ORIGIN_TYPES:issues.append((pid,"invalid hypothesis_origin_type"))
+        for field in ["hypothesis_origin_key","hypothesis_origin_ref","model_name","comparator_name","question_scope","unit_of_analysis","success_condition","failure_condition","abstention_rule","high_risk_policy","update_policy"]:
             if not nonempty_text(p.get(field)):issues.append((pid,f"{field} must be non-empty text"))
         if p.get("model_name")==p.get("comparator_name"):issues.append((pid,"candidate model and comparator must differ"))
         req=p.get("freeze_required_fields")
@@ -234,15 +289,16 @@ def main():
     if project.get("phase")!="K2_EVIDENCE_EXTRACTION":fail("validator only valid during K2_EVIDENCE_EXTRACTION")
     if project.get("claim_extraction_blocked") is not True:fail("Claim Extraction must remain blocked")
     distillates=load_jsonl(K/"K2_WORK_FAMILY_DISTILLATES.jsonl")
+    project_hypotheses=load_jsonl(K/"K2_QIMEN_PROJECT_HYPOTHESES.jsonl")
     plans=load_jsonl(K/"K2_PROSPECTIVE_TEST_PLANS.jsonl")
     batches=load_jsonl(K/"K2_PROSPECTIVE_BATCHES.jsonl")
     freezes=load_jsonl(K/"K2_PROSPECTIVE_FREEZES.jsonl")
     outcomes=load_jsonl(K/"K2_PROSPECTIVE_OUTCOMES.jsonl")
-    issues=validate_records(distillates,plans,batches,freezes,outcomes)
+    issues=validate_records(distillates,plans,batches,freezes,outcomes,project_hypotheses=project_hypotheses,repo=ROOT)
     if issues:
         fail(f"issues={len(issues)} first={issues[0][0]}: {issues[0][1]}")
     print("k2-prospective-validation: PASS")
-    print(f"plans={len(plans)} batches={len(batches)} freezes={len(freezes)} outcomes={len(outcomes)} issues=0")
+    print(f"source_hypotheses={sum(len(d.get('testable_hypotheses') or []) for d in distillates)} project_hypotheses={len(project_hypotheses)} plans={len(plans)} batches={len(batches)} freezes={len(freezes)} outcomes={len(outcomes)} issues=0")
     print("empirical_credit_upgrade_blocked=true")
 
 if __name__=="__main__":main()

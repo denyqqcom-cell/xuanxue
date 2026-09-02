@@ -9,8 +9,13 @@ on:
     paths:
       - 'knowledge/K2_QIMEN_COGNITIVE_*'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
+      - 'knowledge/K2_QIMEN_THEORY_MAP_V1.md'
       - 'knowledge/K2_QIMEN_TBV_*'
       - 'knowledge/K2_QIMEN_PRACTICE_*'
+      - 'knowledge/K2_QIMEN_CDAF_H2_*'
+      - 'knowledge/K2_QIMEN_P2_ROLE_MAP_*'
+      - 'knowledge/K2_QIMEN_PROJECT_HYPOTHESES.jsonl'
+      - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
       - 'knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json'
       - 'knowledge/K2_DEEP_READING_LEDGER.jsonl'
       - 'knowledge/K2_DEEP_SOURCE_DISTILLATES.d/**'
@@ -22,6 +27,10 @@ on:
       - 'tools/validate_k2_qimen_tbv.py'
       - 'tools/test_k2_qimen_practice_input_integrity.py'
       - 'tools/validate_k2_qimen_practice_input_integrity.py'
+      - 'tools/test_k2_qimen_weather_structure_audit.py'
+      - 'tools/test_k2_qimen_plate_pairing_fixture.py'
+      - 'tools/test_k2_qimen_role_map_comparative.py'
+      - 'tools/validate_k2_qimen_role_map_comparative.py'
       - '.github/workflows/k2-qimen-cognitive-reconstruction.yml'
       - '.github/workflows/knowledge-engine-ci.yml'
       - 'tools/test_knowledge_ci_contract.py'
@@ -29,8 +38,13 @@ on:
     paths:
       - 'knowledge/K2_QIMEN_COGNITIVE_*'
       - 'knowledge/K2_QIMEN_SCRM_V01.md'
+      - 'knowledge/K2_QIMEN_THEORY_MAP_V1.md'
       - 'knowledge/K2_QIMEN_TBV_*'
       - 'knowledge/K2_QIMEN_PRACTICE_*'
+      - 'knowledge/K2_QIMEN_CDAF_H2_*'
+      - 'knowledge/K2_QIMEN_P2_ROLE_MAP_*'
+      - 'knowledge/K2_QIMEN_PROJECT_HYPOTHESES.jsonl'
+      - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
       - 'knowledge/K2_UNKNOWN_TEXTUAL_BACKLOG.json'
       - 'knowledge/K2_DEEP_READING_LEDGER.jsonl'
       - 'knowledge/K2_DEEP_SOURCE_DISTILLATES.d/**'
@@ -42,6 +56,10 @@ on:
       - 'tools/validate_k2_qimen_tbv.py'
       - 'tools/test_k2_qimen_practice_input_integrity.py'
       - 'tools/validate_k2_qimen_practice_input_integrity.py'
+      - 'tools/test_k2_qimen_weather_structure_audit.py'
+      - 'tools/test_k2_qimen_plate_pairing_fixture.py'
+      - 'tools/test_k2_qimen_role_map_comparative.py'
+      - 'tools/validate_k2_qimen_role_map_comparative.py'
       - '.github/workflows/k2-qimen-cognitive-reconstruction.yml'
       - '.github/workflows/knowledge-engine-ci.yml'
       - 'tools/test_knowledge_ci_contract.py'
@@ -68,3 +86,11 @@ jobs:
         run: python3 tools/test_k2_qimen_practice_input_integrity.py
       - name: Enforce Qimen practice input-integrity contract
         run: python3 tools/validate_k2_qimen_practice_input_integrity.py
+      - name: Test CDAF-H2 weather implementation structure audit
+        run: python3 tools/test_k2_qimen_weather_structure_audit.py
+      - name: Test source-grounded Qimen plate pairing fixture
+        run: python3 tools/test_k2_qimen_plate_pairing_fixture.py
+      - name: Test P2 Role-Map comparative fail-closed cases
+        run: python3 tools/test_k2_qimen_role_map_comparative.py
+      - name: Enforce P2 Role-Map comparative protocol
+        run: python3 tools/validate_k2_qimen_role_map_comparative.py

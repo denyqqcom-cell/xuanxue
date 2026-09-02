@@ -1,0 +1,145 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V17",
+  "version": "0.17",
+  "status": "SHARED_SUPERSET_REPRESENTATION_V02_MACHINE_CONTRACT_CLOSED_PRE_DOMAIN_PARITY_RERUN",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V16",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V13.json",
+  "ontology_decision_ref": "knowledge/K2_QIMEN_P2_ONTOLOGY_DECISION_V01.json",
+  "representation_v02": {
+    "status": "CLOSED_MACHINE_CONTRACT_FIXTURE",
+    "contract_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V02.json",
+    "contract_git_blob": "06a993535fdc992cbcbe9fff6cab4192fe1ef95c",
+    "contract_canonical_sha256": "ad7b30fb42510132f03dd86dd5d98a0c59653715937a2a43d970b1d58a774180",
+    "materializer_ref": "tools/k2_qimen_p2_materialize_representation_v02.py",
+    "materializer_git_blob": "2bfa07a926e772e0756959079496db330cce8a14",
+    "test_ref": "tools/test_k2_qimen_p2_representation_v02.py",
+    "test_git_blob": "6480171d0561f85fdc02b993d02cb3c1a7c20b06",
+    "validator_ref": "tools/validate_k2_qimen_p2_representation_v02.py",
+    "validator_git_blob": "13f8389c9e7eca105e1189a7fefeb49c2b3cff32",
+    "shared_atomic_context_universe": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星",
+      "九宫"
+    ],
+    "derived_composites": [
+      "格局"
+    ],
+    "same_feature_universe_all_lanes": true,
+    "shared_manifest_component_count": 6,
+    "production_domain_instance_materialized": false
+  },
+  "lane_semantics": {
+    "P2-A": {
+      "role_binding_policy": "SOURCE_CATALOG_DOMAIN_SELECTION_ONLY",
+      "priority_policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "ranked_subset": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ],
+      "visible_unranked_context": [
+        "九宫"
+      ],
+      "invent_rank_for_九宫_forbidden": true
+    },
+    "P2-A_PRIME": {
+      "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "priority_policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "ranked_subset": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ],
+      "visible_unranked_context": [
+        "九宫"
+      ],
+      "invent_rank_for_九宫_forbidden": true
+    },
+    "P2-B": {
+      "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "priority_policy_form": "QUESTION_DOMAIN_CONDITIONED_PARTIAL_PRIORITY_OR_PRIMARY_LAYER",
+      "workplace_total_order_status": "NOT_SOURCE_ESTABLISHED",
+      "unsupported_total_order_action": "ABSTAIN_FAIL_CLOSED",
+      "outcome_or_feedback_selected_priority_forbidden": true
+    }
+  },
+  "contrast_estimands": {
+    "P2-C1": {
+      "lanes": [
+        "P2-A",
+        "P2-B"
+      ],
+      "allowed_differences": [
+        "ROLE_MAP",
+        "PRIORITY_POLICY"
+      ]
+    },
+    "P2-C2": {
+      "lanes": [
+        "P2-A_PRIME",
+        "P2-B"
+      ],
+      "allowed_differences": [
+        "PRIORITY_POLICY"
+      ]
+    },
+    "P2-C3": {
+      "lanes": [
+        "P2-A",
+        "P2-A_PRIME"
+      ],
+      "allowed_differences": [
+        "ROLE_MAP"
+      ]
+    }
+  },
+  "parity_guards": {
+    "shared_feature_visibility_required": true,
+    "shared_atomic_context_universe_required": true,
+    "shared_derived_composite_definition_required": true,
+    "shared_complexity_formula_required": true,
+    "lane_specific_feature_vocabulary_forbidden": true,
+    "lane_specific_rule_pool_addition_forbidden": true
+  },
+  "historical_representation_v01": {
+    "status": "PRESERVED_EXECUTION_SUBSTRATE_FIXTURE_ONLY",
+    "production_domain_authority": false,
+    "silent_rewrite_forbidden": true
+  },
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "p2_ontology_002": "CLOSED_ARCHITECTURE_DECISION",
+  "representation_v02_machine_contract_ready": true,
+  "production_representation_materialized": false,
+  "domain_source_parity_ready": false,
+  "production_complexity_budget_profile_materialized": false,
+  "production_abstention_scoring_profile_materialized": false,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_REPRESENTATION_V02_DOMAIN_SOURCE_PARITY_RERUN_AND_PRODUCTION_PROFILE_BINDING_AND_STATISTICAL_PREREGISTRATION",
+  "next_required_work": [
+    "P2-PREBATCH-PARITY-002_RERUN_DOMAIN_SOURCE_PARITY_ON_REPRESENTATION_V02",
+    "IF_PARITY_PASSES_THEN_MATERIALIZE_PRODUCTION_PROFILES",
+    "THEN_CONCRETE_STATISTICAL_PREREGISTRATION"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V17 is a shared representation machine-contract state, not a production-domain or predictive result.",
+    "QM-SRC-0003 does not source-rank 九宫 in its fixed four-item order; V17 therefore keeps 九宫 visible but unranked for A/A-prime.",
+    "QM-SRC-0021 does not establish a total workplace priority order; P2-B must abstain when such a total order would be required without source support.",
+    "No production profile, statistical preregistration, Batch, Freeze or Outcome exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

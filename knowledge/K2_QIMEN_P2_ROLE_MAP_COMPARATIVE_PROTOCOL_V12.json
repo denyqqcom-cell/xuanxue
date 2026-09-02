@@ -1,0 +1,83 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V12",
+  "version": "0.12",
+  "status": "EXECUTION_SUBSTRATE_MACHINE_COMPLETE_FREEZE_SERIALIZER_BOUND",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V11",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V08.json",
+  "freeze_serializer_contract_ref": "knowledge/K2_QIMEN_P2_FREEZE_SERIALIZER_CONTRACT_V01.json",
+  "freeze_serializer_contract_canonical_sha256": "94824fb4774c57254c3546d86534156daadd8404af3a47ca4aee17fbd49570a7",
+  "freeze_serializer_fixture_hash": "80166c6082b2e82268b87bac84a10400236b2fd8f50c069eb6953365702cd9e6",
+  "expected_serialized_fixture_sha256": "fb26e03da226459d5012b803f17b803bb25d729bc124dbaeabb6988ffd49a379",
+  "closed_execution_blockers": [
+    "P2-EXEC-001",
+    "P2-EXEC-002",
+    "P2-EXEC-003",
+    "P2-EXEC-004",
+    "P2-EXEC-005",
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008",
+    "P2-EXEC-009"
+  ],
+  "open_execution_blockers": [],
+  "closure_scope": {
+    "P2-EXEC-001": "machine-structured A/A_PRIME/B lane graph and exact estimand contract",
+    "P2-EXEC-002": "canonical generator descriptor contract",
+    "P2-EXEC-003": "shared representation parity materialization",
+    "P2-EXEC-004": "source-constrained deterministic Role/Layer generation",
+    "P2-EXEC-005": "symmetric pre-mapping complexity-budget enforcement",
+    "P2-EXEC-006": "blinded isolated three-lane execution",
+    "P2-EXEC-007": "anonymous ABSTAIN/denominator scoring with frozen denominator and exact estimands",
+    "P2-EXEC-008": "byte-exact reproducibility fixture pipeline",
+    "P2-EXEC-009": "pure canonical Freeze candidate serializer requiring preexisting Batch binding and forbidding persistence/outcome/feedback/post-hoc mutation"
+  },
+  "freeze_serializer_boundary": {
+    "production_freeze_requires_preexisting_batch": true,
+    "serializer_does_not_create_batch": true,
+    "serializer_does_not_persist_freeze": true,
+    "batch_binding_serialized_and_hashed": true,
+    "existing_freeze_payload_schema_bound": true,
+    "reproducibility_fixture_hash_bound": true,
+    "canonical_utf8_json_sha256": true,
+    "byte_mutation_invalidates": true,
+    "outcome_feedback_runtime_fields_forbidden": true,
+    "fixture_is_synthetic_not_production": true
+  },
+  "source_local_overgeneralization_check": {
+    "status": "PASS",
+    "audited_against": [
+      "live successor chain through P2-EXEC-008 -> P2-EXEC-007 -> P2-EXEC-006 -> P2-EXEC-005 -> P2-EXEC-004",
+      "QM-SRC-0003 Wave1 distillate",
+      "QM-SRC-0021 deep-source distillate",
+      "WF-QM-JINHAN-YUJING-001 work-family distillate",
+      "QM-SRC-0027/0028/0029 deep-source distillates",
+      "K2_SHANTIADAO_PER_BOOK_ACCEPTANCE.md",
+      "K2_QIMEN_TBV_STATE.json"
+    ],
+    "decisions": [
+      "Freeze serialization is a methodological integrity boundary, not a Qimen doctrine.",
+      "No source-local Role/Layer/correction/topology rule is promoted by serialization.",
+      "Synthetic hash and Batch fixture values carry no source or empirical credit.",
+      "Machine substrate completion cannot be laundered into empirical validity."
+    ]
+  },
+  "execution_substrate_ready": true,
+  "batch_ready": false,
+  "batch_gate": "BLOCKED_PENDING_POST_SUBSTRATE_PRE_BATCH_AUDIT_AND_EXPLICIT_BATCH_AUTHORIZATION",
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "next_required_work": ["POST_SUBSTRATE_PRE_BATCH_AUDIT_AND_EXPLICIT_BATCH_GATE_DECISION"],
+  "non_claims": [
+    "V12 closes P2-EXEC-001..009 machine substrate only.",
+    "No production Batch or Freeze has been created.",
+    "No Outcome has been accessed or scored.",
+    "No source-local rule is universalized.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V11",
+  "version": "0.11",
+  "status": "PARTIAL_EXECUTION_SUBSTRATE_EXACT_REPRODUCIBILITY_BOUND",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V10",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V07.json",
+  "exact_reproducibility_contract_ref": "knowledge/K2_QIMEN_P2_EXACT_REPRODUCIBILITY_CONTRACT_V01.json",
+  "exact_reproducibility_contract_canonical_sha256": "17473e7d22f187eb7ca3a76de82edc160d24cdae919b1c4f27109ac60f5c889b",
+  "reproducibility_fixture_hash": "88968c2388163efa009640ba91c9a67b68049fcbb573d86ed725a319c3130977",
+  "expected_reproducibility_report_sha256": "d486819250c8690b9d205894b17522b58fcc266bec354252752c31e9bec646df",
+  "closed_execution_blockers": [
+    "P2-EXEC-001",
+    "P2-EXEC-002",
+    "P2-EXEC-003",
+    "P2-EXEC-004",
+    "P2-EXEC-005",
+    "P2-EXEC-006",
+    "P2-EXEC-007",
+    "P2-EXEC-008"
+  ],
+  "open_execution_blockers": [
+    "P2-EXEC-009"
+  ],
+  "closure_scope": {
+    "P2-EXEC-001": "machine-structured A/A_PRIME/B lane graph and exact estimand contract",
+    "P2-EXEC-002": "canonical generator descriptor contract",
+    "P2-EXEC-003": "shared representation parity materialization",
+    "P2-EXEC-004": "source-constrained deterministic Role/Layer generation",
+    "P2-EXEC-005": "symmetric pre-mapping complexity-budget enforcement",
+    "P2-EXEC-006": "blinded isolated three-lane execution",
+    "P2-EXEC-007": "anonymous ABSTAIN/denominator scoring with frozen denominator and exact estimands",
+    "P2-EXEC-008": "byte-exact replay pipeline with canonical UTF-8 JSON/SHA-256, frozen explicit time source/timezone/offset/seed and four synthetic boundary reproducibility sentinels",
+    "explicitly_not_closed": [
+      "P2 production Freeze serialization"
+    ]
+  },
+  "exact_reproducibility_boundary": {
+    "same_frozen_input_same_bytes_required": true,
+    "same_frozen_input_same_sha256_required": true,
+    "dict_insertion_order_invariant": true,
+    "fixture_case_order_invariant": true,
+    "host_timezone_invariant": true,
+    "explicit_local_datetime_offset_required": true,
+    "explicit_timezone_required": true,
+    "floating_point_forbidden": true,
+    "runtime_now_forbidden": true,
+    "runtime_timestamp_forbidden": true,
+    "outcome_field_forbidden": true,
+    "nondeterminism_seed_frozen": true,
+    "boundary_sentinels": [
+      "LEAP_MONTH_BOUNDARY",
+      "SOLAR_TERM_BOUNDARY",
+      "ZI_HOUR_23_DAY_ROLLOVER",
+      "EMPTY_PLATE_BOUNDARY"
+    ],
+    "boundary_sentinels_validate_calendar_or_qimen_correctness": false
+  },
+  "source_local_overgeneralization_check": {
+    "status": "PASS",
+    "audited_against": [
+      "live successor chain through P2-EXEC-007 -> P2-EXEC-006 -> P2-EXEC-005 -> P2-EXEC-004",
+      "QM-SRC-0003 Wave1 distillate",
+      "QM-SRC-0021 deep-source distillate",
+      "WF-QM-JINHAN-YUJING-001 work-family distillate",
+      "QM-SRC-0027/0028/0029 deep-source distillates",
+      "K2_SHANTIADAO_PER_BOOK_ACCEPTANCE.md",
+      "K2_QIMEN_TBV_STATE.json"
+    ],
+    "decisions": [
+      "Reproducibility controls are methodological and do not alter Role/Layer/source semantics.",
+      "Synthetic boundary tokens are sentinels for deterministic handling only and carry no source or empirical credit.",
+      "No calendar-boundary meaning is inferred from the fixture dates or labels.",
+      "Exact replay success cannot be laundered into Qimen validity."
+    ]
+  },
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_gate": "BLOCKED_REMAINING_EXECUTION_SUBSTRATE_P2_EXEC_009",
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "next_required_work": [
+    "P2-EXEC-009 P2 Freeze serializer"
+  ],
+  "non_claims": [
+    "V11 is not Batch-ready.",
+    "P2-EXEC-008 does not validate any Role Map or calendar/Qimen boundary semantics empirically.",
+    "No source-local rule is universalized.",
+    "No Batch, Freeze, Outcome or empirical credit exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

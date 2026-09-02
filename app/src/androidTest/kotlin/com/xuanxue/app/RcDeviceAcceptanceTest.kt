@@ -51,6 +51,14 @@ class RcDeviceAcceptanceTest {
         composeRule.onNodeWithTag("home-root").assertExists()
         composeRule.onNodeWithText("玄学工具箱").assertExists()
 
+        // Product contract: the default home is user-facing and makes the
+        // offline/privacy value visible without removing the deeper audit path.
+        composeRule.onNodeWithText("六术离线排盘", substring = true).assertExists()
+        composeRule.onNodeWithText("纯净离线").assertExists().performScrollTo()
+        composeRule.onNodeWithTag("module-badge-qimen").assertExists()
+        composeRule.onNodeWithTag("module-badge-liuyao").assertExists()
+        composeRule.onNodeWithTag("open-audit").assertExists()
+
         val ziwei = composeRule.onNodeWithTag("module-card-ziwei").fetchSemanticsNode().boundsInRoot
         val bazi = composeRule.onNodeWithTag("module-card-bazi").fetchSemanticsNode().boundsInRoot
 

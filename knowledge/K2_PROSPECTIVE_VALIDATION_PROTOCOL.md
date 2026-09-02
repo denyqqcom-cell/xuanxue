@@ -1,6 +1,6 @@
 # K2 Prospective Validation Protocol：从解释能力进入可证伪能力
 
-版本：2026-08-22
+版本：2026-08-28
 阶段：K2B / Deep Closure
 状态：ACTIVE
 
@@ -13,6 +13,12 @@
 `SOURCE / STRUCTURE / METHOD CREDIT != EMPIRICAL CREDIT`
 
 古籍、案例、作者权威、跨页一致、同一传统的重复出现，都不能自动证明现实预测有效。原创模型同样没有特权：只要未经事前冻结、允许失败的前瞻测试，就保持 `empirical_credit = NONE`。
+
+同样重要的是：
+
+`PROJECT_GENERATED HYPOTHESIS != SOURCE_DERIVED HYPOTHESIS`
+
+原创假设必须以项目自身 provenance 登记，禁止为了进入验证通道而伪造 `work_family`、古籍来源或师承归属。
 
 ## 2. 四层分离
 
@@ -37,13 +43,47 @@
 
 单个命中案例永远不能直接升级 Empirical Credit。
 
-## 3. TEST PLAN 合同
+## 3. HYPOTHESIS PROVENANCE 与 TEST PLAN 合同
 
 公开设计文件：
 
 `knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl`
 
-每个计划必须绑定已经登记的 `hypothesis_id` 与 `work_family_key`，并至少预先说明：
+正式 hypothesis 允许两种来源，而且必须明确分开：
+
+### A. SOURCE_DERIVED
+
+来自 `K2_WORK_FAMILY_DISTILLATES.jsonl` 已登记且状态为 `UNTESTED` 的 source/work-family hypothesis。
+
+Plan 必须写：
+
+- `hypothesis_origin_type = SOURCE_DERIVED`
+- `hypothesis_origin_key = 对应 work_family_key`
+- `hypothesis_origin_ref = knowledge/K2_WORK_FAMILY_DISTILLATES.jsonl#<hypothesis_id>`
+
+### B. PROJECT_GENERATED
+
+来自项目自身模型迭代、反省或消融设计，而不是某本书的主张。identity/provenance 统一登记在：
+
+`knowledge/K2_QIMEN_PROJECT_HYPOTHESES.jsonl`
+
+该表只是**候选假设身份登记**，不是第二套验证系统，不建立新的 empirical credit，也不替代 TBV。每条项目假设必须：
+
+- 指向真实存在的 project origin artifact；
+- origin artifact 中实际出现该 hypothesis ID；
+- `status = UNTESTED`；
+- `empirical_credit = NONE`；
+- 明确 baseline requirement 与 falsification summary。
+
+Plan 必须写：
+
+- `hypothesis_origin_type = PROJECT_GENERATED`
+- `hypothesis_origin_key = 对应 project model/version`
+- `hypothesis_origin_ref = 对应原始理论 artifact#hypothesis_id`
+
+禁止把 PROJECT_GENERATED 假设绑定到伪造的 work-family provenance。
+
+无论哪一种来源，每个计划至少预先说明：
 
 - 候选模型是什么；
 - 竞争模型 / baseline 是什么；
@@ -101,9 +141,7 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 → `CONFIDENCE`
 → `ABSTENTION CONDITION`
 
-具体计划可要求额外字段，例如 movement 测试必须冻结：
-
-`movement_object / temporal_context / anchor / cadence / direction / path / center_policy / school_context`
+具体计划可要求额外字段，例如 movement 或 CDAF paired test 的共享情境、candidate/comparator 输出与映射 provenance。
 
 Freeze 的 payload 必须生成 canonical SHA256。Outcome 只能引用这个 hash 与完整 Freeze record hash，不能把结果出现后的新解释写回 Freeze。
 
@@ -136,7 +174,9 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 - 没有失败条件；
 - 没有竞争模型 / baseline；
 - 单案例命中直接提升理论信用；
-- 用古籍案例、网络复盘或已知答案数据冒充未知结果前瞻测试。
+- 用古籍案例、网络复盘或已知答案数据冒充未知结果前瞻测试；
+- 为原创理论伪造 source/work-family provenance；
+- 把 source-derived 与 project-generated 假设放在同一个来源身份下混算。
 
 ## 8. 高风险边界
 
@@ -167,6 +207,15 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 “自建理论”不是脱离验证，而是比继承理论承担更严格的反证义务。
 
-项目当前候选方向如 `RELATIONAL_CONFIGURATION` 与 `CONTEXTUAL_STATE_TRANSITION`，只能作为 hypothesis/model candidate。若预注册测试显示它们不优于简单 baseline、无法改善复现性，或需要持续事后补规则才能成立，就必须降级、拆分或放弃。
+项目当前同时存在两类候选：
+
+- source-derived：例如 `H-JD-001 / H-JD-002`；
+- project-generated：例如 `CDAF-H2`。
+
+`CDAF-H2` 专门测试 `M2 - M1`：在现实问题和 Scenario Graph 已经相同的前提下，加入反馈前冻结的奇门符号映射是否仍有增量。若没有增量，不能把 Scenario Graph 带来的通用推理改善算成奇门有效。
+
+`H-JD-001` 则收紧为 `M3 - M2`：在同一现实情境、同一冻结符号映射与规则池下，关系推演是否比简单冻结符号层有增量。
+
+两者都只是设计候选。若预注册测试显示它们不优于简单 baseline、无法改善复现性，或需要持续事后补规则才能成立，就必须降级、拆分或放弃。
 
 真正的原创性，不是拥有更多解释，而是能主动删除那些经不起冻结测试的解释自由度。

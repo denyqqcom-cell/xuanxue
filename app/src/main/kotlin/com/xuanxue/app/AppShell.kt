@@ -52,18 +52,19 @@ private data class ModuleEntry(
     val id: String,
     val title: String,
     val subtitle: String,
+    val badge: String,
 )
 
 private val moduleEntries = listOf(
-    ModuleEntry(RootPage.ZIWEI, "ziwei", "紫微斗数", "十二宫 · 星曜 · 四化 · 大限"),
-    ModuleEntry(RootPage.BAZI, "bazi", "八字", "四柱 · 藏干 · 十神 · 大运"),
-    ModuleEntry(RootPage.QIMEN, "qimen", "奇门遁甲", "历法基础已核验 · 九宫仍实验"),
-    ModuleEntry(RootPage.LIUYAO, "liuyao", "六爻", "纳甲 · 世应 · 动爻 · 变卦"),
-    ModuleEntry(RootPage.LIUREN, "liuren", "大六壬", "四课 · 三传 · 九宗门 · 天将"),
-    ModuleEntry(RootPage.HUANGLI, "huangli", "黄历", "宜忌 · 吉神凶煞 · 冲煞"),
+    ModuleEntry(RootPage.ZIWEI, "ziwei", "紫微斗数", "十二宫 · 星曜 · 四化 · 大限", "离线排盘"),
+    ModuleEntry(RootPage.BAZI, "bazi", "八字", "四柱 · 藏干 · 十神 · 大运", "离线排盘"),
+    ModuleEntry(RootPage.QIMEN, "qimen", "奇门遁甲", "九宫 · 九星 · 八门 · 定元选择", "多流派 · 实验"),
+    ModuleEntry(RootPage.LIUYAO, "liuyao", "六爻", "本卦 · 变卦 · 纳甲 · 世应", "纳甲排卦"),
+    ModuleEntry(RootPage.LIUREN, "liuren", "大六壬", "四课 · 三传 · 九宗门 · 天将", "书例核对"),
+    ModuleEntry(RootPage.HUANGLI, "huangli", "黄历", "宜忌 · 吉神凶煞 · 冲煞", "本地历法"),
 )
 
-/** App 根导航：模块发现、工程成熟度、合规入口和响应式布局统一管理。 */
+/** App 根导航：模块发现、方法核验、合规入口和响应式布局统一管理。 */
 @Composable
 fun XuanxueRoot() {
     var page by remember { mutableStateOf(RootPage.HOME) }
@@ -113,7 +114,7 @@ private fun HomeHub(
                     ) {
                         Text("玄学工具箱", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                         Text(
-                            "排盘、事体、资料核验与解释层分开管理。能证明到哪一层，就只开放到哪一层；传统解释不会伪装成算法事实。",
+                            "六术离线排盘，命例不上传、不需要账号。排盘结构、传统解释与方法来源分层呈现，需要深挖时再进入核验中心。",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
@@ -127,14 +128,14 @@ private fun HomeHub(
                 Text("排盘与历法", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 ResponsiveModuleGrid(onOpen)
 
-                OutlinedCard(Modifier.fillMaxWidth()) {
+                OutlinedCard(Modifier.fillMaxWidth().testTag("privacy-card")) {
                     Column(
                         Modifier.padding(15.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Text("本地优先", fontWeight = FontWeight.Bold)
+                        Text("纯净离线", fontWeight = FontWeight.Bold)
                         Text(
-                            "当前版本不需要账号、广告或自有服务器。离线解释只消费本机输入和排盘结果；未来若加入 BYOK，必须继续经过逐次数据预览与目标授权。",
+                            "不含广告，不要求登录，排盘在本机完成。方法来源、验证范围和未解决分歧集中放在核验中心，首页只保留使用时真正需要的信息。",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -154,7 +155,6 @@ private fun ResponsiveModuleGrid(onOpen: (RootPage) -> Unit) {
                 moduleEntries.forEach { entry ->
                     ModuleCard(
                         entry = entry,
-                        audit = MethodAuditRegistry.byId(entry.id),
                         onClick = { onOpen(entry.page) },
                     )
                 }
@@ -169,7 +169,6 @@ private fun ResponsiveModuleGrid(onOpen: (RootPage) -> Unit) {
                         entries.forEach { entry ->
                             ModuleCard(
                                 entry = entry,
-                                audit = MethodAuditRegistry.byId(entry.id),
                                 onClick = { onOpen(entry.page) },
                                 modifier = Modifier.weight(1f),
                             )
@@ -185,7 +184,6 @@ private fun ResponsiveModuleGrid(onOpen: (RootPage) -> Unit) {
 @Composable
 private fun ModuleCard(
     entry: ModuleEntry,
-    audit: MethodAudit?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -199,23 +197,15 @@ private fun ModuleCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(entry.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                if (audit != null) {
-                    Text(
-                        audit.maturity.label,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = maturityColor(audit.maturity),
-                    )
-                }
-            }
-            Text(entry.subtitle, style = MaterialTheme.typography.bodyMedium)
-            audit?.let {
                 Text(
-                    it.summary,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    entry.badge,
+                    modifier = Modifier.testTag("module-badge-${entry.id}"),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (entry.id == "qimen") MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary,
                 )
             }
-            TextButton(onClick = onClick, modifier = Modifier.testTag("module-open-${entry.id}")) { Text("打开") }
+            Text(entry.subtitle, style = MaterialTheme.typography.bodyMedium)
+            TextButton(onClick = onClick, modifier = Modifier.testTag("module-open-${entry.id}")) { Text("进入排盘") }
         }
     }
 }

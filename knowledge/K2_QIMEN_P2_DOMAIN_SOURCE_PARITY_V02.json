@@ -1,0 +1,227 @@
+{
+  "audit_id": "K2-QIMEN-P2-DOMAIN-SOURCE-PARITY-V02",
+  "version": "0.2",
+  "capability": "P2-PREBATCH-PARITY-002",
+  "stage": "POST_SHARED_SUPERSET_REPRESENTATION_V02_PRE_RESTRICTED_PRODUCTION_PROFILE_PRE_STATISTICAL_PREREGISTRATION_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "representation_contract_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V02.json",
+  "historical_v01_audit_ref": "knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_PARITY_V01.json",
+  "historical_v01_audit_preserved": true,
+  "source_inputs": [
+    "QM-SRC-0003",
+    "QM-SRC-0021"
+  ],
+  "source_evidence_refs": [
+    "K2E-W1-QM-0003-0007",
+    "K2E-W1-QM-0003-0009",
+    "K2E-W1-QM-0003-0010",
+    "K2E-W1-QM-0003-0017",
+    "K2E-W1-QM-0003-0018",
+    "K2E-W1-QM-0003-0019",
+    "K2E-W1-QM-0003-0020",
+    "K2E-W1-QM-0003-0065",
+    "K2E-W1-QM-0021-0007",
+    "K2E-W1-QM-0021-0239",
+    "K2E-W1-QM-0021-0240",
+    "K2E-W1-QM-0021-0242",
+    "K2E-W1-QM-0021-0346",
+    "K2E-W1-QM-0021-0347"
+  ],
+  "role_parity": {
+    "status": "PASS_SHARED_ROLE_INTERSECTION",
+    "shared_role_ids": [
+      "asker",
+      "organization",
+      "superior",
+      "peer",
+      "subordinate"
+    ],
+    "shared_role_bindings": {
+      "asker": {
+        "shared_symbol_candidates": ["日干"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0010"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239"]
+        }
+      },
+      "organization": {
+        "shared_symbol_candidates": ["开门"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0007", "K2E-W1-QM-0003-0020"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239", "K2E-W1-QM-0021-0240"]
+        }
+      },
+      "superior": {
+        "shared_symbol_candidates": ["年干", "值符"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0009", "K2E-W1-QM-0003-0017"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239"]
+        },
+        "pre_plate_disambiguation_required": true
+      },
+      "peer": {
+        "shared_symbol_candidates": ["月干"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0009", "K2E-W1-QM-0003-0010"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239"]
+        }
+      },
+      "subordinate": {
+        "shared_symbol_candidates": ["时干"],
+        "source_refs": {
+          "QM-SRC-0003": ["K2E-W1-QM-0003-0009", "K2E-W1-QM-0003-0010"],
+          "QM-SRC-0021": ["K2E-W1-QM-0021-0239"]
+        }
+      }
+    },
+    "same_role_universe_available_all_lanes": true,
+    "source_unique_role_extensions_excluded": true,
+    "feedback_dependent_role_switch_forbidden": true
+  },
+  "atomic_context_parity": {
+    "status": "PASS_SHARED_SUPERSET_SOURCE_COVERAGE",
+    "shared_atomic_context_universe": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星",
+      "九宫"
+    ],
+    "source_coverage": {
+      "QM-SRC-0003": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星",
+        "九宫"
+      ],
+      "QM-SRC-0021": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星",
+        "九宫"
+      ]
+    },
+    "coverage_evidence": {
+      "QM-SRC-0003": {
+        "奇仪": ["K2E-W1-QM-0003-0009", "K2E-W1-QM-0003-0010", "K2E-W1-QM-0003-0018"],
+        "八门": ["K2E-W1-QM-0003-0007", "K2E-W1-QM-0003-0020"],
+        "八神": ["K2E-W1-QM-0003-0007", "K2E-W1-QM-0003-0017"],
+        "九星": ["K2E-W1-QM-0003-0018", "K2E-W1-QM-0003-0065"],
+        "九宫": ["K2E-W1-QM-0003-0019"]
+      },
+      "QM-SRC-0021": {
+        "奇仪": ["K2E-W1-QM-0021-0239", "K2E-W1-QM-0021-0240", "K2E-W1-QM-0021-0346"],
+        "八门": ["K2E-W1-QM-0021-0239", "K2E-W1-QM-0021-0240", "K2E-W1-QM-0021-0346"],
+        "八神": ["K2E-W1-QM-0021-0007", "K2E-W1-QM-0021-0242", "K2E-W1-QM-0021-0346"],
+        "九星": ["K2E-W1-QM-0021-0007", "K2E-W1-QM-0021-0239", "K2E-W1-QM-0021-0346"],
+        "九宫": ["K2E-W1-QM-0021-0007", "K2E-W1-QM-0021-0239", "K2E-W1-QM-0021-0346"]
+      }
+    },
+    "derived_composites": ["格局"],
+    "格局_atomic": false,
+    "九宫_first_class": true,
+    "lane_specific_context_add_or_drop_forbidden": true
+  },
+  "priority_policy_parity": {
+    "status": "PASS_SOURCE_FAITHFUL_PARTIAL_POLICY_FOR_RESTRICTED_SCOPE",
+    "P2-A": {
+      "policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "source_ref": "K2E-W1-QM-0003-0065",
+      "ranked_subset": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ],
+      "visible_unranked_context": ["九宫"],
+      "visible_unranked_context_source_ref": "K2E-W1-QM-0003-0019",
+      "invent_rank_for_九宫_forbidden": true
+    },
+    "P2-A_PRIME": {
+      "policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "source_ref": "K2E-W1-QM-0003-0065",
+      "ranked_subset": [
+        "奇仪",
+        "八门",
+        "八神",
+        "九星"
+      ],
+      "visible_unranked_context": ["九宫"],
+      "invent_rank_for_九宫_forbidden": true
+    },
+    "P2-B": {
+      "policy_form": "QUESTION_DOMAIN_CONDITIONED_PARTIAL_PRIORITY_OR_PRIMARY_LAYER",
+      "primary_relation_source_ref": "K2E-W1-QM-0021-0240",
+      "primary_relation_interpretation": "For source-scoped job-search/promotion judgement, the source places final judgement on the relation of 开门 with 日干/年命 and treats year/month/hour stems as auxiliary. At atomic-layer level this supports a joint primary set 奇仪+八门, not an invented order within that pair.",
+      "primary_atomic_context_set": [
+        "奇仪",
+        "八门"
+      ],
+      "primary_set_internal_order": "UNORDERED",
+      "supporting_visible_context": [
+        "八神",
+        "九星",
+        "九宫"
+      ],
+      "supporting_context_source_refs": [
+        "K2E-W1-QM-0021-0007",
+        "K2E-W1-QM-0021-0239",
+        "K2E-W1-QM-0021-0242"
+      ],
+      "workplace_total_order_status": "NOT_SOURCE_ESTABLISHED",
+      "unsupported_topology_action": "ABSTAIN_OR_OUT_OF_SCOPE_FAIL_CLOSED",
+      "outcome_or_feedback_selected_priority_forbidden": true
+    }
+  },
+  "production_scope": {
+    "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+    "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+    "eligible_question_topologies": [
+      "JOB_SEARCH",
+      "PROMOTION",
+      "TRANSFER_OR_ROLE_CHANGE",
+      "ORGANIZATIONAL_RELATIONSHIP"
+    ],
+    "requires_explicit_asker_and_work_object": true,
+    "high_impact_employment_decision_use_forbidden": true,
+    "unsupported_topology": "ABSTAIN_OR_OUT_OF_SCOPE",
+    "scope_restriction_rationale": "The source provides explicit workplace role maps and a primary relation for job-search/promotion, but does not provide a universal total layer order for every conceivable workplace question."
+  },
+  "estimand_parity": {
+    "same_representation_digest_required": true,
+    "same_atomic_context_visibility_required": true,
+    "same_derived_composite_definition_required": true,
+    "same_complexity_formula_required": true,
+    "C1_role_map_and_priority_policy_may_differ": true,
+    "C2_only_priority_policy_may_differ": true,
+    "C3_only_role_map_may_differ": true,
+    "lane_specific_feature_addition_forbidden": true,
+    "outcome_dependent_scope_or_policy_edit_forbidden": true
+  },
+  "production_decision": {
+    "domain_source_parity_ready": true,
+    "production_representation_materialization_allowed": true,
+    "production_complexity_profile_materialization_allowed": false,
+    "production_abstention_profile_materialization_allowed": false,
+    "statistical_preregistration_allowed": false,
+    "batch_creation_allowed": false,
+    "next_required_work": "P2-PREBATCH-PROFILE-003_MATERIALIZE_RESTRICTED_PRODUCTION_REPRESENTATION_AND_SHARED_PROFILES_FAIL_FIRST"
+  },
+  "source_local_overgeneralization_check": "PASS",
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V02 parity means both source frameworks can be represented without dropping or inventing atomic context, not that their predictions are valid.",
+    "The P2-B workplace policy is a source-scoped partial priority, not a total ranking over five atomic context layers.",
+    "The production scope is restricted prospectively; unsupported workplace topologies must abstain or remain out of scope.",
+    "This audit authorizes the next materialization step only; it does not itself materialize a production representation or profile.",
+    "No statistical preregistration, Batch, Freeze or Outcome exists and empirical credit remains NONE."
+  ]
+}

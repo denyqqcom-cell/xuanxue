@@ -1,0 +1,98 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V21",
+  "version": "0.21",
+  "status": "BATCH_REGISTRATION_MACHINERY_CLOSED_AWAIT_EXPLICIT_PRODUCTION_BATCH_AUTHORIZATION",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V20",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V17.json",
+  "production_representation_ref": "knowledge/K2_QIMEN_P2_PRODUCTION_REPRESENTATION_V01.json",
+  "shared_profiles_ref": "knowledge/K2_QIMEN_P2_SHARED_PROFILES_V01.json",
+  "statistical_preregistration": {
+    "ref": "knowledge/K2_QIMEN_P2_STATISTICAL_PREREGISTRATION_V01.json",
+    "git_blob": "4cc3de63c8509fb00893d9cf788f17224f389014",
+    "ready": true,
+    "primary_metric": "COVERAGE_PENALIZED_BINARY_ACCURACY_V01",
+    "confirmatory_test": "EXACT_ONE_SIDED_MCNEMAR_BINOMIAL_V01",
+    "target_total_cases": 240
+  },
+  "batch_registration_machinery": {
+    "contract_ref": "knowledge/K2_QIMEN_P2_BATCH_REGISTRATION_CONTRACT_V01.json",
+    "contract_git_blob": "f092bffe03faccfbf145f8d4eb60f410910c3a54",
+    "binder_ref": "tools/k2_qimen_p2_batch_registration.py",
+    "binder_git_blob": "04f3d6fb6bf946f7e6a804d51f22e680a171782f",
+    "status": "CLOSED_MACHINERY_ONLY",
+    "pure_deterministic_binder": true,
+    "fixture_only_acceptance": true,
+    "production_mode_rejected_without_explicit_future_authorization": true,
+    "registry_persistence_side_effect_forbidden": true,
+    "runtime_current_time_selection_forbidden": true,
+    "explicit_rfc3339_utc_z_start_required": true,
+    "one_case_per_asker_policy_id": "ONE_INCLUDED_CASE_PER_ASKER_PER_BATCH_V01",
+    "primary_topologies": ["JOB_SEARCH", "PROMOTION", "TRANSFER_OR_ROLE_CHANGE"],
+    "target_cases_per_topology": 80,
+    "acquisition_window_days": 365,
+    "outcome_followup_days": 90
+  },
+  "lane_priority_semantics": {
+    "P2-A": {
+      "policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "ranked_subset": ["奇仪", "八门", "八神", "九星"],
+      "visible_unranked_context": ["九宫"]
+    },
+    "P2-A_PRIME": {
+      "policy_form": "FIXED_RANKED_SUBSET_WITH_VISIBLE_UNRANKED_CONTEXT",
+      "ranked_subset": ["奇仪", "八门", "八神", "九星"],
+      "visible_unranked_context": ["九宫"]
+    },
+    "P2-B": {
+      "policy_form": "QUESTION_DOMAIN_CONDITIONED_PARTIAL_PRIORITY_OR_PRIMARY_LAYER",
+      "primary_atomic_context_set": ["奇仪", "八门"],
+      "primary_set_internal_order": "UNORDERED",
+      "supporting_visible_context": ["八神", "九星", "九宫"],
+      "workplace_total_order_status": "NOT_SOURCE_ESTABLISHED"
+    }
+  },
+  "production_scope": {
+    "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+    "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+    "representation_eligible_question_topologies": ["JOB_SEARCH", "PROMOTION", "TRANSFER_OR_ROLE_CHANGE", "ORGANIZATIONAL_RELATIONSHIP"],
+    "primary_statistical_batch_topologies": ["JOB_SEARCH", "PROMOTION", "TRANSFER_OR_ROLE_CHANGE"],
+    "primary_excluded_topologies": ["ORGANIZATIONAL_RELATIONSHIP"],
+    "high_impact_employment_decision_use_forbidden": true,
+    "scope_may_not_expand_after_batch_start": true
+  },
+  "contrast_estimands": {
+    "P2-C1": {"candidate": "P2-A_PRIME", "comparator": "P2-A", "credit_scope": "TOPOLOGY_ROLE_BINDING_ONLY"},
+    "P2-C2": {"candidate": "P2-B", "comparator": "P2-A_PRIME", "credit_scope": "TOPOLOGY_CONDITIONED_LAYER_PRIORITY_ONLY"},
+    "P2-C3": {"candidate": "P2-B", "comparator": "P2-A", "credit_scope": "FULL_BUNDLE_ONLY_NOT_COMPONENT_ATTRIBUTION", "component_credit_forbidden": true}
+  },
+  "epistemic_boundary": {
+    "registration_machinery_ready_is_not_batch_created": true,
+    "synthetic_fixture_is_not_batch": true,
+    "source_consistency_is_not_empirical_validity": true,
+    "statistical_preregistration_is_not_empirical_credit": true,
+    "production_batch_requires_separate_explicit_future_action": true
+  },
+  "execution_substrate_ready": true,
+  "statistical_preregistration_ready": true,
+  "batch_registration_machinery_ready": true,
+  "production_batch_registration_authorized": false,
+  "production_batch_registered": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_EXPLICIT_PRODUCTION_BATCH_AUTHORIZATION_AND_REAL_START_BOUNDARY_INPUT",
+  "next_required_work": "AWAIT_EXPLICIT_USER_AUTHORIZATION_BEFORE_ANY_PRODUCTION_BATCH_REGISTRY_WRITE",
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V21 closes only deterministic Batch-registration machinery.",
+    "No real Batch ID, real start boundary or production registry row exists.",
+    "The synthetic fixture does not authorize Batch creation.",
+    "No Freeze or Outcome exists and QRM-H1 remains UNTESTED."
+  ]
+}

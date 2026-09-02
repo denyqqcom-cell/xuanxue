@@ -1,0 +1,42 @@
+{
+  "artifact_id": "K2-QIMEN-P2-SHARED-PROFILES-V01",
+  "capability": "P2-PREBATCH-PROFILE-003",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "complexity_profile": {
+    "profile_id": "P2-WORKPLACE-COMPLEXITY-PROFILE-V01",
+    "fixture_synthetic_limits": false,
+    "research_design_choice": true,
+    "max_roles_per_question": 5,
+    "max_layers_per_question": 5,
+    "max_symbol_instances_per_question": 5,
+    "max_total_units_per_lane": 15,
+    "max_role_bindings_per_symbol_instance": 1
+  },
+  "abstention_profile": {
+    "profile_id": "P2-WORKPLACE-ABSTENTION-SCORING-PROFILE-V01",
+    "fixture_synthetic_values": false,
+    "frozen_before_outcome_scoring": true,
+    "same_for_all_blind_outputs": true,
+    "abstain_metric_value": 0.0,
+    "technical_unevaluable_metric_value": 0.0,
+    "coverage_penalty_mode": "COUNT_IN_PRIMARY_DENOMINATOR_WITH_FROZEN_METRIC_VALUE"
+  },
+  "profile_parity": {
+    "same_complexity_profile_all_lanes": true,
+    "same_abstention_profile_all_blind_outputs": true,
+    "lane_or_blind_override_forbidden": true,
+    "frozen_before_plate_values": true,
+    "frozen_before_outcome": true
+  },
+  "statistical_metric_binding": {
+    "status": "PENDING_STATISTICAL_PREREGISTRATION",
+    "require_metric_scale_compatible_with_abstain_value": true,
+    "profile_change_requires_new_version_before_batch": true
+  },
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE"
+}

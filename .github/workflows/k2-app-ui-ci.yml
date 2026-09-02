@@ -7,6 +7,9 @@ on:
     paths:
       - 'app/**'
       - 'ziwei-core/**'
+      - 'knowledge/K2_QIMEN_CDAF_H2_PREREGISTRATION_CANDIDATE_V01.json'
+      - 'tools/validate_k2_weather_prereg_candidate.py'
+      - 'tools/test_k2_weather_prereg_candidate.py'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
       - 'gradle/**'
@@ -21,6 +24,9 @@ on:
     paths:
       - 'app/**'
       - 'ziwei-core/**'
+      - 'knowledge/K2_QIMEN_CDAF_H2_PREREGISTRATION_CANDIDATE_V01.json'
+      - 'tools/validate_k2_weather_prereg_candidate.py'
+      - 'tools/test_k2_weather_prereg_candidate.py'
       - 'build.gradle.kts'
       - 'settings.gradle.kts'
       - 'gradle/**'
@@ -60,6 +66,23 @@ jobs:
       - name: Verify K2 core, lint, and debug APK
         run: ./gradlew --no-daemon :ziwei-core:test :app:lintDebug :app:assembleDebug
 
+      - name: Report CDAF-H2 calendar structure audits
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s ziwei-core/build/reports/qimen-weather-real-calendar-audit-v03.json
+          test -s ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
+          test -s ziwei-core/build/reports/qimen-weather-prospective-schedule-candidate-v01.json
+          echo '--- real-calendar FUTOU audit V03 ---'
+          cat ziwei-core/build/reports/qimen-weather-real-calendar-audit-v03.json
+          echo '--- calendar-equivalence sham audit V03 ---'
+          cat ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
+          echo '--- prospective 72-segment schedule candidate V01 (NOT FROZEN) ---'
+          cat ziwei-core/build/reports/qimen-weather-prospective-schedule-candidate-v01.json
+
+      - name: Bind generated weather schedule to committed pre-Batch candidate
+        run: python3 tools/validate_k2_weather_prereg_candidate.py --generated-schedule ziwei-core/build/reports/qimen-weather-prospective-schedule-candidate-v01.json
+
       - name: Verify debug APK exists and stays inside package boundary
         shell: bash
         run: |
@@ -86,6 +109,9 @@ jobs:
             app/build/outputs/apk/debug/SHA256SUMS.txt
             app/build/outputs/apk/debug/K2_BUILD_INFO.txt
             app/build/reports/lint-results-debug.html
+            ziwei-core/build/reports/qimen-weather-real-calendar-audit-v03.json
+            ziwei-core/build/reports/qimen-weather-calendar-equivalence-audit-v03.json
+            ziwei-core/build/reports/qimen-weather-prospective-schedule-candidate-v01.json
           if-no-files-found: error
           retention-days: 7
           compression-level: 0

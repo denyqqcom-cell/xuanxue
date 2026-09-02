@@ -1,0 +1,68 @@
+{
+  "contract_id": "K2-QIMEN-P2-EXACT-REPRODUCIBILITY-CONTRACT-V01",
+  "version": "0.1",
+  "capability": "P2-EXEC-008",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "stage": "PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "research_only": true,
+  "failure_policy": "FAIL_CLOSED",
+  "canonicalization": {
+    "encoding": "UTF-8",
+    "json_sort_keys": true,
+    "json_separators": [
+      ",",
+      ":"
+    ],
+    "ensure_ascii": false,
+    "allow_float": false,
+    "allow_nan_or_infinity": false,
+    "case_output_order": "SORT_BY_FIXTURE_CASE_ID",
+    "hash_algorithm": "SHA256",
+    "byte_for_byte_repeatability_required": true
+  },
+  "time_and_calendar_boundary": {
+    "explicit_time_source_required": true,
+    "explicit_timezone_required": true,
+    "explicit_utc_offset_required": true,
+    "host_timezone_dependency_forbidden": true,
+    "system_now_dependency_forbidden": true,
+    "calendar_boundary_fields_frozen_input_only": true,
+    "required_boundary_kinds": [
+      "LEAP_MONTH_BOUNDARY",
+      "SOLAR_TERM_BOUNDARY",
+      "ZI_HOUR_23_DAY_ROLLOVER",
+      "EMPTY_PLATE_BOUNDARY"
+    ],
+    "boundary_fixture_semantics": "REPRODUCIBILITY_SENTINEL_NOT_CALENDAR_CORRECTNESS_CLAIM"
+  },
+  "seed_and_environment": {
+    "nondeterminism_seed_required": true,
+    "seed_frozen_in_input": true,
+    "random_unseeded_forbidden": true,
+    "locale_dependency_forbidden": true,
+    "process_id_dependency_forbidden": true,
+    "filesystem_order_dependency_forbidden": true
+  },
+  "pipeline_output": {
+    "artifact_kind": "P2_EXACT_REPRODUCIBILITY_FIXTURE_REPORT",
+    "include_contract_sha256": true,
+    "include_fixture_sha256": true,
+    "include_case_input_sha256": true,
+    "include_case_output_sha256": true,
+    "runtime_timestamp_forbidden": true,
+    "outcome_field_forbidden": true
+  },
+  "source_semantics_boundary": {
+    "may_validate_execution_determinism_only": true,
+    "may_create_or_promote_qimen_semantics": false,
+    "boundary_fixture_values_are_source_claims": false,
+    "boundary_fixture_values_are_empirical_claims": false,
+    "source_local_overgeneralization_forbidden": true
+  },
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED"
+}

@@ -1,0 +1,81 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V09",
+  "version": "0.9",
+  "status": "PARTIAL_EXECUTION_SUBSTRATE_BLINDED_ISOLATED_RUNNER_BOUND",
+  "supersedes_protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V08",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V05.json",
+  "blinded_lane_runner_contract_ref": "knowledge/K2_QIMEN_P2_BLINDED_LANE_RUNNER_CONTRACT_V01.json",
+  "blinded_lane_runner_contract_canonical_sha256": "9a93bc02a8388651a50fd94423f1c89a36c984582ca4de272cfd118843758a3e",
+  "closed_execution_blockers": [
+    "P2-EXEC-001", "P2-EXEC-002", "P2-EXEC-003", "P2-EXEC-004", "P2-EXEC-005", "P2-EXEC-006"
+  ],
+  "open_execution_blockers": ["P2-EXEC-007", "P2-EXEC-008", "P2-EXEC-009"],
+  "closure_scope": {
+    "P2-EXEC-001": "machine-structured A/A_PRIME/B lane graph and exact estimand contract",
+    "P2-EXEC-002": "canonical generator descriptor contract",
+    "P2-EXEC-003": "shared representation parity materialization",
+    "P2-EXEC-004": "source-constrained deterministic Role/Layer generation",
+    "P2-EXEC-005": "symmetric pre-mapping complexity-budget enforcement",
+    "P2-EXEC-006": "blinded and isolated three-lane execution with pre-freeze order randomization, separate identity mapping, canonical input-snapshot hashes, fresh worker state and order-invariance",
+    "explicitly_not_closed": [
+      "ABSTAIN/denominator scoring",
+      "exact production reproducibility fixture pipeline",
+      "P2 production Freeze serialization"
+    ]
+  },
+  "blinded_lane_boundary": {
+    "worker_sees_blind_id_not_lane_id": true,
+    "identity_map_separate": true,
+    "identity_map_hidden_from_worker": true,
+    "execution_logs_deidentified": true,
+    "semantic_arm_labels_forbidden": true,
+    "order_seed_pre_freeze": true,
+    "order_independent_of_outputs_and_outcomes": true,
+    "canonical_input_snapshot_sha256_required": true,
+    "shared_mutable_state_forbidden": true,
+    "cross_lane_cache_forbidden": true,
+    "peer_output_leakage_forbidden": true,
+    "fresh_worker_state_per_lane": true,
+    "order_invariance_required": true
+  },
+  "source_local_overgeneralization_check": {
+    "status": "PASS",
+    "audited_against": [
+      "live successor chain through P2-EXEC-005 and P2-EXEC-004",
+      "QM-SRC-0003 Wave1 distillate",
+      "QM-SRC-0021 deep-source distillate",
+      "WF-QM-JINHAN-YUJING-001 work-family distillate",
+      "QM-SRC-0027/0028/0029 deep-source distillates",
+      "K2_SHANTIADAO_PER_BOOK_ACCEPTANCE.md",
+      "K2_QIMEN_TBV_STATE.json"
+    ],
+    "decisions": [
+      "Runner isolation changes no source-semantic role, layer, correction or topology binding.",
+      "Blinding and execution-order randomization are methodological controls, not Qimen doctrines.",
+      "Lane identities are retained only in a separate coordinator identity map and are absent from worker execution logs."
+    ]
+  },
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_gate": "BLOCKED_REMAINING_EXECUTION_SUBSTRATE_P2_EXEC_007_TO_009",
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "next_required_work": [
+    "P2-EXEC-007 ABSTAIN/denominator scorer",
+    "P2-EXEC-008 exact reproducibility fixture pipeline",
+    "P2-EXEC-009 P2 Freeze serializer"
+  ],
+  "non_claims": [
+    "V09 is not Batch-ready.",
+    "P2-EXEC-006 does not validate any Role Map empirically.",
+    "No source-local rule is universalized.",
+    "No Batch, Freeze, Outcome or empirical credit exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

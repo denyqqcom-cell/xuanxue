@@ -1,0 +1,205 @@
+{
+  "protocol_id": "K2-QIMEN-P2-ROLE-MAP-COMPARATIVE-V01",
+  "version": "0.1",
+  "status": "DESIGN_READY",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "hypothesis": {
+    "hypothesis_id": "QRM-H1",
+    "plan_id": "K2PV-QRM-001",
+    "statement": "在共享同一现实锚点、Scenario Graph、Engine/plate、source role catalog、eligible rule pool 与 outcome definition，且 Role/Layer Map 在读取 current plate values 前冻结时，topology-conditioned Role/Layer mapping 若有真实增量，应相对 source-faithful fixed-global-priority baseline 产生可重复的前瞻增益，而不是依赖 plate-conditioned selection 或 post-feedback repair。",
+    "status": "UNTESTED"
+  },
+  "source_basis": [
+    {
+      "source_id": "QM-SRC-0003",
+      "evidence_id": "K2E-W1-QM-0003-0065",
+      "role": "GLOBAL_LAYER_PRIORITY_ANCHOR",
+      "normalized_support": "固定全局信号优先级：奇仪 -> 八门 -> 八神 -> 九星。"
+    },
+    {
+      "source_id": "QM-SRC-0003",
+      "evidence_id": "K2E-W1-QM-0003-0009",
+      "role": "DOMAIN_ROLE_CATALOG_GUARD",
+      "normalized_support": "单位问题已经存在上级、同级、下级等 domain-specific role mapping。"
+    },
+    {
+      "source_id": "QM-SRC-0003",
+      "evidence_id": "K2E-W1-QM-0003-0063",
+      "role": "DOMAIN_ROLE_CATALOG_GUARD",
+      "normalized_support": "失物用神会随物品类别变化，baseline 不得被简化成无场景角色。"
+    },
+    {
+      "source_id": "QM-SRC-0003",
+      "evidence_id": "K2E-W1-QM-0003-0068",
+      "role": "QUESTION_FOCUS_GUARD",
+      "normalized_support": "单位风水强调抓大环境、主要领导和财务负责人等重点。"
+    },
+    {
+      "source_id": "QM-SRC-0021",
+      "evidence_id": "K2E-W1-QM-0021-0239",
+      "role": "TOPOLOGY_ROLE_CANDIDATE",
+      "normalized_support": "工作就业问题存在结构化角色表与分层观察框架。"
+    },
+    {
+      "source_id": "QM-SRC-0021",
+      "evidence_id": "K2E-W1-QM-0021-0327",
+      "role": "COMPETING_MAPPING_RISK",
+      "normalized_support": "父母角色存在多种来源允许的选法，必须事前区分或弃权。"
+    },
+    {
+      "source_id": "QM-SRC-0021",
+      "evidence_id": "K2E-W1-QM-0021-0330",
+      "role": "TOPOLOGY_ROLE_CANDIDATE",
+      "normalized_support": "工作社会关系存在上级、直接上司、副职、同级和下级等动态角色表。"
+    }
+  ],
+  "source_distillate_refs": [
+    "knowledge/K2_BOOK_DISTILLATES_WAVE1.d/QM-SRC-0016.jsonl",
+    "knowledge/K2_DEEP_SOURCE_DISTILLATES.d/QM-SRC-0021.jsonl"
+  ],
+  "mapping_input_boundary": {
+    "allowed_before_mapping_freeze": [
+      "question_definition",
+      "asked_object",
+      "shared_reality_context_before_observation_cutoff",
+      "scenario_graph",
+      "object_graph",
+      "setup_method",
+      "school_context",
+      "time_family",
+      "layout_method",
+      "source_role_catalog",
+      "eligible_rule_pool",
+      "outcome_definition_without_outcome_value"
+    ],
+    "forbidden_before_mapping_freeze": [
+      "current_plate_symbol_values",
+      "current_plate_strength_or_auspiciousness",
+      "prediction",
+      "outcome",
+      "feedback",
+      "unregistered_external_omen"
+    ],
+    "mapping_before_plate_value_access": true,
+    "plate_value_access_before_mapping": false
+  },
+  "shared_controls": [
+    "question_definition",
+    "asked_object",
+    "reality_anchor",
+    "scenario_graph",
+    "observation_cutoff",
+    "engine_commit",
+    "plate_identity",
+    "setup_method",
+    "school_context",
+    "time_family",
+    "layout_method",
+    "source_role_catalog",
+    "eligible_rule_pool",
+    "outcome_definition",
+    "scoring_rule",
+    "paired_abstention_policy"
+  ],
+  "lanes": [
+    {
+      "lane_id": "P2-A",
+      "model_name": "GLOBAL_PRIORITY_CATALOG_ROLE_BASELINE_V01",
+      "role_binding_policy": "SOURCE_CATALOG_DOMAIN_SELECTION_ONLY",
+      "source_role_catalog_required": true,
+      "preserve_qm_src_0003_domain_roles": true,
+      "layer_priority_policy": "FIXED_GLOBAL",
+      "layer_priority": ["奇仪", "八门", "八神", "九星"],
+      "mapping_must_precede_plate_values": true
+    },
+    {
+      "lane_id": "P2-A_PRIME",
+      "model_name": "GLOBAL_PRIORITY_TOPOLOGY_ROLE_ABLATION_V01",
+      "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "source_role_catalog_required": true,
+      "layer_priority_policy": "FIXED_GLOBAL",
+      "layer_priority": ["奇仪", "八门", "八神", "九星"],
+      "mapping_must_precede_plate_values": true,
+      "bridge_ablation_required": true
+    },
+    {
+      "lane_id": "P2-B",
+      "model_name": "TOPOLOGY_CONDITIONED_ROLE_PRIORITY_V01",
+      "role_binding_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "source_role_catalog_required": true,
+      "layer_priority_policy": "QUESTION_TOPOLOGY_CONDITIONED",
+      "mapping_must_precede_plate_values": true
+    }
+  ],
+  "attribution_contrasts": [
+    {
+      "contrast_id": "P2-C1",
+      "candidate": "P2-A_PRIME",
+      "comparator": "P2-A",
+      "credit_scope": "TOPOLOGY_ROLE_BINDING_ONLY"
+    },
+    {
+      "contrast_id": "P2-C2",
+      "candidate": "P2-B",
+      "comparator": "P2-A_PRIME",
+      "credit_scope": "TOPOLOGY_CONDITIONED_LAYER_PRIORITY_ONLY"
+    },
+    {
+      "contrast_id": "P2-C3",
+      "candidate": "P2-B",
+      "comparator": "P2-A",
+      "credit_scope": "FULL_BUNDLE_ONLY_NOT_COMPONENT_ATTRIBUTION"
+    }
+  ],
+  "abstention_policy": {
+    "competing_mappings_must_be_preserved_or_abstain": true,
+    "post_outcome_mapping_selection_forbidden": true,
+    "unevaluable_if_mapping_order_not_auditable": true
+  },
+  "future_batch_freeze_required": [
+    "source_role_catalog_hash",
+    "comparator_mapping_generator",
+    "bridge_mapping_generator",
+    "candidate_mapping_generator",
+    "topology_feature_manifest",
+    "layer_priority_policy",
+    "interpreter_protocol",
+    "primary_metric",
+    "decision_threshold",
+    "sampling_rule",
+    "stopping_rule",
+    "minimum_information_floor",
+    "contamination_ledger_policy"
+  ],
+  "evaluation_metrics": [
+    "P2-C1 paired primary metric delta",
+    "P2-C2 paired primary metric delta",
+    "P2-C3 paired primary metric delta",
+    "paired calibration or discrimination delta",
+    "abstention and selective-risk delta",
+    "cross-interpreter Role Map reproducibility",
+    "cross-interpreter prediction reproducibility",
+    "pre-outcome mapping instability rate",
+    "post-feedback role-switch attempt rate",
+    "post-feedback rule or layer-priority edit rate"
+  ],
+  "leakage_controls": [
+    "three_lanes_share_same_reality_scenario_engine_plate_catalog_rules_outcome",
+    "role_and_layer_maps_freeze_before_current_plate_values",
+    "source_faithful_comparator_no_strawman",
+    "bridge_ablation_is_mandatory",
+    "P2-C1_C2_C3_scored_separately",
+    "combined_gain_cannot_be_laundered_into_component_credit",
+    "post_feedback_role_layer_rule_path_changes_are_contamination_only",
+    "failed_abstained_unevaluable_cases_are_retained"
+  ],
+  "success_condition": "只有未来 Batch 在 Outcome 前冻结统计、停止、interpreter 与 mapping-generator 合同，并使相应 contrast 达到事前判据且不依赖 post-feedback repair，才允许进入 Batch Review。P2-C3 不能单独授予 Role Map 或 Layer Priority 组件信用。",
+  "failure_condition": "若 candidate 无稳定事前增量，或增量依赖看过 current plate values 后改 mapping、Outcome 后换 Role Map/Layer Priority/Rule/Interpretation Path，则 QRM-H1 失败或保持无信用；若 P2-C3 胜出但 P2-C1 不支持 role-binding 增量，不得宣称 topology Role Map 获得验证。",
+  "high_risk_policy": "RESEARCH_ONLY",
+  "high_risk_exclusions": ["medical", "legal", "financial", "personal_safety", "major_relationship", "criminal_attribution"],
+  "update_policy": "任何 comparator/candidate/bridge 身份、mapping input boundary、source role catalog、layer priority、eligible rule pool 或 attribution contrast 修改都必须形成新版本，仅用于后续未知 Outcome Batch；不得回写已冻结 case。"
+}

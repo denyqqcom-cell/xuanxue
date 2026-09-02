@@ -1,0 +1,100 @@
+name: K2 Qimen P2 Execution Readiness
+
+on:
+  pull_request:
+    paths:
+      - 'knowledge/K2_QIMEN_P2_ROLE_MAP_*'
+      - 'knowledge/K2_QIMEN_P2_EXECUTION_*'
+      - 'knowledge/K2_QIMEN_P2_REPRESENTATION_*'
+      - 'knowledge/K2_QIMEN_P2_ROLE_LAYER_*'
+      - 'knowledge/K2_QIMEN_P2_COMPLEXITY_BUDGET_*'
+      - 'knowledge/K2_QIMEN_P2_BLINDED_LANE_*'
+      - 'knowledge/K2_QIMEN_P2_ABSTAIN_DENOMINATOR_*'
+      - 'knowledge/K2_QIMEN_P2_EXACT_REPRODUCIBILITY_*'
+      - 'knowledge/K2_QIMEN_P2_FREEZE_SERIALIZER_*'
+      - 'knowledge/K2_QIMEN_P2_PRE_BATCH_*'
+      - 'knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_*'
+      - 'knowledge/K2_QIMEN_P2_FACTOR_LAYER_*'
+      - 'knowledge/K2_QIMEN_P2_ONTOLOGY_*'
+      - 'knowledge/K2_QIMEN_P2_PRODUCTION_*'
+      - 'knowledge/K2_QIMEN_P2_SHARED_PROFILES_*'
+      - 'knowledge/K2_QIMEN_P2_STATISTICAL_*'
+      - 'knowledge/K2_QIMEN_P2_BATCH_REGISTRATION_*'
+      - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
+      - 'knowledge/K2_PROSPECTIVE_BATCHES.jsonl'
+      - 'knowledge/K2_PROSPECTIVE_FREEZES.jsonl'
+      - 'knowledge/schema/qimen_p2_*'
+      - 'tools/k2_qimen_p2_*'
+      - 'tools/test_k2_qimen_p2_*'
+      - 'tools/validate_k2_qimen_p2_*'
+      - 'tools/testdata/qimen_p2_*'
+      - '.github/workflows/k2-qimen-p2-execution-readiness.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  p2-execution-readiness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test P2 execution-contract fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_execution_contract.py
+      - name: Test P2 representation materializer fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_representation.py
+      - name: Test P2 deterministic Role/Layer generator fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_role_layer_generators.py
+      - name: Validate P2 representation successor and Role/Layer generator closure
+        run: python3 tools/validate_k2_qimen_p2_role_layer_generators.py
+      - name: Test P2 complexity budget enforcer fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_budget_enforcer.py
+      - name: Validate P2 Role/Layer successor and complexity budget closure
+        run: python3 tools/validate_k2_qimen_p2_budget_enforcer.py
+      - name: Test P2 blinded/isolated lane runner fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_blinded_lane_runner.py
+      - name: Validate P2 complexity budget successor and blinded lane runner closure
+        run: python3 tools/validate_k2_qimen_p2_blinded_lane_runner.py
+      - name: Test P2 ABSTAIN/denominator scorer fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_abstain_denominator_scorer.py
+      - name: Validate P2 blinded lane successor and ABSTAIN/denominator closure
+        run: python3 tools/validate_k2_qimen_p2_abstain_denominator_scorer.py
+      - name: Test P2 exact reproducibility fixture pipeline fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_exact_reproducibility.py
+      - name: Validate P2 ABSTAIN/denominator successor and exact reproducibility closure
+        run: python3 tools/validate_k2_qimen_p2_exact_reproducibility.py
+      - name: Test P2 Freeze serializer fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_freeze_serializer.py
+      - name: Validate P2 exact reproducibility successor and Freeze serializer closure
+        run: python3 tools/validate_k2_qimen_p2_freeze_serializer.py
+      - name: Audit post-substrate pre-Batch binding completeness
+        run: python3 tools/test_k2_qimen_p2_post_substrate_pre_batch_audit.py
+      - name: Audit production-domain source parity before representation/profile materialization
+        run: python3 tools/test_k2_qimen_p2_domain_source_parity.py
+      - name: Audit source-grounded factor/layer crosswalk before ontology decision
+        run: python3 tools/test_k2_qimen_p2_factor_layer_crosswalk_audit.py
+      - name: Decide source-grounded ontology path before Representation V02
+        run: python3 tools/test_k2_qimen_p2_ontology_decision.py
+      - name: Test shared-superset Representation V02 fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_representation_v02.py
+      - name: Validate shared-superset Representation V02 closure
+        run: python3 tools/validate_k2_qimen_p2_representation_v02.py
+      - name: Audit Representation V02 production-domain source parity
+        run: python3 tools/test_k2_qimen_p2_domain_source_parity_v02.py
+      - name: Validate Representation V02 production-domain source parity closure
+        run: python3 tools/validate_k2_qimen_p2_domain_source_parity_v02.py
+      - name: Test restricted production representation and shared profiles successor
+        run: python3 tools/test_k2_qimen_p2_production_profile_v02.py
+      - name: Validate restricted production representation and shared profiles closure successor
+        run: python3 tools/validate_k2_qimen_p2_production_profile_v02.py
+      - name: Test concrete P2 statistical preregistration fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_statistical_preregistration.py
+      - name: Validate concrete P2 statistical preregistration closure
+        run: python3 tools/validate_k2_qimen_p2_statistical_preregistration.py
+      - name: Test future P2 Batch registration binder fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_batch_registration.py
+      - name: Validate future P2 Batch registration machinery closure
+        run: python3 tools/validate_k2_qimen_p2_batch_registration.py
+      - name: Enforce historical P2 execution-contract state
+        run: python3 tools/validate_k2_qimen_p2_execution_contract.py

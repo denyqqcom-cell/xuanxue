@@ -1,0 +1,80 @@
+{
+  "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V14",
+  "stage": "POST_REPRESENTATION_V02_DOMAIN_SOURCE_PARITY_PRE_RESTRICTED_PRODUCTION_PROFILE_PRE_STATISTICAL_PREREGISTRATION_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "parent_head": "f26f08327f24397774854b318190571caced6d5f",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V18.json",
+  "prior_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V13.json",
+  "representation_v02_contract_ref": "knowledge/K2_QIMEN_P2_REPRESENTATION_CONTRACT_V02.json",
+  "domain_source_parity_v02_ref": "knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_PARITY_V02.json",
+  "domain_source_parity_v02_git_blob": "d3c7814f96451db2f33a60f15ef938869a5b2a98",
+  "domain_source_parity_v02_test_ref": "tools/test_k2_qimen_p2_domain_source_parity_v02.py",
+  "domain_source_parity_v02_test_git_blob": "45c41cb9c1b8330947412804b4b5aa97e668d9d7",
+  "fail_first_evidence": {
+    "commit_sha": "f26f08327f24397774854b318190571caced6d5f",
+    "workflow_run_id": 33604974949,
+    "job_id": 100166786641,
+    "workflow_name": "K2 Qimen P2 Execution Readiness",
+    "run_number": 28,
+    "expected_failure": "AssertionError: missing Representation V02 domain/source parity audit",
+    "all_predecessor_p2_steps_passed_before_failure": true
+  },
+  "p2_prebatch_parity_002": {
+    "status": "CLOSED_SOURCE_STRUCTURAL_PARITY_RESTRICTED_SCOPE",
+    "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+    "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+    "role_parity": "PASS_SHARED_ROLE_INTERSECTION",
+    "atomic_context_parity": "PASS_SHARED_SUPERSET_SOURCE_COVERAGE",
+    "priority_policy_parity": "PASS_SOURCE_FAITHFUL_PARTIAL_POLICY_FOR_RESTRICTED_SCOPE",
+    "shared_atomic_context_universe": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星",
+      "九宫"
+    ],
+    "derived_composites": ["格局"],
+    "p2_b_primary_atomic_context_set": ["奇仪", "八门"],
+    "p2_b_primary_set_internal_order": "UNORDERED",
+    "workplace_total_order_status": "NOT_SOURCE_ESTABLISHED",
+    "unsupported_topology_action": "ABSTAIN_OR_OUT_OF_SCOPE_FAIL_CLOSED"
+  },
+  "source_learning_update": {
+    "qm_src_0003": "Workplace/unit evidence covers stems, gates, spirits, stars and palace context while preserving the exact fixed four-item ranking 奇仪->八门->八神->九星; 九宫 remains visible but unranked.",
+    "qm_src_0021": "Workplace evidence supplies the same five atomic context components and places final job-search/promotion judgement on the 开门-to-日干/年命 relation, supporting a joint primary set 奇仪+八门 but not an invented total five-layer order.",
+    "self_correction_carried_forward": "The historical V01 ontology-blocked audit remains preserved. V02 resolves representation coverage by adding 九宫 and treating 格局 as derived, without rewriting the old audit or fabricating a total order.",
+    "empirical_credit_delta": "NONE"
+  },
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "p2_ontology_002_decision_complete": true,
+  "representation_v02_machine_contract_ready": true,
+  "domain_source_parity_ready": true,
+  "production_representation_materialized": false,
+  "production_representation_materialization_allowed": true,
+  "production_complexity_budget_profile_materialized": false,
+  "production_abstention_scoring_profile_materialized": false,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_RESTRICTED_PRODUCTION_REPRESENTATION_AND_SHARED_PROFILE_MATERIALIZATION_AND_STATISTICAL_PREREGISTRATION",
+  "next_required_work": [
+    "P2-PREBATCH-PROFILE-003_MATERIALIZE_RESTRICTED_PRODUCTION_REPRESENTATION_AND_SHARED_PROFILES_FAIL_FIRST",
+    "VERIFY_SHARED_COMPLEXITY_AND_ABSTENTION_PROFILE_PARITY_ON_PRODUCTION_INSTANCE",
+    "THEN_CONCRETE_STATISTICAL_PREREGISTRATION_BEFORE_BATCH"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "V02 domain/source parity is source-structure credit only, not predictive validation.",
+    "The P2-B workplace priority is partial and source-scoped; no total order has been established.",
+    "Production representation materialization is only authorized as the next engineering step and has not occurred yet.",
+    "No production profiles, statistical preregistration, Batch, Freeze or Outcome exist.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "contract_id": "K2-QIMEN-P2-ABSTAIN-DENOMINATOR-CONTRACT-V01",
+  "version": "0.1",
+  "capability": "P2-EXEC-007",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "execution_contract_ref": "knowledge/K2_QIMEN_P2_EXECUTION_CONTRACT_V01.json",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V09.json",
+  "failure_policy": "FAIL_CLOSED",
+  "research_only": true,
+  "outcome_data_used": false,
+  "estimand_alignment": {
+    "source": "K2-QIMEN-P2-EXECUTION-CONTRACT-V01.estimand_lock",
+    "P2-C1": {
+      "candidate": "P2-A_PRIME",
+      "comparator": "P2-A",
+      "credit_scope": "TOPOLOGY_ROLE_BINDING_ONLY"
+    },
+    "P2-C2": {
+      "candidate": "P2-B",
+      "comparator": "P2-A_PRIME",
+      "credit_scope": "TOPOLOGY_CONDITIONED_LAYER_PRIORITY_ONLY"
+    },
+    "P2-C3": {
+      "candidate": "P2-B",
+      "comparator": "P2-A",
+      "credit_scope": "FULL_BUNDLE_ONLY_NOT_COMPONENT_ATTRIBUTION",
+      "component_credit_forbidden": true
+    }
+  },
+  "scorer_blinding_boundary": {
+    "runtime_receives_blind_ids_only": true,
+    "runtime_must_not_receive_lane_id": true,
+    "runtime_must_not_receive_model_name": true,
+    "runtime_must_not_receive_semantic_arm_labels": true,
+    "contrast_binding_must_be_frozen_before_outcome_scoring": true,
+    "contrast_binding_source": "SEPARATE_COORDINATOR_IDENTITY_MAP_PLUS_FROZEN_ESTIMAND_LOCK",
+    "unblinding_for_reporting_only_after_all_case_outputs_frozen": true
+  },
+  "denominator_policy": {
+    "case_inclusion_source": "PRE_LANE_EXECUTION_FROZEN_CASE_SET",
+    "primary_denominator": "COUNT_ALL_FROZEN_INCLUDED_CASES_PER_CONTRAST",
+    "same_primary_denominator_for_C1_C2_C3": true,
+    "lane_specific_case_exclusion_forbidden": true,
+    "abstain_is_legal_output": true,
+    "abstain_counts_in_primary_denominator": true,
+    "abstain_silent_drop_forbidden": true,
+    "technical_unevaluable_retained": true,
+    "technical_unevaluable_counts_in_primary_denominator": true,
+    "technical_failure_must_apply_symmetrically": true,
+    "coverage_penalized_metric_required": true,
+    "abstention_scoring_policy_must_be_frozen": true,
+    "universal_abstain_penalty_claimed": false
+  },
+  "abstention_scoring_profile_contract": {
+    "required_fields": [
+      "profile_id",
+      "fixture_synthetic_values",
+      "frozen_before_outcome_scoring",
+      "same_for_all_blind_outputs",
+      "abstain_metric_value",
+      "technical_unevaluable_metric_value",
+      "coverage_penalty_mode"
+    ],
+    "coverage_penalty_mode": "COUNT_IN_PRIMARY_DENOMINATOR_WITH_FROZEN_METRIC_VALUE",
+    "per_lane_or_per_blind_override_forbidden": true,
+    "numeric_values_are_research_profile_inputs_not_qimen_claims": true
+  },
+  "output_contract": {
+    "contrast_ids": [
+      "P2-C1",
+      "P2-C2",
+      "P2-C3"
+    ],
+    "required_fields": [
+      "contrast_id",
+      "denominator",
+      "paired_delta_sum",
+      "paired_primary_delta",
+      "predicted_pair_count",
+      "abstain_case_count",
+      "technical_unevaluable_case_count",
+      "coverage_rate",
+      "component_credit_eligible"
+    ],
+    "C3_component_credit_eligible": false
+  },
+  "contamination_guards": [
+    "lane identity visible to scorer",
+    "semantic arm label visible to scorer",
+    "ABSTAIN removed from primary denominator",
+    "lane-specific case exclusion",
+    "lane-specific abstention scoring policy",
+    "asymmetric technical UNEVALUABLE",
+    "contrast binding drift from P2-C1/P2-C2/P2-C3 estimand lock",
+    "C3 bundle score reused for component credit"
+  ],
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED"
+}

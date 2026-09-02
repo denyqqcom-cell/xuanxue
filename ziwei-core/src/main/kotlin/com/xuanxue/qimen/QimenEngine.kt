@@ -9,15 +9,15 @@ import com.nlf.calendar.Solar
  * 规则来源（handoff/qimen/03_RULES.jsonl + 04_CONFLICTS.md）：
  * - R-YI-001  地盘九仪 戊己庚辛壬癸丁丙乙，戊起局数宫，阳遁顺飞/阴遁逆飞（数字飞泊）
  * - R-SKY-001 值符星移到"时干"（时干为甲 -> 旬首遁干）所在宫；天禽寄坤2
- * - R-GATE-HOME 5宫无门，寄坤2；值使门随时支（阳顺阴逆，环序）
+ * - R-GATE-HOME 5宫无门，寄坤2；值使门随时支（阳顺阴逆，九宫数序计中五；终点5寄坤2）
  * - R-SPIRIT-001 神盘：小值符随值符星宫，阳遁顺/阴遁逆（环序）
  * - R-JU-001/002/003 定元方法必须显式区分；未重建的方法 fail closed
  * - R-HIT-XING 六仪击刑：戊3 己2 庚8 辛9 壬4 癸4
  * - R-WUBU-001 五不遇时：时干克日干、同阴阳、干序相隔五位（fixtures 含 甲/庚、己/乙）
  * - R-QL-001 青龙返首：天盘甲/戊 加 地盘丙（一别名族）
  *
- * 重要边界：handoff 当前没有完整九宫黄金盘，且地/天/人/神盘仍有来源冲突。
- * 因此完整盘面与由盘面派生的格局仍属于实验实现；结构测试不等于完整九宫已核验。
+ * 重要边界：当前只有局部 source-grounded dated plate fixtures，尚不足以建立完整九宫全局黄金盘；
+ * 地/天/人/神盘仍有未关闭来源冲突。因此完整盘面与派生格局仍属于实验实现。
  */
 object QimenEngine {
 
@@ -70,6 +70,8 @@ object QimenEngine {
     data class Gong(
         val palace: Int,
         val diGan: String,
+        /** 当前九星随天盘转动所携的三奇六仪；与地盘干分字段保存。 */
+        val tianGan: String = "",
         val tianXing: String,
         val renMen: String,
         val shenPan: String,
@@ -161,9 +163,13 @@ object QimenEngine {
         else -> ""
     }
 
+    /**
+     * 拆补“五日符头”：每元第一日必为甲日或己日，向前回溯到最近的甲/己日。
+     * 这与 xunInfo() 使用的十干支“六甲旬首”不是同一对象，禁止混用。
+     */
     fun yuanOfFutou(dayGZ: String): String {
         val s = seqOf(dayGZ[0].toString(), dayGZ[1].toString())
-        val fuTou = s - (s % 10)
+        val fuTou = s - (s % 5)
         val gan = "甲乙丙丁戊己庚辛壬癸"
         val zhi = "子丑寅卯辰巳午未申酉戌亥"
         val ft = gan[fuTou % 10].toString() + zhi[fuTou % 12].toString()
@@ -174,13 +180,14 @@ object QimenEngine {
         }
     }
 
-    /** 节气内第几天（1 起，交节当天=1）；失败返回 0，调用方必须 fail closed。 */
+    /** 节气内第几天（1 起，交节后当天=1）；失败返回 0，调用方必须 fail closed。 */
     fun jieqiDayIndexOf(lunar: Lunar): Int = runCatching {
         val cur = lunar.solar
         val cur12 = Solar.fromYmdHms(cur.year, cur.month, cur.day, 12, 0, 0)
-        // Must use the same 24-term boundary family as bySolar(). Using getPrevJie()
-        // skips 中气 such as 冬至/处暑 and can make the day index disagree with jieQi.
-        val ps = lunar.getPrevJieQi(true)?.solar ?: return@runCatching 0
+        // Use the exact 24-term transition-time family. wholeDay=true intentionally
+        // collapses the whole transition date and would make an afternoon/evening term
+        // active from 00:00, contradicting the source rule that switches at actual交节时辰.
+        val ps = lunar.getPrevJieQi(false)?.solar ?: return@runCatching 0
         val prevNoon = Solar.fromYmdHms(ps.year, ps.month, ps.day, 12, 0, 0)
         (cur12.getJulianDay() - prevNoon.getJulianDay()).toInt() + 1
     }.getOrDefault(0)
@@ -229,9 +236,8 @@ object QimenEngine {
         val dayGZ = ec.getDayGan() + ec.getDayZhi()
         val hourGZ = ec.getTimeGan() + ec.getTimeZhi()
 
-        val jieQi = runCatching { lunar.getPrevJieQi(true)?.name }.getOrNull()
-            ?: runCatching { lunar.getPrevJieQi()?.name }.getOrNull()
-            ?: error("cannot resolve jieqi")
+        val jieQi = runCatching { lunar.getPrevJieQi(false)?.name }.getOrNull()
+            ?: error("cannot resolve exact jieqi transition")
 
         val rule = JIE_QI_JU[jieQi] ?: error("unsupported jieqi: $jieQi")
         val yinYang = rule.yinYang
@@ -295,12 +301,22 @@ object QimenEngine {
         val branches = "子丑寅卯辰巳午未申酉戌亥"
         val hSteps = (branches.indexOf(hourGZ[1].toString()) - branches.indexOf(zhiOfXunShou) + 12) % 12
         val zhiShiSrcPalace = if (dunPalace == 5) 2 else dunPalace
-        var target = zhiShiSrcPalace
+
+        // QM-SRC-0017 printed p24-p25: "直使随时宫". The source counts the
+        // nine-palace numeric sequence itself, including 中五 as a real step.
+        // Example: 阴遁九局戊戌时 starts at 甲午辛 in 乾6 and explicitly counts
+        // 6 -> 5 -> 4 -> 3 -> 2. Therefore center 5 must NOT be skipped while
+        // travelling; only a FINAL target at 5 is hosted to 坤2 because 5宫无门.
+        var rawTarget = dunPalace
         repeat(hSteps) {
-            val next = if (yinYang > 0) (if (target == 9) 1 else target + 1)
-            else (if (target == 1) 9 else target - 1)
-            target = if (next == 5) (if (yinYang > 0) 6 else 4) else next
+            rawTarget = if (yinYang > 0) {
+                if (rawTarget == 9) 1 else rawTarget + 1
+            } else {
+                if (rawTarget == 1) 9 else rawTarget - 1
+            }
         }
+        val target = if (rawTarget == 5) 2 else rawTarget
+
         val men = mutableMapOf<Int, String>()
         val srcGateIdx = ring.indexOf(zhiShiSrcPalace)
         val targetIdx = ring.indexOf(target)
@@ -322,6 +338,8 @@ object QimenEngine {
         val dayKongPalaces = dayKong.map { zhiPalace(it) }.toSet()
         val hourKongPalaces = hourKong.map { zhiPalace(it) }.toSet()
 
+        // This is the single authoritative carried-heaven-stem computation.
+        // Weather/signature audits consume Gong.tianGan instead of reimplementing it.
         val tianYi = mutableMapOf<Int, String>()
         val effectiveDunPalace = dunPalace.takeIf { it != 5 } ?: 2
         val diYiOrder = (0 until 8).map { k ->
@@ -347,6 +365,7 @@ object QimenEngine {
             Gong(
                 palace = p,
                 diGan = di[p] ?: "",
+                tianGan = tianYi[p] ?: "",
                 tianXing = tian[p] ?: "",
                 renMen = men[p] ?: "",
                 shenPan = shen[p] ?: "",
@@ -369,8 +388,8 @@ object QimenEngine {
             yuan = yuan,
             ju = ju,
             juMethod = when (juMethod) {
-                JuMethod.CHAI_BU_DAYCOUNT -> "拆补·日数分段"
-                JuMethod.CHAI_BU_FUTOU -> "拆补·符头（实验）"
+                JuMethod.CHAI_BU_DAYCOUNT -> "日数分段近似（工程默认）"
+                JuMethod.CHAI_BU_FUTOU -> "甲/己五日符头（实验）"
                 JuMethod.ZHI_RUN -> error("unreachable")
             },
             xunShou = xunShou,
