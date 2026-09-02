@@ -13,6 +13,7 @@ on:
       - 'knowledge/K2_QIMEN_P2_EXACT_REPRODUCIBILITY_*'
       - 'knowledge/K2_QIMEN_P2_FREEZE_SERIALIZER_*'
       - 'knowledge/K2_QIMEN_P2_PRE_BATCH_*'
+      - 'knowledge/K2_QIMEN_P2_DOMAIN_SOURCE_*'
       - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
       - 'knowledge/K2_PROSPECTIVE_BATCHES.jsonl'
       - 'knowledge/K2_PROSPECTIVE_FREEZES.jsonl'
@@ -63,5 +64,7 @@ jobs:
         run: python3 tools/validate_k2_qimen_p2_freeze_serializer.py
       - name: Audit post-substrate pre-Batch binding completeness
         run: python3 tools/test_k2_qimen_p2_post_substrate_pre_batch_audit.py
+      - name: Audit production-domain source parity before representation/profile materialization
+        run: python3 tools/test_k2_qimen_p2_domain_source_parity.py
       - name: Enforce historical P2 execution-contract state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
