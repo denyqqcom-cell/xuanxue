@@ -1,0 +1,117 @@
+{
+  "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V15",
+  "stage": "POST_RESTRICTED_PRODUCTION_REPRESENTATION_AND_SHARED_PROFILES_PRE_STATISTICAL_PREREGISTRATION_PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "parent_head": "4795009b17bef3a667615b3aabb987d914bc11eb",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V19.json",
+  "prior_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V14.json",
+  "production_profile_contract_ref": "knowledge/K2_QIMEN_P2_PRODUCTION_PROFILE_CONTRACT_V01.json",
+  "production_profile_contract_git_blob": "c77c600d1f34820450eac367942afd68760e691d",
+  "production_representation_source_ref": "knowledge/K2_QIMEN_P2_PRODUCTION_REPRESENTATION_SOURCE_V01.json",
+  "production_representation_source_git_blob": "9a8393f31ac553aaab82960267a987fd542fe84f",
+  "production_representation_ref": "knowledge/K2_QIMEN_P2_PRODUCTION_REPRESENTATION_V01.json",
+  "production_representation_git_blob": "5459936c725726c834879e5c22f5ef77cf37c35d",
+  "production_representation_sha256": "a440ef84f42b5798ab6bf8b8e5d802b554b2ba05a35810f67eb9f69eebd48fbb",
+  "shared_profiles_ref": "knowledge/K2_QIMEN_P2_SHARED_PROFILES_V01.json",
+  "shared_profiles_git_blob": "e859a56f393782f923935ddc358c7dc767ff1048",
+  "shared_profiles_sha256": "0f904b1d84b101dea21e1b852d4dda6dcc5422c0ababf39765e114b3f2409e85",
+  "production_profile_materializer_ref": "tools/k2_qimen_p2_materialize_production_profile.py",
+  "production_profile_materializer_git_blob": "f8cb8a7f57337e190f72deaf7b9dff56b3c58023",
+  "production_profile_test_ref": "tools/test_k2_qimen_p2_production_profile.py",
+  "production_profile_test_git_blob": "642a1556b148e2009144f3e0884460bca523ef70",
+  "production_profile_validator_ref": "tools/validate_k2_qimen_p2_production_profile.py",
+  "production_profile_validator_git_blob": "577954c12fdf66e10de803e69889a7a7b66ee62e",
+  "fail_first_evidence": {
+    "commit_sha": "4795009b17bef3a667615b3aabb987d914bc11eb",
+    "workflow_run_id": 33605949544,
+    "job_id": 100169833619,
+    "workflow_name": "K2 Qimen P2 Execution Readiness",
+    "run_number": 30,
+    "expected_failure": "ModuleNotFoundError: No module named 'k2_qimen_p2_materialize_production_profile'",
+    "all_predecessor_p2_steps_passed_before_failure": true
+  },
+  "p2_prebatch_profile_003": {
+    "status": "CLOSED_RESTRICTED_PRODUCTION_REPRESENTATION_AND_SHARED_PROFILES",
+    "candidate_domain": "WORKPLACE_ORGANIZATIONAL_RELATIONSHIP_CHANGE",
+    "research_scope": "LOW_RISK_OBSERVATIONAL_ONLY_NO_EMPLOYMENT_DECISION_ADVICE",
+    "eligible_question_topologies": [
+      "JOB_SEARCH",
+      "PROMOTION",
+      "TRANSFER_OR_ROLE_CHANGE",
+      "ORGANIZATIONAL_RELATIONSHIP"
+    ],
+    "shared_role_ids": [
+      "asker",
+      "organization",
+      "superior",
+      "peer",
+      "subordinate"
+    ],
+    "shared_atomic_context_universe": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星",
+      "九宫"
+    ],
+    "derived_composites": [
+      "格局"
+    ],
+    "complexity_profile": {
+      "profile_id": "P2-WORKPLACE-COMPLEXITY-PROFILE-V01",
+      "max_roles_per_question": 5,
+      "max_layers_per_question": 5,
+      "max_symbol_instances_per_question": 5,
+      "max_total_units_per_lane": 15,
+      "max_role_bindings_per_symbol_instance": 1,
+      "derivation": "STRUCTURAL_ENVELOPE_NOT_UNIVERSAL_QIMEN_LIMIT"
+    },
+    "abstention_profile": {
+      "profile_id": "P2-WORKPLACE-ABSTENTION-SCORING-PROFILE-V01",
+      "abstain_metric_value": 0.0,
+      "technical_unevaluable_metric_value": 0.0,
+      "coverage_penalty_mode": "COUNT_IN_PRIMARY_DENOMINATOR_WITH_FROZEN_METRIC_VALUE"
+    },
+    "statistical_metric_binding": "PENDING_STATISTICAL_PREREGISTRATION",
+    "metric_scale_guard": "FUTURE_PRIMARY_METRIC_MUST_BE_COMPATIBLE_WITH_0.0_ABSTENTION_VALUE_OR_PROFILE_MUST_VERSION_BEFORE_BATCH"
+  },
+  "source_learning_update": {
+    "representation_rule": "Both reviewed workplace source frameworks are carried in one shared five-atomic-context representation; 九宫 is first-class context and 格局 remains derived.",
+    "priority_rule": "P2-A/P2-A_PRIME retain the source-local four-item ranking with 九宫 visible but unranked; P2-B retains a source-scoped unordered 奇仪+八门 primary set with 八神/九星/九宫 supporting.",
+    "complexity_rule": "The 5/5/5/15/1 limits are engineering research-envelope caps derived from shared role/context cardinality, not claimed as source or Qimen doctrine.",
+    "abstention_rule": "ABSTAIN and technical UNEVALUABLE remain in the primary denominator with a frozen 0.0 research-profile value; its compatibility with the eventual primary metric must be explicitly preregistered.",
+    "empirical_credit_delta": "NONE"
+  },
+  "execution_substrate_ready": true,
+  "post_substrate_binding_ready": true,
+  "p2_ontology_002_decision_complete": true,
+  "representation_v02_machine_contract_ready": true,
+  "domain_source_parity_ready": true,
+  "production_representation_materialized": true,
+  "production_complexity_budget_profile_materialized": true,
+  "production_abstention_scoring_profile_materialized": true,
+  "statistical_preregistration_allowed": true,
+  "statistical_preregistration_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch_gate": "BLOCKED_PENDING_P2_PREBATCH_STAT_004_CONCRETE_STATISTICAL_PREREGISTRATION",
+  "next_required_work": [
+    "P2-PREBATCH-STAT-004_DEFINE_CONCRETE_PRIMARY_METRIC_DECISION_THRESHOLD_SAMPLING_STOPPING_AND_MINIMUM_INFORMATION_FAIL_FIRST",
+    "BIND_STATISTICAL_METRIC_SCALE_TO_FROZEN_ABSTENTION_PROFILE_OR_VERSION_PROFILE_BEFORE_BATCH",
+    "DO_NOT_CREATE_BATCH_UNTIL_STATISTICAL_PREREGISTRATION_GATE_PASSES"
+  ],
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "Production representation/profile materialization is an engineering preregistration precursor, not predictive validation.",
+    "The numeric complexity envelope is not a universal Qimen complexity law.",
+    "The 0.0 abstention value is not a universal penalty and is not yet tied to a final primary metric.",
+    "No statistical preregistration, Batch, Freeze or Outcome exists.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}

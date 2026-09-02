@@ -84,5 +84,7 @@ jobs:
         run: python3 tools/validate_k2_qimen_p2_domain_source_parity_v02.py
       - name: Test restricted production representation and shared profiles
         run: python3 tools/test_k2_qimen_p2_production_profile.py
+      - name: Validate restricted production representation and shared profiles closure
+        run: python3 tools/validate_k2_qimen_p2_production_profile.py
       - name: Enforce historical P2 execution-contract state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
