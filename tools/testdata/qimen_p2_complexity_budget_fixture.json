@@ -1,0 +1,60 @@
+{
+  "fixture_id": "K2-QIMEN-P2-COMPLEXITY-BUDGET-FIXTURE-V01",
+  "fixture_only": true,
+  "purpose": "Synthetic pre-mapping complexity-budget fixture; not a source claim, Batch, Freeze, or production budget.",
+  "budget_profile": {
+    "profile_id": "P2-COMPLEXITY-BUDGET-FIXTURE-PROFILE-V01",
+    "max_roles_per_question": 4,
+    "max_layers_per_question": 4,
+    "max_symbol_instances_per_question": 4,
+    "max_total_units_per_lane": 10,
+    "max_role_bindings_per_symbol_instance": 2,
+    "fixture_synthetic_limits": true
+  },
+  "pre_freeze_budget_input": {
+    "question_id": "fixture-q-001",
+    "question_domain": "fixture_work_relationships",
+    "asked_object": "fixture_workplace_actor_relationship",
+    "method_layer": "PREDICTIVE_INTERPRETATION",
+    "role_candidates": [
+      {
+        "role_id": "superior",
+        "symbol_instance_selector": {
+          "symbol_type": "stem",
+          "plate_layer": "heaven_plate",
+          "instance_role": "superior",
+          "relation_direction": "FROM_ASKER_TO_ROLE"
+        }
+      },
+      {
+        "role_id": "peer",
+        "symbol_instance_selector": {
+          "symbol_type": "stem",
+          "plate_layer": "earth_plate",
+          "instance_role": "peer_counterpart",
+          "relation_direction": "FROM_ROLE_TO_ASKER"
+        }
+      }
+    ],
+    "layer_ids": [
+      "奇仪",
+      "八门",
+      "八神",
+      "九星"
+    ],
+    "symbol_instances": [
+      {
+        "symbol_type": "stem",
+        "plate_layer": "heaven_plate",
+        "instance_role": "superior",
+        "relation_direction": "FROM_ASKER_TO_ROLE"
+      },
+      {
+        "symbol_type": "stem",
+        "plate_layer": "earth_plate",
+        "instance_role": "peer_counterpart",
+        "relation_direction": "FROM_ROLE_TO_ASKER"
+      }
+    ]
+  }
+}

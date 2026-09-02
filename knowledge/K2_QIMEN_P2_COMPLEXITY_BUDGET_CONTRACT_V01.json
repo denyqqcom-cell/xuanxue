@@ -1,0 +1,96 @@
+{
+  "contract_id": "K2-QIMEN-P2-COMPLEXITY-BUDGET-CONTRACT-V01",
+  "version": "0.1",
+  "capability": "P2-EXEC-005",
+  "status": "ACTIVE_FAIL_FIRST_CONTRACT",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "prior_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V07.json",
+  "prior_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V03.json",
+  "role_layer_contract_ref": "knowledge/K2_QIMEN_P2_ROLE_LAYER_GENERATOR_CONTRACT_V01.json",
+  "enforcer_ref": "tools/k2_qimen_p2_budget_enforcer.py",
+  "budget_domain": {
+    "levels": [
+      "PER_QUESTION",
+      "PER_LANE",
+      "PER_SYMBOL_INSTANCE"
+    ],
+    "lane_ids": [
+      "P2-A",
+      "P2-A_PRIME",
+      "P2-B"
+    ],
+    "shared_formula_id": "P2_SHARED_COMPLEXITY_FORMULA_V01",
+    "lane_formula_overrides_forbidden": true
+  },
+  "shared_formula": {
+    "role_count": "COUNT_UNIQUE(role_candidates.role_id)",
+    "layer_count": "COUNT_UNIQUE(layer_ids)",
+    "symbol_instance_count": "COUNT_UNIQUE_CANONICAL(symbol_instances)",
+    "total_units_per_lane": "role_count + layer_count + symbol_instance_count",
+    "role_bindings_per_symbol_instance": "COUNT(role_candidates grouped by canonical symbol_instance_selector)",
+    "same_formula_all_lanes": true
+  },
+  "budget_profile_requirements": {
+    "required_limits": [
+      "max_roles_per_question",
+      "max_layers_per_question",
+      "max_symbol_instances_per_question",
+      "max_total_units_per_lane",
+      "max_role_bindings_per_symbol_instance"
+    ],
+    "limits_must_be_positive_integers": true,
+    "profile_must_be_frozen_before_mapping_freeze": true,
+    "profile_immutable_after_freeze": true,
+    "no_universal_numeric_limits_claimed_by_this_contract": true
+  },
+  "budget_input_boundary": {
+    "allowed_pre_freeze_fields": [
+      "question_id",
+      "question_domain",
+      "asked_object",
+      "method_layer",
+      "role_candidates",
+      "layer_ids",
+      "symbol_instances"
+    ],
+    "forbidden_fields": [
+      "current_plate_symbol_values",
+      "current_plate_strength_or_auspiciousness",
+      "prediction",
+      "outcome",
+      "feedback",
+      "lane_output",
+      "lane_peer_intermediate_output",
+      "unregistered_external_omen"
+    ],
+    "plate_value_access_forbidden": true,
+    "outcome_access_forbidden": true
+  },
+  "enforcement_policy": {
+    "over_budget_action": "REJECT_QUESTION_FAIL_CLOSED",
+    "degrade_or_truncate_forbidden": true,
+    "execute_over_budget_question_forbidden": true,
+    "budget_edit_after_freeze": "FAIL"
+  },
+  "source_scope_policy": {
+    "budget_is_methodological_not_source_semantic": true,
+    "source_local_role_layer_rules_may_not_be_promoted_by_budget": true,
+    "source_derived_role_layer_scope_must_be_preserved": true,
+    "source_local_overgeneralization_check_required": true
+  },
+  "research_only": true,
+  "outcome_data_used": false,
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "does_not_claim": [
+    "This contract defines enforcement semantics but does not set a universal Qimen complexity budget.",
+    "Numeric limits are supplied by a frozen pre-mapping research budget profile and remain test/protocol choices until later preregistration.",
+    "P2-EXEC-005 closes only after fail-first evidence, deterministic enforcement, negative tests, successor protocol/implementation state and CI success.",
+    "P2-EXEC-006..009 remain out of scope."
+  ]
+}
