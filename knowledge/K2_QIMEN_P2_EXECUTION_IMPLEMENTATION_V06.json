@@ -1,0 +1,84 @@
+{
+  "implementation_state_id": "K2-QIMEN-P2-EXECUTION-IMPLEMENTATION-V06",
+  "stage": "PRE_BATCH_PRE_FREEZE_PRE_OUTCOME",
+  "parent_head": "f7e3f30adc1cfa916c177a809cc453b72fd88ac1",
+  "active_plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "state_protocol_ref": "knowledge/K2_QIMEN_P2_ROLE_MAP_COMPARATIVE_PROTOCOL_V10.json",
+  "prior_implementation_ref": "knowledge/K2_QIMEN_P2_EXECUTION_IMPLEMENTATION_V05.json",
+  "abstain_denominator_contract_ref": "knowledge/K2_QIMEN_P2_ABSTAIN_DENOMINATOR_CONTRACT_V01.json",
+  "abstain_denominator_contract_git_blob": "15a4aa5beeeed2622f26be1c27cb1c63b103353e",
+  "abstain_denominator_contract_canonical_sha256": "1bf117aff2ab7a54570382292b7c75d6e00fe5e28bbef595f3dcb41c7b288c25",
+  "scorer_ref": "tools/k2_qimen_p2_abstain_denominator_scorer.py",
+  "scorer_git_blob": "b3cdd066fe57950ad3037a8a27083c560326e260",
+  "test_ref": "tools/test_k2_qimen_p2_abstain_denominator_scorer.py",
+  "test_git_blob": "324057b4f2bd6a61b3ac4167bf60fbbc66aadd4d",
+  "validator_ref": "tools/validate_k2_qimen_p2_abstain_denominator_scorer.py",
+  "fixture_ref": "tools/testdata/qimen_p2_abstain_denominator_fixture.json",
+  "fixture_git_blob": "d79f27d71e2ef7759d40a7a6b4ff8f349c938e5b",
+  "fail_first_evidence": {
+    "commit_sha": "f7e3f30adc1cfa916c177a809cc453b72fd88ac1",
+    "workflow_run_id": 33590793237,
+    "job_id": 100124199490,
+    "workflow_name": "K2 Qimen P2 Execution Readiness",
+    "run_number": 11,
+    "expected_failure": "ModuleNotFoundError: No module named 'k2_qimen_p2_abstain_denominator_scorer'",
+    "predecessor_blinded_lane_negative_cases": 12
+  },
+  "closed_blockers": [
+    {"blocker_id": "P2-EXEC-001", "status": "CARRIED_CLOSED_MACHINE_CONTRACT"},
+    {"blocker_id": "P2-EXEC-002", "status": "CARRIED_CLOSED_MACHINE_CONTRACT"},
+    {"blocker_id": "P2-EXEC-003", "status": "CARRIED_CLOSED_MACHINE_IMPLEMENTATION"},
+    {"blocker_id": "P2-EXEC-004", "status": "CARRIED_CLOSED_MACHINE_IMPLEMENTATION"},
+    {"blocker_id": "P2-EXEC-005", "status": "CARRIED_CLOSED_MACHINE_IMPLEMENTATION"},
+    {"blocker_id": "P2-EXEC-006", "status": "CARRIED_CLOSED_MACHINE_IMPLEMENTATION"},
+    {
+      "blocker_id": "P2-EXEC-007",
+      "status": "CLOSED_MACHINE_IMPLEMENTATION",
+      "closure_scope": "anonymous three-contrast scorer bound to P2-C1/P2-C2/P2-C3 estimand lock with one frozen pre-lane case denominator, ABSTAIN retained in the primary denominator, symmetric technical UNEVALUABLE retention, frozen shared abstention scoring profile and C3 component-credit guard",
+      "does_not_claim": "Synthetic fixture metric values and abstention values are research-test inputs only; no universal Qimen score, penalty, empirical superiority or outcome evidence is claimed."
+    }
+  ],
+  "scorer_semantics": {
+    "estimands_bound_exactly_to_execution_contract": true,
+    "runtime_blind_ids_only": true,
+    "lane_identity_visible_to_scorer": false,
+    "semantic_arm_labels_forbidden": true,
+    "contrast_binding_frozen_before_outcome_scoring": true,
+    "case_inclusion_source": "PRE_LANE_EXECUTION_FROZEN_CASE_SET",
+    "same_primary_denominator_for_C1_C2_C3": true,
+    "abstain_is_legal_output": true,
+    "abstain_counts_in_primary_denominator": true,
+    "technical_unevaluable_retained": true,
+    "technical_failure_must_apply_symmetrically": true,
+    "coverage_penalized_metric_required": true,
+    "lane_specific_abstention_policy_forbidden": true,
+    "C3_component_credit_forbidden": true,
+    "fixture_numeric_values_are_source_claims": false
+  },
+  "negative_test_count": 16,
+  "source_local_overgeneralization_check": {
+    "status": "PASS",
+    "basis": [
+      "live successor validator re-runs P2-EXEC-006 validator",
+      "P2-EXEC-006 re-runs P2-EXEC-005 and P2-EXEC-004 source-grounding audit against Distillate/TBV"
+    ],
+    "guard": "P2-EXEC-007 scores already-frozen anonymous outputs and cannot create, promote, rewrite or reinterpret source-local roles, layer priorities, corrections, topology rules or symbol-instance semantics."
+  },
+  "open_blockers": ["P2-EXEC-008", "P2-EXEC-009"],
+  "execution_substrate_ready": false,
+  "batch_ready": false,
+  "batch_creation_allowed": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED",
+  "non_claims": [
+    "P2-EXEC-007 is machine scoring-policy closure only.",
+    "Fixture metric values and abstention/technical values are synthetic and not a universal Qimen scoring doctrine.",
+    "No real Outcome has been scored.",
+    "P2-EXEC-008..009 remain open.",
+    "QRM-H1 remains UNTESTED."
+  ]
+}
