@@ -1,0 +1,54 @@
+{
+  "contract_id": "K2-QIMEN-P2-BLINDED-LANE-RUNNER-CONTRACT-V01",
+  "version": "0.1",
+  "capability": "P2-EXEC-006",
+  "status": "ACTIVE_FAIL_FIRST_CONTRACT",
+  "plan_id": "K2PV-QRM-002",
+  "hypothesis_id": "QRM-H1",
+  "preconditions": ["P2-EXEC-001", "P2-EXEC-002", "P2-EXEC-003", "P2-EXEC-004", "P2-EXEC-005"],
+  "lanes": ["P2-A", "P2-A_PRIME", "P2-B"],
+  "input_snapshot_contract": {
+    "canonical_sha256_required": true,
+    "snapshot_immutable_after_bind": true,
+    "same_question_identity_required": true,
+    "forbidden_fields": ["outcome", "feedback", "score", "winner_lane", "control_lane", "lane_peer_output"]
+  },
+  "randomization_contract": {
+    "order_source": "PRE_FREEZE_EXECUTION_ORDER_SEED",
+    "order_derivation": "SORT_BY_SHA256(seed|blind_id)",
+    "order_must_not_depend_on_lane_output": true,
+    "order_must_not_depend_on_outcome": true,
+    "all_three_lanes_exactly_once": true
+  },
+  "blinding_contract": {
+    "worker_receives_blind_id_not_lane_id": true,
+    "worker_must_not_receive_identity_map": true,
+    "execution_logs_must_not_contain_lane_id": true,
+    "execution_logs_must_not_contain_semantic_arm_labels": true,
+    "identity_map_stored_separately": true,
+    "identity_map_not_exposed_to_worker": true
+  },
+  "isolation_contract": {
+    "shared_mutable_state_forbidden": true,
+    "cross_lane_cache_forbidden": true,
+    "peer_intermediate_output_forbidden": true,
+    "fresh_worker_state_per_lane": true,
+    "order_invariance_required": true
+  },
+  "output_contract": {
+    "required_fields": ["blind_id", "input_snapshot_sha256", "output_sha256", "result"],
+    "peer_lane_information_forbidden": true,
+    "lane_identity_forbidden": true
+  },
+  "failure_policy": "FAIL_CLOSED",
+  "methodological_control_only": true,
+  "source_semantics_rewritten": false,
+  "source_local_overgeneralization_must_reaudit": true,
+  "research_only": true,
+  "outcome_data_used": false,
+  "batch": "NONE",
+  "freeze": "NONE",
+  "outcome": "NONE",
+  "empirical_credit": "NONE",
+  "claim_extraction": "BLOCKED"
+}

@@ -8,6 +8,7 @@ on:
       - 'knowledge/K2_QIMEN_P2_REPRESENTATION_*'
       - 'knowledge/K2_QIMEN_P2_ROLE_LAYER_*'
       - 'knowledge/K2_QIMEN_P2_COMPLEXITY_BUDGET_*'
+      - 'knowledge/K2_QIMEN_P2_BLINDED_LANE_*'
       - 'knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl'
       - 'knowledge/K2_PROSPECTIVE_BATCHES.jsonl'
       - 'knowledge/K2_PROSPECTIVE_FREEZES.jsonl'
@@ -40,5 +41,9 @@ jobs:
         run: python3 tools/test_k2_qimen_p2_budget_enforcer.py
       - name: Validate P2 Role/Layer successor and complexity budget closure
         run: python3 tools/validate_k2_qimen_p2_budget_enforcer.py
+      - name: Test P2 blinded/isolated lane runner fail-closed cases
+        run: python3 tools/test_k2_qimen_p2_blinded_lane_runner.py
+      - name: Validate P2 complexity budget successor and blinded lane runner closure
+        run: python3 tools/validate_k2_qimen_p2_blinded_lane_runner.py
       - name: Enforce historical P2 execution-contract state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py

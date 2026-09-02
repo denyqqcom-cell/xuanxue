@@ -1,0 +1,29 @@
+{
+  "fixture_id": "K2-QIMEN-P2-BLINDED-LANE-RUNNER-FIXTURE-V01",
+  "fixture_only": true,
+  "purpose": "Synthetic runner-isolation fixture; not a source claim, Batch, Freeze, Outcome or empirical evidence.",
+  "execution_order_seed": "fixture-seed-006-v1",
+  "lane_payloads": {
+    "P2-A": {
+      "question_id": "fixture-q-006",
+      "representation_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "mapping_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+      "budget_decision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "payload": {"fixture_signal": 1, "plate_snapshot_ref": "fixture-plate-006"}
+    },
+    "P2-A_PRIME": {
+      "question_id": "fixture-q-006",
+      "representation_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "mapping_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "budget_decision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "payload": {"fixture_signal": 1, "plate_snapshot_ref": "fixture-plate-006"}
+    },
+    "P2-B": {
+      "question_id": "fixture-q-006",
+      "representation_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "mapping_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+      "budget_decision_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "payload": {"fixture_signal": 1, "plate_snapshot_ref": "fixture-plate-006"}
+    }
+  }
+}
