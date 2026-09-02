@@ -78,5 +78,7 @@ jobs:
         run: python3 tools/validate_k2_qimen_p2_representation_v02.py
       - name: Audit Representation V02 production-domain source parity
         run: python3 tools/test_k2_qimen_p2_domain_source_parity_v02.py
+      - name: Validate Representation V02 production-domain source parity closure
+        run: python3 tools/validate_k2_qimen_p2_domain_source_parity_v02.py
       - name: Enforce historical P2 execution-contract state
         run: python3 tools/validate_k2_qimen_p2_execution_contract.py
