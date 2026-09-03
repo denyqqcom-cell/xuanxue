@@ -14,7 +14,7 @@ PLAN_FIELDS={
 }
 BATCH_FIELDS={
     "batch_id","plan_id","plan_sha256","preregistered_at_utc","model_commit_sha","comparator_ref",
-    "planned_case_count","sampling_rule","primary_metric","decision_rule",
+    "planned_case_count","sampling_rule","primary_metric","primary_metric_spec","decision_rule",
     "secondary_metrics","stopping_rule","exclusion_rule","duplicate_case_policy",
     "research_only","status","empirical_credit",
 }
@@ -25,7 +25,7 @@ FREEZE_FIELDS={
 }
 OUTCOME_FIELDS={
     "outcome_id","freeze_id","freeze_record_sha256","observed_at_utc","freeze_payload_sha256",
-    "outcome_summary","evaluation","score_components","post_hoc_notes",
+    "observed_value","outcome_summary","evaluation","score_components","post_hoc_notes",
     "research_only","empirical_credit","status",
 }
 MANDATORY_FREEZE_FIELDS={
@@ -33,6 +33,8 @@ MANDATORY_FREEZE_FIELDS={
     "primary_layers","boundary_conditions","interpretation_path","prediction",
     "confidence","abstention_condition",
 }
+PRIMARY_METRIC_SPEC_FIELDS={"scoring_rule"}
+PRIMARY_METRIC_SCORING_RULES={"EXACT_MATCH_V1"}
 DECISION_RULE_FIELDS={"aggregation","operator","threshold"}
 DECISION_AGGREGATIONS={"MEAN"}
 DECISION_OPERATORS={">",">=","<","<="}
@@ -134,6 +136,18 @@ def hypothesis_index(distillates):
     return out
 
 
+def exact_match_primary_score(batch,freeze,outcome):
+    spec=batch.get("primary_metric_spec") if isinstance(batch,dict) else None
+    payload=freeze.get("frozen_payload") if isinstance(freeze,dict) else None
+    if not isinstance(spec,dict) or spec.get("scoring_rule")!="EXACT_MATCH_V1" or not isinstance(payload,dict):
+        return None
+    prediction=payload.get("prediction")
+    observed=outcome.get("observed_value") if isinstance(outcome,dict) else None
+    if not nonempty_text(prediction) or not nonempty_text(observed):
+        return None
+    return 1.0 if prediction==observed else 0.0
+
+
 def validate_records(distillates,plans,batches,freezes,outcomes):
     issues=[];hyps=hypothesis_index(distillates)
     plan_by_id={};plan_routes_by_id={};seen_hyp=set()
@@ -196,6 +210,12 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
             if not nonempty_text(b.get(field)):issues.append((bid,f"{field} must be non-empty text"))
         metric=b.get("primary_metric")
         if not isinstance(metric,str) or not METRIC_ID_RE.match(metric):issues.append((bid,"primary_metric must be uppercase machine key"))
+        spec=b.get("primary_metric_spec")
+        if not isinstance(spec,dict):
+            issues.append((bid,"primary_metric_spec must be machine-evaluable object"))
+        else:
+            if set(spec)!=PRIMARY_METRIC_SPEC_FIELDS:issues.append((bid,f"primary_metric_spec fields mismatch missing={sorted(PRIMARY_METRIC_SPEC_FIELDS-set(spec))} extra={sorted(set(spec)-PRIMARY_METRIC_SPEC_FIELDS)}"))
+            if spec.get("scoring_rule") not in PRIMARY_METRIC_SCORING_RULES:issues.append((bid,f"primary_metric_spec scoring_rule must be one of {sorted(PRIMARY_METRIC_SCORING_RULES)}"))
         rule=b.get("decision_rule")
         if not isinstance(rule,dict):
             issues.append((bid,"decision_rule must be machine-evaluable object"))
@@ -295,13 +315,24 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         if not nonempty_text(o.get("outcome_summary")):issues.append((oid,"outcome_summary must be non-empty derived text"))
         evaluation=o.get("evaluation")
         if evaluation not in EVALUATIONS:issues.append((oid,"invalid evaluation"))
+        observed=o.get("observed_value")
+        if evaluation in {"SUCCESS","PARTIAL","FAIL"}:
+            if not nonempty_text(observed):issues.append((oid,"observed_value must be non-empty text for evaluable outcome"))
+        elif observed is not None and not nonempty_text(observed):
+            issues.append((oid,"observed_value must be null or non-empty text for non-evaluable outcome"))
         scores=o.get("score_components")
         if not isinstance(scores,dict):
             issues.append((oid,"score_components must be object"))
         elif batch and evaluation in {"SUCCESS","PARTIAL","FAIL"}:
             metric=batch.get("primary_metric")
-            if metric not in scores:issues.append((oid,"score_components missing preregistered primary_metric"))
-            elif not finite_number(scores.get(metric)):issues.append((oid,"primary metric score must be finite numeric"))
+            if metric not in scores:
+                issues.append((oid,"score_components missing preregistered primary_metric"))
+            elif not finite_number(scores.get(metric)):
+                issues.append((oid,"primary metric score must be finite numeric"))
+            else:
+                expected=exact_match_primary_score(batch,fr,o)
+                if expected is not None and scores.get(metric)!=expected:
+                    issues.append((oid,"primary metric score does not match preregistered scoring function"))
         notes=o.get("post_hoc_notes")
         if not isinstance(notes,list) or any(not nonempty_text(x) for x in notes):issues.append((oid,"post_hoc_notes must be string array"))
         if o.get("research_only") is not True:issues.append((oid,"outcome must be research_only=true"))
