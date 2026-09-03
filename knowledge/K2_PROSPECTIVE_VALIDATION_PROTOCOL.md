@@ -121,6 +121,14 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
 在专门的 sequential/adaptive stopping contract 建立并通过 fail-closed gate 之前，`planned_case_count=null`、结果驱动提前停止、看到部分 Outcome 后才决定继续收样，都不具备 prospective batch 资格。
 
+固定 N 还必须是**执行上限**，而不只是一个描述字段。同一 `batch_id` 下的 CASE FREEZE 行数不得超过 `planned_case_count`；超过 N 的第一个 Freeze 必须使 gate 失败。否则即使 N 已经预注册，仍可继续冻结额外案例，再在 Batch Review 时选择最有利的前 N 个结果。
+
+因此：
+
+`PREREGISTERED_N -> FREEZE_COUNT <= N`
+
+这里暂时只执行“不得超 N”，不把“未达到 N”立即判为 validator failure，因为批次可能仍在收集中。是否已完成 N、是否存在事前允许并完整记录的外部中止、以及未满 N 的批次是否只能判为不完整，属于后续 Batch Review Gate 的职责；在该 Gate 建立前，未满 N 当然不能据此升级 empirical credit。
+
 如果 primary metric、threshold、样本量、停止规则或排除规则在看过该批结果后才确定，则该批不能获得 prospective credit。
 
 ## 5. CASE FREEZE 合同
@@ -129,7 +137,7 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
 `knowledge/K2_PROSPECTIVE_FREEZES.jsonl`
 
-每条 Freeze 必须属于一个已经 PREREGISTERED 的 batch，并保存该 Batch 的 `batch_sha256`，发生在结果未知时。至少固定：
+每条 Freeze 必须属于一个已经 PREREGISTERED 的 batch，并保存该 Batch 的 `batch_sha256`，发生在结果未知时。对于固定 N batch，同一 `batch_id` 的 Freeze 总数还必须满足 `freeze_count <= planned_case_count`。至少固定：
 
 `QUESTION DEFINITION`
 → `ASKED OBJECT`
@@ -192,6 +200,7 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 - 结果已经知道才补写 Freeze；
 - 看过部分/全部结果后才选择 primary metric、threshold、sample size 或 stopping rule；
 - 使用 `planned_case_count=null` 配合自由文本 stopping rule 作为当前合同下的“预注册”；
+- 预注册 N 后继续建立第 N+1 个及后续 CASE FREEZE，再在结果出现后挑选样本；
 - hypothesis 内容修改后只保留原 `hypothesis_id`，继续沿用旧 Plan/Batch/Freeze；
 - Work-Family 的 governed route scope 改变后继续沿用旧 `hypothesis_context_sha256` / Plan；
 - 预测写得足够模糊，任何结果都能解释为命中；
@@ -243,4 +252,4 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 当前已有两个 `DESIGN_READY` Plan 会写入与现行 H-JD-001 / H-JD-002 完整对象匹配的 `hypothesis_sha256`，以及与当前 `WF-QM-JIADUN-ZHENSHOU-001 + [qimen]` 受治理上下文匹配的 `hypothesis_context_sha256`；这是对既有设计 referent 的显式绑定，不是新实验结果。
 
-只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis/content/context binding、fixed-N batch 与版本绑定条件后，真实 prospective records 才能进入仓库。
+只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis/content/context binding、fixed-N batch、Freeze 数量上限与版本绑定条件后，真实 prospective records 才能进入仓库。
