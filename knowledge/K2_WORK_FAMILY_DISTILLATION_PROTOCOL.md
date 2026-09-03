@@ -1,8 +1,8 @@
 # K2 Work-Family Distillation Protocol
 
-版本：2026-08-23
+版本：2026-09-04
 阶段：K2B / Deep Closure
-状态：ACTIVE
+状态：ACTIVE_CONTRACT
 
 ## 1. 为什么需要 work-family distillate
 
@@ -75,3 +75,47 @@ Work-family distillate 的任务不是把书变短，而是回答：
 Work family 不要求人为制造 segment。若多个 canonical source 经完整阅读已经证明分别就是同一作品的完整上/中/下册，可以直接以多个 `SOURCE` member 组成 family；只有 composite carrier 才需要 `SEGMENT` member。
 
 同理，扫描损坏页、作者未知、source-local ontology 或无法可靠恢复的内容都必须允许保持 UNKNOWN / NO_CONTENT_CREDIT。若旧 schema 无法表达真实状态，应先修 schema，而不是补造事实。
+
+## 7. 多域 work family 不得被压回单域标签
+
+一个 work family 可以由 reviewed lineage 明确治理多个 domain route。此时 scalar `domain` 只能承担**确定性 primary route 标识**，不能代替完整路由集合。
+
+硬约束：
+
+`MULTI_DOMAIN_WORK_FAMILY != SINGLE_DOMAIN_DISTILLATE`
+
+`FULL_ROUTE_SET != FREE_PRIMARY_DOMAIN_CHOICE`
+
+具体规则：
+
+1. governed route 顺序必须从 `K2_SEGMENT_LINEAGE` 的 reviewed family member 顺序，以及每个 member 已声明的 `domain_routes` 顺序确定性导出；不得按结果、问题答案或解释便利重新排序；
+2. scalar `domain` 必须等于第一个 governed route；它不是可在多个合法 route 中后验挑选的“主域”；
+3. 当 family 有多个 governed route 时，distillate 必须显式保存完整、按序的 `domain_routes`；不得只保留 scalar `domain`；
+4. single-domain legacy distillate 可以不写 `domain_routes`；若写出，则必须与唯一 governed route 精确一致；
+5. `domain_routes` 的多个成员仍属于同一个 work-family credit unit，不得因为存在多个 route 而制造多张 source vote 或 empirical vote；
+6. secondary route 只表示来源中存在该 source-local 方法路径。若未来用于 route-sensitive 推演，必须在反馈前冻结允许的 route、角色映射、输出和弃权规则；不能看见结果后再切换 route。
+
+以 `WF-ZW-DOUSHU-XUANWEI-001` 为当前真实例：reviewed lineage 导出 `domain_routes=["ziwei","fengshui"]`，因此 primary `domain=ziwei`；`fengshui` 是允许但需事前冻结的 secondary source-local route，不构成第二次独立验证。
+
+## 8. 下游消费约束与本轮自我修正
+
+任何未来会基于 work-family route 做检索、推演、Claim candidate 生成、Theory Map 路由或其他语义决策的消费者，都必须遵守：
+
+- multi-domain family 的完整路由事实来自 `domain_routes`；
+- scalar `domain` 只能用于确定性 primary route，不足以代表完整 route set；
+- route-sensitive consumer 不得只读 scalar `domain` 后宣称“该 family 只属于一个域”；
+- consumer 若需要激活 secondary route，必须执行反馈前 route freeze；
+- 路由信息的保存与消费只增加 provenance / inference-control fidelity，不增加现实预测有效性。
+
+本轮下游反审先确认：Claim Extraction Readiness、QCIC eligibility materialization、legacy Wave1 aggregate 与 execution queue 当前都不把 Work-Family Distillate 当作 route-sensitive inference 输入，因此不应为了“统一结构”盲目改写它们。Wave1 queue 的 scalar source `domain` 仍只是 source-level 调度元数据。
+
+随后继续审计发现一个此前漏看的真实消费者：`validate_k2_prospective_validation.py` 会从 Work-Family Distillate 读取 `testable_hypotheses`。旧实现只读取主文件 `K2_WORK_FAMILY_DISTILLATES.jsonl`，会漏掉 `K2_WORK_FAMILY_DISTILLATES.d/*.jsonl` 中的 hypothesis；并且对 multi-domain family 没有强制冻结本次案例实际激活的 route set。
+
+因此 prospective consumer 现在必须：
+
+1. 通过与 Work-Family validator 相同的逻辑 loader 读取主文件与所有 shards，不能让 shard 中的 hypothesis 在实验入口消失；
+2. 对 multi-domain hypothesis，把 `active_domain_routes` 加入 `freeze_required_fields`；
+3. case freeze 中的 `active_domain_routes` 必须是 governed `domain_routes` 的非空、无重复、有序子集；不得引入 family 外 route，也不得改写 governed route 顺序；
+4. `active_domain_routes` 可以只激活一个 source-local route，也可以显式激活多个 route，但选择必须发生在 outcome 未知时并进入 hash-bound Freeze。
+
+这次修正进一步明确：**“上游已经正确保存路由”仍不等于“实验消费者已经正确冻结路由”。** 必须逐层审计真实 consumer，而不是只检查数据模型本身。

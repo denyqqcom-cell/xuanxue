@@ -77,6 +77,32 @@ def main():
     assert_issue(issues, "unknown reviewed work family")
     assert_issue(issues, "Wave B seed coverage missing")
 
+    def non_qimen_family_mut(repo):
+        registry_path = repo / "knowledge" / "K2_QIMEN_TBV_REVIEW_REGISTRY.jsonl"
+        rows = load_jsonl(registry_path)
+        extra = copy.deepcopy(rows[-1])
+        extra["review_id"] = "QTBV-9999"
+        extra["unit_id"] = "WF-ZW-DOUSHU-XUANWEI-001"
+        extra["title"] = "non-Qimen work-family domain-isolation probe"
+        rows.append(extra)
+        write_jsonl(registry_path, rows)
+
+        state_path = repo / "knowledge" / "K2_QIMEN_TBV_STATE.json"
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        state["reviewed_unit_count"] += 1
+        state["reviewed_work_family_count"] += 1
+        state["reviewed_work_family_ids"] = sorted(state["reviewed_work_family_ids"] + ["WF-ZW-DOUSHU-XUANWEI-001"])
+        state_path.write_text(json.dumps(state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    assert_issue(with_repo(non_qimen_family_mut), "WORK_FAMILY must include qimen governed route")
+
+    def family_anchor_rebind_mut(repo):
+        path = repo / "knowledge" / "K2_QIMEN_TBV_REVIEW_REGISTRY.jsonl"
+        rows = load_jsonl(path)
+        target = next(r for r in rows if r.get("unit_id") == "WF-QM-JIADUN-ZHENSHOU-001")
+        target["unit_id"] = "WF-QM-SANYUAN-QIMEN-001"
+        write_jsonl(path, rows)
+    assert_issue(with_repo(family_anchor_rebind_mut), "WORK_FAMILY source_anchor_refs must belong to selected family")
+
     def backlog_mut(repo):
         path = repo / "knowledge" / "K2_UNKNOWN_TEXTUAL_BACKLOG.json"
         data = json.loads(path.read_text(encoding="utf-8"))
@@ -117,7 +143,7 @@ def main():
     def protocol_precision_mut(repo):
         path = repo / "knowledge" / "K2_QIMEN_TBV_PROTOCOL.md"
         text = path.read_text(encoding="utf-8")
-        text = text.replace("TEXTUAL PRECISION != EMPIRICAL VALIDATION", "TEXTUAL PRECISION == EMPIRICAL VALIDATION")
+        text = text.replace("TEXTUAL PRECISION != EMPIRICAL VALIDATION", "TEXTUAL PRECISION == EMPIRICAL_VALIDATION")
         path.write_text(text, encoding="utf-8")
     assert_issue(with_repo(protocol_precision_mut), "TBV protocol missing invariant")
 

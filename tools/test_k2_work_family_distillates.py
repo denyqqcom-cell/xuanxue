@@ -6,6 +6,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_work_family_distillates as v
 
 FAM="WF-QM-TEST-001"
+MFAM="WF-ZW-TEST-MULTI-001"
 
 
 def indexes():
@@ -58,6 +59,53 @@ def row():
     }
 
 
+def multi_domain_indexes():
+    families=defaultdict(list)
+    families[MFAM]=[
+        {"member_ref":"ZW-SRC-9000#SEG-001","member_kind":"SEGMENT","source_id":"ZW-SRC-9000","segment_id":"ZW-SRC-9000#SEG-001","work_title":"跨域甲书","domain_routes":["ziwei","fengshui"]},
+    ]
+    readings={
+        "K2DEEP-ZW-SRC-9000":{"reading_id":"K2DEEP-ZW-SRC-9000","source_id":"ZW-SRC-9000","read_status":"COMPLETE","verification_mode":"VISUAL_PAGE"},
+    }
+    ev={
+        "K2SEG-ZW9000-001":{"evidence_id":"K2SEG-ZW9000-001","work_family_key":MFAM},
+        "K2SEG-ZW9000-002":{"evidence_id":"K2SEG-ZW9000-002","work_family_key":MFAM},
+    }
+    segs={"ZW-SRC-9000#SEG-001":{"segment_id":"ZW-SRC-9000#SEG-001","page_start":1,"page_end":8}}
+    sources={"ZW-SRC-9000":{"source_id":"ZW-SRC-9000","pages":8}}
+    return families,readings,ev,segs,sources
+
+
+def multi_domain_row():
+    return {
+        "anti_patterns":["不能把跨域路由压成单一 domain 标签"],
+        "applicability_constraints":["跨域解释必须反馈前冻结"],
+        "claim_extraction_blocked":True,
+        "conflicts_and_tensions":["跨域覆盖增加结果后路线切换风险"],
+        "copyright_class":"DERIVED_SYNTHESIS_SAFE",
+        "credit_decisions":[{"anchors":["K2SEG-ZW9000-001"],"decision":"RETAIN_WITH_ROUTE_FREEZE","empirical_credit":"NONE","source_credit":"FULL","summary":"来源支持多域方法路由，不支持现实有效性。","topic":"multi_domain_route"}],
+        "direct_source_locators":[],
+        "distillate_id":"K2WF-ZW-TEST-MULTI-001",
+        "distillation_status":"REVIEWED",
+        "domain":"ziwei",
+        "domain_routes":["ziwei","fengshui"],
+        "empirical_credit":"NONE",
+        "essence":["保留跨域路由而不压平"],
+        "excluded_from_operational_use":["未经验证的高影响现实决策"],
+        "member_refs":["ZW-SRC-9000#SEG-001"],
+        "method_map":["先冻结 route 再解释"],
+        "model_updates":["work-family distillate 显式记录全部 governed routes"],
+        "reading_refs":["K2DEEP-ZW-SRC-9000"],
+        "review_status":"REVIEWED",
+        "segment_evidence_refs":["K2SEG-ZW9000-001","K2SEG-ZW9000-002"],
+        "source_credit":"FULL_WORK_FAMILY_REVIEWED",
+        "source_limitations":["没有前瞻验证"],
+        "testable_hypotheses":[{"failure_condition":"冻结路由不改善复核一致性则失败","freeze_requirements":"反馈前冻结允许的 domain route","hypothesis_id":"H-MULTI-001","statement":"显式多域路由能降低结果后 route shopping","status":"UNTESTED"}],
+        "work_family_key":MFAM,
+        "work_title":"跨域甲书",
+    }
+
+
 def must_pass(rows):
     issues=v.validate_rows(*indexes(),rows)
     assert not issues,issues
@@ -82,9 +130,26 @@ def test_shard_loader():
         assert [r["distillate_id"] for r in rows]==["K2WF-QM-BASE-001","K2WF-QM-SHARD-001"],rows
 
 
+def test_multi_domain_routes():
+    base=multi_domain_row()
+    issues=v.validate_rows(*multi_domain_indexes(),[base])
+    assert not issues,issues
+    r=copy.deepcopy(base);r["domain_routes"]=["ziwei"]
+    issues=v.validate_rows(*multi_domain_indexes(),[r])
+    assert issues,"expected multi-domain route coverage failure"
+    text="; ".join(f"{a}: {b}" for a,b in issues)
+    assert "domain_routes must exactly cover work-family routes" in text,text
+    r=copy.deepcopy(base);r["domain"]="fengshui"
+    issues=v.validate_rows(*multi_domain_indexes(),[r])
+    assert issues,"expected primary-domain shopping failure"
+    text="; ".join(f"{a}: {b}" for a,b in issues)
+    assert "domain must equal first governed route" in text,text
+
+
 def main():
     base=row();must_pass([base])
     test_shard_loader()
+    test_multi_domain_routes()
 
     r=copy.deepcopy(base);r["member_refs"]=["QM-SRC-9000"];must_fail([r],"exactly match")
     r=copy.deepcopy(base);r["reading_refs"]=["K2DEEP-QM-SRC-9000"];must_fail([r],"cover exactly")
@@ -96,6 +161,6 @@ def main():
     r=copy.deepcopy(base);r["claim_extraction_blocked"]=False;must_fail([r],"must remain true")
 
     print("k2-work-family-distillates-tests: PASS")
-    print("cases=10")
+    print("cases=13")
 
 if __name__=="__main__":main()

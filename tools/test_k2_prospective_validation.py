@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
-import copy,sys
+import copy,json,sys,tempfile
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_prospective_validation as v
 
 
 def distillates():
-    return [{"work_family_key":"WF-TEST-001","testable_hypotheses":[{"hypothesis_id":"H-TEST-001","status":"UNTESTED"}]}]
+    return [{"work_family_key":"WF-TEST-001","domain":"qimen","testable_hypotheses":[{"hypothesis_id":"H-TEST-001","status":"UNTESTED"}]}]
+
+
+def multi_domain_distillates():
+    return [{
+        "work_family_key":"WF-MULTI-001",
+        "domain":"ziwei",
+        "domain_routes":["ziwei","fengshui"],
+        "testable_hypotheses":[{"hypothesis_id":"H-MULTI-001","status":"UNTESTED"}],
+    }]
 
 
 def plan():
@@ -29,6 +38,16 @@ def plan():
         "status":"DESIGN_READY",
         "empirical_credit":"NONE",
     }
+
+
+def multi_domain_plan(include_route_freeze=False):
+    p=plan()
+    p["plan_id"]="K2PV-MULTI-001"
+    p["hypothesis_id"]="H-MULTI-001"
+    p["work_family_key"]="WF-MULTI-001"
+    if include_route_freeze:
+        p["freeze_required_fields"]=sorted(set(p["freeze_required_fields"])|{"active_domain_routes"})
+    return p
 
 
 def batch(p=None):
@@ -103,19 +122,67 @@ def outcome(f=None):
     }
 
 
+def validation_text(ds,plans,batches=None,freezes=None,outcomes=None):
+    issues=v.validate_records(ds,plans,batches or [],freezes or [],outcomes or [])
+    return issues,"; ".join(f"{a}: {b}" for a,b in issues)
+
+
 def must_pass(plans,batches=None,freezes=None,outcomes=None):
-    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [])
+    issues,_=validation_text(distillates(),plans,batches,freezes,outcomes)
     assert not issues,issues
 
 
 def must_fail(plans,batches=None,freezes=None,outcomes=None,needle=""):
-    issues=v.validate_records(distillates(),plans,batches or [],freezes or [],outcomes or [])
+    issues,text=validation_text(distillates(),plans,batches,freezes,outcomes)
     assert issues,"expected failure"
-    text="; ".join(f"{a}: {b}" for a,b in issues)
     assert needle in text,(needle,text)
 
 
+def test_sharded_work_family_loader():
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td);k=root/"knowledge";k.mkdir()
+        base={"work_family_key":"WF-BASE-001","testable_hypotheses":[{"hypothesis_id":"H-BASE-001","status":"UNTESTED"}]}
+        shard={"work_family_key":"WF-SHARD-001","testable_hypotheses":[{"hypothesis_id":"H-SHARD-001","status":"UNTESTED"}]}
+        (k/"K2_WORK_FAMILY_DISTILLATES.jsonl").write_text(json.dumps(base)+"\n",encoding="utf-8")
+        d=k/"K2_WORK_FAMILY_DISTILLATES.d";d.mkdir()
+        (d/"one.jsonl").write_text(json.dumps(shard)+"\n",encoding="utf-8")
+        rows=v.load_work_family_distillates(root)
+        assert [r["work_family_key"] for r in rows]==["WF-BASE-001","WF-SHARD-001"],rows
+
+
+def test_multi_domain_route_freeze():
+    p=multi_domain_plan(include_route_freeze=False)
+    issues,text=validation_text(multi_domain_distillates(),[p])
+    assert issues,"expected multi-domain plan without route freeze to fail"
+    assert "active_domain_routes" in text,text
+
+    p=multi_domain_plan(include_route_freeze=True)
+    issues,text=validation_text(multi_domain_distillates(),[p])
+    assert not issues,text
+    b=batch(p)
+    f=freeze(p,b)
+    issues,text=validation_text(multi_domain_distillates(),[p],[b],[f])
+    assert issues and "active_domain_routes" in text,text
+
+    f=freeze(p,b);f["frozen_payload"]["active_domain_routes"]=["ziwei","fengshui"]
+    f["frozen_payload_sha256"]=v.canonical_sha256(f["frozen_payload"])
+    issues,text=validation_text(multi_domain_distillates(),[p],[b],[f])
+    assert not issues,text
+
+    bad=copy.deepcopy(f);bad["frozen_payload"]["active_domain_routes"]=["fengshui","ziwei"]
+    bad["frozen_payload_sha256"]=v.canonical_sha256(bad["frozen_payload"])
+    issues,text=validation_text(multi_domain_distillates(),[p],[b],[bad])
+    assert issues and "preserve governed route order" in text,text
+
+    bad=copy.deepcopy(f);bad["frozen_payload"]["active_domain_routes"]=["bazi"]
+    bad["frozen_payload_sha256"]=v.canonical_sha256(bad["frozen_payload"])
+    issues,text=validation_text(multi_domain_distillates(),[p],[b],[bad])
+    assert issues and "outside governed routes" in text,text
+
+
 def main():
+    test_sharded_work_family_loader()
+    test_multi_domain_route_freeze()
     p=plan();must_pass([p])
 
     bad=copy.deepcopy(p);bad["hypothesis_id"]="H-NOT-FOUND"
@@ -169,6 +236,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=19")
+    print("cases=25")
 
 if __name__=="__main__":main()

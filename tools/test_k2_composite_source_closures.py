@@ -23,9 +23,9 @@ def fixtures():
            "verification_mode":"VISUAL_PAGE"}]
     lineage=[
       {"work_family_key":F1,"member_kind":"SEGMENT","segment_id":S2,"source_id":SID,
-       "credit_scope":"SEGMENT_ONLY","relation":"PRIMARY_WORK_IN_COMPOSITE","member_ref":S2},
+       "credit_scope":"SEGMENT_ONLY","relation":"PRIMARY_WORK_IN_COMPOSITE","member_ref":S2,"domain_routes":["ziwei","fengshui"]},
       {"work_family_key":F2,"member_kind":"SEGMENT","segment_id":S3,"source_id":SID,
-       "credit_scope":"SEGMENT_ONLY","relation":"PRIMARY_WORK_IN_COMPOSITE","member_ref":S3},
+       "credit_scope":"SEGMENT_ONLY","relation":"PRIMARY_WORK_IN_COMPOSITE","member_ref":S3,"domain_routes":["ziwei"]},
     ]
     ev=[
       {"evidence_id":"E1","segment_id":S2,"source_id":SID,"work_family_key":F1,"domain":"fengshui"},
@@ -34,9 +34,9 @@ def fixtures():
       {"evidence_id":"E4","segment_id":S3,"source_id":SID,"work_family_key":F2,"domain":"ziwei"},
     ]
     dist=[
-      {"work_family_key":F1,"distillation_status":"REVIEWED","review_status":"REVIEWED","empirical_credit":"NONE",
+      {"work_family_key":F1,"domain":"ziwei","domain_routes":["ziwei","fengshui"],"distillation_status":"REVIEWED","review_status":"REVIEWED","empirical_credit":"NONE",
        "claim_extraction_blocked":True,"reading_refs":[RID],"segment_evidence_refs":["E1","E2","E3"]},
-      {"work_family_key":F2,"distillation_status":"REVIEWED","review_status":"REVIEWED","empirical_credit":"NONE",
+      {"work_family_key":F2,"domain":"ziwei","domain_routes":["ziwei"],"distillation_status":"REVIEWED","review_status":"REVIEWED","empirical_credit":"NONE",
        "claim_extraction_blocked":True,"reading_refs":[RID],"segment_evidence_refs":["E4"]},
     ]
     closure={
@@ -83,9 +83,15 @@ def main():
     def bad_refs(d,c):
         d[5][0]=dict(d[5][0],segment_evidence_refs=["E2","E3"])
     must_fail(bad_refs,"evidence refs not exact")
+    def bad_distillate_routes(d,c):
+        d[5][0]=dict(d[5][0],domain_routes=["ziwei"])
+    must_fail(bad_distillate_routes,"distillate routes do not cover work-family routes")
+    def bad_primary_domain(d,c):
+        d[5][0]=dict(d[5][0],domain="fengshui")
+    must_fail(bad_primary_domain,"distillate primary domain does not match first governed route")
 
     print("k2-composite-source-closure-tests: PASS")
-    print("cases=12")
+    print("cases=14")
 
 
 if __name__=="__main__":main()

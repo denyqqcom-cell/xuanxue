@@ -1,4 +1,4 @@
-# K2 奇门 TBV 反向重析协议 v1.3
+# K2 奇门 TBV 反向重析协议 v1.4
 
 TBV = Theory — Boundary — Validation（理论—边界—验证）。
 
@@ -98,13 +98,25 @@ TBV 可以给出 source-local candidate、boundary-only、mixed-stance hold、hi
 
 `QM-SRC-0027 / 0028 / 0029` 属于同一课程家族，继续执行 `COURSE_FAMILY_SINGLE_VOTE`。
 
-## 9. 覆盖与独立性
+## 9. 覆盖、独立性与 Work-Family referent integrity
 
 `COVERAGE CREDIT != INDEPENDENT EVIDENCE VOTE`
 
 work-family review 可以覆盖多个 member source，但仍只是一条 family-level provenance unit；同一 course family 中的独立 work 为保存各自 theory/boundary 可分别接受 TBV review，却不能因此重复增加独立 corroboration。
 
 TBV registry 可使用 aggregate 与 `knowledge/K2_QIMEN_TBV_REVIEW_REGISTRY.d/*.jsonl` shards。shard 只是存储方式，不绕过 duplicate unit、source identity、coverage 与 fail-closed gate。
+
+TBV 是**奇门域限定消费者**，不能因为全局 Work-Family registry 中存在其他术数域的 family，就把它们登记成 Qimen TBV 单元：
+
+`QIMEN_TBV_WORK_FAMILY -> QIMEN_GOVERNED_ROUTE_REQUIRED`
+
+对 `unit_type=WORK_FAMILY`，`unit_id` 必须指向包含 `qimen` governed route 的 reviewed Work-Family Distillate；只有 ziwei、fengshui 或其他非 qimen route 的 family 必须 fail closed。multi-domain family 若包含 qimen，可以进入 TBV，但这只表示该 family 确实存在 qimen source-local route，不给其他 route 自动取得 Qimen operational credit。
+
+同时，TBV 的 `unit_id` 不是可自由替换的标签：
+
+`TBV_WORK_FAMILY_ID != FREE_REBINDABLE_LABEL`
+
+`source_anchor_refs` 必须能够回落到所选 family 的 `member_refs` 直接页锚，或该 family 当前精确 `segment_evidence_refs`。把一条已经写好的 theory/boundary review 改绑到另一条合法 family，即使两者都属于 qimen，也必须因为 anchor provenance 不匹配而失败。这样 TBV 才是在“重析这个来源单元”，而不是“先写结论、再挑一个存在的 family ID 挂上去”。
 
 ## 10. Known-outcome training 与评价隔离
 

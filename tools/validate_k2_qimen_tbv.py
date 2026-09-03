@@ -89,6 +89,25 @@ def load_work_family_rows(k: Path):
     return rows
 
 
+def governed_family_routes(row: dict):
+    routes = row.get("domain_routes")
+    if isinstance(routes, list) and routes:
+        return routes
+    domain = row.get("domain")
+    return [domain] if isinstance(domain, str) and domain else []
+
+
+def family_anchor_belongs(anchor: str, family: dict):
+    if not isinstance(anchor, str) or not anchor:
+        return False
+    if anchor in set(family.get("segment_evidence_refs") or []):
+        return True
+    if "@pdf:p" not in anchor:
+        return False
+    member_ref = anchor.split("@pdf:p", 1)[0]
+    return member_ref in set(family.get("member_refs") or [])
+
+
 def validate_row(row: dict, idx: int, repo: Path, deep_ids: set[str], work_family_ids: set[str]):
     issues = []
     rid = row.get("review_id") or f"row-{idx}"
@@ -218,6 +237,14 @@ def validate(repo: Path = ROOT):
             issues.append(f"duplicate TBV unit: {uid}")
         seen_units.add(uid)
         issues.extend(validate_row(row, idx, repo, deep_ids, work_family_ids))
+        if row.get("unit_type") == "WORK_FAMILY":
+            family = work_family_by_id.get(uid)
+            if family is not None:
+                if "qimen" not in governed_family_routes(family):
+                    issues.append(f"{rid}: WORK_FAMILY must include qimen governed route")
+                anchors = row.get("source_anchor_refs")
+                if isinstance(anchors, list) and any(not family_anchor_belongs(anchor, family) for anchor in anchors):
+                    issues.append(f"{rid}: WORK_FAMILY source_anchor_refs must belong to selected family")
 
     if not EXPECTED_WAVE_A.issubset(seen_units):
         issues.append(f"Wave A coverage missing: {sorted(EXPECTED_WAVE_A-seen_units)}")
@@ -295,6 +322,8 @@ def validate(repo: Path = ROOT):
         "GLOBAL_UNKNOWN_BACKLOG = MACHINE_DERIVED",
         "KNOWN_OUTCOME_TRAINING != PROSPECTIVE_EVALUATION",
         "COVERAGE CREDIT != INDEPENDENT EVIDENCE VOTE",
+        "QIMEN_TBV_WORK_FAMILY -> QIMEN_GOVERNED_ROUTE_REQUIRED",
+        "TBV_WORK_FAMILY_ID != FREE_REBINDABLE_LABEL",
         "PREDEFINED PROCEDURAL BRANCHING != POST-HOC INTERPRETIVE SEARCH",
         "CALCULATION CONSISTENCY != REAL-WORLD VALIDITY",
         "TEXTUAL PRECISION != EMPIRICAL VALIDATION",

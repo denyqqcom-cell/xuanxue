@@ -66,6 +66,12 @@ def load_jsonl(path):
     return rows
 
 
+def load_work_family_distillates(root=ROOT):
+    sys.path.insert(0,str(Path(__file__).resolve().parent))
+    import validate_k2_work_family_distillates as wf
+    return wf.load_distillates(root)
+
+
 def canonical_sha256(value):
     blob=json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(",",":")).encode("utf-8")
     return hashlib.sha256(blob).hexdigest()
@@ -84,23 +90,31 @@ def utc_value(v):
     return datetime.strptime(v,"%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
 
+def effective_domain_routes(distillate):
+    declared=distillate.get("domain_routes")
+    if isinstance(declared,list) and declared:
+        return list(declared)
+    domain=distillate.get("domain")
+    return [domain] if nonempty_text(domain) else []
+
+
 def hypothesis_index(distillates):
     out={}
     for d in distillates:
-        wf=d.get("work_family_key")
+        wf=d.get("work_family_key");routes=effective_domain_routes(d)
         for h in d.get("testable_hypotheses") or []:
             if not isinstance(h,dict):continue
             hid=h.get("hypothesis_id")
             if not nonempty_text(hid):continue
             if hid in out:
                 fail(f"duplicate hypothesis_id in work-family distillates: {hid}")
-            out[hid]={"work_family_key":wf,"status":h.get("status")}
+            out[hid]={"work_family_key":wf,"status":h.get("status"),"domain_routes":routes}
     return out
 
 
 def validate_records(distillates,plans,batches,freezes,outcomes):
     issues=[];hyps=hypothesis_index(distillates)
-    plan_by_id={};seen_hyp=set()
+    plan_by_id={};plan_routes_by_id={};seen_hyp=set()
     for p in plans:
         pid=p.get("plan_id") or "<missing>";hid=p.get("hypothesis_id")
         if set(p)!=PLAN_FIELDS:issues.append((pid,f"plan fields mismatch missing={sorted(PLAN_FIELDS-set(p))} extra={sorted(set(p)-PLAN_FIELDS)}"))
@@ -109,11 +123,13 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         plan_by_id[pid]=p
         if hid in seen_hyp:issues.append((pid,"one hypothesis may have only one active design plan"))
         seen_hyp.add(hid)
-        h=hyps.get(hid)
+        h=hyps.get(hid);routes=[]
         if not h:issues.append((pid,f"unknown hypothesis_id: {hid}"))
         else:
+            routes=h.get("domain_routes") or []
             if p.get("work_family_key")!=h.get("work_family_key"):issues.append((pid,"work_family_key does not match hypothesis source"))
             if h.get("status")!="UNTESTED":issues.append((pid,"prospective design currently requires UNTESTED hypothesis"))
+        plan_routes_by_id[pid]=routes
         for field in ["model_name","comparator_name","question_scope","unit_of_analysis","success_condition","failure_condition","abstention_rule","high_risk_policy","update_policy"]:
             if not nonempty_text(p.get(field)):issues.append((pid,f"{field} must be non-empty text"))
         if p.get("model_name")==p.get("comparator_name"):issues.append((pid,"candidate model and comparator must differ"))
@@ -122,6 +138,8 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         else:
             missing=MANDATORY_FREEZE_FIELDS-set(req)
             if missing:issues.append((pid,f"freeze_required_fields missing mandatory fields: {sorted(missing)}"))
+            if len(routes)>1 and "active_domain_routes" not in req:
+                issues.append((pid,"multi-domain hypothesis requires active_domain_routes in freeze_required_fields"))
             if len(req)!=len(set(req)):issues.append((pid,"duplicate freeze_required_fields"))
         if not string_list(p.get("evaluation_metrics")):issues.append((pid,"evaluation_metrics must be non-empty string array"))
         if not string_list(p.get("leakage_controls")):issues.append((pid,"leakage_controls must be non-empty string array"))
@@ -187,6 +205,18 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
             if plan:
                 missing=set(plan.get("freeze_required_fields") or [])-set(payload)
                 if missing:issues.append((fid,f"frozen_payload missing plan fields: {sorted(missing)}"))
+            routes=plan_routes_by_id.get(pid,[])
+            active=payload.get("active_domain_routes")
+            if len(routes)>1 or active is not None:
+                if not string_list(active):
+                    issues.append((fid,"active_domain_routes must be non-empty string array"))
+                else:
+                    if len(active)!=len(set(active)):issues.append((fid,"active_domain_routes must not contain duplicates"))
+                    outside=[route for route in active if route not in routes]
+                    if outside:issues.append((fid,f"active_domain_routes outside governed routes: {outside}"))
+                    expected=[route for route in routes if route in active]
+                    if not outside and active!=expected:
+                        issues.append((fid,"active_domain_routes must preserve governed route order"))
             conf=payload.get("confidence")
             if not isinstance(conf,(int,float)) or isinstance(conf,bool) or not 0<=conf<=1:issues.append((fid,"confidence must be numeric in [0,1]"))
             if not nonempty_text(payload.get("prediction")):issues.append((fid,"prediction must be explicit non-empty text"))
@@ -233,7 +263,7 @@ def main():
     project=load_json(K/"PROJECT_STATE.json")
     if project.get("phase")!="K2_EVIDENCE_EXTRACTION":fail("validator only valid during K2_EVIDENCE_EXTRACTION")
     if project.get("claim_extraction_blocked") is not True:fail("Claim Extraction must remain blocked")
-    distillates=load_jsonl(K/"K2_WORK_FAMILY_DISTILLATES.jsonl")
+    distillates=load_work_family_distillates(ROOT)
     plans=load_jsonl(K/"K2_PROSPECTIVE_TEST_PLANS.jsonl")
     batches=load_jsonl(K/"K2_PROSPECTIVE_BATCHES.jsonl")
     freezes=load_jsonl(K/"K2_PROSPECTIVE_FREEZES.jsonl")
