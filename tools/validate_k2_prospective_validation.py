@@ -194,7 +194,7 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         if b.get("empirical_credit")!="NONE":issues.append((bid,"preregistered batch cannot carry empirical credit"))
         if PATH_RE.search(json.dumps(b,ensure_ascii=False)):issues.append((bid,"batch leaks local filesystem path"))
 
-    freeze_by_id={};case_keys=set()
+    freeze_by_id={};case_keys=set();freeze_count_by_batch={}
     for f in freezes:
         fid=f.get("freeze_id") or "<missing>";pid=f.get("plan_id");bid=f.get("batch_id")
         if set(f)!=FREEZE_FIELDS:issues.append((fid,f"freeze fields mismatch missing={sorted(FREEZE_FIELDS-set(f))} extra={sorted(set(f)-FREEZE_FIELDS)}"))
@@ -206,6 +206,10 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         batch=batch_by_id.get(bid)
         if not batch:issues.append((fid,f"freeze requires preregistered batch: {bid}"))
         else:
+            freeze_count_by_batch[bid]=freeze_count_by_batch.get(bid,0)+1
+            planned_count=batch.get("planned_case_count")
+            if isinstance(planned_count,int) and not isinstance(planned_count,bool) and planned_count>=1 and freeze_count_by_batch[bid]>planned_count:
+                issues.append((fid,"freeze count exceeds planned_case_count"))
             if batch.get("plan_id")!=pid:issues.append((fid,"freeze plan_id does not match batch plan_id"))
             if f.get("batch_sha256")!=canonical_sha256(batch):issues.append((fid,"batch_sha256 does not bind exact preregistered batch"))
         if not isinstance(f.get("batch_sha256"),str) or not SHA64_RE.match(f.get("batch_sha256","")):issues.append((fid,"batch_sha256 must be lowercase sha256"))
