@@ -255,6 +255,9 @@ def main():
     badb=copy.deepcopy(b);badb["primary_metric"]=""
     must_fail([p],[badb],needle="primary_metric must be non-empty text")
 
+    badb=copy.deepcopy(b);badb["planned_case_count"]=None
+    must_fail([p],[badb],needle="planned_case_count must be positive integer")
+
     badb=copy.deepcopy(b);badb["empirical_credit"]="WEAK"
     must_fail([p],[badb],needle="preregistered batch cannot carry empirical credit")
 
@@ -289,6 +292,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=31")
+    print("cases=32")
 
 if __name__=="__main__":main()
