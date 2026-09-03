@@ -139,6 +139,11 @@ def test_multi_domain_routes():
     assert issues,"expected multi-domain route coverage failure"
     text="; ".join(f"{a}: {b}" for a,b in issues)
     assert "domain_routes must exactly cover work-family routes" in text,text
+    r=copy.deepcopy(base);r["domain"]="fengshui"
+    issues=v.validate_rows(*multi_domain_indexes(),[r])
+    assert issues,"expected primary-domain shopping failure"
+    text="; ".join(f"{a}: {b}" for a,b in issues)
+    assert "domain must equal first governed route" in text,text
 
 
 def main():
@@ -156,6 +161,6 @@ def main():
     r=copy.deepcopy(base);r["claim_extraction_blocked"]=False;must_fail([r],"must remain true")
 
     print("k2-work-family-distillates-tests: PASS")
-    print("cases=12")
+    print("cases=13")
 
 if __name__=="__main__":main()
