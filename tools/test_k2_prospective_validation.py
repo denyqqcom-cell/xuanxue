@@ -289,6 +289,7 @@ def main():
 
     f=freeze(p,b)
     must_fail([p],[],[f],needle="requires preregistered batch")
+    must_fail([p],[b],[f],needle="comparator_prediction")
     must_pass([p],[b],[f])
 
     capped=copy.deepcopy(b);capped["planned_case_count"]=1
@@ -341,6 +342,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=47")
+    print("cases=48")
 
 if __name__=="__main__":main()
