@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 K=ROOT/"knowledge"
 
 PLAN_FIELDS={
-    "plan_id","hypothesis_id","hypothesis_sha256","work_family_key","model_name","comparator_name",
+    "plan_id","hypothesis_id","hypothesis_sha256","hypothesis_context_sha256","work_family_key","model_name","comparator_name",
     "question_scope","unit_of_analysis","freeze_required_fields","evaluation_metrics",
     "success_condition","failure_condition","abstention_rule","leakage_controls",
     "high_risk_policy","update_policy","status","empirical_credit",
@@ -98,6 +98,14 @@ def effective_domain_routes(distillate):
     return [domain] if nonempty_text(domain) else []
 
 
+def hypothesis_context_sha256(work_family_key,domain_routes,hypothesis):
+    return canonical_sha256({
+        "work_family_key":work_family_key,
+        "domain_routes":list(domain_routes),
+        "hypothesis":hypothesis,
+    })
+
+
 def hypothesis_index(distillates):
     out={}
     for d in distillates:
@@ -113,6 +121,7 @@ def hypothesis_index(distillates):
                 "status":h.get("status"),
                 "domain_routes":routes,
                 "hypothesis_sha256":canonical_sha256(h),
+                "hypothesis_context_sha256":hypothesis_context_sha256(wf,routes,h),
             }
     return out
 
@@ -130,14 +139,18 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         seen_hyp.add(hid)
         h=hyps.get(hid);routes=[]
         hsha=p.get("hypothesis_sha256")
+        hcsha=p.get("hypothesis_context_sha256")
         if not isinstance(hsha,str) or not SHA64_RE.match(hsha):
             issues.append((pid,"hypothesis_sha256 must be lowercase sha256"))
+        if not isinstance(hcsha,str) or not SHA64_RE.match(hcsha):
+            issues.append((pid,"hypothesis_context_sha256 must be lowercase sha256"))
         if not h:issues.append((pid,f"unknown hypothesis_id: {hid}"))
         else:
             routes=h.get("domain_routes") or []
             if p.get("work_family_key")!=h.get("work_family_key"):issues.append((pid,"work_family_key does not match hypothesis source"))
             if h.get("status")!="UNTESTED":issues.append((pid,"prospective design currently requires UNTESTED hypothesis"))
             if hsha!=h.get("hypothesis_sha256"):issues.append((pid,"hypothesis_sha256 does not bind exact hypothesis content"))
+            if hcsha!=h.get("hypothesis_context_sha256"):issues.append((pid,"hypothesis_context_sha256 does not bind exact governed hypothesis context"))
         plan_routes_by_id[pid]=routes
         for field in ["model_name","comparator_name","question_scope","unit_of_analysis","success_condition","failure_condition","abstention_rule","high_risk_policy","update_policy"]:
             if not nonempty_text(p.get(field)):issues.append((pid,f"{field} must be non-empty text"))

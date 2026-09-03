@@ -35,10 +35,12 @@ def multi_domain_distillates():
 
 
 def plan():
+    h=hypothesis()
     return {
         "plan_id":"K2PV-TEST-001",
         "hypothesis_id":"H-TEST-001",
-        "hypothesis_sha256":v.canonical_sha256(hypothesis()),
+        "hypothesis_sha256":v.canonical_sha256(h),
+        "hypothesis_context_sha256":v.hypothesis_context_sha256("WF-TEST-001",["qimen"],h),
         "work_family_key":"WF-TEST-001",
         "model_name":"RELATIONAL_MODEL",
         "comparator_name":"STATIC_BASELINE",
@@ -58,10 +60,11 @@ def plan():
 
 
 def multi_domain_plan(include_route_freeze=False):
-    p=plan()
+    p=plan();h=multi_domain_hypothesis()
     p["plan_id"]="K2PV-MULTI-001"
     p["hypothesis_id"]="H-MULTI-001"
-    p["hypothesis_sha256"]=v.canonical_sha256(multi_domain_hypothesis())
+    p["hypothesis_sha256"]=v.canonical_sha256(h)
+    p["hypothesis_context_sha256"]=v.hypothesis_context_sha256("WF-MULTI-001",["ziwei","fengshui"],h)
     p["work_family_key"]="WF-MULTI-001"
     if include_route_freeze:
         p["freeze_required_fields"]=sorted(set(p["freeze_required_fields"])|{"active_domain_routes"})
@@ -207,10 +210,20 @@ def test_hypothesis_content_binding():
     assert "hypothesis_sha256 does not bind exact hypothesis content" in text,text
 
 
+def test_hypothesis_context_binding():
+    p=multi_domain_plan(include_route_freeze=True)
+    changed=multi_domain_distillates()
+    changed[0]["domain_routes"]=["ziwei","fengshui","bazi"]
+    issues,text=validation_text(changed,[p])
+    assert issues,"expected governed domain route drift under unchanged hypothesis content to invalidate the plan"
+    assert "hypothesis_context_sha256 does not bind exact governed hypothesis context" in text,text
+
+
 def main():
     test_sharded_work_family_loader()
     test_multi_domain_route_freeze()
     test_hypothesis_content_binding()
+    test_hypothesis_context_binding()
     p=plan();must_pass([p])
 
     bad=copy.deepcopy(p);bad["hypothesis_id"]="H-NOT-FOUND"
@@ -221,6 +234,12 @@ def main():
 
     bad=copy.deepcopy(p);bad["hypothesis_sha256"]="B"*64
     must_fail([bad],needle="hypothesis_sha256 must be lowercase sha256")
+
+    bad=copy.deepcopy(p);bad["hypothesis_context_sha256"]="c"*64
+    must_fail([bad],needle="does not bind exact governed hypothesis context")
+
+    bad=copy.deepcopy(p);bad["hypothesis_context_sha256"]="C"*64
+    must_fail([bad],needle="hypothesis_context_sha256 must be lowercase sha256")
 
     bad=copy.deepcopy(p);bad["freeze_required_fields"].remove("role_map")
     must_fail([bad],needle="missing mandatory fields")
@@ -270,6 +289,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=28")
+    print("cases=31")
 
 if __name__=="__main__":main()
