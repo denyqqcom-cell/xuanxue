@@ -86,9 +86,12 @@ def main():
     def bad_distillate_routes(d,c):
         d[5][0]=dict(d[5][0],domain_routes=["ziwei"])
     must_fail(bad_distillate_routes,"distillate routes do not cover work-family routes")
+    def bad_primary_domain(d,c):
+        d[5][0]=dict(d[5][0],domain="fengshui")
+    must_fail(bad_primary_domain,"distillate primary domain does not match first governed route")
 
     print("k2-composite-source-closure-tests: PASS")
-    print("cases=13")
+    print("cases=14")
 
 
 if __name__=="__main__":main()
