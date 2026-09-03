@@ -207,10 +207,20 @@ def test_hypothesis_content_binding():
     assert "hypothesis_sha256 does not bind exact hypothesis content" in text,text
 
 
+def test_hypothesis_context_binding():
+    p=multi_domain_plan(include_route_freeze=True)
+    changed=multi_domain_distillates()
+    changed[0]["domain_routes"]=["ziwei","fengshui","bazi"]
+    issues,text=validation_text(changed,[p])
+    assert issues,"expected governed domain route drift under unchanged hypothesis content to invalidate the plan"
+    assert "hypothesis_context_sha256" in text,text
+
+
 def main():
     test_sharded_work_family_loader()
     test_multi_domain_route_freeze()
     test_hypothesis_content_binding()
+    test_hypothesis_context_binding()
     p=plan();must_pass([p])
 
     bad=copy.deepcopy(p);bad["hypothesis_id"]="H-NOT-FOUND"
@@ -270,6 +280,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=28")
+    print("cases=29")
 
 if __name__=="__main__":main()
