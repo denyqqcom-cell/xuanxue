@@ -5,7 +5,8 @@ from collections import defaultdict
 
 ROOT=Path(__file__).resolve().parents[1]
 K=ROOT/"knowledge"
-DOMAINS={"ziwei","bazi","qimen","liuyao","liuren","fengshui"}
+DOMAIN_ORDER=("ziwei","bazi","qimen","liuyao","liuren","fengshui")
+DOMAINS=set(DOMAIN_ORDER)
 ALLOWED={
     "closure_id","source_id","canonical_sha256","deep_reading_id","segment_ids",
     "work_segment_ids","non_work_segment_ids","work_family_keys","completion_scope",
@@ -192,6 +193,18 @@ def validate_rows(sources,segments,deep_rows,lineage_rows,evidence_rows,distilla
             expected_ev={e.get("evidence_id") for e in ev_by_family.get(family,[])}
             if set(d.get("segment_evidence_refs") or [])!=expected_ev:
                 issues.append((cid,f"work-family distillate evidence refs not exact: {family}"))
+            route_set={
+                route
+                for member in family_members.get(family,[])
+                for route in (member.get("domain_routes") or [])
+                if route in DOMAINS
+            }
+            expected_routes=[route for route in DOMAIN_ORDER if route in route_set]
+            declared_routes=d.get("domain_routes")
+            if declared_routes is None:
+                declared_routes=[d.get("domain")] if d.get("domain") in DOMAINS else []
+            if declared_routes!=expected_routes:
+                issues.append((cid,f"distillate routes do not cover work-family routes: {family}"))
 
         blob=json.dumps(c,ensure_ascii=False)
         if PATH_RE.search(blob):issues.append((cid,"local filesystem path leaked"))

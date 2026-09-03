@@ -7,7 +7,7 @@ ROOT=Path(__file__).resolve().parents[1]
 K=ROOT/"knowledge"
 DOMAINS=["ziwei","bazi","qimen","liuyao","liuren","fengshui"]
 ALLOWED={
-    "distillate_id","work_family_key","work_title","domain","member_refs","reading_refs",
+    "distillate_id","work_family_key","work_title","domain","domain_routes","member_refs","reading_refs",
     "segment_evidence_refs","direct_source_locators","source_credit","empirical_credit",
     "essence","method_map","applicability_constraints","source_limitations","conflicts_and_tensions",
     "anti_patterns","model_updates","testable_hypotheses","credit_decisions",
@@ -106,6 +106,14 @@ def validate_rows(families,readings,ev,segs,sources,rows):
         if d.get("work_title") not in titles or len(titles)!=1:issues.append((did,"work_title mismatch"))
         routes={x for r in members for x in (r.get("domain_routes") or [])}
         if d.get("domain") not in routes:issues.append((did,"domain not supported by family members"))
+        expected_routes=[name for name in DOMAINS if name in routes]
+        declared_routes=d.get("domain_routes")
+        if len(expected_routes)>1:
+            if not isinstance(declared_routes,list) or declared_routes!=expected_routes:
+                issues.append((did,"domain_routes must exactly cover work-family routes"))
+        elif declared_routes is not None:
+            if not isinstance(declared_routes,list) or declared_routes!=expected_routes:
+                issues.append((did,"domain_routes must exactly cover work-family routes"))
 
         for field in LIST_FIELDS:
             val=d.get(field)
