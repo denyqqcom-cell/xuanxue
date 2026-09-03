@@ -255,12 +255,20 @@ def main():
     badb=copy.deepcopy(b);badb["primary_metric"]=""
     must_fail([p],[badb],needle="primary_metric must be non-empty text")
 
+    badb=copy.deepcopy(b);badb["planned_case_count"]=None
+    must_fail([p],[badb],needle="planned_case_count must be positive integer")
+
     badb=copy.deepcopy(b);badb["empirical_credit"]="WEAK"
     must_fail([p],[badb],needle="preregistered batch cannot carry empirical credit")
 
     f=freeze(p,b)
     must_fail([p],[],[f],needle="requires preregistered batch")
     must_pass([p],[b],[f])
+
+    capped=copy.deepcopy(b);capped["planned_case_count"]=1
+    f1=freeze(p,capped)
+    f2=copy.deepcopy(f1);f2["freeze_id"]="K2PVF-CASE_002";f2["case_id"]="CASE_002"
+    must_fail([p],[capped],[f1,f2],needle="freeze count exceeds planned_case_count")
 
     badf=copy.deepcopy(f);badf["batch_sha256"]="c"*64
     must_fail([p],[b],[badf],needle="bind exact preregistered batch")
@@ -289,6 +297,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=31")
+    print("cases=33")
 
 if __name__=="__main__":main()
