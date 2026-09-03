@@ -103,16 +103,25 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 - `plan_id` 及该 Plan 的 canonical `plan_sha256`；
 - model / comparator 版本引用；
 - sampling rule；
-- planned case count 或明确 stopping rule；
+- 正整数 `planned_case_count`；
 - primary metric；
 - decision rule / threshold；
 - secondary metrics；
+- stopping rule；
 - exclusion rule；
 - duplicate-case policy；
 - batch status=`PREREGISTERED`；
 - `empirical_credit=NONE`。
 
-如果 primary metric、threshold、停止规则或排除规则在看过该批结果后才确定，则该批不能获得 prospective credit。
+当前合同只允许**固定样本量**的 batch。原因不是宣称固定 N 永远优于序贯/自适应设计，而是目前仓库尚未建立机器可审计的 sequential/adaptive stopping schema。自由文本 `stopping_rule` 可以说明为什么在 N 时停止、如何处理外部中止，但不能替代机器可读的 `planned_case_count`。
+
+因此：
+
+`UNSTRUCTURED_STOPPING_RULE != PREREGISTERED_SAMPLE_SIZE`
+
+在专门的 sequential/adaptive stopping contract 建立并通过 fail-closed gate 之前，`planned_case_count=null`、结果驱动提前停止、看到部分 Outcome 后才决定继续收样，都不具备 prospective batch 资格。
+
+如果 primary metric、threshold、样本量、停止规则或排除规则在看过该批结果后才确定，则该批不能获得 prospective credit。
 
 ## 5. CASE FREEZE 合同
 
@@ -181,7 +190,8 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 以下情形不算 prospective validation：
 
 - 结果已经知道才补写 Freeze；
-- 看过部分/全部结果后才选择 primary metric、threshold 或 stopping rule；
+- 看过部分/全部结果后才选择 primary metric、threshold、sample size 或 stopping rule；
+- 使用 `planned_case_count=null` 配合自由文本 stopping rule 作为当前合同下的“预注册”；
 - hypothesis 内容修改后只保留原 `hypothesis_id`，继续沿用旧 Plan/Batch/Freeze；
 - Work-Family 的 governed route scope 改变后继续沿用旧 `hypothesis_context_sha256` / Plan；
 - 预测写得足够模糊，任何结果都能解释为命中；
@@ -212,6 +222,7 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 - 与 baseline 的差异；
 - 失败样本和不可判定比例；
 - 是否存在同一案例重复计数；
+- 是否达到预注册 `planned_case_count`，或是否存在经事前规则允许且完整记录的外部中止；
 - 是否发生 hypothesis / governed context / rule / route 漂移；
 - 是否违反 stopping / exclusion rule；
 - 模型更新是否在新批次重新冻结。
@@ -228,8 +239,8 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 ## 11. 当前工程状态边界
 
-本协议的 hypothesis-content binding、hypothesis-context binding 与 route-freeze hardening 只修改验证合同、设计记录与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
+本协议的 hypothesis-content binding、hypothesis-context binding、route-freeze 与 fixed-sample-size hardening 只修改验证合同、设计记录与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
 
 当前已有两个 `DESIGN_READY` Plan 会写入与现行 H-JD-001 / H-JD-002 完整对象匹配的 `hypothesis_sha256`，以及与当前 `WF-QM-JIADUN-ZHENSHOU-001 + [qimen]` 受治理上下文匹配的 `hypothesis_context_sha256`；这是对既有设计 referent 的显式绑定，不是新实验结果。
 
-只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis/content/context binding 与版本绑定条件后，真实 prospective records 才能进入仓库。
+只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis/content/context binding、fixed-N batch 与版本绑定条件后，真实 prospective records 才能进入仓库。
