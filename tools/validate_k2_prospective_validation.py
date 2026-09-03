@@ -66,6 +66,12 @@ def load_jsonl(path):
     return rows
 
 
+def load_work_family_distillates(root=ROOT):
+    sys.path.insert(0,str(Path(__file__).resolve().parent))
+    import validate_k2_work_family_distillates as wf
+    return wf.load_distillates(root)
+
+
 def canonical_sha256(value):
     blob=json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(",",":")).encode("utf-8")
     return hashlib.sha256(blob).hexdigest()
@@ -233,7 +239,7 @@ def main():
     project=load_json(K/"PROJECT_STATE.json")
     if project.get("phase")!="K2_EVIDENCE_EXTRACTION":fail("validator only valid during K2_EVIDENCE_EXTRACTION")
     if project.get("claim_extraction_blocked") is not True:fail("Claim Extraction must remain blocked")
-    distillates=load_jsonl(K/"K2_WORK_FAMILY_DISTILLATES.jsonl")
+    distillates=load_work_family_distillates(ROOT)
     plans=load_jsonl(K/"K2_PROSPECTIVE_TEST_PLANS.jsonl")
     batches=load_jsonl(K/"K2_PROSPECTIVE_BATCHES.jsonl")
     freezes=load_jsonl(K/"K2_PROSPECTIVE_FREEZES.jsonl")
