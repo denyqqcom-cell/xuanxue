@@ -124,13 +124,14 @@ def validate_records(distillates,plans,batches,freezes,outcomes,reviews):
             issues.append((rid,"aggregate_primary_metric must equal preregistered primary_metric"))
 
         fixed_n_complete=freeze_count==planned
-        outcome_complete=outcome_count==freeze_count and all(f.get("freeze_id") in {o.get("freeze_id") for o in os} for f in fs)
+        outcome_freeze_ids={o.get("freeze_id") for o in os}
+        outcome_complete=outcome_count==freeze_count and all(f.get("freeze_id") in outcome_freeze_ids for f in fs)
         has_non_evaluable=(abstain_count+unevaluable_count)>0
 
-        if not fixed_n_complete:
-            issues.append((rid,"incomplete fixed-N coverage"))
-        if not outcome_complete:
-            issues.append((rid,"incomplete outcome coverage"))
+        if not fixed_n_complete and r.get("batch_verdict")!="INCOMPLETE":
+            issues.append((rid,"incomplete fixed-N coverage requires INCOMPLETE verdict"))
+        if not outcome_complete and r.get("batch_verdict")!="INCOMPLETE":
+            issues.append((rid,"incomplete outcome coverage requires INCOMPLETE verdict"))
 
         complete_for_decision=fixed_n_complete and outcome_complete and not has_non_evaluable
         expected_aggregate=None;expected_decision=None;expected_verdict="INCOMPLETE"
