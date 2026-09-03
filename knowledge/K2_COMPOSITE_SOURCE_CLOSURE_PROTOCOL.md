@@ -1,6 +1,6 @@
 # K2 Composite Source Closure Protocol
 
-版本：2026-09-03
+版本：2026-09-04
 阶段：K2B / Deep Closure
 状态：ACTIVE_CONTRACT
 
@@ -61,8 +61,17 @@
 - `NON_WORK` segment 不得产生 Segment Evidence；
 - 每个 work family 恰有一个 REVIEWED Work-Family Distillate；
 - distillate 必须引用同一 carrier Deep Reading，并精确覆盖该 family 当前 Segment Evidence；
+- work-family governed route 顺序必须从 reviewed lineage member 顺序与 member `domain_routes` 顺序确定性导出；
+- multi-domain distillate 必须完整、按序保存 `domain_routes`，不得把 family 压成 scalar `domain`；
+- scalar `domain` 必须等于第一个 governed route，禁止在多个合法 route 中进行 primary-domain shopping；
 - 同 source 不得同时获得 terminal legacy Wave1 Reading、legacy Evidence 或 legacy Book Distillate；
 - closure 不得泄漏 empirical credit、Claim authorization、carrier-level independent vote 或本地文件路径。
+
+对应不变量：
+
+`MULTI_DOMAIN_WORK_FAMILY != SINGLE_DOMAIN_DISTILLATE`
+
+`FULL_ROUTE_SET != FREE_PRIMARY_DOMAIN_CHOICE`
 
 任一条件不满足，closure 必须 fail closed。
 
@@ -88,6 +97,8 @@ Execution queue 的 resolved set 扩展为：
 
 禁止把 `execution_resolved` 偷换成 legacy Wave1 COMPLETE。
 
+Queue 层当前 scalar source `domain` 只用于 source-level execution scheduling。它不得被反向解释为 work-family 的完整 route set；multi-domain family 的 route semantics 以 reviewed lineage 与 Work-Family Distillate 的 `domain_routes` 为准。
+
 ## 6. Deep Reading reuse 不等于完成
 
 Execution queue 仍允许 `deep_reading_reusable=true` 来避免重复阅读，但不能直接从 `_deep_complete()` 推导 source 已完成。
@@ -110,7 +121,18 @@ Execution queue 仍允许 `deep_reading_reusable=true` 来避免重复阅读，�
 - composite source 的真实 execution progress；
 - 不为 schema 整齐而补造 source-level work identity。
 
-## 8. 经验验证边界
+## 8. 下游 route 语义
+
+Composite closure 只证明该 carrier 的阅读、分段、归属、Evidence 与 Work-Family Distillate 链已经按当前 contract 闭环。它不创造一个新的 route-sensitive inference consumer。
+
+若未来 Claim candidate、Theory Map、检索或推演消费者读取该 work family：
+
+- 必须保留完整 `domain_routes`；
+- scalar `domain` 只表示确定性 primary route；
+- secondary route 的激活必须在反馈前冻结；
+- 不得把“来源包含多个 route”换算成多个独立证据或多个 empirical validations。
+
+## 9. 经验验证边界
 
 本协议解决的是 provenance、reading、normalization 与 queue semantics。
 
