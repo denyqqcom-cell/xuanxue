@@ -9,6 +9,7 @@ import k2_wave1_aggregate as agg
 import validate_k2_evidence as ev
 import validate_k2_per_book_completion as v
 import test_k2_wave1_execution_queue as queue_test
+import test_k2_composite_source_closures as composite_closure_test
 
 
 def dump(path, rows):
@@ -150,6 +151,11 @@ def main():
     # Both global consumers must share exactly the same loader object.
     assert v.aggregate is agg.aggregate_wave1
     assert ev.aggregate_wave1 is agg.aggregate_wave1
+
+    # Composite-carrier execution closure is a separate fail-closed contract.
+    # It must be exercised by the always-on aggregate test before queue progress
+    # can treat a composite carrier as execution-resolved.
+    composite_closure_test.main()
 
     # P3 execution queue is part of the aggregate progress contract and must
     # be exercised by the always-on Knowledge CI before any corpus batch runs.
