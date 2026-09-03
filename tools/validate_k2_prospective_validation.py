@@ -34,7 +34,10 @@ MANDATORY_FREEZE_FIELDS={
     "confidence","abstention_condition",
 }
 PRIMARY_METRIC_SPEC_FIELDS={"scoring_rule"}
-PRIMARY_METRIC_SCORING_RULES={"EXACT_MATCH_V1"}
+PRIMARY_METRIC_SCORING_RULES={"PAIRED_EXACT_MATCH_DELTA_V1"}
+PAIRED_PRIMARY_METRIC="PAIRED_SCORE_DELTA"
+CANDIDATE_SCORE_KEY="CANDIDATE_SCORE"
+COMPARATOR_SCORE_KEY="COMPARATOR_SCORE"
 DECISION_RULE_FIELDS={"aggregation","operator","threshold"}
 DECISION_AGGREGATIONS={"MEAN"}
 DECISION_OPERATORS={">",">=","<","<="}
@@ -136,16 +139,23 @@ def hypothesis_index(distillates):
     return out
 
 
-def exact_match_primary_score(batch,freeze,outcome):
+def paired_exact_match_scores(batch,freeze,outcome):
     spec=batch.get("primary_metric_spec") if isinstance(batch,dict) else None
     payload=freeze.get("frozen_payload") if isinstance(freeze,dict) else None
-    if not isinstance(spec,dict) or spec.get("scoring_rule")!="EXACT_MATCH_V1" or not isinstance(payload,dict):
+    if not isinstance(spec,dict) or spec.get("scoring_rule")!="PAIRED_EXACT_MATCH_DELTA_V1" or not isinstance(payload,dict):
         return None
-    prediction=payload.get("prediction")
+    candidate=payload.get("prediction")
+    comparator=payload.get("comparator_prediction")
     observed=outcome.get("observed_value") if isinstance(outcome,dict) else None
-    if not nonempty_text(prediction) or not nonempty_text(observed):
+    if not nonempty_text(candidate) or not nonempty_text(comparator) or not nonempty_text(observed):
         return None
-    return 1.0 if prediction==observed else 0.0
+    candidate_score=1.0 if candidate==observed else 0.0
+    comparator_score=1.0 if comparator==observed else 0.0
+    return {
+        CANDIDATE_SCORE_KEY:candidate_score,
+        COMPARATOR_SCORE_KEY:comparator_score,
+        PAIRED_PRIMARY_METRIC:candidate_score-comparator_score,
+    }
 
 
 def validate_records(distillates,plans,batches,freezes,outcomes):
@@ -162,10 +172,8 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         h=hyps.get(hid);routes=[]
         hsha=p.get("hypothesis_sha256")
         hcsha=p.get("hypothesis_context_sha256")
-        if not isinstance(hsha,str) or not SHA64_RE.match(hsha):
-            issues.append((pid,"hypothesis_sha256 must be lowercase sha256"))
-        if not isinstance(hcsha,str) or not SHA64_RE.match(hcsha):
-            issues.append((pid,"hypothesis_context_sha256 must be lowercase sha256"))
+        if not isinstance(hsha,str) or not SHA64_RE.match(hsha):issues.append((pid,"hypothesis_sha256 must be lowercase sha256"))
+        if not isinstance(hcsha,str) or not SHA64_RE.match(hcsha):issues.append((pid,"hypothesis_context_sha256 must be lowercase sha256"))
         if not h:issues.append((pid,f"unknown hypothesis_id: {hid}"))
         else:
             routes=h.get("domain_routes") or []
@@ -182,8 +190,7 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         else:
             missing=MANDATORY_FREEZE_FIELDS-set(req)
             if missing:issues.append((pid,f"freeze_required_fields missing mandatory fields: {sorted(missing)}"))
-            if len(routes)>1 and "active_domain_routes" not in req:
-                issues.append((pid,"multi-domain hypothesis requires active_domain_routes in freeze_required_fields"))
+            if len(routes)>1 and "active_domain_routes" not in req:issues.append((pid,"multi-domain hypothesis requires active_domain_routes in freeze_required_fields"))
             if len(req)!=len(set(req)):issues.append((pid,"duplicate freeze_required_fields"))
         if not string_list(p.get("evaluation_metrics")):issues.append((pid,"evaluation_metrics must be non-empty string array"))
         if not string_list(p.get("leakage_controls")):issues.append((pid,"leakage_controls must be non-empty string array"))
@@ -201,8 +208,7 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         batch_by_id[bid]=b
         plan=plan_by_id.get(pid)
         if not plan:issues.append((bid,f"unknown plan_id: {pid}"))
-        else:
-            if b.get("plan_sha256")!=canonical_sha256(plan):issues.append((bid,"plan_sha256 does not bind exact test plan"))
+        elif b.get("plan_sha256")!=canonical_sha256(plan):issues.append((bid,"plan_sha256 does not bind exact test plan"))
         if not isinstance(b.get("plan_sha256"),str) or not SHA64_RE.match(b.get("plan_sha256","")):issues.append((bid,"plan_sha256 must be lowercase sha256"))
         if utc_value(b.get("preregistered_at_utc")) is None:issues.append((bid,"preregistered_at_utc must be UTC second timestamp ending Z"))
         if not isinstance(b.get("model_commit_sha"),str) or not SHA40_RE.match(b.get("model_commit_sha","")):issues.append((bid,"model_commit_sha must be lowercase 40-char git SHA"))
@@ -215,7 +221,9 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
             issues.append((bid,"primary_metric_spec must be machine-evaluable object"))
         else:
             if set(spec)!=PRIMARY_METRIC_SPEC_FIELDS:issues.append((bid,f"primary_metric_spec fields mismatch missing={sorted(PRIMARY_METRIC_SPEC_FIELDS-set(spec))} extra={sorted(set(spec)-PRIMARY_METRIC_SPEC_FIELDS)}"))
-            if spec.get("scoring_rule") not in PRIMARY_METRIC_SCORING_RULES:issues.append((bid,f"primary_metric_spec scoring_rule must be one of {sorted(PRIMARY_METRIC_SCORING_RULES)}"))
+            scoring_rule=spec.get("scoring_rule")
+            if scoring_rule not in PRIMARY_METRIC_SCORING_RULES:issues.append((bid,f"primary_metric_spec scoring_rule must be one of {sorted(PRIMARY_METRIC_SCORING_RULES)}"))
+            elif metric!=PAIRED_PRIMARY_METRIC:issues.append((bid,f"paired scoring rule requires primary_metric={PAIRED_PRIMARY_METRIC}"))
         rule=b.get("decision_rule")
         if not isinstance(rule,dict):
             issues.append((bid,"decision_rule must be machine-evaluable object"))
@@ -246,8 +254,7 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         else:
             freeze_count_by_batch[bid]=freeze_count_by_batch.get(bid,0)+1
             planned_count=batch.get("planned_case_count")
-            if isinstance(planned_count,int) and not isinstance(planned_count,bool) and planned_count>=1 and freeze_count_by_batch[bid]>planned_count:
-                issues.append((fid,"freeze count exceeds planned_case_count"))
+            if isinstance(planned_count,int) and not isinstance(planned_count,bool) and planned_count>=1 and freeze_count_by_batch[bid]>planned_count:issues.append((fid,"freeze count exceeds planned_case_count"))
             if batch.get("plan_id")!=pid:issues.append((fid,"freeze plan_id does not match batch plan_id"))
             if f.get("batch_sha256")!=canonical_sha256(batch):issues.append((fid,"batch_sha256 does not bind exact preregistered batch"))
         if not isinstance(f.get("batch_sha256"),str) or not SHA64_RE.match(f.get("batch_sha256","")):issues.append((fid,"batch_sha256 must be lowercase sha256"))
@@ -269,6 +276,8 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
             if plan:
                 missing=set(plan.get("freeze_required_fields") or [])-set(payload)
                 if missing:issues.append((fid,f"frozen_payload missing plan fields: {sorted(missing)}"))
+            if batch and isinstance(batch.get("primary_metric_spec"),dict) and batch["primary_metric_spec"].get("scoring_rule")=="PAIRED_EXACT_MATCH_DELTA_V1":
+                if not nonempty_text(payload.get("comparator_prediction")):issues.append((fid,"paired scoring requires explicit comparator_prediction before outcome"))
             routes=plan_routes_by_id.get(pid,[])
             active=payload.get("active_domain_routes")
             if len(routes)>1 or active is not None:
@@ -279,8 +288,7 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
                     outside=[route for route in active if route not in routes]
                     if outside:issues.append((fid,f"active_domain_routes outside governed routes: {outside}"))
                     expected=[route for route in routes if route in active]
-                    if not outside and active!=expected:
-                        issues.append((fid,"active_domain_routes must preserve governed route order"))
+                    if not outside and active!=expected:issues.append((fid,"active_domain_routes must preserve governed route order"))
             conf=payload.get("confidence")
             if not isinstance(conf,(int,float)) or isinstance(conf,bool) or not 0<=conf<=1:issues.append((fid,"confidence must be numeric in [0,1]"))
             if not nonempty_text(payload.get("prediction")):issues.append((fid,"prediction must be explicit non-empty text"))
@@ -318,21 +326,20 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         observed=o.get("observed_value")
         if evaluation in {"SUCCESS","PARTIAL","FAIL"}:
             if not nonempty_text(observed):issues.append((oid,"observed_value must be non-empty text for evaluable outcome"))
-        elif observed is not None and not nonempty_text(observed):
-            issues.append((oid,"observed_value must be null or non-empty text for non-evaluable outcome"))
+        elif observed is not None and not nonempty_text(observed):issues.append((oid,"observed_value must be null or non-empty text for non-evaluable outcome"))
         scores=o.get("score_components")
         if not isinstance(scores,dict):
             issues.append((oid,"score_components must be object"))
         elif batch and evaluation in {"SUCCESS","PARTIAL","FAIL"}:
             metric=batch.get("primary_metric")
-            if metric not in scores:
-                issues.append((oid,"score_components missing preregistered primary_metric"))
-            elif not finite_number(scores.get(metric)):
-                issues.append((oid,"primary metric score must be finite numeric"))
-            else:
-                expected=exact_match_primary_score(batch,fr,o)
-                if expected is not None and scores.get(metric)!=expected:
-                    issues.append((oid,"primary metric score does not match preregistered scoring function"))
+            expected=paired_exact_match_scores(batch,fr,o)
+            for key in [CANDIDATE_SCORE_KEY,COMPARATOR_SCORE_KEY,metric]:
+                if key not in scores:issues.append((oid,f"score_components missing required paired score: {key}"))
+                elif not finite_number(scores.get(key)):issues.append((oid,f"paired score must be finite numeric: {key}"))
+            if expected is not None:
+                for key,value in expected.items():
+                    if key in scores and finite_number(scores.get(key)) and scores.get(key)!=value:
+                        issues.append((oid,f"paired score does not match preregistered scoring function: {key}"))
         notes=o.get("post_hoc_notes")
         if not isinstance(notes,list) or any(not nonempty_text(x) for x in notes):issues.append((oid,"post_hoc_notes must be string array"))
         if o.get("research_only") is not True:issues.append((oid,"outcome must be research_only=true"))
@@ -352,8 +359,7 @@ def main():
     freezes=load_jsonl(K/"K2_PROSPECTIVE_FREEZES.jsonl")
     outcomes=load_jsonl(K/"K2_PROSPECTIVE_OUTCOMES.jsonl")
     issues=validate_records(distillates,plans,batches,freezes,outcomes)
-    if issues:
-        fail(f"issues={len(issues)} first={issues[0][0]}: {issues[0][1]}")
+    if issues:fail(f"issues={len(issues)} first={issues[0][0]}: {issues[0][1]}")
     print("k2-prospective-validation: PASS")
     print(f"plans={len(plans)} batches={len(batches)} freezes={len(freezes)} outcomes={len(outcomes)} issues=0")
     print("empirical_credit_upgrade_blocked=true")
