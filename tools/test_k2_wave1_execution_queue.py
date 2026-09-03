@@ -27,16 +27,24 @@ def main():
     sources = q.evidence.source_index(ROOT)
     lineage = q.evidence.lineage_index(ROOT)
     expected = q.evidence.wave1_expected(sources, lineage)
-    completed = q.completed_source_ids(ROOT)
-    assert set(source_ids) == expected - completed, (
-        "queue must equal authoritative Wave1 selection minus terminal COMPLETE/BLOCKED units"
+    legacy = q.completed_source_ids(ROOT)
+    composite = q.composite_closed_source_ids(ROOT)
+    resolved = q.execution_resolved_source_ids(ROOT)
+
+    assert resolved == legacy | composite
+    assert set(source_ids) == expected - resolved, (
+        "queue must equal authoritative Wave1 selection minus "
+        "legacy terminal units and validated composite-exception execution closures"
     )
     assert rows == sorted(rows, key=semantic_sort_key), (
         "queue must sort by semantic domain, then execution lane, then source_id"
     )
 
-    # Intake prefixes are not semantic domains. Verify the real corpus metadata,
-    # then test ordering independently of whether these sources are still pending.
+    # Composite closure must not mutate legacy completion semantics.
+    assert q.completed_source_ids(ROOT) == legacy
+
+    # Intake prefixes are not semantic domains. Preserve the existing ordering
+    # regression while extending completion semantics.
     assert q._primary_domain(sources["ZW-SRC-0036"]) == "liuren"
     assert q._primary_domain(sources["BZ-SRC-0122"]) == "liuyao"
     synthetic = [
@@ -73,13 +81,12 @@ def main():
         if row["deep_reading_reusable"]:
             assert row["next_action"] == "REUSE_VERIFIED_DEEP_READING"
 
-    # Progress must shrink the queue rather than break a frozen-count test.
-    # Simulate one additional terminal unit without mutating repository data.
+    # Legacy terminal progress must still shrink the queue by exactly one.
     if source_ids:
         simulated = source_ids[0]
         original_completed = q.completed_source_ids
         try:
-            q.completed_source_ids = lambda root=ROOT: set(completed) | {simulated}
+            q.completed_source_ids = lambda root=ROOT: set(legacy) | {simulated}
             future_rows = q.build_queue(ROOT)
         finally:
             q.completed_source_ids = original_completed
@@ -87,10 +94,29 @@ def main():
         assert future_ids == set(source_ids) - {simulated}
         assert len(future_rows) == len(rows) - 1
 
+    # A validated composite-exception closure must also shrink the actionable
+    # queue by one without adding a legacy COMPLETE/BLOCKED row.
+    current = [row["source_id"] for row in q.build_queue(ROOT)]
+    if current:
+        simulated = current[0]
+        original_composite = q.composite_closed_source_ids
+        try:
+            q.composite_closed_source_ids = lambda root=ROOT: set(composite) | {simulated}
+            future_rows = q.build_queue(ROOT)
+        finally:
+            q.composite_closed_source_ids = original_composite
+        future_ids = {row["source_id"] for row in future_rows}
+        assert future_ids == set(current) - {simulated}
+        assert len(future_rows) == len(current) - 1
+        assert simulated not in legacy
+
     reusable = [row for row in rows if row["deep_reading_reusable"]]
 
     print("k2-wave1-execution-queue-tests: PASS")
-    print(f"remaining={len(rows)} deep_reusable={len(reusable)}")
+    print(
+        f"remaining={len(rows)} deep_reusable={len(reusable)} "
+        f"legacy_terminal={len(legacy)} composite_closed={len(composite)}"
+    )
     for row in rows:
         print("queue=" + json.dumps(row, ensure_ascii=False, sort_keys=True))
 

@@ -11,6 +11,7 @@ def sources():
         "QM-SRC-9001":{"source_id":"QM-SRC-9001","pages":6,"file_sha256":"b"*64},
         "QM-SRC-9002":{"source_id":"QM-SRC-9002","pages":5,"file_sha256":"c"*64},
         "QM-SRC-9003":{"source_id":"QM-SRC-9003","pages":7,"file_sha256":"d"*64},
+        "ZW-SRC-9004":{"source_id":"ZW-SRC-9004","pages":10,"file_sha256":"e"*64},
     }
 
 
@@ -18,19 +19,33 @@ def segments():
     return {
         "QM-SRC-9001#SEG-001":{
             "segment_id":"QM-SRC-9001#SEG-001","source_id":"QM-SRC-9001",
-            "page_start":1,"page_end":3,"domain_routes":["qimen"],"author":"甲"
+            "page_start":1,"page_end":3,"domain_routes":["qimen"],"author":"甲",
+            "relation":"WORK_PART"
         },
         "QM-SRC-9001#SEG-002":{
             "segment_id":"QM-SRC-9001#SEG-002","source_id":"QM-SRC-9001",
-            "page_start":4,"page_end":6,"domain_routes":["OUT_OF_SCOPE"],"author":None
+            "page_start":4,"page_end":6,"domain_routes":["OUT_OF_SCOPE"],"author":None,
+            "relation":"NON_WORK"
         },
         "QM-SRC-9002#SEG-001":{
             "segment_id":"QM-SRC-9002#SEG-001","source_id":"QM-SRC-9002",
-            "page_start":1,"page_end":4,"domain_routes":["qimen"],"author":None
+            "page_start":1,"page_end":4,"domain_routes":["qimen"],"author":None,
+            "relation":"WORK_PART"
         },
         "QM-SRC-9002#SEG-002":{
             "segment_id":"QM-SRC-9002#SEG-002","source_id":"QM-SRC-9002",
-            "page_start":5,"page_end":5,"domain_routes":["CARRIER_MATTER"],"author":None
+            "page_start":5,"page_end":5,"domain_routes":["CARRIER_MATTER"],"author":None,
+            "relation":"NON_WORK"
+        },
+        "ZW-SRC-9004#SEG-001":{
+            "segment_id":"ZW-SRC-9004#SEG-001","source_id":"ZW-SRC-9004",
+            "page_start":1,"page_end":10,"domain_routes":["ziwei","fengshui"],"author":"乙",
+            "relation":"PRIMARY_WORK_IN_COMPOSITE"
+        },
+        "ZW-SRC-9004#SEG-002":{
+            "segment_id":"ZW-SRC-9004#SEG-002","source_id":"ZW-SRC-9004",
+            "page_start":1,"page_end":5,"domain_routes":["ziwei"],"author":"乙",
+            "relation":"WORK_PART"
         },
     }
 
@@ -59,6 +74,32 @@ def unknown_rows():
     ]
 
 
+def primary_composite_row():
+    fam="WF-ZW-TEST-PRIMARY-001"
+    return {
+        "author":"乙",
+        "author_basis":"SOURCE_INTERNAL_ATTRIBUTION",
+        "author_evidence":"载本内部编后语归属；不构成外部作者学验证。",
+        "binding_id":fam+"#MEM-001",
+        "credit_scope":"SEGMENT_ONLY",
+        "domain_routes":["ziwei","fengshui"],
+        "evidence_locators":["pdf:p1","pdf:p10"],
+        "independence_class":"PRIMARY_CANDIDATE",
+        "independent_vote_key":fam,
+        "member_kind":"SEGMENT",
+        "member_ref":"ZW-SRC-9004#SEG-001",
+        "page_end":10,
+        "page_start":1,
+        "part_label":None,
+        "relation":"PRIMARY_WORK_IN_COMPOSITE",
+        "review_status":"REVIEWED",
+        "segment_id":"ZW-SRC-9004#SEG-001",
+        "source_id":"ZW-SRC-9004",
+        "work_family_key":fam,
+        "work_title":"独立内嵌作品"
+    }
+
+
 def must_pass(rows):
     issues=v.validate_rows(sources(),segments(),rows)
     assert not issues,issues
@@ -75,6 +116,7 @@ def main():
     base=valid_rows();must_pass(base)
     source_only=all_source_rows();must_pass(source_only)
     unknown=unknown_rows();must_pass(unknown)
+    primary=primary_composite_row();must_pass([primary])
 
     rows=copy.deepcopy(base);rows[1]["member_kind"]="SOURCE";rows[1]["member_ref"]="QM-SRC-9001";rows[1]["segment_id"]=None;rows[1]["credit_scope"]="SOURCE_ONLY";rows[1]["page_end"]=6
     must_fail(rows,"composite source cannot be bound carrier-wide")
@@ -98,7 +140,7 @@ def main():
     must_fail(rows,"SEGMENT member requires SEGMENT_ONLY")
 
     rows=[copy.deepcopy(base[0])]
-    must_fail(rows,"requires at least two members")
+    must_fail(rows,"WORK_PART family requires at least two members")
 
     rows=copy.deepcopy(unknown);rows[0]["author_evidence"]="猜测"
     must_fail(rows,"unknown author must use author_basis=UNKNOWN with null evidence")
@@ -109,7 +151,26 @@ def main():
     rows=copy.deepcopy(unknown);rows[0]["author"]="甲";rows[0]["author_basis"]="TITLE_PAGE";rows[0]["author_evidence"]="题名页"
     must_fail(rows,"work family mixes known and unknown author attribution")
 
+    r=copy.deepcopy(primary)
+    r["member_kind"]="SOURCE";r["member_ref"]="ZW-SRC-9004";r["segment_id"]=None;r["credit_scope"]="SOURCE_ONLY"
+    must_fail([r],"PRIMARY_WORK_IN_COMPOSITE must use SEGMENT member")
+
+    r=copy.deepcopy(primary);r["part_label"]="卷一"
+    must_fail([r],"must not use part_label")
+
+    r=copy.deepcopy(primary);r["independence_class"]="SAME_WORK_NOT_INDEPENDENT"
+    must_fail([r],"must be PRIMARY_CANDIDATE")
+
+    r=copy.deepcopy(primary)
+    r["segment_id"]="ZW-SRC-9004#SEG-002";r["member_ref"]="ZW-SRC-9004#SEG-002"
+    r["page_end"]=5;r["domain_routes"]=["ziwei"];r["evidence_locators"]=["pdf:p1","pdf:p5"]
+    must_fail([r],"requires matching reviewed segment relation")
+
+    r1=copy.deepcopy(primary);r2=copy.deepcopy(primary)
+    r2["binding_id"]=r1["work_family_key"]+"#MEM-002"
+    must_fail([r1,r2],"must be a singleton segment family")
+
     print("k2-segment-lineage-tests: PASS")
-    print("cases=14")
+    print("cases=20")
 
 if __name__=="__main__":main()
