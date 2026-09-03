@@ -249,6 +249,9 @@ def main():
 
     b=batch(p);must_pass([p],[b])
 
+    legacy=copy.deepcopy(b);legacy.pop("primary_metric_spec",None)
+    must_fail([p],[legacy],needle="primary_metric_spec")
+
     badb=copy.deepcopy(b);badb["plan_sha256"]="b"*64
     must_fail([p],[badb],needle="bind exact test plan")
 
@@ -318,6 +321,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=40")
+    print("cases=41")
 
 if __name__=="__main__":main()
