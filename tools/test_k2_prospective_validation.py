@@ -38,6 +38,7 @@ def plan():
     return {
         "plan_id":"K2PV-TEST-001",
         "hypothesis_id":"H-TEST-001",
+        "hypothesis_sha256":v.canonical_sha256(hypothesis()),
         "work_family_key":"WF-TEST-001",
         "model_name":"RELATIONAL_MODEL",
         "comparator_name":"STATIC_BASELINE",
@@ -60,6 +61,7 @@ def multi_domain_plan(include_route_freeze=False):
     p=plan()
     p["plan_id"]="K2PV-MULTI-001"
     p["hypothesis_id"]="H-MULTI-001"
+    p["hypothesis_sha256"]=v.canonical_sha256(multi_domain_hypothesis())
     p["work_family_key"]="WF-MULTI-001"
     if include_route_freeze:
         p["freeze_required_fields"]=sorted(set(p["freeze_required_fields"])|{"active_domain_routes"})
@@ -202,7 +204,7 @@ def test_hypothesis_content_binding():
     changed[0]["testable_hypotheses"][0]["statement"]="changed after the plan was designed"
     issues,text=validation_text(changed,[p])
     assert issues,"expected changed hypothesis content under the same hypothesis_id to invalidate the plan"
-    assert "hypothesis_sha256" in text,text
+    assert "hypothesis_sha256 does not bind exact hypothesis content" in text,text
 
 
 def main():
@@ -213,6 +215,12 @@ def main():
 
     bad=copy.deepcopy(p);bad["hypothesis_id"]="H-NOT-FOUND"
     must_fail([bad],needle="unknown hypothesis_id")
+
+    bad=copy.deepcopy(p);bad["hypothesis_sha256"]="b"*64
+    must_fail([bad],needle="does not bind exact hypothesis content")
+
+    bad=copy.deepcopy(p);bad["hypothesis_sha256"]="B"*64
+    must_fail([bad],needle="hypothesis_sha256 must be lowercase sha256")
 
     bad=copy.deepcopy(p);bad["freeze_required_fields"].remove("role_map")
     must_fail([bad],needle="missing mandatory fields")
@@ -262,6 +270,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=26")
+    print("cases=28")
 
 if __name__=="__main__":main()
