@@ -35,6 +35,15 @@ def must_fail(rows,needle):
 def main():
     base=valid_rows();must_pass(base)
 
+    # A carrier-internal colophon/editorial attribution is real provenance
+    # evidence, but it is weaker than external authorship verification and must
+    # have its own basis instead of being laundered into CONTENT_VERIFIED.
+    rows=copy.deepcopy(base)
+    rows[1]["author"]="乙"
+    rows[1]["author_basis"]="SOURCE_INTERNAL_ATTRIBUTION"
+    rows[1]["author_evidence"]="载本内部编后语归属；未做外部作者学验证。"
+    must_pass(rows)
+
     rows=copy.deepcopy(base);rows[1]["page_start"]=2
     must_fail(rows,"overlap")
 
@@ -57,6 +66,6 @@ def main():
     must_fail(rows,"source_credit_scope must be SEGMENT_ONLY")
 
     print("k2-source-segments-tests: PASS")
-    print("cases=8")
+    print("cases=9")
 
 if __name__=="__main__":main()
