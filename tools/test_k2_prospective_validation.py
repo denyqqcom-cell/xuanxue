@@ -83,7 +83,8 @@ def batch(p=None):
         "planned_case_count":20,
         "sampling_rule":"accept consecutive eligible cases under frozen scope",
         "primary_metric":"PRIMARY_SCORE",
-        "decision_rule":{"aggregation":"MEAN","operator":">=","threshold":0.05},
+        "primary_metric_spec":{"scoring_rule":"EXACT_MATCH_V1"},
+        "decision_rule":{"aggregation":"MEAN","operator":">=","threshold":0.5},
         "secondary_metrics":["calibration","abstention_rate"],
         "stopping_rule":"stop only at planned_case_count unless documented external impossibility",
         "exclusion_rule":"exclude only cases ineligible before outcome is known",
@@ -133,6 +134,7 @@ def outcome(f=None):
         "freeze_record_sha256":v.canonical_sha256(f),
         "observed_at_utc":"2026-08-23T00:00:00Z",
         "freeze_payload_sha256":f["frozen_payload_sha256"],
+        "observed_value":"EVENT_B",
         "outcome_summary":"normalized observed result",
         "evaluation":"FAIL",
         "score_components":{"PRIMARY_SCORE":0.0},
@@ -249,6 +251,18 @@ def main():
 
     b=batch(p);must_pass([p],[b])
 
+    legacy=copy.deepcopy(b);legacy.pop("primary_metric_spec",None)
+    must_fail([p],[legacy],needle="primary_metric_spec")
+
+    badb=copy.deepcopy(b);badb["primary_metric_spec"]="score it later"
+    must_fail([p],[badb],needle="primary_metric_spec must be machine-evaluable object")
+
+    badb=copy.deepcopy(b);badb["primary_metric_spec"]["scoring_rule"]="POST_HOC_V1"
+    must_fail([p],[badb],needle="primary_metric_spec scoring_rule must be one of")
+
+    badb=copy.deepcopy(b);badb["primary_metric_spec"]["extra"]="free_degree"
+    must_fail([p],[badb],needle="primary_metric_spec fields mismatch")
+
     badb=copy.deepcopy(b);badb["plan_sha256"]="b"*64
     must_fail([p],[badb],needle="bind exact test plan")
 
@@ -302,13 +316,22 @@ def main():
     bado=copy.deepcopy(o);bado["observed_at_utc"]="2026-08-21T00:00:00Z"
     must_fail([p],[b],[f],[bado],needle="observed after freeze")
 
+    bado=copy.deepcopy(o);bado["observed_value"]=""
+    must_fail([p],[b],[f],[bado],needle="observed_value must be non-empty text for evaluable outcome")
+
     bado=copy.deepcopy(o);bado["score_components"]={}
     must_fail([p],[b],[f],[bado],needle="score_components missing preregistered primary_metric")
 
     bado=copy.deepcopy(o);bado["score_components"]["PRIMARY_SCORE"]="later"
     must_fail([p],[b],[f],[bado],needle="primary metric score must be finite numeric")
 
-    abst=copy.deepcopy(o);abst["evaluation"]="ABSTAIN";abst["score_components"]={}
+    bado=copy.deepcopy(o);bado["score_components"]["PRIMARY_SCORE"]=1.0
+    must_fail([p],[b],[f],[bado],needle="primary metric score does not match preregistered scoring function")
+
+    hit=copy.deepcopy(o);hit["observed_value"]="EVENT_A";hit["score_components"]["PRIMARY_SCORE"]=1.0;hit["evaluation"]="SUCCESS"
+    must_pass([p],[b],[f],[hit])
+
+    abst=copy.deepcopy(o);abst["evaluation"]="ABSTAIN";abst["observed_value"]=None;abst["score_components"]={}
     must_pass([p],[b],[f],[abst])
 
     bado=copy.deepcopy(o);bado["empirical_credit"]="WEAK"
@@ -318,6 +341,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=40")
+    print("cases=47")
 
 if __name__=="__main__":main()
