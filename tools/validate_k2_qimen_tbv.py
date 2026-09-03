@@ -89,6 +89,14 @@ def load_work_family_rows(k: Path):
     return rows
 
 
+def governed_family_routes(row: dict):
+    routes = row.get("domain_routes")
+    if isinstance(routes, list) and routes:
+        return routes
+    domain = row.get("domain")
+    return [domain] if isinstance(domain, str) and domain else []
+
+
 def validate_row(row: dict, idx: int, repo: Path, deep_ids: set[str], work_family_ids: set[str]):
     issues = []
     rid = row.get("review_id") or f"row-{idx}"
@@ -218,6 +226,10 @@ def validate(repo: Path = ROOT):
             issues.append(f"duplicate TBV unit: {uid}")
         seen_units.add(uid)
         issues.extend(validate_row(row, idx, repo, deep_ids, work_family_ids))
+        if row.get("unit_type") == "WORK_FAMILY":
+            family = work_family_by_id.get(uid)
+            if family is not None and "qimen" not in governed_family_routes(family):
+                issues.append(f"{rid}: WORK_FAMILY must include qimen governed route")
 
     if not EXPECTED_WAVE_A.issubset(seen_units):
         issues.append(f"Wave A coverage missing: {sorted(EXPECTED_WAVE_A-seen_units)}")
