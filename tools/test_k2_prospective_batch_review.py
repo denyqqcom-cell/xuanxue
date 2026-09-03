@@ -5,6 +5,8 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 import test_k2_prospective_validation as fx
 import validate_k2_prospective_batch_review as br
 
+ROOT=Path(__file__).resolve().parents[1]
+
 
 def full_fixture(candidate_wins=True):
     p=fx.plan();b=fx.batch(p);b["planned_case_count"]=2
@@ -62,6 +64,12 @@ def must_fail(p,b,freezes,outcomes,reviews,needle):
 
 
 def main():
+    assert (ROOT/"knowledge/K2_PROSPECTIVE_BATCH_REVIEWS.jsonl").exists()
+    assert (ROOT/"knowledge/K2_PROSPECTIVE_BATCH_REVIEW_PROTOCOL.md").exists()
+    workflow=(ROOT/".github/workflows/knowledge-engine-ci.yml").read_text(encoding="utf-8")
+    assert "python3 tools/test_k2_prospective_batch_review.py" in workflow
+    assert "python3 tools/validate_k2_prospective_batch_review.py" in workflow
+
     p,b,freezes,outcomes=full_fixture(candidate_wins=True)
     r=review_for(b,freezes,outcomes)
     assert not validate(p,b,freezes,outcomes,[r]),validate(p,b,freezes,outcomes,[r])
@@ -69,6 +77,8 @@ def main():
     under_freezes=freezes[:1];under_outcomes=outcomes[:1]
     bad=review_for(b,under_freezes,under_outcomes)
     must_fail(p,b,under_freezes,under_outcomes,[bad],"incomplete fixed-N coverage")
+    good=review_for(b,under_freezes,under_outcomes,verdict="INCOMPLETE",aggregate=None,decision_met=None)
+    assert not validate(p,b,under_freezes,under_outcomes,[good]),validate(p,b,under_freezes,under_outcomes,[good])
 
     bad=review_for(b,freezes,outcomes[:1])
     must_fail(p,b,freezes,outcomes[:1],[bad],"incomplete outcome coverage")
@@ -82,6 +92,9 @@ def main():
 
     bad=copy.deepcopy(r);bad["outcome_ids"]=bad["outcome_ids"][:1]
     must_fail(p,b,freezes,outcomes,[bad],"outcome_ids must include every batch outcome exactly once")
+
+    bad=copy.deepcopy(r);bad["outcome_records_sha256"]="a"*64
+    must_fail(p,b,freezes,outcomes,[bad],"outcome_records_sha256 does not bind exact retained batch outcomes")
 
     bad=copy.deepcopy(r);bad["aggregate_value"]=0.5
     must_fail(p,b,freezes,outcomes,[bad],"aggregate_value does not match machine recomputation")
@@ -100,6 +113,6 @@ def main():
     assert not validate(p2,b2,freezes2,outcomes2,[r2]),validate(p2,b2,freezes2,outcomes2,[r2])
 
     print("k2-prospective-batch-review-tests: PASS")
-    print("cases=10")
+    print("cases=12")
 
 if __name__=="__main__":main()
