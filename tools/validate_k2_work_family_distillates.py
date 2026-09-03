@@ -88,6 +88,15 @@ def validate_anchor(anchor,family_members,ev,segs,sources,issues,owner):
         if not isinstance(a,int) or not isinstance(b,int) or not (a<=page<=b):issues.append((owner,f"segment anchor outside member range: {anchor}"))
 
 
+def governed_routes(members):
+    routes=[]
+    for member in members:
+        for route in member.get("domain_routes") or []:
+            if route in DOMAINS and route not in routes:
+                routes.append(route)
+    return routes
+
+
 def validate_rows(families,readings,ev,segs,sources,rows):
     issues=[];seen=set()
     ev_by_family=defaultdict(set)
@@ -104,9 +113,10 @@ def validate_rows(families,readings,ev,segs,sources,rows):
         if not members:issues.append((did,"unknown work_family_key"));continue
         titles={r.get("work_title") for r in members}
         if d.get("work_title") not in titles or len(titles)!=1:issues.append((did,"work_title mismatch"))
-        routes={x for r in members for x in (r.get("domain_routes") or [])}
-        if d.get("domain") not in routes:issues.append((did,"domain not supported by family members"))
-        expected_routes=[name for name in DOMAINS if name in routes]
+        expected_routes=governed_routes(members)
+        if d.get("domain") not in expected_routes:issues.append((did,"domain not supported by family members"))
+        if expected_routes and d.get("domain")!=expected_routes[0]:
+            issues.append((did,"domain must equal first governed route"))
         declared_routes=d.get("domain_routes")
         if len(expected_routes)>1:
             if not isinstance(declared_routes,list) or declared_routes!=expected_routes:
