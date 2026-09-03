@@ -29,9 +29,9 @@
 
 `HYPOTHESIS -> TEST PLAN -> BATCH PREREGISTRATION -> PRE-OUTCOME CASE FREEZE -> OUTCOME -> BATCH REVIEW -> MODEL UPDATE`
 
-仅靠 ID 引用仍不足以防止中间合同被悄悄改写，因此正式记录还必须形成 hash-bound provenance chain：
+仅靠 ID 引用不足以防止合同被悄悄改写。完整 provenance chain 必须从 hypothesis 本身开始：
 
-`PLAN --plan_sha256--> BATCH --batch_sha256--> FREEZE --freeze_record_sha256--> OUTCOME`
+`HYPOTHESIS --hypothesis_sha256--> PLAN --plan_sha256--> BATCH --batch_sha256--> FREEZE --freeze_record_sha256--> OUTCOME`
 
 同时 Outcome 继续引用 `frozen_payload_sha256`。任一上游合同发生变化，当前下游记录必须失配并触发 Gate；历史若确需修改，只能留下新的 Git 历史与新的测试版本，不能把旧结果伪装成原先就采用了新规则。
 
@@ -43,12 +43,18 @@
 
 `knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl`
 
-每个计划必须绑定已经登记的 `hypothesis_id` 与 `work_family_key`。Hypothesis registry 的有效输入是完整的逻辑 Work-Family Distillate 集合：
+每个计划必须绑定已经登记的 `hypothesis_id`、`work_family_key`，以及该 hypothesis 完整对象的 canonical `hypothesis_sha256`。Hypothesis registry 的有效输入是完整的逻辑 Work-Family Distillate 集合：
 
 - `knowledge/K2_WORK_FAMILY_DISTILLATES.jsonl`
 - `knowledge/K2_WORK_FAMILY_DISTILLATES.d/*.jsonl`
 
 不得只读取主文件而忽略 shards；否则 shard 中已经 REVIEWED 的 hypothesis 会在实验入口静默消失，形成“上游存在、下游不可见”的 provenance 漂移。
+
+Hypothesis 的 ID 与内容绑定必须分开：
+
+`HYPOTHESIS_ID != HYPOTHESIS_CONTENT_BINDING`
+
+`hypothesis_sha256` 对 `testable_hypotheses` 中当前完整 hypothesis object 做 canonical JSON SHA256。只要 `statement`、`freeze_requirements`、`failure_condition`、`status` 或该对象其他受治理字段发生变化，即使 `hypothesis_id` 没变，既有 Plan 也必须失配。要采用修订后的 hypothesis，必须重新形成设计链，不能让旧 Plan/Batch/Freeze 被解释成“当时本来就是这个假设”。
 
 每个计划至少预先说明：
 
@@ -70,7 +76,7 @@
 
 这不是要求每个案例同时使用所有 route，而是要求**在 outcome 未知时明确冻结本案例实际启用的 route set**。
 
-计划本身只代表 `DESIGN_READY`，不是一个已经开始的数据批次，也不是实证结果。
+计划本身只代表 `DESIGN_READY`，不是一个已经开始的数据批次，也不是实证结果。`hypothesis_sha256` 只证明 Plan 所指的是哪一个精确假设版本，不证明该假设真实。
 
 ## 4. BATCH PREREGISTRATION 合同
 
@@ -162,6 +168,7 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 - 结果已经知道才补写 Freeze；
 - 看过部分/全部结果后才选择 primary metric、threshold 或 stopping rule；
+- hypothesis 内容修改后只保留原 `hypothesis_id`，继续沿用旧 Plan/Batch/Freeze；
 - 预测写得足够模糊，任何结果都能解释为命中；
 - 反馈后更换用神、主观察层、规则集或 active domain route；
 - multi-domain family 在 outcome 后才决定采用哪个 route，或为了结果调整 route 顺序；
@@ -190,7 +197,7 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 - 与 baseline 的差异；
 - 失败样本和不可判定比例；
 - 是否存在同一案例重复计数；
-- 是否发生规则或 route 漂移；
+- 是否发生 hypothesis / rule / route 漂移；
 - 是否违反 stopping / exclusion rule；
 - 模型更新是否在新批次重新冻结。
 
@@ -206,6 +213,8 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 ## 11. 当前工程状态边界
 
-本协议的 route-freeze hardening 只修改验证合同与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
+本协议的 hypothesis-content binding 与 route-freeze hardening 只修改验证合同、设计记录与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
 
-只有在未来单独授权并满足 preregistration、unknown-outcome 与版本绑定条件后，真实 prospective records 才能进入仓库。
+当前已有两个 `DESIGN_READY` Plan 会写入与现行 H-JD-001 / H-JD-002 完整对象匹配的 `hypothesis_sha256`；这是对既有设计 referent 的显式绑定，不是新实验结果。
+
+只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis binding 与版本绑定条件后，真实 prospective records 才能进入仓库。

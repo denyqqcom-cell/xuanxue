@@ -5,8 +5,24 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_prospective_validation as v
 
 
+def hypothesis():
+    return {
+        "hypothesis_id":"H-TEST-001",
+        "statement":"relational model should outperform a static baseline under frozen rules",
+        "freeze_requirements":"freeze object mapping, eligible rules and scoring before outcome",
+        "failure_condition":"candidate fails to outperform baseline under the preregistered metric",
+        "status":"UNTESTED",
+    }
+
+
 def distillates():
-    return [{"work_family_key":"WF-TEST-001","domain":"qimen","testable_hypotheses":[{"hypothesis_id":"H-TEST-001","status":"UNTESTED"}]}]
+    return [{"work_family_key":"WF-TEST-001","domain":"qimen","testable_hypotheses":[hypothesis()]}]
+
+
+def multi_domain_hypothesis():
+    h=hypothesis()
+    h["hypothesis_id"]="H-MULTI-001"
+    return h
 
 
 def multi_domain_distillates():
@@ -14,7 +30,7 @@ def multi_domain_distillates():
         "work_family_key":"WF-MULTI-001",
         "domain":"ziwei",
         "domain_routes":["ziwei","fengshui"],
-        "testable_hypotheses":[{"hypothesis_id":"H-MULTI-001","status":"UNTESTED"}],
+        "testable_hypotheses":[multi_domain_hypothesis()],
     }]
 
 
@@ -22,6 +38,7 @@ def plan():
     return {
         "plan_id":"K2PV-TEST-001",
         "hypothesis_id":"H-TEST-001",
+        "hypothesis_sha256":v.canonical_sha256(hypothesis()),
         "work_family_key":"WF-TEST-001",
         "model_name":"RELATIONAL_MODEL",
         "comparator_name":"STATIC_BASELINE",
@@ -44,6 +61,7 @@ def multi_domain_plan(include_route_freeze=False):
     p=plan()
     p["plan_id"]="K2PV-MULTI-001"
     p["hypothesis_id"]="H-MULTI-001"
+    p["hypothesis_sha256"]=v.canonical_sha256(multi_domain_hypothesis())
     p["work_family_key"]="WF-MULTI-001"
     if include_route_freeze:
         p["freeze_required_fields"]=sorted(set(p["freeze_required_fields"])|{"active_domain_routes"})
@@ -180,13 +198,29 @@ def test_multi_domain_route_freeze():
     assert issues and "outside governed routes" in text,text
 
 
+def test_hypothesis_content_binding():
+    p=plan()
+    changed=distillates()
+    changed[0]["testable_hypotheses"][0]["statement"]="changed after the plan was designed"
+    issues,text=validation_text(changed,[p])
+    assert issues,"expected changed hypothesis content under the same hypothesis_id to invalidate the plan"
+    assert "hypothesis_sha256 does not bind exact hypothesis content" in text,text
+
+
 def main():
     test_sharded_work_family_loader()
     test_multi_domain_route_freeze()
+    test_hypothesis_content_binding()
     p=plan();must_pass([p])
 
     bad=copy.deepcopy(p);bad["hypothesis_id"]="H-NOT-FOUND"
     must_fail([bad],needle="unknown hypothesis_id")
+
+    bad=copy.deepcopy(p);bad["hypothesis_sha256"]="b"*64
+    must_fail([bad],needle="does not bind exact hypothesis content")
+
+    bad=copy.deepcopy(p);bad["hypothesis_sha256"]="B"*64
+    must_fail([bad],needle="hypothesis_sha256 must be lowercase sha256")
 
     bad=copy.deepcopy(p);bad["freeze_required_fields"].remove("role_map")
     must_fail([bad],needle="missing mandatory fields")
@@ -236,6 +270,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=25")
+    print("cases=28")
 
 if __name__=="__main__":main()
