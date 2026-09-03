@@ -187,7 +187,7 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         for field in ["comparator_ref","sampling_rule","primary_metric","decision_rule","stopping_rule","exclusion_rule","duplicate_case_policy"]:
             if not nonempty_text(b.get(field)):issues.append((bid,f"{field} must be non-empty text"))
         count=b.get("planned_case_count")
-        if count is not None and (not isinstance(count,int) or isinstance(count,bool) or count<1):issues.append((bid,"planned_case_count must be null or positive integer"))
+        if not isinstance(count,int) or isinstance(count,bool) or count<1:issues.append((bid,"planned_case_count must be positive integer"))
         if not string_list(b.get("secondary_metrics"),allow_empty=True):issues.append((bid,"secondary_metrics must be string array"))
         if b.get("research_only") is not True:issues.append((bid,"batch must be research_only=true"))
         if b.get("status")!="PREREGISTERED":issues.append((bid,"batch status must be PREREGISTERED"))
