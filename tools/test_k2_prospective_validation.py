@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import copy,sys
+import copy,json,sys,tempfile
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_prospective_validation as v
@@ -115,7 +115,20 @@ def must_fail(plans,batches=None,freezes=None,outcomes=None,needle=""):
     assert needle in text,(needle,text)
 
 
+def test_sharded_work_family_loader():
+    with tempfile.TemporaryDirectory() as td:
+        root=Path(td);k=root/"knowledge";k.mkdir()
+        base={"work_family_key":"WF-BASE-001","testable_hypotheses":[{"hypothesis_id":"H-BASE-001","status":"UNTESTED"}]}
+        shard={"work_family_key":"WF-SHARD-001","testable_hypotheses":[{"hypothesis_id":"H-SHARD-001","status":"UNTESTED"}]}
+        (k/"K2_WORK_FAMILY_DISTILLATES.jsonl").write_text(json.dumps(base)+"\n",encoding="utf-8")
+        d=k/"K2_WORK_FAMILY_DISTILLATES.d";d.mkdir()
+        (d/"one.jsonl").write_text(json.dumps(shard)+"\n",encoding="utf-8")
+        rows=v.load_work_family_distillates(root)
+        assert [r["work_family_key"] for r in rows]==["WF-BASE-001","WF-SHARD-001"],rows
+
+
 def main():
+    test_sharded_work_family_loader()
     p=plan();must_pass([p])
 
     bad=copy.deepcopy(p);bad["hypothesis_id"]="H-NOT-FOUND"
@@ -169,6 +182,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=19")
+    print("cases=20")
 
 if __name__=="__main__":main()
