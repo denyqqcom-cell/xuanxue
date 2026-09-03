@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import k2_wave1_aggregate as agg
+import validate_k2_composite_source_closures as composite_closure_validator
 
 ROOT = Path(__file__).resolve().parents[1]
 K = ROOT / "knowledge"
@@ -51,6 +52,13 @@ def run_distillate_validator(ledger, evidence, distillates):
         fail(f"aggregate Book Distillate issues={len(issues)} first={first[0]}: {first[1]}")
 
 
+def run_composite_closure_validator(root=ROOT):
+    try:
+        return composite_closure_validator.valid_closure_source_ids(root)
+    except ValueError as exc:
+        fail(f"composite source closure rejected: {exc}")
+
+
 def main():
     project = json.loads((K / "PROJECT_STATE.json").read_text(encoding="utf-8"))
     if project.get("phase") != "K2_EVIDENCE_EXTRACTION":
@@ -61,6 +69,7 @@ def main():
     ledger, evidence, distillates = aggregate(ROOT)
     evidence_output = run_existing_evidence_validator(ROOT)
     run_distillate_validator(ledger, evidence, distillates)
+    composite_closed = run_composite_closure_validator(ROOT)
 
     complete = sum(1 for row in ledger if row.get("read_status") == "COMPLETE")
     partial = sum(1 for row in ledger if row.get("read_status") == "PARTIAL")
@@ -71,6 +80,8 @@ def main():
         f"aggregate ledger_rows={len(ledger)} evidence_rows={len(evidence)} "
         f"distillates={len(distillates)} complete={complete} partial={partial} blocked={blocked}"
     )
+    print(f"composite_execution_closed={len(composite_closed)}")
+    print("legacy_wave1_completion_semantics=unchanged")
     print("claim_extraction_blocked=true")
     for line in evidence_output.splitlines():
         if line.startswith("expected_reading_units=") or line.startswith("execution_lanes="):

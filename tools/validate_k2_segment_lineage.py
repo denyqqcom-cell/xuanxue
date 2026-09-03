@@ -7,9 +7,9 @@ ROOT=Path(__file__).resolve().parents[1]
 K=ROOT/"knowledge"
 DOMAINS={"ziwei","bazi","qimen","liuyao","liuren","fengshui"}
 MEMBER_KINDS={"SOURCE","SEGMENT"}
-RELATIONS={"WORK_PART"}
-INDEPENDENCE={"SAME_WORK_NOT_INDEPENDENT"}
-AUTHOR_BASES={"CONTENT_VERIFIED","MANUAL_VERIFIED","TITLE_PAGE","UNKNOWN"}
+RELATIONS={"WORK_PART","PRIMARY_WORK_IN_COMPOSITE"}
+INDEPENDENCE={"SAME_WORK_NOT_INDEPENDENT","PRIMARY_CANDIDATE"}
+AUTHOR_BASES={"CONTENT_VERIFIED","MANUAL_VERIFIED","TITLE_PAGE","SOURCE_INTERNAL_ATTRIBUTION","UNKNOWN"}
 CREDIT_SCOPES={"SOURCE_ONLY","SEGMENT_ONLY"}
 ALLOWED={
     "binding_id","work_family_key","work_title","member_kind","member_ref",
@@ -87,10 +87,27 @@ def validate_rows(sources,segments,rows):
 
         kind=r.get("member_kind")
         if kind not in MEMBER_KINDS:issues.append((bid,"invalid member_kind"))
-        if r.get("relation") not in RELATIONS:issues.append((bid,"segment lineage currently accepts WORK_PART only"))
-        if r.get("independence_class") not in INDEPENDENCE:issues.append((bid,"work parts must be SAME_WORK_NOT_INDEPENDENT"))
+
+        relation=r.get("relation")
+        independence=r.get("independence_class")
         part=r.get("part_label")
-        if not isinstance(part,str) or not part.strip():issues.append((bid,"WORK_PART requires part_label"))
+        if relation not in RELATIONS:
+            issues.append((bid,"invalid segment-aware relation"))
+        elif relation=="WORK_PART":
+            if independence!="SAME_WORK_NOT_INDEPENDENT":
+                issues.append((bid,"WORK_PART must be SAME_WORK_NOT_INDEPENDENT"))
+            if not isinstance(part,str) or not part.strip():
+                issues.append((bid,"WORK_PART requires part_label"))
+        elif relation=="PRIMARY_WORK_IN_COMPOSITE":
+            if independence!="PRIMARY_CANDIDATE":
+                issues.append((bid,"PRIMARY_WORK_IN_COMPOSITE must be PRIMARY_CANDIDATE"))
+            if part not in (None,""):
+                issues.append((bid,"PRIMARY_WORK_IN_COMPOSITE must not use part_label"))
+            if kind!="SEGMENT":
+                issues.append((bid,"PRIMARY_WORK_IN_COMPOSITE must use SEGMENT member"))
+
+        if independence not in INDEPENDENCE:
+            issues.append((bid,"invalid independence_class"))
         if r.get("independent_vote_key")!=family:issues.append((bid,"independent_vote_key must equal work_family_key"))
         if r.get("review_status")!="REVIEWED":issues.append((bid,"review_status must be REVIEWED"))
         title=r.get("work_title")
@@ -119,7 +136,7 @@ def validate_rows(sources,segments,rows):
                 issues.append((bid,"unknown author must use author_basis=UNKNOWN with null evidence"))
         else:
             if not isinstance(author,str) or not author.strip():issues.append((bid,"author must be non-empty or null"))
-            if basis not in AUTHOR_BASES-{"UNKNOWN"}:issues.append((bid,"known author requires content/manual/title-page basis"))
+            if basis not in AUTHOR_BASES-{"UNKNOWN"}:issues.append((bid,"known author requires governed attribution basis"))
             if not isinstance(ae,str) or not ae.strip():issues.append((bid,"known author requires non-empty author_evidence"))
 
         member_ref=r.get("member_ref");seg_id=r.get("segment_id");scope=r.get("credit_scope")
@@ -141,6 +158,8 @@ def validate_rows(sources,segments,rows):
                 if seg.get("author") is not None and author!=seg.get("author"):issues.append((bid,"binding author conflicts with reviewed segment author"))
                 if seg.get("author") is None and author is not None:
                     issues.append((bid,"binding cannot invent an author absent from reviewed segment"))
+                if relation=="PRIMARY_WORK_IN_COMPOSITE" and seg.get("relation")!="PRIMARY_WORK_IN_COMPOSITE":
+                    issues.append((bid,"PRIMARY_WORK_IN_COMPOSITE binding requires matching reviewed segment relation"))
             if scope!="SEGMENT_ONLY":issues.append((bid,"SEGMENT member requires SEGMENT_ONLY credit_scope"))
 
         blob=json.dumps(r,ensure_ascii=False)
@@ -148,18 +167,35 @@ def validate_rows(sources,segments,rows):
 
     for family,group in by_family.items():
         if family=="<missing>":continue
-        if len(group)<2:issues.append((family,"work family requires at least two members"))
         titles={r.get("work_title") for r in group}
         if len(titles)!=1:issues.append((family,"work family members must share one work_title"))
-        parts=[r.get("part_label") for r in group]
-        if len(parts)!=len(set(parts)):issues.append((family,"duplicate part_label in work family"))
-        routes={tuple(r.get("domain_routes") or []) for r in group}
-        if len(routes)!=1:issues.append((family,"work family members must share domain routing"))
-        authors={(r.get("author"),r.get("author_basis")) for r in group}
-        known={a for a,b in authors if a is not None}
-        if len(known)>1:issues.append((family,"work family has conflicting reviewed authors"))
-        if known and any(r.get("author") is None for r in group):
-            issues.append((family,"work family mixes known and unknown author attribution"))
+
+        relations={r.get("relation") for r in group}
+        if len(relations)!=1:
+            issues.append((family,"work family cannot mix relation classes"))
+            continue
+
+        relation=next(iter(relations))
+        if relation=="WORK_PART":
+            if len(group)<2:issues.append((family,"WORK_PART family requires at least two members"))
+            parts=[r.get("part_label") for r in group]
+            if len(parts)!=len(set(parts)):issues.append((family,"duplicate part_label in work family"))
+            routes={tuple(r.get("domain_routes") or []) for r in group}
+            if len(routes)!=1:issues.append((family,"work family members must share domain routing"))
+            authors={(r.get("author"),r.get("author_basis")) for r in group}
+            known={a for a,b in authors if a is not None}
+            if len(known)>1:issues.append((family,"work family has conflicting reviewed authors"))
+            if known and any(r.get("author") is None for r in group):
+                issues.append((family,"work family mixes known and unknown author attribution"))
+        elif relation=="PRIMARY_WORK_IN_COMPOSITE":
+            if len(group)!=1:
+                issues.append((family,"PRIMARY_WORK_IN_COMPOSITE family must be a singleton segment family"))
+            else:
+                member=group[0]
+                if member.get("member_kind")!="SEGMENT":
+                    issues.append((family,"PRIMARY_WORK_IN_COMPOSITE singleton must be a SEGMENT member"))
+                if member.get("independence_class")!="PRIMARY_CANDIDATE":
+                    issues.append((family,"PRIMARY_WORK_IN_COMPOSITE singleton must remain PRIMARY_CANDIDATE"))
 
     return issues
 

@@ -5,6 +5,7 @@ from pathlib import Path
 import k2_wave1_aggregate as agg
 import validate_k2_evidence_base as evidence
 import k2_execution_routing as routing
+import validate_k2_composite_source_closures as composite_closure
 
 routing.patch_validator_module(evidence)
 
@@ -49,12 +50,22 @@ def queue_row_sort_key(row):
 
 
 def completed_source_ids(root=ROOT):
+    """Legacy Wave1 terminal set. Semantics intentionally unchanged."""
     ledger, _, _ = agg.aggregate_wave1(root)
     return {
         row.get("source_id")
         for row in ledger
         if row.get("read_status") in {"COMPLETE", "BLOCKED"}
     }
+
+
+def composite_closed_source_ids(root=ROOT):
+    """Validated composite-exception execution closures; no legacy Wave1 credit."""
+    return composite_closure.valid_closure_source_ids(root)
+
+
+def execution_resolved_source_ids(root=ROOT):
+    return completed_source_ids(root) | composite_closed_source_ids(root)
 
 
 def _deep_complete(root):
@@ -91,13 +102,13 @@ def build_queue(root=ROOT):
     sources = evidence.source_index(root)
     lineage = evidence.lineage_index(root)
     expected = evidence.wave1_expected(sources, lineage)
-    completed = completed_source_ids(root)
+    resolved = execution_resolved_source_ids(root)
     deep = _deep_complete(root)
     holds = _holds(root)
     segmented = _segmented_sources(root)
 
     rows = []
-    for source_id in sorted(expected - completed):
+    for source_id in sorted(expected - resolved):
         src = sources[source_id]
         lin = lineage[source_id]
         lane = evidence.expected_execution_lane(src)
@@ -129,9 +140,17 @@ def build_queue(root=ROOT):
 
 def main():
     rows = build_queue(ROOT)
+    legacy = completed_source_ids(ROOT)
+    composite = composite_closed_source_ids(ROOT)
+    resolved = legacy | composite
     reusable = sum(1 for row in rows if row["deep_reading_reusable"])
     print("k2-wave1-execution-queue: PASS")
-    print(f"remaining={len(rows)} deep_reusable={reusable}")
+    print(
+        f"remaining={len(rows)} deep_reusable={reusable} "
+        f"legacy_terminal={len(legacy)} composite_execution_closed={len(composite)} "
+        f"execution_resolved={len(resolved)}"
+    )
+    print("legacy_wave1_completion_semantics=unchanged")
     for row in rows:
         print(json.dumps(row, ensure_ascii=False, sort_keys=True))
 
