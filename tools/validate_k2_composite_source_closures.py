@@ -55,6 +55,15 @@ def source_index(root=ROOT):
     return out
 
 
+def governed_routes(members):
+    routes=[]
+    for member in members:
+        for route in member.get("domain_routes") or []:
+            if route in DOMAINS and route not in routes:
+                routes.append(route)
+    return routes
+
+
 def validate_rows(sources,segments,deep_rows,lineage_rows,evidence_rows,distillates,
                   wave1_ledger,wave1_evidence,wave1_distillates,rows):
     issues=[];seen_id=set();seen_source=set()
@@ -193,18 +202,14 @@ def validate_rows(sources,segments,deep_rows,lineage_rows,evidence_rows,distilla
             expected_ev={e.get("evidence_id") for e in ev_by_family.get(family,[])}
             if set(d.get("segment_evidence_refs") or [])!=expected_ev:
                 issues.append((cid,f"work-family distillate evidence refs not exact: {family}"))
-            route_set={
-                route
-                for member in family_members.get(family,[])
-                for route in (member.get("domain_routes") or [])
-                if route in DOMAINS
-            }
-            expected_routes=[route for route in DOMAIN_ORDER if route in route_set]
+            expected_routes=governed_routes(family_members.get(family,[]))
             declared_routes=d.get("domain_routes")
             if declared_routes is None:
                 declared_routes=[d.get("domain")] if d.get("domain") in DOMAINS else []
             if declared_routes!=expected_routes:
                 issues.append((cid,f"distillate routes do not cover work-family routes: {family}"))
+            if expected_routes and d.get("domain")!=expected_routes[0]:
+                issues.append((cid,f"distillate primary domain does not match first governed route: {family}"))
 
         blob=json.dumps(c,ensure_ascii=False)
         if PATH_RE.search(blob):issues.append((cid,"local filesystem path leaked"))
