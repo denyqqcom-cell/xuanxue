@@ -29,9 +29,11 @@
 
 `HYPOTHESIS -> TEST PLAN -> BATCH PREREGISTRATION -> PRE-OUTCOME CASE FREEZE -> OUTCOME -> BATCH REVIEW -> MODEL UPDATE`
 
-仅靠 ID 引用不足以防止合同被悄悄改写。完整 provenance chain 必须从 hypothesis 本身开始：
+仅靠 ID 引用不足以防止合同被悄悄改写。Plan 必须同时绑定 hypothesis 内容本身和会影响该 hypothesis 实验解释范围的受治理上下文：
 
-`HYPOTHESIS --hypothesis_sha256--> PLAN --plan_sha256--> BATCH --batch_sha256--> FREEZE --freeze_record_sha256--> OUTCOME`
+`HYPOTHESIS --hypothesis_sha256--> PLAN`
+
+`HYPOTHESIS_GOVERNED_CONTEXT --hypothesis_context_sha256--> PLAN --plan_sha256--> BATCH --batch_sha256--> FREEZE --freeze_record_sha256--> OUTCOME`
 
 同时 Outcome 继续引用 `frozen_payload_sha256`。任一上游合同发生变化，当前下游记录必须失配并触发 Gate；历史若确需修改，只能留下新的 Git 历史与新的测试版本，不能把旧结果伪装成原先就采用了新规则。
 
@@ -43,18 +45,30 @@
 
 `knowledge/K2_PROSPECTIVE_TEST_PLANS.jsonl`
 
-每个计划必须绑定已经登记的 `hypothesis_id`、`work_family_key`，以及该 hypothesis 完整对象的 canonical `hypothesis_sha256`。Hypothesis registry 的有效输入是完整的逻辑 Work-Family Distillate 集合：
+每个计划必须绑定已经登记的 `hypothesis_id`、`work_family_key`、该 hypothesis 完整对象的 canonical `hypothesis_sha256`，以及受治理 hypothesis context 的 `hypothesis_context_sha256`。Hypothesis registry 的有效输入是完整的逻辑 Work-Family Distillate 集合：
 
 - `knowledge/K2_WORK_FAMILY_DISTILLATES.jsonl`
 - `knowledge/K2_WORK_FAMILY_DISTILLATES.d/*.jsonl`
 
 不得只读取主文件而忽略 shards；否则 shard 中已经 REVIEWED 的 hypothesis 会在实验入口静默消失，形成“上游存在、下游不可见”的 provenance 漂移。
 
-Hypothesis 的 ID 与内容绑定必须分开：
+Hypothesis 的 ID、内容与上下文绑定必须分开：
 
 `HYPOTHESIS_ID != HYPOTHESIS_CONTENT_BINDING`
 
-`hypothesis_sha256` 对 `testable_hypotheses` 中当前完整 hypothesis object 做 canonical JSON SHA256。只要 `statement`、`freeze_requirements`、`failure_condition`、`status` 或该对象其他受治理字段发生变化，即使 `hypothesis_id` 没变，既有 Plan 也必须失配。要采用修订后的 hypothesis，必须重新形成设计链，不能让旧 Plan/Batch/Freeze 被解释成“当时本来就是这个假设”。
+`HYPOTHESIS_CONTENT_BINDING != HYPOTHESIS_GOVERNED_CONTEXT_BINDING`
+
+`hypothesis_sha256` 对 `testable_hypotheses` 中当前完整 hypothesis object 做 canonical JSON SHA256。只要 `statement`、`freeze_requirements`、`failure_condition`、`status` 或该对象其他受治理字段发生变化，即使 `hypothesis_id` 没变，既有 Plan 也必须失配。
+
+`hypothesis_context_sha256` 则对一个刻意收窄的 canonical envelope 做 SHA256：
+
+`{ hypothesis, work_family_key, effective_domain_routes }`
+
+这里的 `effective_domain_routes` 是 Work-Family Distillate 明示的 `domain_routes`；若未明示，则退回单一 `domain`。因此 route 新增、删除、替换或重排都会使旧 Plan 失配。这样可以阻止在 Plan 已设计后扩大可用 route scope，再让后续案例挑选新增 route。
+
+该 context hash **不**包含与当前前瞻解释范围无关的整份 distillate 文案、摘要或其他注释字段，避免无关编辑导致实验合同被不必要地整体作废。
+
+要采用修订后的 hypothesis 或修订后的 governed route context，必须重新形成设计链，不能让旧 Plan/Batch/Freeze 被解释成“当时本来就是这个版本”。
 
 每个计划至少预先说明：
 
@@ -76,7 +90,7 @@ Hypothesis 的 ID 与内容绑定必须分开：
 
 这不是要求每个案例同时使用所有 route，而是要求**在 outcome 未知时明确冻结本案例实际启用的 route set**。
 
-计划本身只代表 `DESIGN_READY`，不是一个已经开始的数据批次，也不是实证结果。`hypothesis_sha256` 只证明 Plan 所指的是哪一个精确假设版本，不证明该假设真实。
+计划本身只代表 `DESIGN_READY`，不是一个已经开始的数据批次，也不是实证结果。`hypothesis_sha256` 与 `hypothesis_context_sha256` 只证明 Plan 所指的是哪一个精确假设版本及其受治理 route context，不证明该假设真实。
 
 ## 4. BATCH PREREGISTRATION 合同
 
@@ -130,18 +144,18 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
 1. 是非空字符串数组；
 2. 不得包含重复 route；
-3. 每个 active route 都必须属于该 work family 已治理的 `domain_routes`；
+3. 每个 active route 都必须属于该 work family 已治理、并由 Plan 的 `hypothesis_context_sha256` 绑定的 `domain_routes`；
 4. active route 的排列必须保持 governed route 的既定顺序，不得为了结果或解释便利重新排序；
 5. 可以只激活一个 route，也可以显式激活多个 route；但选择发生在 outcome 未知时，随后进入 frozen payload SHA；
 6. 结果出现后不得新增、删除、替换或重排 active routes。
 
 因此：
 
-`UPSTREAM_ROUTE_FIDELITY != DOWNSTREAM_ROUTE_FREEZE`
+`UPSTREAM_ROUTE_SCOPE_BINDING != DOWNSTREAM_ACTIVE_ROUTE_FREEZE`
 
-`MULTI_DOMAIN_HYPOTHESIS -> PRE_OUTCOME_ACTIVE_ROUTE_FREEZE`
+`MULTI_DOMAIN_HYPOTHESIS -> PLAN_BINDS_GOVERNED_ROUTE_SCOPE -> PRE_OUTCOME_ACTIVE_ROUTE_FREEZE`
 
-保存完整 `domain_routes` 只能证明上游 provenance 没有丢失；只有 `active_domain_routes` 被写入 pre-outcome Freeze，才能阻止实验阶段的 route shopping。
+Plan 的 context hash 解决“允许使用哪些 route 能否在设计后漂移”；Freeze 的 `active_domain_routes` 解决“本案例实际用了哪些 route 能否在结果后挑选”。二者缺一不可。
 
 Freeze 的 payload 必须生成 canonical SHA256。Outcome 只能引用这个 hash 与完整 Freeze record hash，不能把结果出现后的新解释写回 Freeze。
 
@@ -169,6 +183,7 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 - 结果已经知道才补写 Freeze；
 - 看过部分/全部结果后才选择 primary metric、threshold 或 stopping rule；
 - hypothesis 内容修改后只保留原 `hypothesis_id`，继续沿用旧 Plan/Batch/Freeze；
+- Work-Family 的 governed route scope 改变后继续沿用旧 `hypothesis_context_sha256` / Plan；
 - 预测写得足够模糊，任何结果都能解释为命中；
 - 反馈后更换用神、主观察层、规则集或 active domain route；
 - multi-domain family 在 outcome 后才决定采用哪个 route，或为了结果调整 route 顺序；
@@ -197,7 +212,7 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 - 与 baseline 的差异；
 - 失败样本和不可判定比例；
 - 是否存在同一案例重复计数；
-- 是否发生 hypothesis / rule / route 漂移；
+- 是否发生 hypothesis / governed context / rule / route 漂移；
 - 是否违反 stopping / exclusion rule；
 - 模型更新是否在新批次重新冻结。
 
@@ -213,8 +228,8 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 ## 11. 当前工程状态边界
 
-本协议的 hypothesis-content binding 与 route-freeze hardening 只修改验证合同、设计记录与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
+本协议的 hypothesis-content binding、hypothesis-context binding 与 route-freeze hardening 只修改验证合同、设计记录与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
 
-当前已有两个 `DESIGN_READY` Plan 会写入与现行 H-JD-001 / H-JD-002 完整对象匹配的 `hypothesis_sha256`；这是对既有设计 referent 的显式绑定，不是新实验结果。
+当前已有两个 `DESIGN_READY` Plan 会写入与现行 H-JD-001 / H-JD-002 完整对象匹配的 `hypothesis_sha256`，以及与当前 `WF-QM-JIADUN-ZHENSHOU-001 + [qimen]` 受治理上下文匹配的 `hypothesis_context_sha256`；这是对既有设计 referent 的显式绑定，不是新实验结果。
 
-只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis binding 与版本绑定条件后，真实 prospective records 才能进入仓库。
+只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis/content/context binding 与版本绑定条件后，真实 prospective records 才能进入仓库。
