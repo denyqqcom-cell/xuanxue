@@ -255,6 +255,9 @@ def main():
     badb=copy.deepcopy(b);badb["primary_metric"]=""
     must_fail([p],[badb],needle="primary_metric must be non-empty text")
 
+    badb=copy.deepcopy(b);badb["decision_rule"]="candidate must exceed baseline by frozen threshold T"
+    must_fail([p],[badb],needle="decision_rule must be machine-evaluable object")
+
     badb=copy.deepcopy(b);badb["planned_case_count"]=None
     must_fail([p],[badb],needle="planned_case_count must be positive integer")
 
@@ -297,6 +300,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=33")
+    print("cases=34")
 
 if __name__=="__main__":main()
