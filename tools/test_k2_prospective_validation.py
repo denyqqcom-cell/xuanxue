@@ -265,6 +265,11 @@ def main():
     must_fail([p],[],[f],needle="requires preregistered batch")
     must_pass([p],[b],[f])
 
+    capped=copy.deepcopy(b);capped["planned_case_count"]=1
+    f1=freeze(p,capped)
+    f2=copy.deepcopy(f1);f2["freeze_id"]="K2PVF-CASE_002";f2["case_id"]="CASE_002"
+    must_fail([p],[capped],[f1,f2],needle="freeze count exceeds planned_case_count")
+
     badf=copy.deepcopy(f);badf["batch_sha256"]="c"*64
     must_fail([p],[b],[badf],needle="bind exact preregistered batch")
 
@@ -292,6 +297,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=32")
+    print("cases=33")
 
 if __name__=="__main__":main()
