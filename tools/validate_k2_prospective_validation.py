@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import hashlib,json,re,sys
+import hashlib,json,math,re,sys
 from datetime import datetime,timezone
 from pathlib import Path
 
@@ -33,12 +33,16 @@ MANDATORY_FREEZE_FIELDS={
     "primary_layers","boundary_conditions","interpretation_path","prediction",
     "confidence","abstention_condition",
 }
+DECISION_RULE_FIELDS={"aggregation","operator","threshold"}
+DECISION_AGGREGATIONS={"MEAN"}
+DECISION_OPERATORS={">",">=","<","<="}
 EVALUATIONS={"SUCCESS","PARTIAL","FAIL","ABSTAIN","UNEVALUABLE"}
 PLAN_ID_RE=re.compile(r"^K2PV-[A-Z0-9-]+$")
 BATCH_ID_RE=re.compile(r"^K2PVB-[A-Z0-9_-]+$")
 FREEZE_ID_RE=re.compile(r"^K2PVF-[A-Z0-9_-]+$")
 OUTCOME_ID_RE=re.compile(r"^K2PVO-[A-Z0-9_-]+$")
 CASE_ID_RE=re.compile(r"^[A-Z0-9_-]+$")
+METRIC_ID_RE=re.compile(r"^[A-Z][A-Z0-9_]{1,63}$")
 SHA40_RE=re.compile(r"^[0-9a-f]{40}$")
 SHA64_RE=re.compile(r"^[0-9a-f]{64}$")
 UTC_RE=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
@@ -83,6 +87,10 @@ def nonempty_text(v):
 
 def string_list(v,allow_empty=False):
     return isinstance(v,list) and (allow_empty or bool(v)) and all(nonempty_text(x) for x in v)
+
+
+def finite_number(v):
+    return isinstance(v,(int,float)) and not isinstance(v,bool) and math.isfinite(v)
 
 
 def utc_value(v):
@@ -184,8 +192,18 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         if not isinstance(b.get("plan_sha256"),str) or not SHA64_RE.match(b.get("plan_sha256","")):issues.append((bid,"plan_sha256 must be lowercase sha256"))
         if utc_value(b.get("preregistered_at_utc")) is None:issues.append((bid,"preregistered_at_utc must be UTC second timestamp ending Z"))
         if not isinstance(b.get("model_commit_sha"),str) or not SHA40_RE.match(b.get("model_commit_sha","")):issues.append((bid,"model_commit_sha must be lowercase 40-char git SHA"))
-        for field in ["comparator_ref","sampling_rule","primary_metric","decision_rule","stopping_rule","exclusion_rule","duplicate_case_policy"]:
+        for field in ["comparator_ref","sampling_rule","stopping_rule","exclusion_rule","duplicate_case_policy"]:
             if not nonempty_text(b.get(field)):issues.append((bid,f"{field} must be non-empty text"))
+        metric=b.get("primary_metric")
+        if not isinstance(metric,str) or not METRIC_ID_RE.match(metric):issues.append((bid,"primary_metric must be uppercase machine key"))
+        rule=b.get("decision_rule")
+        if not isinstance(rule,dict):
+            issues.append((bid,"decision_rule must be machine-evaluable object"))
+        else:
+            if set(rule)!=DECISION_RULE_FIELDS:issues.append((bid,f"decision_rule fields mismatch missing={sorted(DECISION_RULE_FIELDS-set(rule))} extra={sorted(set(rule)-DECISION_RULE_FIELDS)}"))
+            if rule.get("aggregation") not in DECISION_AGGREGATIONS:issues.append((bid,f"decision_rule aggregation must be one of {sorted(DECISION_AGGREGATIONS)}"))
+            if rule.get("operator") not in DECISION_OPERATORS:issues.append((bid,f"decision_rule operator must be one of {sorted(DECISION_OPERATORS)}"))
+            if not finite_number(rule.get("threshold")):issues.append((bid,"decision_rule threshold must be finite numeric"))
         count=b.get("planned_case_count")
         if not isinstance(count,int) or isinstance(count,bool) or count<1:issues.append((bid,"planned_case_count must be positive integer"))
         if not string_list(b.get("secondary_metrics"),allow_empty=True):issues.append((bid,"secondary_metrics must be string array"))
@@ -264,9 +282,10 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         seen_outcome.add(oid)
         if fid in seen_freeze_outcome:issues.append((oid,"a freeze may have only one scored outcome row"))
         seen_freeze_outcome.add(fid)
-        fr=freeze_by_id.get(fid)
+        fr=freeze_by_id.get(fid);batch=None
         if not fr:issues.append((oid,f"unknown freeze_id: {fid}"))
         else:
+            batch=batch_by_id.get(fr.get("batch_id"))
             if o.get("freeze_record_sha256")!=canonical_sha256(fr):issues.append((oid,"freeze_record_sha256 does not bind exact freeze record"))
             if o.get("freeze_payload_sha256")!=fr.get("frozen_payload_sha256"):issues.append((oid,"outcome does not reference exact frozen payload hash"))
             fdt=utc_value(fr.get("frozen_at_utc"));odt=utc_value(o.get("observed_at_utc"))
@@ -274,8 +293,15 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         if not isinstance(o.get("freeze_record_sha256"),str) or not SHA64_RE.match(o.get("freeze_record_sha256","")):issues.append((oid,"freeze_record_sha256 must be lowercase sha256"))
         if utc_value(o.get("observed_at_utc")) is None:issues.append((oid,"observed_at_utc must be UTC second timestamp ending Z"))
         if not nonempty_text(o.get("outcome_summary")):issues.append((oid,"outcome_summary must be non-empty derived text"))
-        if o.get("evaluation") not in EVALUATIONS:issues.append((oid,"invalid evaluation"))
-        if not isinstance(o.get("score_components"),dict):issues.append((oid,"score_components must be object"))
+        evaluation=o.get("evaluation")
+        if evaluation not in EVALUATIONS:issues.append((oid,"invalid evaluation"))
+        scores=o.get("score_components")
+        if not isinstance(scores,dict):
+            issues.append((oid,"score_components must be object"))
+        elif batch and evaluation in {"SUCCESS","PARTIAL","FAIL"}:
+            metric=batch.get("primary_metric")
+            if metric not in scores:issues.append((oid,"score_components missing preregistered primary_metric"))
+            elif not finite_number(scores.get(metric)):issues.append((oid,"primary metric score must be finite numeric"))
         notes=o.get("post_hoc_notes")
         if not isinstance(notes,list) or any(not nonempty_text(x) for x in notes):issues.append((oid,"post_hoc_notes must be string array"))
         if o.get("research_only") is not True:issues.append((oid,"outcome must be research_only=true"))

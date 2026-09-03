@@ -82,8 +82,8 @@ def batch(p=None):
         "comparator_ref":"STATIC_BASELINE_V1",
         "planned_case_count":20,
         "sampling_rule":"accept consecutive eligible cases under frozen scope",
-        "primary_metric":"predeclared binary score",
-        "decision_rule":"candidate must exceed baseline by frozen threshold T",
+        "primary_metric":"PRIMARY_SCORE",
+        "decision_rule":{"aggregation":"MEAN","operator":">=","threshold":0.05},
         "secondary_metrics":["calibration","abstention_rate"],
         "stopping_rule":"stop only at planned_case_count unless documented external impossibility",
         "exclusion_rule":"exclude only cases ineligible before outcome is known",
@@ -135,7 +135,7 @@ def outcome(f=None):
         "freeze_payload_sha256":f["frozen_payload_sha256"],
         "outcome_summary":"normalized observed result",
         "evaluation":"FAIL",
-        "score_components":{"primary_metric":0},
+        "score_components":{"PRIMARY_SCORE":0.0},
         "post_hoc_notes":[],
         "research_only":True,
         "empirical_credit":"NONE",
@@ -252,8 +252,20 @@ def main():
     badb=copy.deepcopy(b);badb["plan_sha256"]="b"*64
     must_fail([p],[badb],needle="bind exact test plan")
 
-    badb=copy.deepcopy(b);badb["primary_metric"]=""
-    must_fail([p],[badb],needle="primary_metric must be non-empty text")
+    badb=copy.deepcopy(b);badb["primary_metric"]="predeclared binary score"
+    must_fail([p],[badb],needle="primary_metric must be uppercase machine key")
+
+    badb=copy.deepcopy(b);badb["decision_rule"]="candidate must exceed baseline by frozen threshold T"
+    must_fail([p],[badb],needle="decision_rule must be machine-evaluable object")
+
+    badb=copy.deepcopy(b);badb["decision_rule"]["threshold"]="T"
+    must_fail([p],[badb],needle="decision_rule threshold must be finite numeric")
+
+    badb=copy.deepcopy(b);badb["decision_rule"]["aggregation"]="BEST_CASE"
+    must_fail([p],[badb],needle="decision_rule aggregation must be one of")
+
+    badb=copy.deepcopy(b);badb["decision_rule"]["operator"]="APPROX"
+    must_fail([p],[badb],needle="decision_rule operator must be one of")
 
     badb=copy.deepcopy(b);badb["planned_case_count"]=None
     must_fail([p],[badb],needle="planned_case_count must be positive integer")
@@ -290,6 +302,15 @@ def main():
     bado=copy.deepcopy(o);bado["observed_at_utc"]="2026-08-21T00:00:00Z"
     must_fail([p],[b],[f],[bado],needle="observed after freeze")
 
+    bado=copy.deepcopy(o);bado["score_components"]={}
+    must_fail([p],[b],[f],[bado],needle="score_components missing preregistered primary_metric")
+
+    bado=copy.deepcopy(o);bado["score_components"]["PRIMARY_SCORE"]="later"
+    must_fail([p],[b],[f],[bado],needle="primary metric score must be finite numeric")
+
+    abst=copy.deepcopy(o);abst["evaluation"]="ABSTAIN";abst["score_components"]={}
+    must_pass([p],[b],[f],[abst])
+
     bado=copy.deepcopy(o);bado["empirical_credit"]="WEAK"
     must_fail([p],[b],[f],[bado],needle="single-case outcome cannot upgrade empirical credit")
 
@@ -297,6 +318,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=33")
+    print("cases=40")
 
 if __name__=="__main__":main()

@@ -104,14 +104,16 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 - model / comparator 版本引用；
 - sampling rule；
 - 正整数 `planned_case_count`；
-- primary metric；
-- decision rule / threshold；
+- 机器键 `primary_metric`；
+- 机器可执行 `decision_rule`；
 - secondary metrics；
 - stopping rule；
 - exclusion rule；
 - duplicate-case policy；
 - batch status=`PREREGISTERED`；
 - `empirical_credit=NONE`。
+
+### Fixed-N contract
 
 当前合同只允许**固定样本量**的 batch。原因不是宣称固定 N 永远优于序贯/自适应设计，而是目前仓库尚未建立机器可审计的 sequential/adaptive stopping schema。自由文本 `stopping_rule` 可以说明为什么在 N 时停止、如何处理外部中止，但不能替代机器可读的 `planned_case_count`。
 
@@ -129,7 +131,36 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
 这里暂时只执行“不得超 N”，不把“未达到 N”立即判为 validator failure，因为批次可能仍在收集中。是否已完成 N、是否存在事前允许并完整记录的外部中止、以及未满 N 的批次是否只能判为不完整，属于后续 Batch Review Gate 的职责；在该 Gate 建立前，未满 N 当然不能据此升级 empirical credit。
 
-如果 primary metric、threshold、样本量、停止规则或排除规则在看过该批结果后才确定，则该批不能获得 prospective credit。
+### Machine-evaluable primary metric / decision rule
+
+仅把一句自然语言 decision rule 写进 Batch 再做 hash，仍不足以冻结真正的判定门槛。例如：
+
+`candidate must exceed baseline by frozen threshold T`
+
+这句话虽然字面被冻结，但 `T` 没有数值化，aggregation 也没有固定；结果出来后仍可决定 T 是 0、0.05 还是 0.20，也可把平均值改成 best-case selection，而不改写原句。
+
+因此：
+
+`FROZEN_TEXT != MACHINE_EVALUABLE_DECISION_RULE`
+
+当前合同要求：
+
+- `primary_metric` 必须是稳定的 uppercase machine key，例如 `PRIMARY_SCORE`，不能是解释性散文；
+- `decision_rule` 必须是 exact-key object：`aggregation / operator / threshold`；
+- 当前只允许 `aggregation = MEAN`，不允许 `BEST_CASE`、事后挑子集或其他未治理 aggregation；
+- `operator` 只能是 `> / >= / < / <=`；
+- `threshold` 必须在 preregistration 时就是有限数值，不能写 `T`、`TBD`、`later`、NaN 或 Infinity；
+- Batch 的 canonical hash 会把 exact metric key 与 exact decision object 一起绑定到后续 Freeze。
+
+一个当前可接受的结构例子：
+
+`primary_metric = PRIMARY_SCORE`
+
+`decision_rule = {aggregation: MEAN, operator: >=, threshold: 0.05}`
+
+这仍然**不是** Batch Review 本身。当前 gate 只确保将来存在唯一、可机器应用的 primary metric 与阈值合同；最终聚合全部 Outcome、检查样本是否完整、应用 operator 并形成 batch-level verdict，仍由后续 Batch Review Gate 承担。
+
+如果 primary metric、threshold、aggregation、operator、样本量、停止规则或排除规则在看过该批结果后才确定，则该批不能获得 prospective credit。
 
 ## 5. CASE FREEZE 合同
 
@@ -191,6 +222,14 @@ Outcome 只允许：
 - 记录事后才想到的新解释，但必须显式标记为 `post_hoc`；
 - 保留失败与不可判定案例。
 
+对于 `SUCCESS / PARTIAL / FAIL` Outcome，`score_components` 必须包含所属 Batch 已预注册的 `primary_metric` machine key，而且该值必须是有限数值。这样 Batch Review 将来不能把 Outcome 原本没有记录的另一项分数临时升格为 primary metric。
+
+`ABSTAIN / UNEVALUABLE` 可以没有 primary metric score，因为这些案例本身不产生可评价主分数；但它们必须被保留，后续 Batch Review 必须把 abstention / unevaluable rate 纳入审查，不能从样本分母中静默消失。
+
+因此：
+
+`PREREGISTERED_PRIMARY_METRIC -> EVALUABLE_OUTCOME_SCORE_COMPONENT`
+
 Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set、Interpretation Path、`active_domain_routes`、Batch primary metric 或 decision rule。
 
 ## 7. 禁止“冻结表演”
@@ -198,7 +237,9 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 以下情形不算 prospective validation：
 
 - 结果已经知道才补写 Freeze；
-- 看过部分/全部结果后才选择 primary metric、threshold、sample size 或 stopping rule；
+- 看过部分/全部结果后才选择 primary metric、threshold、aggregation、operator、sample size 或 stopping rule；
+- 使用自由文本 `decision_rule`、符号阈值 `T/TBD` 或结果后才解释的判定门槛；
+- evaluable Outcome 不记录预注册 primary metric，却在 Batch Review 时临时采用其他 score；
 - 使用 `planned_case_count=null` 配合自由文本 stopping rule 作为当前合同下的“预注册”；
 - 预注册 N 后继续建立第 N+1 个及后续 CASE FREEZE，再在结果出现后挑选样本；
 - hypothesis 内容修改后只保留原 `hypothesis_id`，继续沿用旧 Plan/Batch/Freeze；
@@ -226,13 +267,14 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 未来即使已有多个 Outcome，也必须经过独立的 `BATCH REVIEW` 才能讨论升级。Batch Review 至少要检查：
 
-- 预先承诺的 primary metric 与 decision rule；
+- 预先承诺的 primary metric machine key 与 machine-evaluable decision rule；
+- 按预注册 aggregation/operator/threshold 对全部可评价 Outcome 的主分数执行判定；
 - calibration / discrimination / abstention；
 - 与 baseline 的差异；
 - 失败样本和不可判定比例；
 - 是否存在同一案例重复计数；
 - 是否达到预注册 `planned_case_count`，或是否存在经事前规则允许且完整记录的外部中止；
-- 是否发生 hypothesis / governed context / rule / route 漂移；
+- 是否发生 hypothesis / governed context / rule / route / metric 漂移；
 - 是否违反 stopping / exclusion rule；
 - 模型更新是否在新批次重新冻结。
 
@@ -248,8 +290,8 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 ## 11. 当前工程状态边界
 
-本协议的 hypothesis-content binding、hypothesis-context binding、route-freeze 与 fixed-sample-size hardening 只修改验证合同、设计记录与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
+本协议的 hypothesis-content binding、hypothesis-context binding、route-freeze、fixed-sample-size 与 machine-decision-rule hardening 只修改验证合同、设计记录与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
 
 当前已有两个 `DESIGN_READY` Plan 会写入与现行 H-JD-001 / H-JD-002 完整对象匹配的 `hypothesis_sha256`，以及与当前 `WF-QM-JIADUN-ZHENSHOU-001 + [qimen]` 受治理上下文匹配的 `hypothesis_context_sha256`；这是对既有设计 referent 的显式绑定，不是新实验结果。
 
-只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis/content/context binding、fixed-N batch、Freeze 数量上限与版本绑定条件后，真实 prospective records 才能进入仓库。
+只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis/content/context binding、fixed-N batch、Freeze 数量上限、machine-evaluable primary metric / decision rule 与版本绑定条件后，真实 prospective records 才能进入仓库。
