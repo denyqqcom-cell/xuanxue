@@ -82,9 +82,9 @@ def batch(p=None):
         "comparator_ref":"STATIC_BASELINE_V1",
         "planned_case_count":20,
         "sampling_rule":"accept consecutive eligible cases under frozen scope",
-        "primary_metric":"PRIMARY_SCORE",
-        "primary_metric_spec":{"scoring_rule":"EXACT_MATCH_V1"},
-        "decision_rule":{"aggregation":"MEAN","operator":">=","threshold":0.5},
+        "primary_metric":"PAIRED_SCORE_DELTA",
+        "primary_metric_spec":{"scoring_rule":"PAIRED_EXACT_MATCH_DELTA_V1"},
+        "decision_rule":{"aggregation":"MEAN","operator":">","threshold":0.0},
         "secondary_metrics":["calibration","abstention_rate"],
         "stopping_rule":"stop only at planned_case_count unless documented external impossibility",
         "exclusion_rule":"exclude only cases ineligible before outcome is known",
@@ -107,6 +107,7 @@ def freeze(p=None,b=None):
         "boundary_conditions":["B1"],
         "interpretation_path":["R1","R2"],
         "prediction":"EVENT_A",
+        "comparator_prediction":"EVENT_B",
         "confidence":0.6,
         "abstention_condition":"required object mapping becomes ambiguous before freeze",
     }
@@ -137,7 +138,7 @@ def outcome(f=None):
         "observed_value":"EVENT_B",
         "outcome_summary":"normalized observed result",
         "evaluation":"FAIL",
-        "score_components":{"PRIMARY_SCORE":0.0},
+        "score_components":{"CANDIDATE_SCORE":0.0,"COMPARATOR_SCORE":1.0,"PAIRED_SCORE_DELTA":-1.0},
         "post_hoc_notes":[],
         "research_only":True,
         "empirical_credit":"NONE",
@@ -263,6 +264,9 @@ def main():
     badb=copy.deepcopy(b);badb["primary_metric_spec"]["extra"]="free_degree"
     must_fail([p],[badb],needle="primary_metric_spec fields mismatch")
 
+    badb=copy.deepcopy(b);badb["primary_metric"]="PRIMARY_SCORE"
+    must_fail([p],[badb],needle="paired scoring rule requires primary_metric=PAIRED_SCORE_DELTA")
+
     badb=copy.deepcopy(b);badb["plan_sha256"]="b"*64
     must_fail([p],[badb],needle="bind exact test plan")
 
@@ -289,6 +293,15 @@ def main():
 
     f=freeze(p,b)
     must_fail([p],[],[f],needle="requires preregistered batch")
+
+    legacyf=copy.deepcopy(f);legacyf["frozen_payload"].pop("comparator_prediction")
+    legacyf["frozen_payload_sha256"]=v.canonical_sha256(legacyf["frozen_payload"])
+    must_fail([p],[b],[legacyf],needle="comparator_prediction")
+
+    badf=copy.deepcopy(f);badf["frozen_payload"]["comparator_prediction"]=""
+    badf["frozen_payload_sha256"]=v.canonical_sha256(badf["frozen_payload"])
+    must_fail([p],[b],[badf],needle="comparator_prediction")
+
     must_pass([p],[b],[f])
 
     capped=copy.deepcopy(b);capped["planned_case_count"]=1
@@ -320,15 +333,24 @@ def main():
     must_fail([p],[b],[f],[bado],needle="observed_value must be non-empty text for evaluable outcome")
 
     bado=copy.deepcopy(o);bado["score_components"]={}
-    must_fail([p],[b],[f],[bado],needle="score_components missing preregistered primary_metric")
+    must_fail([p],[b],[f],[bado],needle="missing required paired score")
 
-    bado=copy.deepcopy(o);bado["score_components"]["PRIMARY_SCORE"]="later"
-    must_fail([p],[b],[f],[bado],needle="primary metric score must be finite numeric")
+    bado=copy.deepcopy(o);bado["score_components"].pop("COMPARATOR_SCORE")
+    must_fail([p],[b],[f],[bado],needle="COMPARATOR_SCORE")
 
-    bado=copy.deepcopy(o);bado["score_components"]["PRIMARY_SCORE"]=1.0
-    must_fail([p],[b],[f],[bado],needle="primary metric score does not match preregistered scoring function")
+    bado=copy.deepcopy(o);bado["score_components"]["CANDIDATE_SCORE"]="later"
+    must_fail([p],[b],[f],[bado],needle="paired score must be finite numeric: CANDIDATE_SCORE")
 
-    hit=copy.deepcopy(o);hit["observed_value"]="EVENT_A";hit["score_components"]["PRIMARY_SCORE"]=1.0;hit["evaluation"]="SUCCESS"
+    bado=copy.deepcopy(o);bado["score_components"]["CANDIDATE_SCORE"]=1.0
+    must_fail([p],[b],[f],[bado],needle="paired score does not match preregistered scoring function: CANDIDATE_SCORE")
+
+    bado=copy.deepcopy(o);bado["score_components"]["COMPARATOR_SCORE"]=0.0
+    must_fail([p],[b],[f],[bado],needle="paired score does not match preregistered scoring function: COMPARATOR_SCORE")
+
+    bado=copy.deepcopy(o);bado["score_components"]["PAIRED_SCORE_DELTA"]=0.0
+    must_fail([p],[b],[f],[bado],needle="paired score does not match preregistered scoring function: PAIRED_SCORE_DELTA")
+
+    hit=copy.deepcopy(o);hit["observed_value"]="EVENT_A";hit["score_components"]={"CANDIDATE_SCORE":1.0,"COMPARATOR_SCORE":0.0,"PAIRED_SCORE_DELTA":1.0};hit["evaluation"]="SUCCESS"
     must_pass([p],[b],[f],[hit])
 
     abst=copy.deepcopy(o);abst["evaluation"]="ABSTAIN";abst["observed_value"]=None;abst["score_components"]={}
@@ -341,6 +363,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=47")
+    print("cases=55")
 
 if __name__=="__main__":main()

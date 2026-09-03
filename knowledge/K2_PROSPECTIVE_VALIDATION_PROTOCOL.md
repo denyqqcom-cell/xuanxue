@@ -22,7 +22,7 @@
 
 1. `TEST PLAN`：定义要检验什么、与什么比较、原则上怎样失败；
 2. `BATCH PREREGISTRATION`：在该批任何 Outcome 出现前，冻结样本规则、样本量/停止规则、primary metric、scoring rule、decision rule、排除规则；
-3. `CASE FREEZE`：在单案例结果未知时冻结对象映射、可用规则、解释路径、预测与置信度；
+3. `CASE FREEZE`：在单案例结果未知时冻结对象映射、可用规则、解释路径、候选预测、同案 comparator 预测与置信度；
 4. `OUTCOME`：结果出现后只登记观察值与按冻结规则得到的评分，不得修改 Batch 或 Freeze。
 
 流程：
@@ -146,55 +146,56 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
 当前合同要求：
 
-- `primary_metric` 必须是稳定的 uppercase machine key，例如 `PRIMARY_SCORE`，不能是解释性散文；
+- `primary_metric` 必须是稳定的 uppercase machine key，不能是解释性散文；
 - `decision_rule` 必须是 exact-key object：`aggregation / operator / threshold`；
 - 当前只允许 `aggregation = MEAN`，不允许 `BEST_CASE`、事后挑子集或其他未治理 aggregation；
 - `operator` 只能是 `> / >= / < / <=`；
 - `threshold` 必须在 preregistration 时就是有限数值，不能写 `T`、`TBD`、`later`、NaN 或 Infinity；
 - Batch 的 canonical hash 会把 exact metric key、scoring spec 与 exact decision object 一起绑定到后续 Freeze。
 
-### Scoring-function provenance
+### Paired scoring-function provenance
 
-机器 metric key 和数值 score 仍然不足以证明评分过程已经冻结。若 Outcome 只提交：
-
-`score_components = {PRIMARY_SCORE: 0.73}`
-
-而仓库不知道 `0.73` 是怎样从事前预测和事后观察值计算出来的，那么使用者仍可在结果出现后更换 scoring function，再把一个合法数值写入 `PRIMARY_SCORE`。这种做法虽然字段、类型和 threshold 都合法，本质上仍保留了 outcome-dependent scoring freedom。
+只冻结候选模型的 scoring function 仍不足以支持“候选优于 baseline”的比较性假设。`comparator_ref` 只能证明 Batch 指向了哪个 baseline referent；它本身不能证明 baseline 在**相同案例、结果未知时**也产生了预测，更不能证明 candidate 与 comparator 使用同一个 observed value 和同一个评分函数。
 
 因此：
 
-`MACHINE_METRIC_KEY + NUMERIC_SCORE != PREREGISTERED_SCORING_FUNCTION`
+`COMPARATOR_REF != PREOUTCOME_PAIRED_COMPARATOR_PREDICTION`
 
-当前第一版合同刻意只支持一个极窄、可完全重算的评分器：
+`CANDIDATE_ONLY_SCORE != PAIRED_COMPARATIVE_EVIDENCE`
 
-`primary_metric_spec = {scoring_rule: EXACT_MATCH_V1}`
+当前合同刻意只支持一个极窄、完全可重算的 paired scorer：
 
-`EXACT_MATCH_V1` 的定义固定为：
+`primary_metric = PAIRED_SCORE_DELTA`
 
-- 输入一：CASE FREEZE 中已经 hash 锁定的 `frozen_payload.prediction`；
-- 输入二：Outcome 中登记的结构化 `observed_value`；
-- 二者完全相等，primary score = `1.0`；
-- 二者不等，primary score = `0.0`；
-- evaluable Outcome 的 `observed_value` 必须是非空文本；
-- validator 必须重新计算该分数，并拒绝任何与重算值不一致的 `score_components[primary_metric]`。
+`primary_metric_spec = {scoring_rule: PAIRED_EXACT_MATCH_DELTA_V1}`
+
+`PAIRED_EXACT_MATCH_DELTA_V1` 的定义固定为：
+
+- CASE FREEZE 必须同时 hash 锁定 `prediction` 与 `comparator_prediction`；
+- Outcome 登记一个共同的结构化 `observed_value`；
+- candidate score = `1.0` 当且仅当 `prediction == observed_value`，否则 `0.0`；
+- comparator score = `1.0` 当且仅当 `comparator_prediction == observed_value`，否则 `0.0`；
+- `PAIRED_SCORE_DELTA = CANDIDATE_SCORE - COMPARATOR_SCORE`；
+- evaluable Outcome 必须同时提交 `CANDIDATE_SCORE / COMPARATOR_SCORE / PAIRED_SCORE_DELTA`；
+- validator 必须从 hash-bound Freeze 与 Outcome observed value 重算三者，并拒绝任何不一致值。
 
 因此：
 
-`FROZEN_PREDICTION + OBSERVED_VALUE + VERSIONED_SCORING_RULE -> RECOMPUTABLE_PRIMARY_SCORE`
+`FROZEN_CANDIDATE_PREDICTION + FROZEN_COMPARATOR_PREDICTION + SAME_OBSERVED_VALUE + SAME_SCORING_RULE -> RECOMPUTABLE_PAIRED_DELTA`
 
-这里故意不支持模糊匹配、部分相似、人工裁量分、加权复合分、LLM judge 或事后定义的 normalization。不是说这些方法永远不可用，而是它们需要各自独立、机器可审计且带版本的 scoring contract；在此之前不能用自由文本说明来冒充预注册评分器。
+这里故意不支持候选用 exact match、baseline 用另一套宽松/严格规则，也不支持结果后再补 baseline prediction、人工给 baseline 打分、LLM judge、模糊匹配、部分信用或未版本化 normalization。这些方法若未来要引入，必须另建可审计版本合同。
 
 一个当前可接受的结构例子：
 
-`primary_metric = PRIMARY_SCORE`
+`primary_metric = PAIRED_SCORE_DELTA`
 
-`primary_metric_spec = {scoring_rule: EXACT_MATCH_V1}`
+`primary_metric_spec = {scoring_rule: PAIRED_EXACT_MATCH_DELTA_V1}`
 
-`decision_rule = {aggregation: MEAN, operator: >=, threshold: 0.5}`
+`decision_rule = {aggregation: MEAN, operator: >, threshold: 0.0}`
 
-这仍然**不是** Batch Review 本身。当前 gate 只确保每个可评价案例的主分数可由 frozen prediction 与 observed value 重算，并确保未来存在唯一、可机器应用的 aggregation/operator/threshold。最终检查批次完整性、聚合全部 Outcome、应用 decision rule 并形成 batch-level verdict，仍由后续 Batch Review Gate 承担。
+该例表示最终 Batch Review 只有在同案 paired delta 的平均值大于 0 时才满足这个示例门槛。具体阈值仍必须事前冻结；当前 gate 不替代未来的 Batch Review。
 
-如果 primary metric、scoring rule、threshold、aggregation、operator、样本量、停止规则或排除规则在看过该批结果后才确定，则该批不能获得 prospective credit。
+如果 primary metric、scoring rule、threshold、aggregation、operator、样本量、停止规则、comparator prediction 或排除规则在看过结果后才确定，则该批不能获得 prospective credit。
 
 ## 5. CASE FREEZE 合同
 
@@ -202,7 +203,7 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
 `knowledge/K2_PROSPECTIVE_FREEZES.jsonl`
 
-每条 Freeze 必须属于一个已经 PREREGISTERED 的 batch，并保存该 Batch 的 `batch_sha256`，发生在结果未知时。对于固定 N batch，同一 `batch_id` 的 Freeze 总数还必须满足 `freeze_count <= planned_case_count`。至少固定：
+每条 Freeze 必须属于一个已经 PREREGISTERED 的 batch，并保存该 Batch 的 `batch_sha256`，发生在结果未知时。对于固定 N batch，同一 `batch_id` 的 Freeze 总数还必须满足 `freeze_count <= planned_case_count`。当前 paired-comparison contract 至少固定：
 
 `QUESTION DEFINITION`
 → `ASKED OBJECT`
@@ -212,9 +213,12 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 → `PRIMARY LAYERS`
 → `BOUNDARY CONDITIONS`
 → `INTERPRETATION PATH`
-→ `PREDICTION`
+→ `CANDIDATE PREDICTION`
+→ `COMPARATOR PREDICTION`
 → `CONFIDENCE`
 → `ABSTENTION CONDITION`
+
+`comparator_prediction` 是 protocol-level paired contract 字段：只要 Batch 使用 `PAIRED_EXACT_MATCH_DELTA_V1`，它就必须在 outcome 未知时存在并进入 `frozen_payload_sha256`。不能仅因为 Plan 的通用 `freeze_required_fields` 没枚举它，就把 baseline 预测留到结果后再补。
 
 具体计划可要求额外字段，例如 movement 测试必须冻结：
 
@@ -239,7 +243,7 @@ Batch 必须在该批第一条 Outcome 之前冻结，并至少写明：
 
 Plan 的 context hash 解决“允许使用哪些 route 能否在设计后漂移”；Freeze 的 `active_domain_routes` 解决“本案例实际用了哪些 route 能否在结果后挑选”。二者缺一不可。
 
-Freeze 的 payload 必须生成 canonical SHA256。Outcome 只能引用这个 hash 与完整 Freeze record hash，不能把结果出现后的新解释写回 Freeze。
+Freeze 的 payload 必须生成 canonical SHA256。Outcome 只能引用这个 hash 与完整 Freeze record hash，不能把结果出现后的新解释或 comparator prediction 写回 Freeze。
 
 ## 6. OUTCOME 合同
 
@@ -251,7 +255,7 @@ Outcome 只允许：
 
 - 引用既有 Freeze；
 - 绑定完整 `freeze_record_sha256` 与 `frozen_payload_sha256`；
-- 记录 `observed_value` 以及实际结果的匿名化/结构化摘要；
+- 记录共同的 `observed_value` 以及实际结果的匿名化/结构化摘要；
 - 按事前规则标记 SUCCESS / PARTIAL / FAIL / ABSTAIN / UNEVALUABLE；
 - 记录事后才想到的新解释，但必须显式标记为 `post_hoc`；
 - 保留失败与不可判定案例。
@@ -259,17 +263,19 @@ Outcome 只允许：
 对于 `SUCCESS / PARTIAL / FAIL` Outcome：
 
 - `observed_value` 必须是非空文本；
-- `score_components` 必须包含所属 Batch 已预注册的 `primary_metric` machine key；
-- primary score 必须是有限数值；
-- 对当前 `EXACT_MATCH_V1`，validator 必须从 Freeze prediction 与 Outcome observed_value 重算 `0.0/1.0`，提交值与重算值不一致即 fail closed。
+- `score_components` 必须包含 `CANDIDATE_SCORE`；
+- `score_components` 必须包含 `COMPARATOR_SCORE`；
+- `score_components` 必须包含预注册 primary metric `PAIRED_SCORE_DELTA`；
+- 三个分数都必须是有限数值；
+- validator 必须用同一个 observed value 对 candidate/comparator 的冻结预测分别重算 exact-match score，再重算 delta；任何提交值不一致即 fail closed。
 
-`ABSTAIN / UNEVALUABLE` 可以没有 primary metric score；`observed_value` 可为 `null`，若真实结果后来可观察，也允许保留非空结构化文本。它们必须被保留，后续 Batch Review 必须把 abstention / unevaluable rate 纳入审查，不能从样本分母中静默消失。
+`ABSTAIN / UNEVALUABLE` 可以没有 paired score；`observed_value` 可为 `null`，若真实结果后来可观察，也允许保留非空结构化文本。它们必须被保留，后续 Batch Review 必须把 abstention / unevaluable rate 纳入审查，不能从样本分母中静默消失。
 
 因此：
 
-`PREREGISTERED_PRIMARY_METRIC -> PREREGISTERED_SCORING_RULE -> RECOMPUTABLE_EVALUABLE_OUTCOME_SCORE`
+`PREOUTCOME_PAIRED_PREDICTIONS -> SAME_OUTCOME_SCORING -> RECOMPUTABLE_CANDIDATE_SCORE + RECOMPUTABLE_COMPARATOR_SCORE -> RECOMPUTABLE_PAIRED_DELTA`
 
-Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set、Interpretation Path、`active_domain_routes`、Batch primary metric、primary metric spec 或 decision rule。
+Outcome 不得修改原 candidate prediction、comparator prediction、confidence、Role Map、Eligible Rule Set、Interpretation Path、`active_domain_routes`、Batch primary metric、primary metric spec 或 decision rule。
 
 ## 7. 禁止“冻结表演”
 
@@ -278,8 +284,10 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 - 结果已经知道才补写 Freeze；
 - 看过部分/全部结果后才选择 primary metric、scoring rule、threshold、aggregation、operator、sample size 或 stopping rule；
 - 使用自由文本 `decision_rule`、符号阈值 `T/TBD` 或结果后才解释的判定门槛；
-- 只登记一个数值 `PRIMARY_SCORE`，却没有预注册可重算 scoring function；
-- evaluable Outcome 不记录结构化 observed value，或提交的 primary score 与预注册评分器重算结果不同；
+- 只有 `comparator_ref`，却没有同案、pre-outcome 的 `comparator_prediction`；
+- candidate 与 comparator 没有使用同一个 observed value 与同一版本评分器；
+- 只记录 candidate score，却在 Batch Review 时声称优于 baseline；
+- evaluable Outcome 不记录结构化 observed value，或任一 paired score 与预注册评分器重算结果不同；
 - evaluable Outcome 不记录预注册 primary metric，却在 Batch Review 时临时采用其他 score；
 - 使用 `planned_case_count=null` 配合自由文本 stopping rule 作为当前合同下的“预注册”；
 - 预注册 N 后继续建立第 N+1 个及后续 CASE FREEZE，再在结果出现后挑选样本；
@@ -308,15 +316,16 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 未来即使已有多个 Outcome，也必须经过独立的 `BATCH REVIEW` 才能讨论升级。Batch Review 至少要检查：
 
-- 预先承诺的 primary metric machine key、versioned scoring rule 与 machine-evaluable decision rule；
-- 每个 evaluable Outcome 的 primary score 是否可由 frozen prediction + observed value 重算；
-- 按预注册 aggregation/operator/threshold 对全部可评价 Outcome 的主分数执行判定；
+- 预先承诺的 `PAIRED_SCORE_DELTA`、versioned paired scoring rule 与 machine-evaluable decision rule；
+- 每个 evaluable Outcome 是否同时存在 pre-outcome candidate/comparator prediction；
+- candidate/comparator score 是否由同一个 observed value 与同一评分器重算；
+- paired delta 是否等于 candidate score - comparator score；
+- 按预注册 aggregation/operator/threshold 对全部可评价 paired delta 执行判定；
 - calibration / discrimination / abstention；
-- 与 baseline 的差异；
 - 失败样本和不可判定比例；
 - 是否存在同一案例重复计数；
 - 是否达到预注册 `planned_case_count`，或是否存在经事前规则允许且完整记录的外部中止；
-- 是否发生 hypothesis / governed context / rule / route / metric / scoring-function 漂移；
+- 是否发生 hypothesis / governed context / rule / route / metric / scoring-function / comparator 漂移；
 - 是否违反 stopping / exclusion rule；
 - 模型更新是否在新批次重新冻结。
 
@@ -332,8 +341,8 @@ Outcome 不得修改原 prediction、confidence、Role Map、Eligible Rule Set�
 
 ## 11. 当前工程状态边界
 
-本协议的 hypothesis-content binding、hypothesis-context binding、route-freeze、fixed-sample-size、machine-decision-rule 与 scoring-function-provenance hardening 只修改验证合同、设计记录与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
+本协议的 hypothesis-content binding、hypothesis-context binding、route-freeze、fixed-sample-size、machine-decision-rule、scoring-function-provenance 与 paired-comparator-parity hardening 只修改验证合同、设计记录与 fail-closed 测试。它不会自动创建任何真实 Batch、Freeze 或 Outcome，也不会给已有 hypothesis 升级 empirical credit。
 
 当前已有两个 `DESIGN_READY` Plan 会写入与现行 H-JD-001 / H-JD-002 完整对象匹配的 `hypothesis_sha256`，以及与当前 `WF-QM-JIADUN-ZHENSHOU-001 + [qimen]` 受治理上下文匹配的 `hypothesis_context_sha256`；这是对既有设计 referent 的显式绑定，不是新实验结果。
 
-只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis/content/context binding、fixed-N batch、Freeze 数量上限、machine-evaluable primary metric / scoring function / decision rule 与版本绑定条件后，真实 prospective records 才能进入仓库。
+只有在未来单独授权并满足 preregistration、unknown-outcome、hypothesis/content/context binding、fixed-N batch、Freeze 数量上限、pre-outcome paired candidate/comparator predictions、machine-evaluable paired scoring function / decision rule 与版本绑定条件后，真实 prospective records 才能进入仓库。
