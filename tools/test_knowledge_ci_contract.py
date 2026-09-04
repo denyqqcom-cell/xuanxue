@@ -133,6 +133,22 @@ def main():
     require(text, "python3 tools/validate_k2_evidence_reaudit.py")
     require(text, "python3 tools/test_k2_prospective_validation.py")
     require(text, "python3 tools/validate_k2_prospective_validation.py")
+    require(text, "python3 tools/test_k2_prospective_batch_review.py")
+    require(text, "python3 tools/validate_k2_prospective_batch_review.py")
+    require(text, "python3 tools/test_k2_empirical_credit_review.py")
+    require(text, "python3 tools/validate_k2_empirical_credit_review.py")
+    for required_path in (
+        ROOT / "knowledge" / "K2_PROSPECTIVE_BATCH_REVIEWS.jsonl",
+        ROOT / "knowledge" / "K2_PROSPECTIVE_BATCH_REVIEW_PROTOCOL.md",
+        ROOT / "knowledge" / "K2_PROSPECTIVE_EMPIRICAL_CREDIT_REVIEWS.jsonl",
+        ROOT / "knowledge" / "K2_PROSPECTIVE_EMPIRICAL_CREDIT_REVIEW_PROTOCOL.md",
+        ROOT / "tools" / "test_k2_prospective_batch_review.py",
+        ROOT / "tools" / "validate_k2_prospective_batch_review.py",
+        ROOT / "tools" / "test_k2_empirical_credit_review.py",
+        ROOT / "tools" / "validate_k2_empirical_credit_review.py",
+    ):
+        if not required_path.exists():
+            raise AssertionError(f"missing prospective review artifact: {required_path.relative_to(ROOT)}")
 
     # Claim Extraction readiness is a fail-closed review gate, not an automatic
     # phase transition. The snapshot must remain current and authorization false.
