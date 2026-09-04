@@ -16,8 +16,6 @@ on:
       - '.github/workflows/k2-app-ui-ci.yml'
       - 'tools/test_knowledge_ci_contract.py'
   pull_request:
-    branches:
-      - knowledge-engine-v1-k2
     paths:
       - 'app/**'
       - 'ziwei-core/**'
@@ -57,20 +55,22 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Verify K2 core, lint, and debug APK
-        run: ./gradlew --no-daemon :ziwei-core:test :app:lintDebug :app:assembleDebug
+      - name: Verify K2 core, app lint, APK, and instrumentation compile
+        run: ./gradlew --no-daemon :ziwei-core:test :app:lintDebug :app:assembleDebug :app:assembleDebugAndroidTest
 
       - name: Verify debug APK exists and stays inside package boundary
         shell: bash
         run: |
           set -euo pipefail
           test -s app/build/outputs/apk/debug/app-debug.apk
+          test -s app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
           if grep -Fq 'android.permission.INTERNET' app/src/main/AndroidManifest.xml; then
             echo 'Unexpected INTERNET permission in K2 app candidate.' >&2
             exit 1
           fi
           bash tools/audit_apk_contents.sh app/build/outputs/apk/debug/app-debug.apk
           sha256sum app/build/outputs/apk/debug/app-debug.apk > app/build/outputs/apk/debug/SHA256SUMS.txt
+          sha256sum app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk > app/build/outputs/apk/androidTest/debug/SHA256SUMS.txt
           {
             echo "source_head_sha=${SOURCE_HEAD_SHA}"
             echo "checked_out_sha=${GITHUB_SHA}"
@@ -85,6 +85,8 @@ jobs:
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/debug/SHA256SUMS.txt
             app/build/outputs/apk/debug/K2_BUILD_INFO.txt
+            app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            app/build/outputs/apk/androidTest/debug/SHA256SUMS.txt
             app/build/reports/lint-results-debug.html
           if-no-files-found: error
           retention-days: 7
