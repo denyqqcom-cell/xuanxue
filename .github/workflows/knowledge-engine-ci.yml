@@ -102,6 +102,10 @@ jobs:
         run: python3 tools/test_k2_prospective_batch_review.py
       - name: Enforce prospective batch review contracts
         run: python3 tools/validate_k2_prospective_batch_review.py
+      - name: Test empirical credit review fail-closed cases
+        run: python3 tools/test_k2_empirical_credit_review.py
+      - name: Enforce empirical credit review contracts
+        run: python3 tools/validate_k2_empirical_credit_review.py
       - name: Test isolated K2 dependency health gate
         run: python3 tools/test_k2_python_deps.py
       - name: Test K2 local page-packet semantic readability fail-closed cases
