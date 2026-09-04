@@ -14,6 +14,7 @@ PLAN_FIELDS={
 }
 BATCH_FIELDS={
     "batch_id","plan_id","plan_sha256","preregistered_at_utc","model_commit_sha","comparator_ref",
+    "empirical_credit_policy_version","empirical_credit_policy_sha256",
     "planned_case_count","sampling_rule","primary_metric","primary_metric_spec","decision_rule",
     "secondary_metrics","stopping_rule","exclusion_rule","duplicate_case_policy",
     "research_only","status","empirical_credit",
@@ -27,6 +28,13 @@ OUTCOME_FIELDS={
     "outcome_id","freeze_id","freeze_record_sha256","observed_at_utc","freeze_payload_sha256",
     "observed_value","outcome_summary","evaluation","score_components","post_hoc_notes",
     "research_only","empirical_credit","status",
+}
+EMPIRICAL_CREDIT_POLICY_FIELDS={
+    "policy_version","minimum_batch_count","minimum_discordant_count","alpha","uncertainty_test",
+    "required_primary_metric","required_scoring_rule","required_aggregation",
+    "require_all_batch_reviews_pass","require_positive_batch_aggregate",
+    "require_candidate_wins_gt_comparator_wins","require_positive_pooled_paired_delta",
+    "require_unique_case_tokens","readiness_ceiling","automatic_empirical_credit_upgrade","research_only",
 }
 MANDATORY_FREEZE_FIELDS={
     "question_definition","asked_object","object_graph","role_map","eligible_rule_set",
@@ -42,12 +50,15 @@ DECISION_RULE_FIELDS={"aggregation","operator","threshold"}
 DECISION_AGGREGATIONS={"MEAN"}
 DECISION_OPERATORS={">",">=","<","<="}
 EVALUATIONS={"SUCCESS","PARTIAL","FAIL","ABSTAIN","UNEVALUABLE"}
+KNOWN_UNCERTAINTY_TESTS={"ONE_SIDED_EXACT_PAIRED_BINOMIAL_V1"}
+READINESS_CEILING="READY_FOR_MANUAL_EMPIRICAL_REVIEW"
 PLAN_ID_RE=re.compile(r"^K2PV-[A-Z0-9-]+$")
 BATCH_ID_RE=re.compile(r"^K2PVB-[A-Z0-9_-]+$")
 FREEZE_ID_RE=re.compile(r"^K2PVF-[A-Z0-9_-]+$")
 OUTCOME_ID_RE=re.compile(r"^K2PVO-[A-Z0-9_-]+$")
 CASE_ID_RE=re.compile(r"^[A-Z0-9_-]+$")
 METRIC_ID_RE=re.compile(r"^[A-Z][A-Z0-9_]{1,63}$")
+POLICY_VERSION_RE=re.compile(r"^[A-Z][A-Z0-9_]{2,63}$")
 SHA40_RE=re.compile(r"^[0-9a-f]{40}$")
 SHA64_RE=re.compile(r"^[0-9a-f]{64}$")
 UTC_RE=re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
@@ -81,6 +92,10 @@ def load_work_family_distillates(root=ROOT):
     return wf.load_distillates(root)
 
 
+def load_empirical_credit_policies(root=ROOT):
+    return load_jsonl(root/"knowledge"/"K2_PROSPECTIVE_EMPIRICAL_CREDIT_POLICIES.jsonl")
+
+
 def canonical_sha256(value):
     blob=json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(",",":")).encode("utf-8")
     return hashlib.sha256(blob).hexdigest()
@@ -101,6 +116,36 @@ def finite_number(v):
 def utc_value(v):
     if not isinstance(v,str) or not UTC_RE.match(v):return None
     return datetime.strptime(v,"%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+
+
+def empirical_credit_policy_index(rows):
+    issues=[];out={}
+    if not rows:
+        issues.append(("<policy-registry>","empirical credit policy registry must contain at least one version"))
+        return out,issues
+    for row in rows:
+        version=row.get("policy_version") or "<missing>"
+        if set(row)!=EMPIRICAL_CREDIT_POLICY_FIELDS:
+            issues.append((version,f"empirical credit policy fields mismatch missing={sorted(EMPIRICAL_CREDIT_POLICY_FIELDS-set(row))} extra={sorted(set(row)-EMPIRICAL_CREDIT_POLICY_FIELDS)}"))
+        if not isinstance(version,str) or not POLICY_VERSION_RE.match(version):issues.append((version,"invalid empirical credit policy_version"))
+        if version in out:issues.append((version,"duplicate empirical credit policy_version"))
+        out[version]=row
+        for field in ["minimum_batch_count","minimum_discordant_count"]:
+            value=row.get(field)
+            if not isinstance(value,int) or isinstance(value,bool) or value<1:issues.append((version,f"{field} must be positive integer"))
+        alpha=row.get("alpha")
+        if not finite_number(alpha) or not 0<alpha<1:issues.append((version,"alpha must be finite numeric in (0,1)"))
+        if row.get("uncertainty_test") not in KNOWN_UNCERTAINTY_TESTS:issues.append((version,f"uncertainty_test must be one of {sorted(KNOWN_UNCERTAINTY_TESTS)}"))
+        if row.get("required_primary_metric")!=PAIRED_PRIMARY_METRIC:issues.append((version,f"required_primary_metric must be {PAIRED_PRIMARY_METRIC}"))
+        if row.get("required_scoring_rule") not in PRIMARY_METRIC_SCORING_RULES:issues.append((version,f"required_scoring_rule must be one of {sorted(PRIMARY_METRIC_SCORING_RULES)}"))
+        if row.get("required_aggregation") not in DECISION_AGGREGATIONS:issues.append((version,f"required_aggregation must be one of {sorted(DECISION_AGGREGATIONS)}"))
+        for field in ["require_all_batch_reviews_pass","require_positive_batch_aggregate","require_candidate_wins_gt_comparator_wins","require_positive_pooled_paired_delta","require_unique_case_tokens"]:
+            if row.get(field) is not True:issues.append((version,f"{field} must be true in current governed policy schema"))
+        if row.get("readiness_ceiling")!=READINESS_CEILING:issues.append((version,f"readiness_ceiling must be {READINESS_CEILING}"))
+        if row.get("automatic_empirical_credit_upgrade") is not False:issues.append((version,"automatic_empirical_credit_upgrade must be false"))
+        if row.get("research_only") is not True:issues.append((version,"empirical credit policy must be research_only=true"))
+        if PATH_RE.search(json.dumps(row,ensure_ascii=False)):issues.append((version,"empirical credit policy leaks local filesystem path"))
+    return out,issues
 
 
 def effective_domain_routes(distillate):
@@ -158,8 +203,11 @@ def paired_exact_match_scores(batch,freeze,outcome):
     }
 
 
-def validate_records(distillates,plans,batches,freezes,outcomes):
+def validate_records(distillates,plans,batches,freezes,outcomes,empirical_credit_policies=None):
     issues=[];hyps=hypothesis_index(distillates)
+    policies=load_empirical_credit_policies(ROOT) if empirical_credit_policies is None else empirical_credit_policies
+    policy_by_version,policy_issues=empirical_credit_policy_index(policies)
+    issues.extend(policy_issues)
     plan_by_id={};plan_routes_by_id={};seen_hyp=set()
     for p in plans:
         pid=p.get("plan_id") or "<missing>";hid=p.get("hypothesis_id")
@@ -212,6 +260,15 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
         if not isinstance(b.get("plan_sha256"),str) or not SHA64_RE.match(b.get("plan_sha256","")):issues.append((bid,"plan_sha256 must be lowercase sha256"))
         if utc_value(b.get("preregistered_at_utc")) is None:issues.append((bid,"preregistered_at_utc must be UTC second timestamp ending Z"))
         if not isinstance(b.get("model_commit_sha"),str) or not SHA40_RE.match(b.get("model_commit_sha","")):issues.append((bid,"model_commit_sha must be lowercase 40-char git SHA"))
+
+        policy_version=b.get("empirical_credit_policy_version")
+        policy_sha=b.get("empirical_credit_policy_sha256")
+        policy=policy_by_version.get(policy_version)
+        if not nonempty_text(policy_version):issues.append((bid,"empirical_credit_policy_version must be non-empty text"))
+        elif policy is None:issues.append((bid,f"unknown empirical_credit_policy_version: {policy_version}"))
+        if not isinstance(policy_sha,str) or not SHA64_RE.match(policy_sha):issues.append((bid,"empirical_credit_policy_sha256 must be lowercase sha256"))
+        elif policy is not None and policy_sha!=canonical_sha256(policy):issues.append((bid,"empirical_credit_policy_sha256 does not bind exact registered policy content"))
+
         for field in ["comparator_ref","sampling_rule","stopping_rule","exclusion_rule","duplicate_case_policy"]:
             if not nonempty_text(b.get(field)):issues.append((bid,f"{field} must be non-empty text"))
         metric=b.get("primary_metric")
@@ -232,6 +289,10 @@ def validate_records(distillates,plans,batches,freezes,outcomes):
             if rule.get("aggregation") not in DECISION_AGGREGATIONS:issues.append((bid,f"decision_rule aggregation must be one of {sorted(DECISION_AGGREGATIONS)}"))
             if rule.get("operator") not in DECISION_OPERATORS:issues.append((bid,f"decision_rule operator must be one of {sorted(DECISION_OPERATORS)}"))
             if not finite_number(rule.get("threshold")):issues.append((bid,"decision_rule threshold must be finite numeric"))
+        if policy is not None:
+            if metric!=policy.get("required_primary_metric"):issues.append((bid,"primary_metric does not match preregistered empirical credit policy"))
+            if isinstance(spec,dict) and spec.get("scoring_rule")!=policy.get("required_scoring_rule"):issues.append((bid,"primary_metric_spec scoring_rule does not match preregistered empirical credit policy"))
+            if isinstance(rule,dict) and rule.get("aggregation")!=policy.get("required_aggregation"):issues.append((bid,"decision_rule aggregation does not match preregistered empirical credit policy"))
         count=b.get("planned_case_count")
         if not isinstance(count,int) or isinstance(count,bool) or count<1:issues.append((bid,"planned_case_count must be positive integer"))
         if not string_list(b.get("secondary_metrics"),allow_empty=True):issues.append((bid,"secondary_metrics must be string array"))
@@ -358,10 +419,11 @@ def main():
     batches=load_jsonl(K/"K2_PROSPECTIVE_BATCHES.jsonl")
     freezes=load_jsonl(K/"K2_PROSPECTIVE_FREEZES.jsonl")
     outcomes=load_jsonl(K/"K2_PROSPECTIVE_OUTCOMES.jsonl")
-    issues=validate_records(distillates,plans,batches,freezes,outcomes)
+    policies=load_empirical_credit_policies(ROOT)
+    issues=validate_records(distillates,plans,batches,freezes,outcomes,policies)
     if issues:fail(f"issues={len(issues)} first={issues[0][0]}: {issues[0][1]}")
     print("k2-prospective-validation: PASS")
-    print(f"plans={len(plans)} batches={len(batches)} freezes={len(freezes)} outcomes={len(outcomes)} issues=0")
+    print(f"plans={len(plans)} batches={len(batches)} freezes={len(freezes)} outcomes={len(outcomes)} policies={len(policies)} issues=0")
     print("empirical_credit_upgrade_blocked=true")
 
 if __name__=="__main__":main()

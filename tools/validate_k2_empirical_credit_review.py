@@ -9,13 +9,10 @@ import validate_k2_prospective_batch_review as br
 ROOT=Path(__file__).resolve().parents[1]
 K=ROOT/"knowledge"
 
-POLICY_VERSION="EMPIRICAL_CREDIT_REVIEW_V1"
-MIN_BATCH_COUNT=2
-MIN_DISCORDANT_COUNT=20
-ALPHA=0.05
-READINESS_VALUES={"NOT_ELIGIBLE","READY_FOR_MANUAL_EMPIRICAL_REVIEW"}
+DEFAULT_POLICY_VERSION="EMPIRICAL_CREDIT_REVIEW_V1"
+READINESS_VALUES={"NOT_ELIGIBLE",pv.READINESS_CEILING}
 REVIEW_FIELDS={
-    "credit_review_id","policy_version","plan_id","hypothesis_id","hypothesis_sha256",
+    "credit_review_id","policy_version","policy_sha256","plan_id","hypothesis_id","hypothesis_sha256",
     "hypothesis_context_sha256","model_commit_sha","comparator_ref","replication_contract_sha256",
     "reviewed_at_utc","batch_review_ids","batch_review_records_sha256","batch_count",
     "total_case_count","discordant_count","candidate_win_count","comparator_win_count","tie_count",
@@ -37,12 +34,45 @@ def canonical_sha256(value):
     return pv.canonical_sha256(value)
 
 
+def load_policy_index(policies=None):
+    rows=pv.load_empirical_credit_policies(ROOT) if policies is None else policies
+    index,issues=pv.empirical_credit_policy_index(rows)
+    return rows,index,issues
+
+
+def default_policy():
+    _,index,issues=load_policy_index()
+    if issues:fail(f"invalid empirical credit policy registry: {issues[0][0]}: {issues[0][1]}")
+    policy=index.get(DEFAULT_POLICY_VERSION)
+    if not policy:fail(f"missing default empirical credit policy: {DEFAULT_POLICY_VERSION}")
+    return policy
+
+
+_DEFAULT_POLICY=default_policy()
+POLICY_VERSION=DEFAULT_POLICY_VERSION
+MIN_BATCH_COUNT=_DEFAULT_POLICY["minimum_batch_count"]
+MIN_DISCORDANT_COUNT=_DEFAULT_POLICY["minimum_discordant_count"]
+ALPHA=_DEFAULT_POLICY["alpha"]
+
+
+def policy_for_batch(batch,policies=None):
+    _,index,issues=load_policy_index(policies)
+    if issues:return None
+    version=batch.get("empirical_credit_policy_version") if isinstance(batch,dict) else None
+    policy=index.get(version)
+    if not policy:return None
+    if batch.get("empirical_credit_policy_sha256")!=canonical_sha256(policy):return None
+    return policy
+
+
 def replication_contract_sha256(batch):
     governed={
         "plan_id":batch.get("plan_id"),
         "plan_sha256":batch.get("plan_sha256"),
         "model_commit_sha":batch.get("model_commit_sha"),
         "comparator_ref":batch.get("comparator_ref"),
+        "empirical_credit_policy_version":batch.get("empirical_credit_policy_version"),
+        "empirical_credit_policy_sha256":batch.get("empirical_credit_policy_sha256"),
         "planned_case_count":batch.get("planned_case_count"),
         "sampling_rule":batch.get("sampling_rule"),
         "primary_metric":batch.get("primary_metric"),
@@ -78,7 +108,17 @@ def exact_one_sided_binomial_pvalue(candidate_wins,comparator_wins):
     return numerator/(2**n)
 
 
-def compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews):
+def compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews,policy=None):
+    policy=policy or (policy_for_batch(batches[0]) if batches else None)
+    if policy is None:
+        return {
+            "batch_review_ids":sorted(r.get("review_id") for r in batch_reviews),
+            "batch_review_records_sha256":canonical_batch_review_records_sha256(batch_reviews),
+            "batch_count":len(batch_reviews),"total_case_count":0,"discordant_count":0,
+            "candidate_win_count":0,"comparator_win_count":0,"tie_count":0,
+            "pooled_paired_delta":None,"one_sided_exact_pvalue":None,
+            "replication_consistent":False,"case_token_unique":False,"credit_readiness":"NOT_ELIGIBLE",
+        }
     batch_ids={b.get("batch_id") for b in batches}
     selected_freezes=[f for f in freezes if f.get("batch_id") in batch_ids]
     freeze_by_id={f.get("freeze_id"):f for f in selected_freezes}
@@ -106,20 +146,22 @@ def compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews):
     pvalue=exact_one_sided_binomial_pvalue(candidate_wins,comparator_wins) if complete_scores and discordant>0 else None
     review_passes=all(r.get("batch_verdict")=="PASS" for r in batch_reviews)
     positive_effects=all(finite_number(r.get("aggregate_value")) and r.get("aggregate_value")>0 for r in batch_reviews)
-    replication_consistent=bool(batch_reviews) and review_passes and positive_effects
+    replication_consistent=bool(batch_reviews)
+    if policy.get("require_all_batch_reviews_pass"):replication_consistent=replication_consistent and review_passes
+    if policy.get("require_positive_batch_aggregate"):replication_consistent=replication_consistent and positive_effects
     case_ids=[f.get("case_id") for f in selected_freezes]
     case_token_unique=len(case_ids)==len(set(case_ids)) and all(isinstance(x,str) and bool(x) for x in case_ids)
     ready=(
-        len(batch_reviews)>=MIN_BATCH_COUNT
+        len(batch_reviews)>=policy["minimum_batch_count"]
         and len(batch_reviews)==len(batches)
         and complete_scores
         and len(selected_outcomes)==total_case_count
         and replication_consistent
-        and case_token_unique
-        and discordant>=MIN_DISCORDANT_COUNT
-        and candidate_wins>comparator_wins
-        and pooled is not None and pooled>0
-        and pvalue is not None and pvalue<=ALPHA
+        and (case_token_unique or not policy.get("require_unique_case_tokens"))
+        and discordant>=policy["minimum_discordant_count"]
+        and (candidate_wins>comparator_wins or not policy.get("require_candidate_wins_gt_comparator_wins"))
+        and (pooled is not None and pooled>0 if policy.get("require_positive_pooled_paired_delta") else pooled is not None)
+        and pvalue is not None and pvalue<=policy["alpha"]
     )
     return {
         "batch_review_ids":sorted(r.get("review_id") for r in batch_reviews),
@@ -134,7 +176,7 @@ def compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews):
         "one_sided_exact_pvalue":pvalue,
         "replication_consistent":replication_consistent,
         "case_token_unique":case_token_unique,
-        "credit_readiness":"READY_FOR_MANUAL_EMPIRICAL_REVIEW" if ready else "NOT_ELIGIBLE",
+        "credit_readiness":policy["readiness_ceiling"] if ready else "NOT_ELIGIBLE",
     }
 
 
@@ -145,9 +187,11 @@ def values_match(actual,expected):
     return actual==expected
 
 
-def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,credit_reviews):
+def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,credit_reviews,empirical_credit_policies=None):
     issues=[]
-    upstream=pv.validate_records(distillates,plans,batches,freezes,outcomes)
+    policies,policy_by_version,policy_issues=load_policy_index(empirical_credit_policies)
+    issues.extend(policy_issues)
+    upstream=pv.validate_records(distillates,plans,batches,freezes,outcomes,policies)
     if upstream:
         issues.extend(("UPSTREAM_PROSPECTIVE",f"upstream prospective contract invalid: {rid}: {msg}") for rid,msg in upstream)
         return issues
@@ -167,7 +211,14 @@ def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,cr
         if not isinstance(rid,str) or not CREDIT_REVIEW_ID_RE.match(rid):issues.append((rid,"invalid credit_review_id"))
         if rid in seen_ids:issues.append((rid,"duplicate credit_review_id"))
         seen_ids.add(rid)
-        if r.get("policy_version")!=POLICY_VERSION:issues.append((rid,f"policy_version must be {POLICY_VERSION}"))
+
+        policy_version=r.get("policy_version")
+        policy_sha=r.get("policy_sha256")
+        policy=policy_by_version.get(policy_version)
+        if not pv.nonempty_text(policy_version):issues.append((rid,"policy_version must be non-empty text"))
+        elif policy is None:issues.append((rid,f"unknown policy_version: {policy_version}"))
+        if not isinstance(policy_sha,str) or not SHA64_RE.match(policy_sha):issues.append((rid,"policy_sha256 must be lowercase sha256"))
+        elif policy is not None and policy_sha!=canonical_sha256(policy):issues.append((rid,"policy_sha256 does not bind exact registered empirical-credit policy"))
 
         pid=r.get("plan_id");plan=plan_by_id.get(pid)
         if not plan:
@@ -182,13 +233,19 @@ def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,cr
 
         contract_sha=r.get("replication_contract_sha256")
         if not isinstance(contract_sha,str) or not SHA64_RE.match(contract_sha):issues.append((rid,"replication_contract_sha256 must be lowercase sha256"))
-        cohort=[b for b in batches if b.get("plan_id")==pid and b.get("model_commit_sha")==r.get("model_commit_sha") and b.get("comparator_ref")==r.get("comparator_ref") and replication_contract_sha256(b)==contract_sha]
-        cohort_key=(pid,r.get("model_commit_sha"),r.get("comparator_ref"),contract_sha)
+        cohort=[b for b in batches if b.get("plan_id")==pid and b.get("model_commit_sha")==r.get("model_commit_sha") and b.get("comparator_ref")==r.get("comparator_ref") and b.get("empirical_credit_policy_version")==policy_version and b.get("empirical_credit_policy_sha256")==policy_sha and replication_contract_sha256(b)==contract_sha]
+        cohort_key=(pid,r.get("model_commit_sha"),r.get("comparator_ref"),policy_version,policy_sha,contract_sha)
         if cohort_key in seen_cohorts:issues.append((rid,"a governed replication cohort may have only one active credit review"))
         seen_cohorts.add(cohort_key)
         if not cohort:
             issues.append((rid,"replication_contract_sha256 does not identify a governed cohort"))
             continue
+
+        if policy is None:
+            issues.append((rid,"credit review cannot evaluate cohort without registered policy"))
+            continue
+        expected_policy_sha=canonical_sha256(policy)
+        if any(b.get("empirical_credit_policy_version")!=policy_version or b.get("empirical_credit_policy_sha256")!=expected_policy_sha for b in cohort):issues.append((rid,"replication cohort policy binding is inconsistent"))
 
         cohort_batch_ids={b.get("batch_id") for b in cohort}
         cohort_reviews=[review_by_batch.get(bid) for bid in cohort_batch_ids if review_by_batch.get(bid)]
@@ -202,16 +259,17 @@ def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,cr
         selected_freezes=[f for f in freezes if f.get("batch_id") in cohort_batch_ids]
         selected_freeze_ids={f.get("freeze_id") for f in selected_freezes}
         selected_outcomes=[o for o in outcomes if o.get("freeze_id") in selected_freeze_ids]
-        summary=compute_credit_summary(plan,cohort,selected_freezes,selected_outcomes,cohort_reviews)
+        summary=compute_credit_summary(plan,cohort,selected_freezes,selected_outcomes,cohort_reviews,policy)
         for field in ["batch_count","total_case_count","discordant_count","candidate_win_count","comparator_win_count","tie_count","replication_consistent","case_token_unique","credit_readiness"]:
             if r.get(field)!=summary[field]:issues.append((rid,f"{field} does not match machine recomputation" if field!="credit_readiness" else "credit_readiness does not match machine policy"))
         if not values_match(r.get("pooled_paired_delta"),summary["pooled_paired_delta"]):issues.append((rid,"pooled_paired_delta does not match machine recomputation"))
         if not values_match(r.get("one_sided_exact_pvalue"),summary["one_sided_exact_pvalue"]):issues.append((rid,"one_sided_exact_pvalue does not match machine recomputation"))
 
-        if r.get("minimum_batch_count")!=MIN_BATCH_COUNT:issues.append((rid,f"minimum_batch_count must equal policy value {MIN_BATCH_COUNT}"))
-        if r.get("minimum_discordant_count")!=MIN_DISCORDANT_COUNT:issues.append((rid,f"minimum_discordant_count must equal policy value {MIN_DISCORDANT_COUNT}"))
-        if not finite_number(r.get("alpha")) or r.get("alpha")!=ALPHA:issues.append((rid,f"alpha must equal policy value {ALPHA}"))
+        if r.get("minimum_batch_count")!=policy["minimum_batch_count"]:issues.append((rid,f"minimum_batch_count must equal preregistered policy value {policy['minimum_batch_count']}"))
+        if r.get("minimum_discordant_count")!=policy["minimum_discordant_count"]:issues.append((rid,f"minimum_discordant_count must equal preregistered policy value {policy['minimum_discordant_count']}"))
+        if not finite_number(r.get("alpha")) or r.get("alpha")!=policy["alpha"]:issues.append((rid,f"alpha must equal preregistered policy value {policy['alpha']}"))
         if r.get("credit_readiness") not in READINESS_VALUES:issues.append((rid,"invalid credit_readiness"))
+        if r.get("credit_readiness")==pv.READINESS_CEILING and policy.get("readiness_ceiling")!=pv.READINESS_CEILING:issues.append((rid,"credit_readiness exceeds preregistered policy ceiling"))
 
         review_dt=utc_value(r.get("reviewed_at_utc"))
         if review_dt is None:
@@ -239,11 +297,12 @@ def main():
     outcomes=pv.load_jsonl(K/"K2_PROSPECTIVE_OUTCOMES.jsonl")
     batch_reviews=pv.load_jsonl(K/"K2_PROSPECTIVE_BATCH_REVIEWS.jsonl")
     credit_reviews=pv.load_jsonl(K/"K2_PROSPECTIVE_EMPIRICAL_CREDIT_REVIEWS.jsonl")
-    issues=validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,credit_reviews)
+    policies=pv.load_empirical_credit_policies(ROOT)
+    issues=validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,credit_reviews,policies)
     if issues:fail(f"issues={len(issues)} first={issues[0][0]}: {issues[0][1]}")
-    ready=sum(r.get("credit_readiness")=="READY_FOR_MANUAL_EMPIRICAL_REVIEW" for r in credit_reviews)
+    ready=sum(r.get("credit_readiness")==pv.READINESS_CEILING for r in credit_reviews)
     print("k2-empirical-credit-review: PASS")
-    print(f"credit_reviews={len(credit_reviews)} ready_for_manual_review={ready} issues=0")
+    print(f"policies={len(policies)} credit_reviews={len(credit_reviews)} ready_for_manual_review={ready} issues=0")
     print("empirical_credit_upgrade_blocked=true")
 
 if __name__=="__main__":main()

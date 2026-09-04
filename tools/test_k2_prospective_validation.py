@@ -71,8 +71,13 @@ def multi_domain_plan(include_route_freeze=False):
     return p
 
 
+def empirical_policy():
+    rows=v.load_empirical_credit_policies()
+    return next(row for row in rows if row.get("policy_version")=="EMPIRICAL_CREDIT_REVIEW_V1")
+
+
 def batch(p=None):
-    p=p or plan()
+    p=p or plan();policy=empirical_policy()
     return {
         "batch_id":"K2PVB-BATCH_001",
         "plan_id":p["plan_id"],
@@ -80,6 +85,8 @@ def batch(p=None):
         "preregistered_at_utc":"2026-08-21T23:00:00Z",
         "model_commit_sha":"a"*40,
         "comparator_ref":"STATIC_BASELINE_V1",
+        "empirical_credit_policy_version":policy["policy_version"],
+        "empirical_credit_policy_sha256":v.canonical_sha256(policy),
         "planned_case_count":20,
         "sampling_rule":"accept consecutive eligible cases under frozen scope",
         "primary_metric":"PAIRED_SCORE_DELTA",
@@ -146,8 +153,8 @@ def outcome(f=None):
     }
 
 
-def validation_text(ds,plans,batches=None,freezes=None,outcomes=None):
-    issues=v.validate_records(ds,plans,batches or [],freezes or [],outcomes or [])
+def validation_text(ds,plans,batches=None,freezes=None,outcomes=None,policies=None):
+    issues=v.validate_records(ds,plans,batches or [],freezes or [],outcomes or [],policies)
     return issues,"; ".join(f"{a}: {b}" for a,b in issues)
 
 
@@ -222,11 +229,21 @@ def test_hypothesis_context_binding():
     assert "hypothesis_context_sha256 does not bind exact governed hypothesis context" in text,text
 
 
+def test_empirical_credit_policy_content_binding():
+    p=plan();b=batch(p)
+    changed=copy.deepcopy(v.load_empirical_credit_policies())
+    changed[0]["alpha"]=0.5
+    issues,text=validation_text(distillates(),[p],[b],policies=changed)
+    assert issues,"expected policy content drift under unchanged policy_version to invalidate the batch"
+    assert "empirical_credit_policy_sha256 does not bind exact registered policy content" in text,text
+
+
 def main():
     test_sharded_work_family_loader()
     test_multi_domain_route_freeze()
     test_hypothesis_content_binding()
     test_hypothesis_context_binding()
+    test_empirical_credit_policy_content_binding()
     p=plan();must_pass([p])
 
     bad=copy.deepcopy(p);bad["hypothesis_id"]="H-NOT-FOUND"
@@ -251,6 +268,15 @@ def main():
     must_fail([bad],needle="cannot carry empirical credit")
 
     b=batch(p);must_pass([p],[b])
+
+    legacy=copy.deepcopy(b);legacy.pop("empirical_credit_policy_version",None);legacy.pop("empirical_credit_policy_sha256",None)
+    must_fail([p],[legacy],needle="empirical_credit_policy")
+
+    badb=copy.deepcopy(b);badb["empirical_credit_policy_version"]="EMPIRICAL_CREDIT_REVIEW_UNKNOWN"
+    must_fail([p],[badb],needle="unknown empirical_credit_policy_version")
+
+    badb=copy.deepcopy(b);badb["empirical_credit_policy_sha256"]="0"*64
+    must_fail([p],[badb],needle="does not bind exact registered policy content")
 
     legacy=copy.deepcopy(b);legacy.pop("primary_metric_spec",None)
     must_fail([p],[legacy],needle="primary_metric_spec")
@@ -363,6 +389,6 @@ def main():
     must_fail([p],[b],[f],[bado],needle="outcome fields mismatch")
 
     print("k2-prospective-validation-tests: PASS")
-    print("cases=55")
+    print("cases=59")
 
 if __name__=="__main__":main()
