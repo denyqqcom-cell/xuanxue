@@ -1,0 +1,82 @@
+{
+  "schema_version": "project-handoff-v1",
+  "captured_at": "2026-09-05T01:05:00+08:00",
+  "snapshot_semantics": "DYNAMIC_LEAD_ONLY_REQUIRES_FRESH_VERIFICATION",
+  "repository": "denyqqcom-cell/xuanxue",
+  "authority_order": [
+    "LIVE_GITHUB_EXACT_REF",
+    "EXACT_COMMIT_REPOSITORY_RECORDS",
+    "CURRENT_CI_EVIDENCE",
+    "FRESH_PHYSICAL_EVIDENCE",
+    "PROJECT_HANDOFF_SNAPSHOT",
+    "PR_PROSE_OR_COMMENTS",
+    "OLD_CHAT_OR_MODEL_MEMORY"
+  ],
+  "handoff_status_protocol": [
+    "HANDOFF_VERIFIED",
+    "HANDOFF_DRIFTED",
+    "HANDOFF_NOT_VERIFIED"
+  ],
+  "parent": {
+    "branch": "ci/qimen-ui-provenance-v1",
+    "head_sha": "ff1a3389b90e854bd81d17b9cf1c54218e1074b3",
+    "active_pr": 45,
+    "pr_state": "OPEN_DRAFT_UNMERGED_MERGEABLE",
+    "base_branch": "ci/qimen-world-model-before-symbols-v1",
+    "base_sha": "426300ad914d18a71163c2aac5aa4e16e50aeb73"
+  },
+  "knowledge": {
+    "phase": "K2_EVIDENCE_EXTRACTION",
+    "expected_wave1_reading_units": 37,
+    "formal_complete_reading_units": 6,
+    "formal_complete_ratio": 0.1621621622,
+    "qimen_wave1_complete": 5,
+    "qimen_wave1_total": 5,
+    "ziwei_formal_complete": 1,
+    "atomic_evidence_rows": 694,
+    "unknown_textual_backlog": 91,
+    "claim_extraction": "BLOCKED",
+    "source_lineage": "COMPLETE",
+    "execution_owner": "PROJECT_MAIN_AGENT",
+    "local_ai_role": "EXECUTION_HELPER_ONLY",
+    "warning": "registry/lineage coverage is not corpus mastery; composite closure and deep-reading credit are separate from legacy formal COMPLETE"
+  },
+  "cognitive": {
+    "world_model_before_symbols": "IMPLEMENTED_UPSTREAM",
+    "product_provenance_classes": [
+      "CHART_FACT",
+      "SOURCE_RULE",
+      "PROJECT_INFERENCE",
+      "UNVERIFIED_HYPOTHESIS"
+    ],
+    "reality_input_is_outside_four_analysis_classes": true,
+    "full_theory_validity": "NOT_CLAIMED"
+  },
+  "empirical": {
+    "real_batch": "NONE",
+    "freeze": "NONE",
+    "outcome": "NONE",
+    "empirical_credit": "NONE",
+    "prospective_infrastructure_is_evidence": false
+  },
+  "ci_at_capture": {
+    "k2_world_model_before_symbols": "SUCCESS",
+    "k2_qcic": "SUCCESS",
+    "knowledge_engine_v1": "IN_PROGRESS_RECHECK_REQUIRED",
+    "windows_helper_portability": "SUCCESS_WITHIN_KNOWLEDGE_RUN"
+  },
+  "physical": {
+    "current_session": "NOT_VERIFIED",
+    "reason": "developer MCP invocation returned FORBIDDEN",
+    "device_failure_claimed": false,
+    "exact_head_physical_pass_claimed": false
+  },
+  "merge_authorized": false,
+  "required_status_tracks": [
+    "CORPUS_MASTERY",
+    "COGNITIVE_RECONSTRUCTION",
+    "ENGINE_STRUCTURAL_CREDIT",
+    "PRODUCT_ACCEPTANCE",
+    "PROSPECTIVE_EMPIRICAL_CREDIT"
+  ]
+}
