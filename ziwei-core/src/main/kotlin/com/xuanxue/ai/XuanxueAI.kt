@@ -99,15 +99,35 @@ object XuanxueAI {
         extraCaveats = listOf("夹具证明的是 Kotlin 与 iztro 的实现一致性，不是对星曜解释作独立真值验证。"),
     )
 
-    fun qimen(c: QimenEngine.QimenChart, context: ReadingContext = ReadingContext()): Reading = buildReading(
-        id = "qimen",
-        rawItems = QimenInterpreter.interpret(c),
-        itemTitle = "奇门",
-        grade = EvidenceGrade.SOURCE_DERIVED,
-        context = context,
-        requireSpecificContext = true,
-        extraCaveats = listOf("完整九宫、值符值使、星门神盘仍按实验实现管理；离线解释层不会据此直接断成败或应期。"),
-    )
+    fun qimen(c: QimenEngine.QimenChart, context: ReadingContext = ReadingContext()): Reading {
+        val audit = MethodAuditRegistry.qimen
+        val hasRealityContext = context.domain != QueryDomain.GENERAL ||
+            context.normalizedQuestion.isNotEmpty() ||
+            context.normalizedKnownFacts.isNotEmpty()
+        val caveats = buildList {
+            addAll(audit.limitations)
+            add("完整九宫、值符值使、星门神盘仍按实验实现管理；离线解释层不会据此直接断成败或应期。")
+            when {
+                !hasRealityContext ->
+                    add("尚未提供具体事体；当前只展示排盘/规则/项目边界，不进入取用、成败与应期判断。")
+                !context.isSpecific ->
+                    add("事体描述仍过短；请补充明确问题与已知现实条件后，再进入情境推演。")
+            }
+        }.distinct()
+
+        return Reading(
+            toolName = "qimen",
+            overall = audit.summary,
+            caveats = caveats,
+            contextSummary = if (hasRealityContext) context.summary() else "",
+            contextCaveat = if (hasRealityContext) {
+                "这是用户提供的现实条件，属于 M0/M1 reality input，不属于盘面事实、来源规则、项目推论或未经验证假设，也不会提高任何术数规则的证据等级。"
+            } else {
+                ""
+            },
+            items = QimenProductProjection.items(c, audit.sourceIds),
+        )
+    }
 
     fun liuyao(c: LiuYaoEngine.LiuYaoChart, context: ReadingContext = ReadingContext()): Reading = buildReading(
         id = "liuyao",
