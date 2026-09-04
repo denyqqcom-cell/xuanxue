@@ -1,0 +1,17 @@
+name: K2 World Model Before Symbols
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  world-model-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce World Model Before Symbols governance
+        run: python3 tools/test_k2_qimen_world_model_before_symbols.py
