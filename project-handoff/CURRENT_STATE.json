@@ -1,6 +1,6 @@
 {
   "schema_version": "project-handoff-v1",
-  "captured_at": "2026-09-05T01:05:00+08:00",
+  "captured_date_local": "2026-09-05",
   "snapshot_semantics": "DYNAMIC_LEAD_ONLY_REQUIRES_FRESH_VERIFICATION",
   "repository": "denyqqcom-cell/xuanxue",
   "authority_order": [
@@ -19,7 +19,8 @@
   ],
   "parent": {
     "branch": "ci/qimen-ui-provenance-v1",
-    "head_sha": "ff1a3389b90e854bd81d17b9cf1c54218e1074b3",
+    "head_sha": "151b26a63451e63af57e385eaa23ca725672a19a",
+    "head_message": "test: keep Qimen reality context outside provenance classes",
     "active_pr": 45,
     "pr_state": "OPEN_DRAFT_UNMERGED_MERGEABLE",
     "base_branch": "ci/qimen-world-model-before-symbols-v1",
@@ -60,16 +61,20 @@
     "prospective_infrastructure_is_evidence": false
   },
   "ci_at_capture": {
-    "k2_world_model_before_symbols": "SUCCESS",
-    "k2_qcic": "SUCCESS",
-    "knowledge_engine_v1": "IN_PROGRESS_RECHECK_REQUIRED",
-    "windows_helper_portability": "SUCCESS_WITHIN_KNOWLEDGE_RUN"
+    "k2_world_model_before_symbols": "SUCCESS_RUN_12",
+    "k2_qcic": "SUCCESS_RUN_436",
+    "knowledge_engine_v1": "SUCCESS_RUN_980"
   },
   "physical": {
     "current_session": "NOT_VERIFIED",
     "reason": "developer MCP invocation returned FORBIDDEN",
     "device_failure_claimed": false,
     "exact_head_physical_pass_claimed": false
+  },
+  "drift_observed_while_building_pack": {
+    "from_sha": "ff1a3389b90e854bd81d17b9cf1c54218e1074b3",
+    "to_sha": "151b26a63451e63af57e385eaa23ca725672a19a",
+    "action": "DOCS_BRANCH_RESYNCHRONIZED_WITHOUT_TREATING_OLD_SHA_AS_CURRENT"
   },
   "merge_authorized": false,
   "required_status_tracks": [

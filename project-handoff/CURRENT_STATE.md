@@ -4,18 +4,21 @@
 
 ## 1. Snapshot identity
 
-- captured_local_time: `2026-09-05T01:05:00+08:00`
+- captured_local_date: `2026-09-05`
 - repository: `denyqqcom-cell/xuanxue`
 - snapshot_parent_branch: `ci/qimen-ui-provenance-v1`
-- snapshot_parent_head: `ff1a3389b90e854bd81d17b9cf1c54218e1074b3`
+- snapshot_parent_head: `151b26a63451e63af57e385eaa23ca725672a19a`
+- parent commit: `test: keep Qimen reality context outside provenance classes`
 - active PR at capture: `#45 Product carrier: separate Qimen provenance classes`
 - PR #45: `OPEN / DRAFT / UNMERGED / MERGEABLE`
 - PR #45 base: `ci/qimen-world-model-before-symbols-v1@426300ad914d18a71163c2aac5aa4e16e50aeb73`
 - no merge authorization is implied by this snapshot.
 
+During creation of this continuity pack, the parent branch advanced from `ff1a3389...` to `151b26a6...`; the docs branch was explicitly resynchronized instead of pretending the old SHA remained current. This is exactly the drift behavior new AI should follow.
+
 ## 2. Current product/core work
 
-PR #45 当前已经不只是 fail-first：branch exact head `ff1a3389...` 包含奇门产品层四类 provenance UI 分区：
+PR #45 exact head `151b26a6...` contains the Qimen product-level four-class provenance implementation and an additional test that keeps reality/user context outside those classes:
 
 1. 盘面事实 `CHART_FACT`
 2. 来源规则 `SOURCE_RULE`
@@ -43,7 +46,7 @@ Current repository state declares:
 
 Current exact tree contains six formal COMPLETE Reading rows:
 
-- Qimen: `QM-SRC-0001`, `QM-SRC-0003`, `QM-SRC-0016`, `QM-SRC-0021`, `QM-SRC-0028` = **5/5 Qimen Wave1**
+- Qimen: `QM-SRC-0001`, `QM-SRC-0003`, `QM-SRC-0016`, `QM-SRC-0021`, `QM-SRC-0028` = **5/5 selected Qimen Wave1**
 - Ziwei: `ZW-SRC-0002` = **1 formal COMPLETE unit**
 
 Aggregate formal Wave1:
@@ -78,16 +81,13 @@ Repository contains substantial preregistration, paired-comparator, batch-review
 
 ## 5. CI state at snapshot
 
-For parent head `ff1a3389...`:
+For parent head `151b26a6...` all three current PR-triggered core/knowledge governance workflows were rechecked:
 
-- `K2 World Model Before Symbols #11` — SUCCESS
-- `K2 QCIC v0.6 Machine Gates #435` — SUCCESS
-- `Knowledge Engine V1 CI #979` — IN_PROGRESS at capture
-  - knowledge steps through local-AI/device-contract checks had completed successfully;
-  - Windows `k2-helper-portability` had completed SUCCESS;
-  - stable `:ziwei-core:test` step was still running at capture.
+- `K2 World Model Before Symbols #12` — **SUCCESS**
+- `K2 QCIC v0.6 Machine Gates #436` — **SUCCESS**
+- `Knowledge Engine V1 CI #980` — **SUCCESS**
 
-Do not preserve `IN_PROGRESS` as a permanent conclusion. Fresh read the workflow by exact head.
+This replaces the earlier intermediate `ff1a3389... / Knowledge #979 IN_PROGRESS` observation. New AI must always prefer the latest exact-head run.
 
 ## 6. Physical / Moto state
 
