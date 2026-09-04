@@ -1,89 +1,38 @@
-# CURRENT STATE — Snapshot at 2026-09-05 / checkpoint PH-20260905-003
+# CURRENT STATE — Snapshot at 2026-09-05 / checkpoint PH-20260905-004
 
-> 这是**可审计快照**，不是永远有效的“当前真相”。任何新 AI 必须先按 `EXECUTION_PLAYBOOK.md` fresh verify。
+> 这是可审计动态快照，不是永远有效的当前真相。新 AI 必须先按 `EXECUTION_PLAYBOOK.md` fresh verify。
 
 ## 1. Snapshot identity
 
-- checkpoint_id: `PH-20260905-003`
+- checkpoint_id: `PH-20260905-004`
 - captured_local_date: `2026-09-05`
 - repository: `denyqqcom-cell/xuanxue`
-- active_product_branch_at_capture: `ci/qimen-ui-provenance-v1`
-- active_product_head_at_capture: `33d92346fcff9ebe28b08271d29c1462c2ac900c`
-- active PR at capture: `#45 Product carrier: separate Qimen provenance classes`
-- PR #45: `OPEN / DRAFT / UNMERGED / MERGEABLE`
-- PR #45 base: `ci/qimen-world-model-before-symbols-v1@426300ad914d18a71163c2aac5aa4e16e50aeb73`
-- continuity docs PR: `#47 Docs: add project continuity and AI handoff pack`
-- PR #47 remains `OPEN / DRAFT / UNMERGED`; no merge authorization is implied.
+- active product PR: `#45 Product carrier: separate Qimen provenance classes`
+- active branch: `ci/qimen-ui-provenance-v1`
+- exact head: `33d92346fcff9ebe28b08271d29c1462c2ac900c`
+- PR #45 state: `OPEN / DRAFT / UNMERGED / MERGEABLE`
+- base: `ci/qimen-world-model-before-symbols-v1@426300ad914d18a71163c2aac5aa4e16e50aeb73`
+- continuity PR: `#47`, branch `docs/project-continuity-v1`, still Draft/unmerged
+- merge_authorized: `false`
 
-The active product branch has continued to advance after the first continuity snapshot (`10b5e5e6... → 33d92346...`). This is expected and is exactly why snapshots are leads rather than authority.
+Fresh verification in this cycle found no product-head drift from PH-003. PR #45 prose itself was stale, however: it still described the branch as FAIL-FIRST-only after implementation and all triggered CI had completed. The PR body has now been corrected to current evidence.
 
-## 2. Current product/core work
+## 2. Product / cognitive checkpoint
 
-PR #45 carries Qimen product-level four-class provenance separation and tests that keep reality/user context outside those classes:
+PR #45 implements exactly four Qimen analysis provenance classes:
 
-1. 盘面事实 `CHART_FACT`
-2. 来源规则 `SOURCE_RULE`
-3. 项目推论 `PROJECT_INFERENCE`
-4. 未经验证假设 `UNVERIFIED_HYPOTHESIS`
+1. `CHART_FACT / 盘面事实`
+2. `SOURCE_RULE / 来源规则`
+3. `PROJECT_INFERENCE / 项目推论`
+4. `UNVERIFIED_HYPOTHESIS / 未经验证假设`
 
-Reality/user input remains outside the four analysis classes.
+Reality/user input remains outside the four analysis classes. Upstream `WORLD_MODEL_BEFORE_SYMBOLS` keeps the order M0 reality normalization → M1 reality-only world model → M2 symbols enter → M3 prediction/abstain/unevaluable freeze → M4 narrative cannot rewrite M3.
 
-At current product head `33d92346...`, the branch also contains stacked-App CI/instrumentation work so the product provenance UI is exercised through App UI CI and emulator acceptance rather than only core unit tests.
+This creates structural/product credit only. It does not establish predictive validity or metaphysical truth.
 
-Upstream PR #44 established the `WORLD_MODEL_BEFORE_SYMBOLS` M0–M4 Core contract. This is cognitive/structural credit, not predictive validity.
+## 3. Exact-head CI / engineering acceptance
 
-## 3. Knowledge Engine
-
-Current active lineage still declares:
-
-- phase: `K2_EVIDENCE_EXTRACTION`
-- K1 acceptance: `PROJECT_VERIFIED`
-- source lineage: `COMPLETE`
-- evidence extraction: open
-- claim extraction: `BLOCKED`
-- execution owner: `PROJECT_MAIN_AGENT`
-- local AI role: `EXECUTION_HELPER_ONLY`
-- source identity authority: canonical file SHA-256
-
-### Formal Wave1
-
-Current active lineage contains six formal COMPLETE Reading rows:
-
-- Qimen: `QM-SRC-0001`, `QM-SRC-0003`, `QM-SRC-0016`, `QM-SRC-0021`, `QM-SRC-0028` = **5/5 selected Qimen Wave1**
-- Ziwei: `ZW-SRC-0002` = **1 formal COMPLETE unit**
-
-Aggregate formal Wave1:
-
-- `6 / 37 COMPLETE` = **16.2%**
-- Atomic Evidence: **694**
-- Claim Extraction: **BLOCKED**
-- UNKNOWN textual backlog: **91**
-
-Composite execution closure and historical deep-reading records are separate credit types. Do not infer actionable queue size from `37 - 6`; run the current queue aggregator.
-
-### Registry vs real reading
-
-- K1 Source Registry / Lineage coverage is structurally mature (historically 515 sources / 515 lineage rows), but this is **not** corpus mastery.
-- “登记 515 个来源”不得写成“学完 515 本”。
-- Corpus mastery reports must use Reading/Evidence/Distillate state, not registry count.
-
-## 4. Empirical state
-
-Current project boundary remains:
-
-```text
-REAL_BATCH = NONE
-FREEZE = NONE
-OUTCOME = NONE
-EMPIRICAL_CREDIT = NONE
-CLAIM_EXTRACTION = BLOCKED
-```
-
-Repository contains substantial preregistration, paired-comparator, batch-review, replication-credit, sample provenance and canonical identity infrastructure. These gates constrain hindsight/provenance degrees of freedom; they do not create empirical evidence by themselves.
-
-## 5. CI state at checkpoint
-
-For active product head `33d92346fcff9ebe28b08271d29c1462c2ac900c`, fresh recheck now shows all five triggered workflow families complete successfully:
+Fresh exact-head workflow read for `33d92346...`:
 
 - `K2 World Model Before Symbols #19` — **SUCCESS**
 - `K2 QCIC v0.6 Machine Gates #443` — **SUCCESS**
@@ -91,13 +40,21 @@ For active product head `33d92346fcff9ebe28b08271d29c1462c2ac900c`, fresh rechec
 - `K2 App UI CI #182` — **SUCCESS**
 - `V1.0 Emulator Acceptance #93` — **SUCCESS**
 
-This checkpoint deliberately updates the earlier `PH-20260905-002` observation where Emulator #93 was still IN_PROGRESS. It is the first live example of the new per-work progress-sync rule: a material external status transition observed before final response is persisted rather than left stale.
+Knowledge #987 also confirms the relevant core tests pass, including the four-class product provenance contract, Qimen reality/context staying outside those classes, M0–M4 world-model invariants, and the explicit rule that full Qimen board validity remains experimental until golden boards exist.
 
-Engineering acceptance at this exact product head therefore supports current CI/App/Emulator evidence. It still does **not** create exact-head Physical PASS or empirical/predictive credit.
+Current product acceptance:
 
-## 6. Physical / Moto state
+```text
+CORE = PASS (current CI scope)
+KNOWLEDGE = PASS (current CI scope)
+APP_UI = PASS / run #182
+EMULATOR = PASS / run #93
+PHYSICAL = BLOCKED / NOT_VERIFIED_CURRENT_SESSION
+```
 
-This session attempted fresh Moto X30 Pro AgentDock access and received:
+## 4. Physical / Moto
+
+This cycle fresh-invoked the Moto X30 Pro connector. Runtime returned:
 
 ```text
 FORBIDDEN: This conversation does not support developer MCPs
@@ -105,61 +62,95 @@ FORBIDDEN: This conversation does not support developer MCPs
 
 Therefore:
 
+- exact-head Physical PASS is **not** claimed;
+- current-session physical state is `BLOCKED / NOT_VERIFIED`;
+- this is not evidence that Moto, ADB or AgentDock failed;
+- when a session with Moto entitlement is available, physical acceptance remains a separate debt to execute against the exact product head.
+
+## 5. Knowledge Engine — fresh aggregate from Knowledge #987
+
+Structural registry / lineage:
+
+- K1 sources: `515`
+- K2 lineage rows: `515`
+
+Formal corpus mastery:
+
+- expected Wave1 units: `37`
+- formal COMPLETE: `6`
+- formal ratio: `16.2%`
+- Qimen selected Wave1: `5/5`
+- Ziwei formal COMPLETE: `1`
+- Atomic Evidence: `694`
+- UNKNOWN textual backlog: `91`
+- Claim Extraction: `CLOSED / authorized=false / blockers=3`
+
+Do not turn `515 sources registered` into `515 sources learned`.
+
+The execution-queue contract adds an important distinction:
+
 ```text
-CURRENT_SESSION_PHYSICAL_STATE = NOT_VERIFIED
+actionable_remaining = 30
+deep_reusable = 0
+legacy_terminal = 6
+composite_execution_closed = 1
 ```
 
-This does **not** mean the phone, ADB, AgentDock or prior physical evidence failed. It only means this session could not independently verify them. Any physical PASS must be bound to an exact source head and fresh execution evidence; binary equivalence may be recorded as `INHERITED`, not exact-head physical PASS.
+Thus `37 - 6 = 31` is not the actionable queue size. One additional source is composite-execution closed without changing legacy formal COMPLETE semantics.
 
-## 7. Continuity / progress-sync policy — active
-
-From checkpoint `PH-20260905-002`, every completed work cycle must persist progress before the user is told it is complete:
+Current next queue item:
 
 ```text
-Fresh Verification
-→ update CURRENT_STATE.md
-→ update CURRENT_STATE.json
-→ append WORK_LOG.jsonl
-→ update DECISION_MEMORY.md when durable reasoning changed
-→ final response with PROGRESS_SYNC status
+source_id = ZW-SRC-0003
+domain = ziwei
+lane = TEXT_DIRECT
+next_action = TEXT_PAGE_REVIEW_REQUIRED
+relation = WORK_PART
+work_id = WORK-000002
 ```
 
-A work cycle that has implementation/tests but no persisted continuity checkpoint is **not** considered fully closed. If repository writing is blocked, the AI must say `WORK_DONE_PROGRESS_SYNC_BLOCKED` and provide a temporary copyable handoff instead of silently skipping the update.
+The next C2 reading cycle must identify the canonical carrier from repository registry/lineage before using any uploaded file. File names alone are not sufficient identity evidence.
 
-This is the project definition of near-real-time progress: **per completed AI work cycle before returning control to the user**. It is not a claim of background 24/7 monitoring while no AI session is running.
+## 6. Cognitive / engine state
 
-## 8. ChatGPT Web window continuity — active
+Fresh Knowledge #987 reports:
 
-Every completed ChatGPT Web work cycle must end with one of:
+- Qimen cognitive reconstruction: `OPEN`, framework `SCRM-v0.1`, empirical credit `NONE`
+- Qimen TBV: `PARTIAL`, reviewed_units `16`, deep_units `12`, effective_deep_sources `20/20`
+- deep-reading ledger complete_sources: `21`
+- full-board Qimen predictive/theory validity: **NOT CLAIMED**
+
+Deep-reading credit, composite closure, formal Wave1 COMPLETE and empirical credit remain distinct states.
+
+## 7. Empirical boundary
 
 ```text
-WINDOW_CONTINUITY=CONTINUE
-WINDOW_CONTINUITY=PREPARE_SWITCH
-WINDOW_CONTINUITY=SWITCH_NOW
+REAL_BATCH = NONE
+FREEZE = NONE
+OUTCOME = NONE
+EMPIRICAL_CREDIT = NONE
+CLAIM_EXTRACTION = CLOSED / BLOCKED
 ```
 
-The project cannot inspect an authoritative “remaining context percentage”, so no pseudo-precise percentage or exact remaining-turn count may be reported. The goal is to switch early enough that the repository checkpoint, not the old chat window, is the recovery authority.
+Knowledge #987 reports prospective infrastructure with plans but zero real batches/freezes/outcomes. Infrastructure constrains future experiments; it is not itself empirical evidence.
 
-Protocol: `project-handoff/WINDOW_CONTINUITY_PROTOCOL.md`.
+## 8. Work completed in PH-004
 
-## 9. Current strategic diagnosis
+- fresh-verified PR #45 exact head and all triggered CI;
+- fresh-invoked Moto connector and recorded entitlement block without inventing device failure;
+- inspected Knowledge #987 authoritative logs instead of relying on the previous snapshot;
+- corrected stale PR #45 body so it no longer falsely says FAIL-FIRST-only;
+- persisted current queue semantics (`30 actionable`, not naïve `31`);
+- did not merge, create Batch, change Claim state, or modify App/Core/Knowledge corpus.
 
-The project remains unevenly mature:
+## 9. Next action
 
-- governance / experiment infrastructure: high
-- Qimen selected Wave1 corpus: 5/5 closed
-- whole six-domain formal Wave1: still early (`6/37`)
-- engine structural verification: partial; full Qimen golden-board closure is still not established
-- contextual reasoning architecture: actively improving (`WORLD_MODEL_BEFORE_SYMBOLS`)
-- product cognition UX: PR #45 now has current exact-head CI/App/Emulator SUCCESS evidence
-- physical exact-head acceptance: `NOT_VERIFIED` in this session
-- real prospective evidence: zero
+The highest-value next cycle is C2 corpus mastery rather than another governance gate:
 
-Next work should not be measured by number of new validators. Prefer source completion, adversarial theory review, source-grounded fixtures, scenario reasoning, exact-head physical acceptance when available, then prospective testing.
+1. fresh-check PR #45/PR #47 heads;
+2. read `knowledge/registry` + lineage for `ZW-SRC-0003` and resolve its exact canonical carrier/work identity;
+3. match that identity against available uploaded/local material without guessing from filenames;
+4. if the carrier is available, perform its required `TEXT_DIRECT` page review and only then create page-bound Evidence/Distillate changes;
+5. keep Claim Extraction closed and write the next continuity checkpoint before reporting completion.
 
-## 10. Next action
-
-1. Fresh-check PR #45 exact head before any new implementation because it may move after this snapshot.
-2. Product CI/App/Emulator at `33d92346...` is currently GREEN; do not re-open engineering work merely to manufacture activity.
-3. If Moto becomes available, perform exact-head physical verification as a separate acceptance layer; otherwise keep Physical `NOT_VERIFIED/INHERITED` as appropriate.
-4. Continue the highest-value roadmap work only after defining the next cycle; at its end write the next `CURRENT_STATE.* + WORK_LOG` checkpoint before reporting completion.
+Physical acceptance stays as a separate blocked debt until Moto access is available.
