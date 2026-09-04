@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import copy,sys
+import copy,hashlib,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import test_k2_prospective_validation as fx
@@ -36,7 +36,13 @@ def make_batch_review(batch,freezes,outcomes,index):
     }
 
 
-def make_batch(plan,index,n=12,candidate_wins=True,duplicate_case_tokens=False):
+def synthetic_sample_fingerprint(batch_index,case_index,duplicate_across_batches=False):
+    identity_batch=1 if duplicate_across_batches and batch_index>1 else batch_index
+    raw=f"SYNTHETIC_REAL_SAMPLE:{identity_batch}:{case_index}".encode("utf-8")
+    return hashlib.sha256(raw).hexdigest()
+
+
+def make_batch(plan,index,n=12,candidate_wins=True,duplicate_case_tokens=False,duplicate_sample_fingerprints=False):
     batch=fx.batch(plan)
     batch["batch_id"]=f"K2PVB-BATCH_{index:03d}"
     prereg_day=1+(index-1)*3
@@ -52,6 +58,7 @@ def make_batch(plan,index,n=12,candidate_wins=True,duplicate_case_tokens=False):
         freeze["frozen_at_utc"]=f"2026-09-{freeze_day:02d}T00:{case_index:02d}:00Z"
         freeze["batch_sha256"]=pv.canonical_sha256(batch)
         freeze["model_commit_sha"]=batch["model_commit_sha"]
+        freeze["frozen_payload"]["sample_fingerprint"]=synthetic_sample_fingerprint(index,case_index,duplicate_sample_fingerprints)
         freeze["frozen_payload_sha256"]=pv.canonical_sha256(freeze["frozen_payload"])
         freezes.append(freeze)
 
@@ -71,10 +78,10 @@ def make_batch(plan,index,n=12,candidate_wins=True,duplicate_case_tokens=False):
     return batch,freezes,outcomes,review
 
 
-def fixture(second_batch_wins=True,n=12,duplicate_case_tokens=False):
+def fixture(second_batch_wins=True,n=12,duplicate_case_tokens=False,duplicate_sample_fingerprints=False):
     plan=fx.plan()
     b1,f1,o1,r1=make_batch(plan,1,n=n,candidate_wins=True)
-    b2,f2,o2,r2=make_batch(plan,2,n=n,candidate_wins=second_batch_wins,duplicate_case_tokens=duplicate_case_tokens)
+    b2,f2,o2,r2=make_batch(plan,2,n=n,candidate_wins=second_batch_wins,duplicate_case_tokens=duplicate_case_tokens,duplicate_sample_fingerprints=duplicate_sample_fingerprints)
     return plan,[b1,b2],f1+f2,o1+o2,[r1,r2]
 
 
@@ -139,6 +146,10 @@ def main():
     assert row["credit_readiness"]=="READY_FOR_MANUAL_EMPIRICAL_REVIEW",row
     assert not validate(plan,batches,freezes,outcomes,batch_reviews,[row]),validate(plan,batches,freezes,outcomes,batch_reviews,[row])
 
+    dupfp_plan,dupfp_batches,dupfp_freezes,dupfp_outcomes,dupfp_reviews=fixture(second_batch_wins=True,n=12,duplicate_sample_fingerprints=True)
+    dupfp_row=credit_review(dupfp_plan,dupfp_batches,dupfp_freezes,dupfp_outcomes,dupfp_reviews)
+    assert dupfp_row["credit_readiness"]=="NOT_ELIGIBLE","expected cross-batch sample_fingerprint reuse to block readiness"
+
     losing_plan,losing_batches,losing_freezes,losing_outcomes,losing_reviews=fixture(second_batch_wins=False,n=12)
     losing_row=credit_review(losing_plan,losing_batches,losing_freezes,losing_outcomes,losing_reviews)
     assert losing_row["credit_readiness"]=="NOT_ELIGIBLE",losing_row
@@ -178,6 +189,6 @@ def main():
     must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"replication_contract_sha256 does not identify a governed cohort")
 
     print("k2-empirical-credit-review-tests: PASS")
-    print("cases=12")
+    print("cases=13")
 
 if __name__=="__main__":main()
