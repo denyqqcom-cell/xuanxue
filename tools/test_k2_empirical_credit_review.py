@@ -17,7 +17,7 @@ def make_batch_review(batch,freezes,outcomes,index):
         "review_id":f"K2PVBR-BATCH_{index:03d}",
         "batch_id":batch["batch_id"],
         "batch_sha256":br.canonical_sha256(batch),
-        "reviewed_at_utc":f"2026-09-{3*index:02d}T00:00:00Z",
+        "reviewed_at_utc":f"2026-09-{3*index+1:02d}T00:00:00Z",
         "planned_case_count":batch["planned_case_count"],
         "freeze_count":len(freezes),
         "outcome_count":len(outcomes),
