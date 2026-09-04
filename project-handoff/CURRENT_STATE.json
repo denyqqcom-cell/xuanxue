@@ -1,6 +1,6 @@
 {
   "schema_version": "project-handoff-v1.1",
-  "checkpoint_id": "PH-20260905-004",
+  "checkpoint_id": "PH-20260905-005",
   "captured_date_local": "2026-09-05",
   "snapshot_semantics": "DYNAMIC_LEAD_ONLY_REQUIRES_FRESH_VERIFICATION",
   "repository": "denyqqcom-cell/xuanxue",
@@ -20,8 +20,20 @@
     "active_pr": 45,
     "pr_state": "OPEN_DRAFT_UNMERGED_MERGEABLE",
     "base_branch": "ci/qimen-world-model-before-symbols-v1",
-    "base_sha": "426300ad914d18a71163c2aac5aa4e16e50aeb73",
-    "pr_body_checkpoint_refreshed": true
+    "base_sha": "426300ad914d18a71163c2aac5aa4e16e50aeb73"
+  },
+  "active_c2_knowledge": {
+    "branch": "knowledge/ziwei-wave1-zw0003-v1",
+    "head_sha": "a03fb0dac3eec487619a5b52862d695222700734",
+    "active_pr": 48,
+    "pr_state": "OPEN_DRAFT_UNMERGED_MERGEABLE",
+    "source_id": "ZW-SRC-0003",
+    "work_id": "WORK-000002",
+    "relation": "WORK_PART",
+    "read_status": "COMPLETE_REVIEWED",
+    "verification_mode": "VISUAL_PAGE",
+    "pages_reviewed": 254,
+    "evidence_added": 8
   },
   "continuity_docs": {
     "branch": "docs/project-continuity-v1",
@@ -34,22 +46,19 @@
     "registry_sources": 515,
     "lineage_rows": 515,
     "expected_wave1_reading_units": 37,
-    "formal_complete_reading_units": 6,
-    "formal_complete_ratio": 0.1621621622,
-    "qimen_wave1_complete": 5,
-    "qimen_wave1_total": 5,
-    "ziwei_formal_complete": 1,
-    "atomic_evidence_rows": 694,
+    "formal_complete_reading_units": 7,
+    "formal_complete_ratio": 0.1891891892,
+    "atomic_evidence_rows": 702,
     "unknown_textual_backlog": 91,
     "claim_extraction": "CLOSED_AUTHORIZED_FALSE_BLOCKERS_3",
     "deep_reading_complete_sources": 21,
     "actionable_queue": {
-      "remaining": 30,
+      "remaining": 29,
       "deep_reusable": 0,
-      "legacy_terminal": 6,
+      "legacy_terminal": 7,
       "composite_execution_closed": 1,
       "next": {
-        "source_id": "ZW-SRC-0003",
+        "source_id": "ZW-SRC-0005",
         "domain": "ziwei",
         "execution_lane": "TEXT_DIRECT",
         "next_action": "TEXT_PAGE_REVIEW_REQUIRED",
@@ -57,6 +66,14 @@
         "work_id": "WORK-000002"
       }
     },
+    "next_ziwei_queue": [
+      "ZW-SRC-0005",
+      "ZW-SRC-0007",
+      "ZW-SRC-0013",
+      "ZW-SRC-0001",
+      "ZW-SRC-0006",
+      "ZW-SRC-0008"
+    ],
     "warning": "registry/lineage coverage, deep-reading credit, composite closure and formal Wave1 COMPLETE are distinct"
   },
   "cognitive": {
@@ -68,27 +85,28 @@
       "deep_units": 12,
       "effective_deep_sources": "20/20"
     },
-    "product_provenance_classes": [
-      "CHART_FACT",
-      "SOURCE_RULE",
-      "PROJECT_INFERENCE",
-      "UNVERIFIED_HYPOTHESIS"
+    "ziwei_source_model_updates_from_zw0003": [
+      "CONTEXT_COMPOSITION_BEFORE_OUTCOME",
+      "PATTERN_INVALIDATOR_GATE",
+      "ROLE_PALACE_SELECTION",
+      "DYNAMIC_LAYER_FREEZE",
+      "SOURCE_PRIORITY_IS_NOT_ONTOLOGY",
+      "WORK_PART_INDEPENDENCE_CAP"
     ],
-    "reality_input_is_outside_four_analysis_classes": true,
     "full_theory_validity": "NOT_CLAIMED"
   },
   "ci_at_capture": {
-    "k2_world_model_before_symbols": "SUCCESS_RUN_19",
-    "k2_qcic": "SUCCESS_RUN_443",
-    "knowledge_engine_v1": "SUCCESS_RUN_987",
-    "k2_app_ui": "SUCCESS_RUN_182",
-    "emulator_acceptance": "SUCCESS_RUN_93"
+    "pr48_k2_world_model_before_symbols": "SUCCESS_RUN_20",
+    "pr48_k2_qcic": "SUCCESS_RUN_444",
+    "pr48_knowledge_engine_v1": "SUCCESS_RUN_988",
+    "stable_product_k2_app_ui": "SUCCESS_RUN_182",
+    "stable_product_emulator_acceptance": "SUCCESS_RUN_93"
   },
   "product_acceptance": {
     "core": "PASS_CURRENT_CI_SCOPE",
-    "knowledge": "PASS_CURRENT_CI_SCOPE",
-    "app_ui": "PASS_RUN_182",
-    "emulator": "PASS_RUN_93",
+    "knowledge": "PASS_PR48_RUN_988",
+    "app_ui": "PASS_RUN_182_ON_PRODUCT_HEAD",
+    "emulator": "PASS_RUN_93_ON_PRODUCT_HEAD",
     "physical": "BLOCKED_NOT_VERIFIED_CURRENT_SESSION"
   },
   "physical": {
@@ -98,19 +116,22 @@
     "exact_head_physical_pass_claimed": false
   },
   "empirical": {
+    "prospective_plans": 2,
     "real_batch": "NONE",
     "freeze": "NONE",
     "outcome": "NONE",
+    "sample_bindings": 0,
+    "credit_reviews": 0,
     "empirical_credit": "NONE",
     "claim_extraction": "CLOSED_BLOCKED",
     "prospective_infrastructure_is_evidence": false
   },
   "work_completed_this_cycle": [
-    "Fresh-verified PR45 exact head and all triggered CI",
-    "Fresh-invoked Moto and recorded entitlement block without inferring device failure",
-    "Read authoritative Knowledge #987 logs",
-    "Corrected stale PR45 body that still described FAIL-FIRST-only state",
-    "Persisted actionable queue semantics: 30 remaining, deep_reusable 0, composite_closed 1"
+    "Fresh-verified PR45 product head remains open Draft unmerged mergeable",
+    "Fresh-verified PR48 exact head and all three CI workflows",
+    "Read authoritative Knowledge #988 aggregate",
+    "Persisted ZW-SRC-0003 completion transition: 7/37, 702 Evidence, 29 actionable",
+    "Fresh-invoked Moto and recorded entitlement block without inferring device failure"
   ],
   "things_explicitly_not_done": [
     "NO_MERGE",
@@ -118,7 +139,7 @@
     "NO_FREEZE",
     "NO_OUTCOME",
     "NO_CLAIM_UPGRADE",
-    "NO_APP_CORE_OR_KNOWLEDGE_CORPUS_CHANGE"
+    "NO_EMPIRICAL_CREDIT_UPGRADE"
   ],
   "continuity_checkpoint_contract": {
     "mode": "PER_COMPLETED_WORK_CYCLE_BEFORE_FINAL_RESPONSE",
@@ -135,8 +156,8 @@
   "work_log": {
     "path": "project-handoff/WORK_LOG.jsonl",
     "append_only": true,
-    "latest_checkpoint_id": "PH-20260905-004"
+    "latest_checkpoint_id": "PH-20260905-005"
   },
   "merge_authorized": false,
-  "next_action": "C2: fresh-read registry/lineage for ZW-SRC-0003, resolve canonical carrier identity, then perform TEXT_DIRECT page review only if the exact carrier is available; keep Physical as separate blocked debt."
+  "next_action": "C2: resolve ZW-SRC-0005 exact canonical identity from repository records, hash-match against available material, then perform TEXT_DIRECT page review only after identity match; repeat through actionable queue."
 }
