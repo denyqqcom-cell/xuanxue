@@ -1,61 +1,67 @@
-# CURRENT STATE — Snapshot at 2026-09-05 / checkpoint PH-20260905-006
+# CURRENT STATE — Snapshot at 2026-09-05 / checkpoint PH-20260905-007
 
-> 动态快照。接手者仍须 fresh verify；聊天记忆不得覆盖 live GitHub / exact-head CI / fresh Physical evidence。
+> 动态快照；新窗口必须 fresh verify。Live GitHub / exact-head CI / fresh Physical evidence 优先于本文件。
 
-## 1. Active refs
+## Active refs
 
 - product PR #45: `ci/qimen-ui-provenance-v1@33d92346fcff9ebe28b08271d29c1462c2ac900c`
-- active C2 PR #49: `knowledge/ziwei-wave1-zw0005-v1@2dd2d93f43622deb4a68652e69b989f095ad0b05`
-- PR #49: `OPEN / DRAFT / UNMERGED / MERGEABLE`
+- active C2 PR #50: `knowledge/ziwei-wave1-zw0007-v1@00943395d909c2137095605ba5713bdc2f71ca69`
+- PR #50: `OPEN / DRAFT / UNMERGED / MERGEABLE`
 - continuity PR #47: `docs/project-continuity-v1`, Draft/unmerged
 - merge_authorized: `false`
 
-## 2. ZW-SRC-0005 closure
+## ZW-SRC-0007 closure
 
-`ZW-SRC-0005 / WORK-000002 / WORK_PART` is validated COMPLETE on PR #49.
+`ZW-SRC-0007 / WORK-000002 / WORK_PART` is now exact-head CI validated:
 
-- carrier: 《紫微斗数全集（二）》；题名页《流年凶灾详析》，王亭之编著
-- canonical SHA256: `72d06d7fb8b364b8d1861512252d874489f78fb9af9a1c83c0fe1332998786eb`
-- reviewed PDF pages: `1-280`
-- Reading verification: `VISUAL_PAGE`
+- canonical carrier: 《紫微斗数全集（六）》
+- title-page: `（六）紫微斗数 / 流年篇 / 辅导与答疑`
+- author: 王亭之
+- canonical SHA256: `d9bd3f26a0a966ce9cd387f6208c04a7d80252d3631c7cfe2c1c34ff53dd6d55`
+- reviewed PDF pages: `1-300`
+- verification: `VISUAL_PAGE` because hidden text extraction is watermark/noise polluted
 - Atomic Evidence added: `8`
 - source distillate: `REVIEWED`
 
-The retained engineering value is event/world-model structure rather than disaster lookup clauses:
+Key source-grounded model corrections:
 
-`QUESTION -> EVENT_ONTOLOGY -> ROLE_SLOTS -> METHOD_ROUTE -> TIME_LAYER -> SYMBOL_RELATIONS -> OUTPUT_CAP`
+- `DOMAIN_ROUTING_BEFORE_SYMBOLS`
+- `IDENTITY_GATE_NO_OUTCOME_LEAKAGE`
+- `ROLE_RELATION_NETWORK_REQUIRED`
+- `TIME_LAYER_PRECOMMITMENT`
+- `CONFLICT_RESOLUTION_ORDER_REQUIRED`
+- `RULE_ENUMERATION_EVIDENCE_CAP`
+- `CASE_QA_NEQ_VALIDATION`
+- `WORK_PART_INDEPENDENCE_CAP`
 
-Key candidate constraints: `METHOD_ROUTE_PRECOMMITMENT`, `EVENT_ROLE_BINDING`, `RESEARCH_QUESTION_SCHEMA`, `TIME_LAYER_BRANCHING_CAP`, retrospective cases not empirical credit, high-risk outcomes non-operational, and WORK_PART independence cap.
+The important self-correction is the identity gate: source-side 校盘/对时 cannot use the same outcome later scored as a prediction, otherwise outcome information leaks into model input.
 
-## 3. Exact-head CI
+## Exact-head CI
 
-Fresh read for PR #49 head `2dd2d93f...`:
+PR #50 head `00943395...`:
 
-- `K2 World Model Before Symbols #21` — **SUCCESS**
-- `K2 QCIC v0.6 Machine Gates #445` — **SUCCESS**
-- `Knowledge Engine V1 CI #989` — **SUCCESS**
+- `K2 World Model Before Symbols #22` — **SUCCESS**
+- `K2 QCIC v0.6 Machine Gates #446` — **SUCCESS**
+- `Knowledge Engine V1 CI #990` — **SUCCESS**
 
-Knowledge #989 also completed `:ziwei-core:test` successfully. The negative `FAIL:` strings inside fail-closed unit tests are expected test fixtures; the enclosing tests and workflow succeeded.
+Knowledge #990 reports:
 
-## 4. Authoritative Knowledge #989 aggregate
+```text
+Wave1 COMPLETE = 9/37
+Atomic Evidence = 718
+not_started = 28
+executable queue remaining = 27
+deep_reusable = 0
+legacy_terminal = 9
+composite_execution_closed = 1
+next = ZW-SRC-0013 / ziwei / TEXT_DIRECT / PRIMARY_WORK / WORK-000023
+Claim Extraction = CLOSED / authorized=false / blockers=3
+UNKNOWN backlog = 91
+```
 
-- registry sources: `515`
-- lineage rows: `515`
-- Wave1 expected: `37`
-- formal COMPLETE: `8/37`
-- Atomic Evidence: `710`
-- UNKNOWN backlog: `91`
-- Claim Extraction: `CLOSED / authorized=false / blockers=3`
-- evidence-gate `not_started=29`
-- executable queue `remaining=28`
-- `deep_reusable=0`
-- `legacy_terminal=8`
-- `composite_execution_closed=1`
-- next: `ZW-SRC-0007 / ziwei / TEXT_DIRECT / TEXT_PAGE_REVIEW_REQUIRED / WORK_PART / WORK-000002`
+The fail-closed unit tests intentionally emit sample `FAIL:` strings; their enclosing tests and the workflow all passed.
 
-`not_started=29` and executable `remaining=28` are not a contradiction: the queue separately accounts for composite execution closure.
-
-## 5. Empirical boundary
+## Empirical boundary
 
 ```text
 REAL_BATCH = NONE
@@ -65,26 +71,16 @@ EMPIRICAL_CREDIT = NONE
 CLAIM_EXTRACTION = CLOSED / BLOCKED
 ```
 
-`Evidence != Truth != Claim`. Source coverage, CI and retrospective examples do not establish predictive validity.
+Source reading, case agreement, CI, 150-rule enumeration and work-part agreement do not establish predictive validity.
 
-## 6. Physical / Moto
+## Physical / Moto
 
-Fresh Moto invocation in this cycle returned:
+Fresh Moto invocation in this session returned `FORBIDDEN: This conversation does not support developer MCPs`.
 
-```text
-FORBIDDEN: This conversation does not support developer MCPs
-```
+Therefore `PHYSICAL = BLOCKED / NOT_VERIFIED_CURRENT_SESSION`. This is not evidence that the phone failed, and no current exact-head Physical PASS is claimed.
 
-Therefore:
+## Next action
 
-```text
-PHYSICAL = BLOCKED / NOT_VERIFIED_CURRENT_SESSION
-```
+Resolve `ZW-SRC-0013 / WORK-000023` from canonical repository metadata and locate a byte-verifiable carrier before granting Reading credit. If the source is unavailable in the current material set, record that blocker and continue only under the queue/governance contract.
 
-This is an entitlement/runtime block, not evidence of phone failure. No current exact-head Physical PASS is claimed.
-
-## 7. Next action
-
-Continue immediately with `ZW-SRC-0007` rather than adding governance for its own sake. Its canonical 300-page PDF has already been hash-matched to repository identity; finish the full visual page review, write compact Evidence + one source distillate + verified title-page metadata, then run exact-head CI and persist the next checkpoint.
-
-No merge is authorized by this checkpoint.
+No merge is authorized.
