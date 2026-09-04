@@ -1,149 +1,24 @@
 {
   "schema_version": "project-handoff-v1.1",
-  "checkpoint_id": "PH-20260905-006",
+  "checkpoint_id": "PH-20260905-007",
   "captured_date_local": "2026-09-05",
   "snapshot_semantics": "DYNAMIC_LEAD_ONLY_REQUIRES_FRESH_VERIFICATION",
   "repository": "denyqqcom-cell/xuanxue",
   "handoff_status": "HANDOFF_VERIFIED_GITHUB_PHYSICAL_BLOCKED",
-  "authority_order": [
-    "LIVE_GITHUB_EXACT_REF",
-    "EXACT_COMMIT_REPOSITORY_RECORDS",
-    "CURRENT_CI_EVIDENCE",
-    "FRESH_PHYSICAL_EVIDENCE",
-    "PROJECT_HANDOFF_SNAPSHOT",
-    "PR_PROSE_OR_COMMENTS",
-    "OLD_CHAT_OR_MODEL_MEMORY"
-  ],
-  "active_product": {
-    "branch": "ci/qimen-ui-provenance-v1",
-    "head_sha": "33d92346fcff9ebe28b08271d29c1462c2ac900c",
-    "active_pr": 45,
-    "pr_state": "OPEN_DRAFT_UNMERGED_MERGEABLE"
-  },
-  "active_c2_knowledge": {
-    "branch": "knowledge/ziwei-wave1-zw0005-v1",
-    "head_sha": "2dd2d93f43622deb4a68652e69b989f095ad0b05",
-    "active_pr": 49,
-    "pr_state": "OPEN_DRAFT_UNMERGED_MERGEABLE",
-    "source_id": "ZW-SRC-0005",
-    "work_id": "WORK-000002",
-    "relation": "WORK_PART",
-    "read_status": "COMPLETE_REVIEWED",
-    "verification_mode": "VISUAL_PAGE",
-    "pages_reviewed": 280,
-    "evidence_added": 8
-  },
-  "continuity_docs": {
-    "branch": "docs/project-continuity-v1",
-    "pr": 47,
-    "pr_state": "OPEN_DRAFT_UNMERGED",
-    "merge_authorized": false
-  },
-  "knowledge": {
-    "phase": "K2_EVIDENCE_EXTRACTION",
-    "registry_sources": 515,
-    "lineage_rows": 515,
-    "expected_wave1_reading_units": 37,
-    "formal_complete_reading_units": 8,
-    "formal_complete_ratio": 0.2162162162,
-    "atomic_evidence_rows": 710,
-    "unknown_textual_backlog": 91,
-    "claim_extraction": "CLOSED_AUTHORIZED_FALSE_BLOCKERS_3",
-    "deep_reading_complete_sources": 21,
-    "evidence_gate_not_started": 29,
-    "actionable_queue": {
-      "remaining": 28,
-      "deep_reusable": 0,
-      "legacy_terminal": 8,
-      "composite_execution_closed": 1,
-      "next": {
-        "source_id": "ZW-SRC-0007",
-        "domain": "ziwei",
-        "execution_lane": "TEXT_DIRECT",
-        "next_action": "TEXT_PAGE_REVIEW_REQUIRED",
-        "relation": "WORK_PART",
-        "work_id": "WORK-000002"
-      }
-    },
-    "warning": "evidence-gate not_started=29 and executable queue remaining=28 are intentionally distinct because composite execution closure is counted separately"
-  },
-  "cognitive": {
-    "world_model_before_symbols": "IMPLEMENTED_UPSTREAM_AND_TESTED",
-    "qimen_cognitive_reconstruction": "OPEN_SCRM_V0_1",
-    "qimen_tbv": {
-      "status": "PARTIAL",
-      "reviewed_units": 16,
-      "deep_units": 12,
-      "effective_deep_sources": "20/20"
-    },
-    "ziwei_source_model_updates_from_zw0005": [
-      "ZIWEI_EVENT_ROUTE_MODEL_CANDIDATE",
-      "METHOD_ROUTE_PRECOMMITMENT",
-      "EVENT_ROLE_BINDING",
-      "RESEARCH_QUESTION_SCHEMA",
-      "TIME_LAYER_BRANCHING_CAP",
-      "RETROSPECTIVE_CASE_NEQ_EMPIRICAL_CREDIT",
-      "HIGH_RISK_OUTCOME_NON_OPERATIONAL",
-      "WORK_PART_INDEPENDENCE_CAP"
-    ],
-    "full_theory_validity": "NOT_CLAIMED"
-  },
-  "ci_at_capture": {
-    "pr49_k2_world_model_before_symbols": "SUCCESS_RUN_21",
-    "pr49_k2_qcic": "SUCCESS_RUN_445",
-    "pr49_knowledge_engine_v1": "SUCCESS_RUN_989"
-  },
-  "product_acceptance": {
-    "core": "PASS_PR49_KNOWLEDGE_CI_SCOPE",
-    "knowledge": "PASS_PR49_RUN_989",
-    "physical": "BLOCKED_NOT_VERIFIED_CURRENT_SESSION"
-  },
-  "physical": {
-    "current_session": "BLOCKED_NOT_VERIFIED",
-    "reason": "Moto developer MCP invocation returned FORBIDDEN",
-    "device_failure_claimed": false,
-    "exact_head_physical_pass_claimed": false
-  },
-  "empirical": {
-    "prospective_plans": 2,
-    "real_batch": "NONE",
-    "freeze": "NONE",
-    "outcome": "NONE",
-    "sample_bindings": 0,
-    "credit_reviews": 0,
-    "empirical_credit": "NONE",
-    "claim_extraction": "CLOSED_BLOCKED"
-  },
-  "work_completed_this_cycle": [
-    "Fresh-verified PR49 exact head remains open Draft unmerged mergeable",
-    "Confirmed all three PR49 workflows SUCCESS",
-    "Read authoritative Knowledge #989 aggregate: 8/37 COMPLETE and 710 Evidence",
-    "Persisted the executable queue transition to 28 remaining with ZW-SRC-0007 next",
-    "Fresh-invoked Moto and recorded entitlement block without inferring device failure"
-  ],
-  "things_explicitly_not_done": [
-    "NO_MERGE",
-    "NO_REAL_BATCH",
-    "NO_FREEZE",
-    "NO_OUTCOME",
-    "NO_CLAIM_UPGRADE",
-    "NO_EMPIRICAL_CREDIT_UPGRADE"
-  ],
-  "continuity_checkpoint_contract": {
-    "mode": "PER_COMPLETED_WORK_CYCLE_BEFORE_FINAL_RESPONSE",
-    "work_complete_requires_progress_persistence": true,
-    "blocked_status": "WORK_DONE_PROGRESS_SYNC_BLOCKED"
-  },
-  "window_continuity": {
-    "status": "CONTINUE",
-    "authoritative_remaining_context_meter_available": false,
-    "pseudo_precise_percentage_forbidden": true
-  },
-  "work_log": {
-    "path": "project-handoff/WORK_LOG.jsonl",
-    "append_only": true,
-    "latest_checkpoint_id": "PH-20260905-006"
-  },
+  "authority_order": ["LIVE_GITHUB_EXACT_REF","EXACT_COMMIT_REPOSITORY_RECORDS","CURRENT_CI_EVIDENCE","FRESH_PHYSICAL_EVIDENCE","PROJECT_HANDOFF_SNAPSHOT","PR_PROSE_OR_COMMENTS","OLD_CHAT_OR_MODEL_MEMORY"],
+  "active_product": {"branch":"ci/qimen-ui-provenance-v1","head_sha":"33d92346fcff9ebe28b08271d29c1462c2ac900c","active_pr":45,"pr_state":"OPEN_DRAFT_UNMERGED_MERGEABLE"},
+  "active_c2_knowledge": {"branch":"knowledge/ziwei-wave1-zw0007-v1","head_sha":"00943395d909c2137095605ba5713bdc2f71ca69","active_pr":50,"pr_state":"OPEN_DRAFT_UNMERGED_MERGEABLE","source_id":"ZW-SRC-0007","work_id":"WORK-000002","relation":"WORK_PART","read_status":"COMPLETE_REVIEWED","verification_mode":"VISUAL_PAGE","pages_reviewed":300,"evidence_added":8},
+  "continuity_docs": {"branch":"docs/project-continuity-v1","pr":47,"pr_state":"OPEN_DRAFT_UNMERGED","merge_authorized":false},
+  "knowledge": {"phase":"K2_EVIDENCE_EXTRACTION","registry_sources":515,"lineage_rows":515,"expected_wave1_reading_units":37,"formal_complete_reading_units":9,"formal_complete_ratio":0.2432432432,"atomic_evidence_rows":718,"unknown_textual_backlog":91,"claim_extraction":"CLOSED_AUTHORIZED_FALSE_BLOCKERS_3","evidence_gate_not_started":28,"actionable_queue":{"remaining":27,"deep_reusable":0,"legacy_terminal":9,"composite_execution_closed":1,"next":{"source_id":"ZW-SRC-0013","domain":"ziwei","execution_lane":"TEXT_DIRECT","next_action":"TEXT_PAGE_REVIEW_REQUIRED","relation":"PRIMARY_WORK","work_id":"WORK-000023"}},"warning":"formal COMPLETE, evidence-gate not_started and executable queue remaining are separate counters"},
+  "cognitive": {"world_model_before_symbols":"IMPLEMENTED_UPSTREAM_AND_TESTED","qimen_cognitive_reconstruction":"OPEN_SCRM_V0_1","qimen_tbv":{"status":"PARTIAL","reviewed_units":16,"deep_units":12,"effective_deep_sources":"20/20"},"ziwei_source_model_updates_from_zw0007":["DOMAIN_ROUTING_BEFORE_SYMBOLS","IDENTITY_GATE_NO_OUTCOME_LEAKAGE","ROLE_RELATION_NETWORK_REQUIRED","TIME_LAYER_PRECOMMITMENT","CONFLICT_RESOLUTION_ORDER_REQUIRED","RULE_ENUMERATION_EVIDENCE_CAP","CASE_QA_NEQ_VALIDATION","WORK_PART_INDEPENDENCE_CAP"],"full_theory_validity":"NOT_CLAIMED"},
+  "ci_at_capture": {"pr50_k2_world_model_before_symbols":"SUCCESS_RUN_22","pr50_k2_qcic":"SUCCESS_RUN_446","pr50_knowledge_engine_v1":"SUCCESS_RUN_990"},
+  "product_acceptance": {"core":"PASS_PR50_KNOWLEDGE_CI_SCOPE","knowledge":"PASS_PR50_RUN_990","physical":"BLOCKED_NOT_VERIFIED_CURRENT_SESSION"},
+  "physical": {"current_session":"BLOCKED_NOT_VERIFIED","reason":"Moto developer MCP invocation returned FORBIDDEN","device_failure_claimed":false,"exact_head_physical_pass_claimed":false},
+  "empirical": {"prospective_plans":2,"real_batch":"NONE","freeze":"NONE","outcome":"NONE","sample_bindings":0,"credit_reviews":0,"empirical_credit":"NONE","claim_extraction":"CLOSED_BLOCKED"},
+  "work_completed_this_cycle": ["Completed visual review of canonical ZW-SRC-0007 pages 1-300","Created PR50 with 8 compact Evidence anchors, reviewed distillate and verified title-page metadata","Confirmed all three PR50 exact-head workflows SUCCESS","Read Knowledge #990 aggregate: 9/37 COMPLETE, 718 Evidence, executable queue 27 remaining","Preserved Claim and empirical boundaries"],
+  "things_explicitly_not_done": ["NO_MERGE","NO_REAL_BATCH","NO_FREEZE","NO_OUTCOME","NO_CLAIM_UPGRADE","NO_EMPIRICAL_CREDIT_UPGRADE"],
+  "window_continuity": {"status":"CONTINUE","authoritative_remaining_context_meter_available":false,"pseudo_precise_percentage_forbidden":true},
+  "work_log": {"path":"project-handoff/WORK_LOG.jsonl","append_only":true,"latest_checkpoint_id":"PH-20260905-007"},
   "merge_authorized": false,
-  "next_action": "C2: ZW-SRC-0007 / WORK-000002 / TEXT_DIRECT. Canonical PDF has already hash-matched; finish full visual page review, compact Evidence/distillate/verified metadata, then validate exact head with CI."
+  "next_action": "C2: resolve ZW-SRC-0013 / WORK-000023 exact canonical identity and locate a byte-verifiable carrier before granting any Reading credit; if material is unavailable, record the blocker and continue only according to queue/governance rules."
 }
