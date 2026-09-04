@@ -79,10 +79,12 @@ def fixture(second_batch_wins=True,n=12,duplicate_case_tokens=False):
 
 
 def credit_review(plan,batches,freezes,outcomes,batch_reviews,readiness=None):
-    summary=er.compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews)
+    policy=er.policy_for_batch(batches[0])
+    summary=er.compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews,policy)
     return {
         "credit_review_id":"K2PVECR-H_TEST_001",
-        "policy_version":er.POLICY_VERSION,
+        "policy_version":batches[0]["empirical_credit_policy_version"],
+        "policy_sha256":batches[0]["empirical_credit_policy_sha256"],
         "plan_id":plan["plan_id"],
         "hypothesis_id":plan["hypothesis_id"],
         "hypothesis_sha256":plan["hypothesis_sha256"],
@@ -103,9 +105,9 @@ def credit_review(plan,batches,freezes,outcomes,batch_reviews,readiness=None):
         "one_sided_exact_pvalue":summary["one_sided_exact_pvalue"],
         "replication_consistent":summary["replication_consistent"],
         "case_token_unique":summary["case_token_unique"],
-        "minimum_batch_count":er.MIN_BATCH_COUNT,
-        "minimum_discordant_count":er.MIN_DISCORDANT_COUNT,
-        "alpha":er.ALPHA,
+        "minimum_batch_count":policy["minimum_batch_count"],
+        "minimum_discordant_count":policy["minimum_discordant_count"],
+        "alpha":policy["alpha"],
         "credit_readiness":readiness or summary["credit_readiness"],
         "research_only":True,
         "empirical_credit":"NONE",
@@ -125,9 +127,8 @@ def must_fail(plan,batches,freezes,outcomes,batch_reviews,credit_reviews,needle)
 
 
 def main():
-    # Fail-first for the next provenance boundary: a preregistered batch must
-    # bind the exact empirical-credit policy before any outcome can exist.
     p0=fx.plan();b0=fx.batch(p0)
+    b0.pop("empirical_credit_policy_version");b0.pop("empirical_credit_policy_sha256")
     issues0=pv.validate_records(fx.distillates(),[p0],[b0],[],[])
     text0="; ".join(f"{a}: {msg}" for a,msg in issues0)
     assert issues0,"expected preregistered batch without empirical_credit_policy binding to fail"
@@ -144,6 +145,9 @@ def main():
     assert not validate(losing_plan,losing_batches,losing_freezes,losing_outcomes,losing_reviews,[losing_row])
     bad=copy.deepcopy(losing_row);bad["credit_readiness"]="READY_FOR_MANUAL_EMPIRICAL_REVIEW"
     must_fail(losing_plan,losing_batches,losing_freezes,losing_outcomes,losing_reviews,[bad],"credit_readiness does not match machine policy")
+
+    bad=copy.deepcopy(row);bad["policy_sha256"]="0"*64
+    must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"policy_sha256 does not bind exact registered empirical-credit policy")
 
     bad=copy.deepcopy(row);bad["batch_review_ids"]=bad["batch_review_ids"][:1]
     must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"batch_review_ids must bind the complete replication cohort")
@@ -174,6 +178,6 @@ def main():
     must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"replication_contract_sha256 does not identify a governed cohort")
 
     print("k2-empirical-credit-review-tests: PASS")
-    print("cases=11")
+    print("cases=12")
 
 if __name__=="__main__":main()
