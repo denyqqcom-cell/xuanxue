@@ -125,6 +125,14 @@ def must_fail(plan,batches,freezes,outcomes,batch_reviews,credit_reviews,needle)
 
 
 def main():
+    # Fail-first for the next provenance boundary: a preregistered batch must
+    # bind the exact empirical-credit policy before any outcome can exist.
+    p0=fx.plan();b0=fx.batch(p0)
+    issues0=pv.validate_records(fx.distillates(),[p0],[b0],[],[])
+    text0="; ".join(f"{a}: {msg}" for a,msg in issues0)
+    assert issues0,"expected preregistered batch without empirical_credit_policy binding to fail"
+    assert "empirical_credit_policy" in text0,text0
+
     plan,batches,freezes,outcomes,batch_reviews=fixture(second_batch_wins=True,n=12)
     row=credit_review(plan,batches,freezes,outcomes,batch_reviews)
     assert row["credit_readiness"]=="READY_FOR_MANUAL_EMPIRICAL_REVIEW",row
@@ -166,6 +174,6 @@ def main():
     must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"replication_contract_sha256 does not identify a governed cohort")
 
     print("k2-empirical-credit-review-tests: PASS")
-    print("cases=10")
+    print("cases=11")
 
 if __name__=="__main__":main()
