@@ -134,13 +134,32 @@ PHYSICAL_NOT_VERIFIED
 - 什么仍然没有被证明？
 - 有没有把 CI/fixture/来源一致性错写成现实有效？
 
-### CHECKPOINT
+### CHECKPOINT — 从现在起是“完成工作”的强制组成部分
 
-更新：
-- PR body/comment；
-- `project-handoff/CURRENT_STATE.*`；
-- 必要时 `DECISION_MEMORY.md`；
-- exact head / CI / acceptance matrix。
+任何 cycle 只有在以下动作完成后才允许写 `WORK_COMPLETE`：
+
+1. fresh verify active PR/head/CI/Knowledge/Physical（按适用范围）；
+2. 更新 `project-handoff/CURRENT_STATE.md`；
+3. 更新 `project-handoff/CURRENT_STATE.json`；
+4. 向 `project-handoff/WORK_LOG.jsonl` 追加一条 append-only checkpoint；
+5. 若本轮存在长期价值的决定、失败、废弃路径、认知修订，再追加 `DECISION_MEMORY.md`；
+6. PR body/comment 与当前 exact head 不一致且会误导续接时，补充/修正 PR conversation；
+7. 最终用户回复必须给出 `PROGRESS_SYNC=PASS` 与 continuity checkpoint commit；无法写仓库则给出 `PROGRESS_SYNC_BLOCKED` 和原因。
+
+**事务原则：**
+
+```text
+WORK_IMPLEMENTED + TESTED but CURRENT_STATE/WORK_LOG not persisted
+!= WORK_COMPLETE
+```
+
+如果 continuity branch 因权限/冲突/服务故障不能写入，可以完成工程验证，但最终状态只能是：
+
+```text
+WORK_DONE_PROGRESS_SYNC_BLOCKED
+```
+
+并立即给用户可复制的临时 handoff，不能假装实时同步已经完成。
 
 ## D. Git/PR 治理
 
@@ -185,13 +204,41 @@ Evidence 只保存来源支持的事实，不补写模型常识。来源内部�
 
 Wave1 全库百分比不是单一 Qimen experiment 的自动门槛；同样，工程 gate 全绿也不是 Batch 启动理由。
 
-## G. 交接前最后一步
+## G. ChatGPT Web 窗口连续性
 
-窗口接近上限或准备换 AI 时：
+每次完成一个 work cycle，在最终回复末尾必须输出一个窗口续接状态：
+
+```text
+WINDOW_CONTINUITY=CONTINUE
+WINDOW_CONTINUITY=PREPARE_SWITCH
+WINDOW_CONTINUITY=SWITCH_NOW
+```
+
+不得报告不可验证的“剩余上下文百分比”或“还能聊 N 轮”。判断依据和动作见 `WINDOW_CONTINUITY_PROTOCOL.md`。
+
+基本原则：
+
+- `CONTINUE`：当前窗口仍完整掌握 live state，可继续正常工作；
+- `PREPARE_SWITCH`：上下文已经很长、工具证据/分支状态多次漂移、后续任务较大，建议在下一个自然 checkpoint 换窗；
+- `SWITCH_NOW`：出现历史内容不可恢复、关键上下文被截断、当前任务必须依赖旧信息但已无法可靠访问，或用户明确说窗口已满/即将不可用。
+
+即使 `CONTINUE`，也必须已经完成本轮 repository checkpoint；不能因为“窗口看起来还够”而延迟同步。
+
+## H. 交接前最后一步
+
+窗口进入 `PREPARE_SWITCH` 或 `SWITCH_NOW` 时：
 
 1. 停止开启新大任务；
 2. fresh read exact head / PR / CI / Knowledge / Physical；
 3. 更新 `CURRENT_STATE.md` 与 `CURRENT_STATE.json`；
-4. 把重要决定/失败追加到 `DECISION_MEMORY.md`；
-5. 用 `HANDOFF_TEMPLATE.md` 生成最后交接摘要；
-6. 明确下一 AI 的第一条 read-only 动作。
+4. 向 `WORK_LOG.jsonl` 追加最后 checkpoint；
+5. 把重要决定/失败追加到 `DECISION_MEMORY.md`；
+6. 用 `HANDOFF_TEMPLATE.md` 生成最后交接摘要；
+7. 明确下一 AI 的第一条 read-only 动作；
+8. 给用户一段可直接复制到新窗口的最小启动提示词。
+
+## I. “实时”边界
+
+项目把“实时进度”定义为：**每个 AI 实际完成工作周期，在回复用户之前将最新 checkpoint 持久化到 GitHub continuity pack**。
+
+这不是后台 daemon：当没有 AI 会话运行时，本项目不会声称持续监听 GitHub/Moto。若其他 actor 在会话间推进代码，下一次 Fresh Verification 必须发现 drift，然后立即刷新进度。

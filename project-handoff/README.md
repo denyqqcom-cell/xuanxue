@@ -1,6 +1,6 @@
 # xuanxue Project Continuity Pack
 
-版本：2026-09-05.1
+版本：2026-09-05.2
 
 用途：让任何新的 ChatGPT / Codex / 本地执行 AI 在**不依赖旧聊天记忆**的情况下，能够恢复项目真实状态、理解路线、遵守边界并继续工作。
 
@@ -18,11 +18,13 @@
 2. `project-handoff/README.md`
 3. `project-handoff/CURRENT_STATE.json`
 4. `project-handoff/CURRENT_STATE.md`
-5. `project-handoff/ACCEPTANCE_AND_EPISTEMIC_RULES.md`
-6. `project-handoff/ROADMAP.md`
-7. `project-handoff/DECISION_MEMORY.md`
-8. `project-handoff/EXECUTION_PLAYBOOK.md`
-9. 与当前任务相关的 `knowledge/`、`handoff/<domain>/`、PR body、CI logs
+5. `project-handoff/WORK_LOG.jsonl`（至少读最近 checkpoint）
+6. `project-handoff/WINDOW_CONTINUITY_PROTOCOL.md`（ChatGPT Web 必读）
+7. `project-handoff/ACCEPTANCE_AND_EPISTEMIC_RULES.md`
+8. `project-handoff/ROADMAP.md`
+9. `project-handoff/DECISION_MEMORY.md`
+10. `project-handoff/EXECUTION_PLAYBOOK.md`
+11. 与当前任务相关的 `knowledge/`、`handoff/<domain>/`、PR body、CI logs
 
 ## 接手状态协议
 
@@ -68,6 +70,33 @@ Live GitHub / exact ref
 
 PR body 可能滞后于 branch head；必须比较 exact head、diff 与 workflow run。任何旧 SHA 只能是线索。
 
+## Per-work Continuity Checkpoint：完成工作即更新进度
+
+从 v2026-09-05.2 起，**“工作完成”与“进度同步完成”是同一个事务边界**。任何 AI 在向用户说“这轮完成了”之前必须：
+
+1. fresh read 当前 active branch / PR / CI / Knowledge / Physical（适用时）；
+2. 更新 `CURRENT_STATE.md`；
+3. 更新 `CURRENT_STATE.json`；
+4. 向 `WORK_LOG.jsonl` **追加**一条 checkpoint；
+5. 若本轮产生长期决策、失败教训或废弃路径，再追加 `DECISION_MEMORY.md`；
+6. 最终回复中回报 `PROGRESS_SYNC=PASS` 与 continuity branch exact commit；若写入失败则回报 `PROGRESS_SYNC_BLOCKED`。
+
+这意味着未来不再“窗口快满了才补 handoff”，而是每个已完成工作周期都留下可续接点。即使浏览器窗口突然无法继续，新窗口也只需要读取最后一个已落盘 checkpoint。
+
+**边界说明：** AI 没有在无人运行时持续监听 GitHub 的后台能力，因此这里的“实时”定义为**每个已执行工作周期在返回用户前同步**，而不是声称 24/7 daemon 式实时。若外部 actor 在两个会话之间推进分支，下一次 Fresh Verification 必须检测为 drift 并更新快照。
+
+## ChatGPT Web 窗口续接信号
+
+ChatGPT Web 端没有提供给本项目一个可审计的“剩余上下文百分比”接口，因此禁止报伪精度，例如“还剩 18% token”。每次完成工作后改为输出以下一个状态：
+
+```text
+CONTINUE
+PREPARE_SWITCH
+SWITCH_NOW
+```
+
+含义和触发器见 `WINDOW_CONTINUITY_PROTOCOL.md`。无论状态如何，最后一个 Continuity Checkpoint 都必须已经写入仓库或明确报告写入受阻。
+
 ## 与现有目录的关系
 
 - `knowledge/`：六术统一 Source / Lineage / Reading / Evidence / Claim / Prospective contracts 的正式知识治理层；
@@ -80,7 +109,9 @@ PR body 可能滞后于 branch head；必须比较 exact head、diff 与 workflo
 
 ## 更新时机
 
-以下事件发生后应更新 `CURRENT_STATE.*`：
+`CURRENT_STATE.*` 与 `WORK_LOG.jsonl` 的默认更新频率现在是：**每个 completed work cycle**。
+
+此外，下列事件即使发生在一个较大工作周期内部，也应在安全 checkpoint 处尽快同步：
 
 - active PR / exact head 改变；
 - Wave1 COMPLETE / Evidence / queue 变化；

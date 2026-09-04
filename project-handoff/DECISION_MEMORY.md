@@ -126,6 +126,61 @@ M1 不消费盘面/符号；M4 narrative 不得改写 M3 frozen prediction。
 
 ---
 
+## 2026-09-05 — 每个 completed work cycle 都必须持久化项目进度
+
+### 决策
+
+把 continuity checkpoint 从“窗口快满时做”升级为“每完成一次工作都做”。从现在起：
+
+```text
+WORK_COMPLETE
+=
+implementation/research closure
++ verification
++ CURRENT_STATE.md update
++ CURRENT_STATE.json update
++ WORK_LOG.jsonl append
++ final PROGRESS_SYNC receipt
+```
+
+### 原因
+
+ChatGPT Web 窗口可能在长任务后突然无法继续；如果只在临近换窗时补 handoff，就仍然存在最后一段工作丢失的风险。把 checkpoint 变成每个 cycle 的事务尾部，可以把最大丢失范围压缩到“尚未完成的当前 cycle”。
+
+### 边界
+
+这不等于后台 24/7 实时监控。没有 AI 会话在执行时，不声称自动监听 GitHub/Moto；下一会话必须 fresh verify 外部漂移。
+
+### 失败策略
+
+若 continuity branch 无法写入：必须报告 `WORK_DONE_PROGRESS_SYNC_BLOCKED` 并给临时可复制 handoff，不能静默跳过。
+
+---
+
+## 2026-09-05 — ChatGPT Web 每轮完成工作后报告换窗风险，而不是伪造剩余百分比
+
+### 决策
+
+固定状态：
+
+```text
+CONTINUE
+PREPARE_SWITCH
+SWITCH_NOW
+```
+
+每个 completed work cycle 最终回复都要给出其中之一，同时给 `HANDOFF_READY`。
+
+### 原因
+
+项目没有可审计的 ChatGPT Web 剩余 token/消息数接口。报告“还剩 20%”会制造不可验证的精度。
+
+### 目标
+
+不是预测窗口刚好什么时候满，而是保证**任何自然 checkpoint 都已经可换窗**。窗口只是会话载体，仓库 checkpoint 才是项目状态载体。
+
+---
+
 ## 长期保留的认知错误清单
 
 以下不是已解决的“历史污点”，而是每轮都要防止复发的模式：
@@ -141,6 +196,8 @@ M1 不消费盘面/符号；M4 narrative 不得改写 M3 frozen prediction。
 - `binary identical -> exact-head physical PASS`
 - `unique fingerprint -> real-world independence`
 - `READY_FOR_MANUAL_EMPIRICAL_REVIEW -> empirical credit`
+- `工作做完但未同步进度 -> 可以宣告完整闭环`
+- `模型猜测窗口剩余百分比 -> 可当换窗依据`
 
 ---
 
@@ -153,4 +210,5 @@ M1 不消费盘面/符号；M4 narrative 不得改写 M3 frozen prediction。
 5. real prospective Batch / Freeze / Outcome 仍为 NONE；
 6. empirical credit 仍为 NONE；
 7. Moto exact-current-head physical evidence 每个新产品 checkpoint 都需要独立绑定；
-8. PR/branch prose 可能滞后于实际 branch head，必须 fresh verify。
+8. PR/branch prose 可能滞后于实际 branch head，必须 fresh verify；
+9. continuity pack 尚未进入 main，当前由 Draft PR #47 承载；在未获 Merge 授权前，新 AI 必须知道它仍是独立 docs carrier。

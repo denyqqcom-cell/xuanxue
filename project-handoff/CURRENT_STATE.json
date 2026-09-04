@@ -1,5 +1,6 @@
 {
-  "schema_version": "project-handoff-v1",
+  "schema_version": "project-handoff-v1.1",
+  "checkpoint_id": "PH-20260905-002",
   "captured_date_local": "2026-09-05",
   "snapshot_semantics": "DYNAMIC_LEAD_ONLY_REQUIRES_FRESH_VERIFICATION",
   "repository": "denyqqcom-cell/xuanxue",
@@ -19,12 +20,17 @@
   ],
   "active_product": {
     "branch": "ci/qimen-ui-provenance-v1",
-    "head_sha": "10b5e5e6ce17231933c12661859e0a1140db2ea0",
-    "head_message": "ci: run emulator acceptance for stacked app changes",
+    "head_sha": "33d92346fcff9ebe28b08271d29c1462c2ac900c",
     "active_pr": 45,
     "pr_state": "OPEN_DRAFT_UNMERGED_MERGEABLE",
     "base_branch": "ci/qimen-world-model-before-symbols-v1",
     "base_sha": "426300ad914d18a71163c2aac5aa4e16e50aeb73"
+  },
+  "continuity_docs": {
+    "branch": "docs/project-continuity-v1",
+    "pr": 47,
+    "pr_state": "OPEN_DRAFT_UNMERGED",
+    "merge_authorized": false
   },
   "knowledge": {
     "phase": "K2_EVIDENCE_EXTRACTION",
@@ -61,26 +67,50 @@
     "prospective_infrastructure_is_evidence": false
   },
   "ci_at_capture": {
-    "k2_world_model_before_symbols": "SUCCESS_RUN_18",
-    "k2_qcic": "SUCCESS_RUN_442",
-    "knowledge_engine_v1": "IN_PROGRESS_RUN_986_RECHECK_REQUIRED",
-    "k2_app_ui": "IN_PROGRESS_RUN_181_RECHECK_REQUIRED",
-    "emulator_acceptance": "IN_PROGRESS_RUN_92_RECHECK_REQUIRED"
+    "k2_world_model_before_symbols": "SUCCESS_RUN_19",
+    "k2_qcic": "SUCCESS_RUN_443",
+    "knowledge_engine_v1": "SUCCESS_RUN_987",
+    "k2_app_ui": "SUCCESS_RUN_182",
+    "emulator_acceptance": "IN_PROGRESS_RUN_93_RECHECK_REQUIRED"
   },
   "physical": {
     "current_session": "NOT_VERIFIED",
-    "reason": "developer MCP invocation returned FORBIDDEN",
+    "reason": "Moto developer MCP invocation returned FORBIDDEN",
     "device_failure_claimed": false,
     "exact_head_physical_pass_claimed": false
   },
-  "drift_observed_while_building_pack": {
-    "sequence": [
-      "ff1a3389b90e854bd81d17b9cf1c54218e1074b3",
-      "151b26a63451e63af57e385eaa23ca725672a19a",
-      "959d071c56060a90decb4364a060fdc6f2d95216",
-      "10b5e5e6ce17231933c12661859e0a1140db2ea0"
+  "continuity_checkpoint_contract": {
+    "mode": "PER_COMPLETED_WORK_CYCLE_BEFORE_FINAL_RESPONSE",
+    "work_complete_requires_progress_persistence": true,
+    "required_updates": [
+      "project-handoff/CURRENT_STATE.md",
+      "project-handoff/CURRENT_STATE.json",
+      "append project-handoff/WORK_LOG.jsonl"
     ],
-    "lesson": "DYNAMIC_SNAPSHOT_MUST_BE_FRESH_VERIFIED"
+    "conditional_updates": [
+      "project-handoff/DECISION_MEMORY.md when durable decision/failure/rejected path changes",
+      "PR body/comment when stale text would mislead handoff"
+    ],
+    "blocked_status": "WORK_DONE_PROGRESS_SYNC_BLOCKED",
+    "background_24x7_monitoring_claimed": false,
+    "realtime_definition": "persist latest state at every completed AI work cycle before returning to user"
+  },
+  "window_continuity": {
+    "protocol_file": "project-handoff/WINDOW_CONTINUITY_PROTOCOL.md",
+    "report_after_every_completed_cycle": true,
+    "status_vocabulary": [
+      "CONTINUE",
+      "PREPARE_SWITCH",
+      "SWITCH_NOW"
+    ],
+    "authoritative_remaining_context_meter_available": false,
+    "pseudo_precise_percentage_forbidden": true,
+    "handoff_must_be_repository_ready_before_switch": true
+  },
+  "work_log": {
+    "path": "project-handoff/WORK_LOG.jsonl",
+    "append_only": true,
+    "latest_checkpoint_id": "PH-20260905-002"
   },
   "merge_authorized": false,
   "required_status_tracks": [
@@ -89,5 +119,6 @@
     "ENGINE_STRUCTURAL_CREDIT",
     "PRODUCT_ACCEPTANCE",
     "PROSPECTIVE_EMPIRICAL_CREDIT"
-  ]
+  ],
+  "next_action": "Fresh-verify PR #45 exact head and current emulator acceptance, then continue only the active product cycle; write the next continuity checkpoint before reporting completion."
 }
