@@ -2,8 +2,16 @@ name: V1.0 Emulator Acceptance
 
 on:
   pull_request:
-    branches:
-      - main
+    paths:
+      - 'app/**'
+      - 'ziwei-core/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle.kts'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - '.github/scripts/run_rc_emulator_acceptance.sh'
+      - '.github/workflows/rc-emulator-acceptance.yml'
   workflow_dispatch:
 
 permissions:
