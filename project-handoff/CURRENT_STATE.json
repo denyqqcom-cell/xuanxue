@@ -1,0 +1,93 @@
+{
+  "schema_version": "project-handoff-v1",
+  "captured_date_local": "2026-09-05",
+  "snapshot_semantics": "DYNAMIC_LEAD_ONLY_REQUIRES_FRESH_VERIFICATION",
+  "repository": "denyqqcom-cell/xuanxue",
+  "authority_order": [
+    "LIVE_GITHUB_EXACT_REF",
+    "EXACT_COMMIT_REPOSITORY_RECORDS",
+    "CURRENT_CI_EVIDENCE",
+    "FRESH_PHYSICAL_EVIDENCE",
+    "PROJECT_HANDOFF_SNAPSHOT",
+    "PR_PROSE_OR_COMMENTS",
+    "OLD_CHAT_OR_MODEL_MEMORY"
+  ],
+  "handoff_status_protocol": [
+    "HANDOFF_VERIFIED",
+    "HANDOFF_DRIFTED",
+    "HANDOFF_NOT_VERIFIED"
+  ],
+  "active_product": {
+    "branch": "ci/qimen-ui-provenance-v1",
+    "head_sha": "10b5e5e6ce17231933c12661859e0a1140db2ea0",
+    "head_message": "ci: run emulator acceptance for stacked app changes",
+    "active_pr": 45,
+    "pr_state": "OPEN_DRAFT_UNMERGED_MERGEABLE",
+    "base_branch": "ci/qimen-world-model-before-symbols-v1",
+    "base_sha": "426300ad914d18a71163c2aac5aa4e16e50aeb73"
+  },
+  "knowledge": {
+    "phase": "K2_EVIDENCE_EXTRACTION",
+    "expected_wave1_reading_units": 37,
+    "formal_complete_reading_units": 6,
+    "formal_complete_ratio": 0.1621621622,
+    "qimen_wave1_complete": 5,
+    "qimen_wave1_total": 5,
+    "ziwei_formal_complete": 1,
+    "atomic_evidence_rows": 694,
+    "unknown_textual_backlog": 91,
+    "claim_extraction": "BLOCKED",
+    "source_lineage": "COMPLETE",
+    "execution_owner": "PROJECT_MAIN_AGENT",
+    "local_ai_role": "EXECUTION_HELPER_ONLY",
+    "warning": "registry/lineage coverage is not corpus mastery; composite closure and deep-reading credit are separate from legacy formal COMPLETE"
+  },
+  "cognitive": {
+    "world_model_before_symbols": "IMPLEMENTED_UPSTREAM",
+    "product_provenance_classes": [
+      "CHART_FACT",
+      "SOURCE_RULE",
+      "PROJECT_INFERENCE",
+      "UNVERIFIED_HYPOTHESIS"
+    ],
+    "reality_input_is_outside_four_analysis_classes": true,
+    "full_theory_validity": "NOT_CLAIMED"
+  },
+  "empirical": {
+    "real_batch": "NONE",
+    "freeze": "NONE",
+    "outcome": "NONE",
+    "empirical_credit": "NONE",
+    "prospective_infrastructure_is_evidence": false
+  },
+  "ci_at_capture": {
+    "k2_world_model_before_symbols": "SUCCESS_RUN_18",
+    "k2_qcic": "SUCCESS_RUN_442",
+    "knowledge_engine_v1": "IN_PROGRESS_RUN_986_RECHECK_REQUIRED",
+    "k2_app_ui": "IN_PROGRESS_RUN_181_RECHECK_REQUIRED",
+    "emulator_acceptance": "IN_PROGRESS_RUN_92_RECHECK_REQUIRED"
+  },
+  "physical": {
+    "current_session": "NOT_VERIFIED",
+    "reason": "developer MCP invocation returned FORBIDDEN",
+    "device_failure_claimed": false,
+    "exact_head_physical_pass_claimed": false
+  },
+  "drift_observed_while_building_pack": {
+    "sequence": [
+      "ff1a3389b90e854bd81d17b9cf1c54218e1074b3",
+      "151b26a63451e63af57e385eaa23ca725672a19a",
+      "959d071c56060a90decb4364a060fdc6f2d95216",
+      "10b5e5e6ce17231933c12661859e0a1140db2ea0"
+    ],
+    "lesson": "DYNAMIC_SNAPSHOT_MUST_BE_FRESH_VERIFIED"
+  },
+  "merge_authorized": false,
+  "required_status_tracks": [
+    "CORPUS_MASTERY",
+    "COGNITIVE_RECONSTRUCTION",
+    "ENGINE_STRUCTURAL_CREDIT",
+    "PRODUCT_ACCEPTANCE",
+    "PROSPECTIVE_EMPIRICAL_CREDIT"
+  ]
+}
