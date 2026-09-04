@@ -6,6 +6,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_prospective_validation as pv
 import validate_k2_prospective_batch_review as br
 import validate_k2_sample_provenance as sp
+import k2_sample_fingerprint as sf
 
 ROOT=Path(__file__).resolve().parents[1]
 K=ROOT/"knowledge"
@@ -15,6 +16,7 @@ READINESS_VALUES={"NOT_ELIGIBLE",pv.READINESS_CEILING}
 REVIEW_FIELDS={
     "credit_review_id","policy_version","policy_sha256",
     "sample_provenance_policy_version","sample_provenance_policy_sha256","sample_fingerprint_key_id",
+    "sample_identity_schema_version","sample_identity_schema_sha256",
     "plan_id","hypothesis_id","hypothesis_sha256","hypothesis_context_sha256",
     "model_commit_sha","comparator_ref","replication_contract_sha256",
     "reviewed_at_utc","batch_review_ids","batch_review_records_sha256","batch_count",
@@ -122,11 +124,13 @@ def sample_provenance_summary(freezes):
         version=payload.get("sample_provenance_policy_version")
         policy_sha=payload.get("sample_provenance_policy_sha256")
         key_id=payload.get("sample_fingerprint_key_id")
+        schema_version=payload.get("sample_identity_schema_version")
+        schema_sha=payload.get("sample_identity_schema_sha256")
         fingerprint=payload.get("sample_fingerprint")
-        if not pv.nonempty_text(version) or not isinstance(policy_sha,str) or not SHA64_RE.match(policy_sha) or not pv.nonempty_text(key_id):
+        if not pv.nonempty_text(version) or not isinstance(policy_sha,str) or not SHA64_RE.match(policy_sha) or not pv.nonempty_text(key_id) or not pv.nonempty_text(schema_version) or not isinstance(schema_sha,str) or not SHA64_RE.match(schema_sha):
             complete=False
         else:
-            contexts.append((version,policy_sha,key_id))
+            contexts.append((version,policy_sha,key_id,schema_version,schema_sha))
         if not isinstance(fingerprint,str) or not SHA64_RE.match(fingerprint):
             complete=False
         else:
@@ -134,11 +138,13 @@ def sample_provenance_summary(freezes):
     same_context=complete and len(contexts)==len(freezes) and bool(contexts) and len(set(contexts))==1
     fingerprint_complete=complete and len(fingerprints)==len(freezes) and bool(fingerprints)
     fingerprint_unique=fingerprint_complete and len(fingerprints)==len(set(fingerprints))
-    context=contexts[0] if same_context else (None,None,None)
+    context=contexts[0] if same_context else (None,None,None,None,None)
     return {
         "sample_provenance_policy_version":context[0],
         "sample_provenance_policy_sha256":context[1],
         "sample_fingerprint_key_id":context[2],
+        "sample_identity_schema_version":context[3],
+        "sample_identity_schema_sha256":context[4],
         "sample_provenance_consistent":same_context,
         "sample_fingerprint_unique":fingerprint_unique,
     }
@@ -229,7 +235,7 @@ def values_match(actual,expected):
     return actual==expected
 
 
-def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,credit_reviews,empirical_credit_policies=None,sample_provenance_policies=None,sample_provenance_bindings=None,enforce_sample_provenance=False):
+def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,credit_reviews,empirical_credit_policies=None,sample_provenance_policies=None,sample_provenance_bindings=None,enforce_sample_provenance=False,sample_identity_schemas=None):
     issues=[]
     policies,policy_by_version,policy_issues=load_policy_index(empirical_credit_policies)
     issues.extend(policy_issues)
@@ -244,9 +250,12 @@ def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,cr
     sample_policies=sp.load_policies(ROOT) if sample_provenance_policies is None else sample_provenance_policies
     sample_policy_by_version,sample_policy_issues=sp.policy_index(sample_policies)
     issues.extend(sample_policy_issues)
+    identity_schemas=sp.load_identity_schemas(ROOT) if sample_identity_schemas is None else sample_identity_schemas
+    identity_schema_by_version,identity_schema_issues=sf.identity_schema_index(identity_schemas)
+    issues.extend(identity_schema_issues)
     if enforce_sample_provenance:
         sample_bindings=sp.load_bindings(ROOT) if sample_provenance_bindings is None else sample_provenance_bindings
-        upstream_sample=sp.validate_records(batches,freezes,sample_bindings,sample_policies)
+        upstream_sample=sp.validate_records(batches,freezes,sample_bindings,sample_policies,identity_schemas)
         if upstream_sample:
             issues.extend(("UPSTREAM_SAMPLE_PROVENANCE",f"upstream sample provenance invalid: {rid}: {msg}") for rid,msg in upstream_sample)
             return issues
@@ -312,6 +321,7 @@ def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,cr
             "batch_count","total_case_count","discordant_count","candidate_win_count","comparator_win_count","tie_count",
             "replication_consistent","case_token_unique","sample_provenance_consistent","sample_fingerprint_unique","credit_readiness",
             "sample_provenance_policy_version","sample_provenance_policy_sha256","sample_fingerprint_key_id",
+            "sample_identity_schema_version","sample_identity_schema_sha256",
         ]:
             if r.get(field)!=summary[field]:issues.append((rid,f"{field} does not match machine recomputation" if field!="credit_readiness" else "credit_readiness does not match machine policy"))
         if not values_match(r.get("pooled_paired_delta"),summary["pooled_paired_delta"]):issues.append((rid,"pooled_paired_delta does not match machine recomputation"))
@@ -323,6 +333,10 @@ def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,cr
         if sample_policy is not None:
             if sample_sha!=canonical_sha256(sample_policy):issues.append((rid,"sample_provenance_policy_sha256 does not bind exact registered sample provenance policy"))
             if r.get("sample_fingerprint_key_id")!=sample_policy.get("fingerprint_key_id"):issues.append((rid,"sample_fingerprint_key_id does not match registered sample provenance policy"))
+        schema_version=r.get("sample_identity_schema_version");schema_sha=r.get("sample_identity_schema_sha256")
+        identity_schema=identity_schema_by_version.get(schema_version)
+        if schema_version is not None and identity_schema is None:issues.append((rid,f"unknown sample_identity_schema_version: {schema_version}"))
+        if identity_schema is not None and schema_sha!=sf.canonical_sha256(identity_schema):issues.append((rid,"sample_identity_schema_sha256 does not bind exact registered sample identity schema"))
 
         if r.get("minimum_batch_count")!=policy["minimum_batch_count"]:issues.append((rid,f"minimum_batch_count must equal preregistered policy value {policy['minimum_batch_count']}"))
         if r.get("minimum_discordant_count")!=policy["minimum_discordant_count"]:issues.append((rid,f"minimum_discordant_count must equal preregistered policy value {policy['minimum_discordant_count']}"))
@@ -357,12 +371,12 @@ def main():
     batch_reviews=pv.load_jsonl(K/"K2_PROSPECTIVE_BATCH_REVIEWS.jsonl")
     credit_reviews=pv.load_jsonl(K/"K2_PROSPECTIVE_EMPIRICAL_CREDIT_REVIEWS.jsonl")
     policies=pv.load_empirical_credit_policies(ROOT)
-    sample_policies=sp.load_policies(ROOT);sample_bindings=sp.load_bindings(ROOT)
-    issues=validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,credit_reviews,policies,sample_policies,sample_bindings,True)
+    sample_policies=sp.load_policies(ROOT);sample_bindings=sp.load_bindings(ROOT);identity_schemas=sp.load_identity_schemas(ROOT)
+    issues=validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,credit_reviews,policies,sample_policies,sample_bindings,True,identity_schemas)
     if issues:fail(f"issues={len(issues)} first={issues[0][0]}: {issues[0][1]}")
     ready=sum(r.get("credit_readiness")==pv.READINESS_CEILING for r in credit_reviews)
     print("k2-empirical-credit-review: PASS")
-    print(f"policies={len(policies)} sample_policies={len(sample_policies)} sample_bindings={len(sample_bindings)} credit_reviews={len(credit_reviews)} ready_for_manual_review={ready} issues=0")
+    print(f"policies={len(policies)} sample_policies={len(sample_policies)} identity_schemas={len(identity_schemas)} sample_bindings={len(sample_bindings)} credit_reviews={len(credit_reviews)} ready_for_manual_review={ready} issues=0")
     print("empirical_credit_upgrade_blocked=true")
     print("real_world_sample_independence_proven=false")
 
