@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
-import copy,hashlib,sys
+import copy,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import test_k2_prospective_validation as fx
 import validate_k2_prospective_validation as pv
 import validate_k2_prospective_batch_review as br
 import validate_k2_empirical_credit_review as er
+import validate_k2_sample_provenance as sp
+import k2_sample_fingerprint as sf
+
+SYNTHETIC_SECRET=b"S"*32
+
+
+def sample_policy():
+    rows=sp.load_policies()
+    return next(row for row in rows if row.get("policy_version")=="SAMPLE_PROVENANCE_V1")
 
 
 def make_batch_review(batch,freezes,outcomes,index):
@@ -38,8 +47,9 @@ def make_batch_review(batch,freezes,outcomes,index):
 
 def synthetic_sample_fingerprint(batch_index,case_index,duplicate_across_batches=False):
     identity_batch=1 if duplicate_across_batches and batch_index>1 else batch_index
-    raw=f"SYNTHETIC_REAL_SAMPLE:{identity_batch}:{case_index}".encode("utf-8")
-    return hashlib.sha256(raw).hexdigest()
+    policy=sample_policy()
+    identity={"synthetic_real_sample":f"B{identity_batch:02d}-C{case_index:03d}"}
+    return sf.compute_fingerprint(SYNTHETIC_SECRET,policy["fingerprint_key_id"],identity)
 
 
 def make_batch(plan,index,n=12,candidate_wins=True,duplicate_case_tokens=False,duplicate_sample_fingerprints=False):
@@ -48,6 +58,7 @@ def make_batch(plan,index,n=12,candidate_wins=True,duplicate_case_tokens=False,d
     prereg_day=1+(index-1)*3
     batch["preregistered_at_utc"]=f"2026-09-{prereg_day:02d}T00:00:00Z"
     batch["planned_case_count"]=n
+    sample=sample_policy();sample_sha=pv.canonical_sha256(sample)
     freezes=[];outcomes=[]
     freeze_day=prereg_day+1;outcome_day=prereg_day+2
     for case_index in range(1,n+1):
@@ -58,6 +69,9 @@ def make_batch(plan,index,n=12,candidate_wins=True,duplicate_case_tokens=False,d
         freeze["frozen_at_utc"]=f"2026-09-{freeze_day:02d}T00:{case_index:02d}:00Z"
         freeze["batch_sha256"]=pv.canonical_sha256(batch)
         freeze["model_commit_sha"]=batch["model_commit_sha"]
+        freeze["frozen_payload"]["sample_provenance_policy_version"]=sample["policy_version"]
+        freeze["frozen_payload"]["sample_provenance_policy_sha256"]=sample_sha
+        freeze["frozen_payload"]["sample_fingerprint_key_id"]=sample["fingerprint_key_id"]
         freeze["frozen_payload"]["sample_fingerprint"]=synthetic_sample_fingerprint(index,case_index,duplicate_sample_fingerprints)
         freeze["frozen_payload_sha256"]=pv.canonical_sha256(freeze["frozen_payload"])
         freezes.append(freeze)
@@ -85,6 +99,21 @@ def fixture(second_batch_wins=True,n=12,duplicate_case_tokens=False,duplicate_sa
     return plan,[b1,b2],f1+f2,o1+o2,[r1,r2]
 
 
+def sample_binding(batch,index):
+    sample=sample_policy()
+    prereg_day=1+(index-1)*3
+    return {
+        "binding_id":f"K2PVSPB-BATCH_{index:03d}",
+        "batch_id":batch["batch_id"],
+        "batch_sha256":pv.canonical_sha256(batch),
+        "bound_at_utc":f"2026-09-{prereg_day:02d}T12:00:00Z",
+        "sample_provenance_policy_version":sample["policy_version"],
+        "sample_provenance_policy_sha256":pv.canonical_sha256(sample),
+        "research_only":True,
+        "status":"BOUND",
+    }
+
+
 def credit_review(plan,batches,freezes,outcomes,batch_reviews,readiness=None):
     policy=er.policy_for_batch(batches[0])
     summary=er.compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews,policy)
@@ -92,6 +121,9 @@ def credit_review(plan,batches,freezes,outcomes,batch_reviews,readiness=None):
         "credit_review_id":"K2PVECR-H_TEST_001",
         "policy_version":batches[0]["empirical_credit_policy_version"],
         "policy_sha256":batches[0]["empirical_credit_policy_sha256"],
+        "sample_provenance_policy_version":summary["sample_provenance_policy_version"],
+        "sample_provenance_policy_sha256":summary["sample_provenance_policy_sha256"],
+        "sample_fingerprint_key_id":summary["sample_fingerprint_key_id"],
         "plan_id":plan["plan_id"],
         "hypothesis_id":plan["hypothesis_id"],
         "hypothesis_sha256":plan["hypothesis_sha256"],
@@ -112,6 +144,8 @@ def credit_review(plan,batches,freezes,outcomes,batch_reviews,readiness=None):
         "one_sided_exact_pvalue":summary["one_sided_exact_pvalue"],
         "replication_consistent":summary["replication_consistent"],
         "case_token_unique":summary["case_token_unique"],
+        "sample_provenance_consistent":summary["sample_provenance_consistent"],
+        "sample_fingerprint_unique":summary["sample_fingerprint_unique"],
         "minimum_batch_count":policy["minimum_batch_count"],
         "minimum_discordant_count":policy["minimum_discordant_count"],
         "alpha":policy["alpha"],
@@ -133,6 +167,36 @@ def must_fail(plan,batches,freezes,outcomes,batch_reviews,credit_reviews,needle)
     assert needle in text,(needle,text)
 
 
+def test_sample_provenance_contract(plan,batches,freezes):
+    policy=sample_policy();bindings=[sample_binding(batches[0],1),sample_binding(batches[1],2)]
+    issues=sp.validate_records(batches,freezes,bindings,[policy])
+    assert not issues,issues
+
+    bad=copy.deepcopy(bindings);bad[0]["sample_provenance_policy_sha256"]="0"*64
+    text="; ".join(msg for _,msg in sp.validate_records(batches,freezes,bad,[policy]))
+    assert "does not bind exact registered sample provenance policy" in text,text
+
+    bad=copy.deepcopy(bindings);bad[0]["bound_at_utc"]=freezes[0]["frozen_at_utc"]
+    text="; ".join(msg for _,msg in sp.validate_records(batches,freezes,bad,[policy]))
+    assert "before first case freeze" in text,text
+
+    bad_freezes=copy.deepcopy(freezes);bad_freezes[0]["frozen_payload"].pop("sample_fingerprint")
+    bad_freezes[0]["frozen_payload_sha256"]=pv.canonical_sha256(bad_freezes[0]["frozen_payload"])
+    text="; ".join(msg for _,msg in sp.validate_records(batches,bad_freezes,bindings,[policy]))
+    assert "sample_fingerprint must be lowercase 64-char HMAC digest" in text,text
+
+    bad_freezes=copy.deepcopy(freezes);bad_freezes[0]["frozen_payload"]["sample_identity_material"]={"name":"DO_NOT_STORE"}
+    bad_freezes[0]["frozen_payload_sha256"]=pv.canonical_sha256(bad_freezes[0]["frozen_payload"])
+    text="; ".join(msg for _,msg in sp.validate_records(batches,bad_freezes,bindings,[policy]))
+    assert "raw identity/secret material forbidden" in text,text
+
+    identity={"event":"SAME_REAL_EVENT","source":"SYNTHETIC"}
+    fp1=sf.compute_fingerprint(SYNTHETIC_SECRET,policy["fingerprint_key_id"],identity)
+    fp2=sf.compute_fingerprint(SYNTHETIC_SECRET,policy["fingerprint_key_id"],copy.deepcopy(identity))
+    fp3=sf.compute_fingerprint(SYNTHETIC_SECRET,policy["fingerprint_key_id"],{"event":"DIFFERENT_REAL_EVENT","source":"SYNTHETIC"})
+    assert fp1==fp2 and fp1!=fp3 and len(fp1)==64
+
+
 def main():
     p0=fx.plan();b0=fx.batch(p0)
     b0.pop("empirical_credit_policy_version");b0.pop("empirical_credit_policy_sha256")
@@ -142,13 +206,20 @@ def main():
     assert "empirical_credit_policy" in text0,text0
 
     plan,batches,freezes,outcomes,batch_reviews=fixture(second_batch_wins=True,n=12)
+    test_sample_provenance_contract(plan,batches,freezes)
     row=credit_review(plan,batches,freezes,outcomes,batch_reviews)
     assert row["credit_readiness"]=="READY_FOR_MANUAL_EMPIRICAL_REVIEW",row
+    assert row["sample_provenance_consistent"] is True and row["sample_fingerprint_unique"] is True,row
     assert not validate(plan,batches,freezes,outcomes,batch_reviews,[row]),validate(plan,batches,freezes,outcomes,batch_reviews,[row])
 
     dupfp_plan,dupfp_batches,dupfp_freezes,dupfp_outcomes,dupfp_reviews=fixture(second_batch_wins=True,n=12,duplicate_sample_fingerprints=True)
     dupfp_row=credit_review(dupfp_plan,dupfp_batches,dupfp_freezes,dupfp_outcomes,dupfp_reviews)
+    assert dupfp_row["case_token_unique"] is True,dupfp_row
+    assert dupfp_row["sample_fingerprint_unique"] is False,dupfp_row
     assert dupfp_row["credit_readiness"]=="NOT_ELIGIBLE","expected cross-batch sample_fingerprint reuse to block readiness"
+    assert not validate(dupfp_plan,dupfp_batches,dupfp_freezes,dupfp_outcomes,dupfp_reviews,[dupfp_row])
+    bad=copy.deepcopy(dupfp_row);bad["credit_readiness"]="READY_FOR_MANUAL_EMPIRICAL_REVIEW"
+    must_fail(dupfp_plan,dupfp_batches,dupfp_freezes,dupfp_outcomes,dupfp_reviews,[bad],"credit_readiness does not match machine policy")
 
     losing_plan,losing_batches,losing_freezes,losing_outcomes,losing_reviews=fixture(second_batch_wins=False,n=12)
     losing_row=credit_review(losing_plan,losing_batches,losing_freezes,losing_outcomes,losing_reviews)
@@ -159,6 +230,9 @@ def main():
 
     bad=copy.deepcopy(row);bad["policy_sha256"]="0"*64
     must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"policy_sha256 does not bind exact registered empirical-credit policy")
+
+    bad=copy.deepcopy(row);bad["sample_provenance_policy_sha256"]="0"*64
+    must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"sample_provenance_policy_sha256")
 
     bad=copy.deepcopy(row);bad["batch_review_ids"]=bad["batch_review_ids"][:1]
     must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"batch_review_ids must bind the complete replication cohort")
@@ -189,6 +263,7 @@ def main():
     must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"replication_contract_sha256 does not identify a governed cohort")
 
     print("k2-empirical-credit-review-tests: PASS")
-    print("cases=13")
+    print("cases=19")
+
 
 if __name__=="__main__":main()
