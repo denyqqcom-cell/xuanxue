@@ -102,6 +102,11 @@ class RcDeviceAcceptanceTest {
         composeRule.onNodeWithText("生成当前实验局").performScrollTo().performClick()
         composeRule.onNodeWithText("基础结果").assertExists().performScrollTo()
         composeRule.onNodeWithText("实验九宫（开发核对视图）").assertExists()
+        composeRule.onNodeWithText("解释与来源分层").assertExists().performScrollTo()
+        composeRule.onNodeWithText("盘面事实", substring = true).assertExists()
+        composeRule.onNodeWithText("来源规则", substring = true).assertExists()
+        composeRule.onNodeWithText("项目推论", substring = true).assertExists()
+        composeRule.onNodeWithText("未经验证假设", substring = true).assertExists()
         capture("${formFactor}-qimen-result")
         backHome()
 
