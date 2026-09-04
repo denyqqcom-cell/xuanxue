@@ -197,7 +197,35 @@ def test_sample_provenance_contract(plan,batches,freezes):
     assert fp1==fp2 and fp1!=fp3 and len(fp1)==64
 
 
+def test_identity_material_normalization_fail_first():
+    policy=sample_policy()
+    left={
+        "identity_namespace":"SYNTHETIC",
+        "source_system":"FIXTURE",
+        "source_record_id":" REC-001 ",
+        "sample_anchor":" 2026-09-01T00:00:00Z ",
+    }
+    right={
+        "identity_namespace":"SYNTHETIC",
+        "source_system":"FIXTURE",
+        "source_record_id":"REC-001",
+        "sample_anchor":"2026-09-01T00:00:00Z",
+    }
+    left_fp=sf.compute_fingerprint(SYNTHETIC_SECRET,policy["fingerprint_key_id"],left)
+    right_fp=sf.compute_fingerprint(SYNTHETIC_SECRET,policy["fingerprint_key_id"],right)
+    assert left_fp==right_fp,"expected equivalent normalized sample identity material to fingerprint identically"
+    extra=dict(right);extra["post_hoc_identity_field"]="FREE_DEGREE"
+    try:
+        sf.compute_fingerprint(SYNTHETIC_SECRET,policy["fingerprint_key_id"],extra)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("expected arbitrary sample identity fields to be rejected")
+
+
 def main():
+    test_identity_material_normalization_fail_first()
+
     p0=fx.plan();b0=fx.batch(p0)
     b0.pop("empirical_credit_policy_version");b0.pop("empirical_credit_policy_sha256")
     issues0=pv.validate_records(fx.distillates(),[p0],[b0],[],[])
@@ -263,7 +291,7 @@ def main():
     must_fail(plan,batches,freezes,outcomes,batch_reviews,[bad],"replication_contract_sha256 does not identify a governed cohort")
 
     print("k2-empirical-credit-review-tests: PASS")
-    print("cases=19")
+    print("cases=21")
 
 
 if __name__=="__main__":main()
