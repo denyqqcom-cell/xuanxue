@@ -43,13 +43,6 @@ SKIP_DIR_NAMES = {
     "K2_WAVE1_PAGE_PACKETS", "K2_PYTHON_DEPS",
 }
 
-
-# Families are deliberately coarse. The goal is not language identification;
-# it is to detect the characteristic many-unrelated-scripts pattern produced
-# by broken embedded-font/CMap decoding while leaving ordinary monolingual and
-# bilingual text alone. Japanese/Korean/CJK-related scripts are grouped so a
-# normal East-Asian document is not treated as corruption merely for mixing
-# ideographs with kana/hangul/bopomofo.
 SCRIPT_PREFIXES = (
     "LATIN", "GREEK", "CYRILLIC", "ARMENIAN", "HEBREW", "ARABIC",
     "THAANA", "DEVANAGARI", "BENGALI", "GURMUKHI", "GUJARATI", "ORIYA",
@@ -117,11 +110,7 @@ def normalize_local_path(raw, host_os=None):
 
 
 def configure_python_deps(raw):
-    """Expose an external, local-only Python dependency directory.
-
-    This is deliberately outside the repository so helper dependencies do not
-    become knowledge artifacts or require global machine installation.
-    """
+    """Expose an external, local-only Python dependency directory."""
     if raw is None:
         return None
     path = ensure_local_only(normalize_local_path(str(raw)))
@@ -240,20 +229,10 @@ def _letter_script_family(ch: str):
     for prefix in SCRIPT_PREFIXES:
         if name.startswith(prefix):
             return prefix
-    # Keep less common scripts visible instead of silently grouping them into
-    # one bucket; a damaged CMap often sprays glyphs across exactly these names.
     return name.split()[0]
 
 
 def text_layer_is_semantically_readable(pages):
-    """Reject obvious Unicode font/CMap mojibake without guessing language.
-
-    This is intentionally conservative. Empty-text handling remains elsewhere.
-    Short samples pass because there is not enough signal. A normal document in
-    one script, or a bilingual document in two/three scripts, also passes. We
-    reject only when letter characters are materially spread across at least
-    four unrelated script families and no family dominates the text.
-    """
     counts = {}
     total_letters = 0
     for page in pages or []:
@@ -279,15 +258,6 @@ def text_layer_is_semantically_readable(pages):
 
 
 def text_layer_has_semantic_coverage(pages):
-    """Reject probable repeated overlay/watermark layers without source body.
-
-    A scanned book can carry a perfectly readable Unicode advertisement or
-    watermark on every page while the actual book body exists only as page
-    images. Such a file must not become TEXT_DIRECT merely because the overlay
-    is non-empty and linguistically readable. We fail closed only when there is
-    enough page-level signal and the extracted layer is simultaneously short,
-    highly repetitive, and low-diversity across the document.
-    """
     normalized = []
     for page in pages or []:
         if not isinstance(page, str):
@@ -296,7 +266,6 @@ def text_layer_has_semantic_coverage(pages):
         if compact:
             normalized.append(compact)
 
-    # Small samples do not provide enough evidence to classify repetition.
     if len(normalized) < 8:
         return True
 
@@ -371,11 +340,6 @@ def extract_pdf_text_pypdf(path: Path):
 
 
 def extract_pdf_text_pdfminer(path: Path):
-    """Read an existing PDF text layer with pdfminer.six, preserving pages.
-
-    pdfminer.six ships predefined CMaps that can decode some CJK PDFs that
-    pypdf cannot. This remains a text-layer-only path and never performs OCR.
-    """
     try:
         module = importlib.import_module("pdfminer.high_level")
     except Exception as e:
@@ -390,6 +354,87 @@ def extract_pdf_text_pdfminer(path: Path):
     if pages and pages[-1] == "":
         pages.pop()
     return pages, None
+
+
+def count_pdf_pages_pypdf(path: Path):
+    """Count physical PDF pages from the page tree without extracting text."""
+    try:
+        module = importlib.import_module("pypdf")
+    except Exception as e:
+        return None, f"pypdf unavailable: {type(e).__name__}: {e}"
+    try:
+        reader = module.PdfReader(str(path), strict=False)
+        return len(reader.pages), None
+    except Exception as e:
+        return None, f"pypdf page count failed: {type(e).__name__}: {e}"
+
+
+def count_pdf_pages_pdfminer(path: Path):
+    """Fallback physical page-tree counter; no text extraction and no OCR."""
+    try:
+        module = importlib.import_module("pdfminer.pdfpage")
+    except Exception as e:
+        return None, f"pdfminer unavailable: {type(e).__name__}: {e}"
+    try:
+        with path.open("rb") as fh:
+            count = sum(1 for _ in module.PDFPage.get_pages(fh))
+        return count, None
+    except Exception as e:
+        return None, f"pdfminer page count failed: {type(e).__name__}: {e}"
+
+
+def _page_counter_unavailable(label, reason):
+    if not isinstance(reason, str):
+        return False
+    if label == "pypdf":
+        return reason.startswith("pypdf unavailable:")
+    if label == "pdfminer":
+        return reason.startswith("pdfminer unavailable:")
+    return False
+
+
+def inspect_pdf_material_page_count(path: Path):
+    """Read physical PDF page cardinality independently of text extraction.
+
+    Returns (page_count, counter_name, blocker_code, blocker_reason).
+    """
+    reasons = []
+    attempted_counters = 0
+
+    count, reason = count_pdf_pages_pypdf(path)
+    if count is not None:
+        return count, "PYPDF_PAGE_TREE", None, None
+    if reason:
+        reasons.append(f"pypdf: {reason}")
+        if not _page_counter_unavailable("pypdf", reason):
+            attempted_counters += 1
+
+    count, reason = count_pdf_pages_pdfminer(path)
+    if count is not None:
+        return count, "PDFMINER_PAGE_TREE", None, None
+    if reason:
+        reasons.append(f"pdfminer: {reason}")
+        if not _page_counter_unavailable("pdfminer", reason):
+            attempted_counters += 1
+
+    code = (
+        "PDF_PAGE_COUNTER_UNAVAILABLE"
+        if attempted_counters == 0
+        else "PDF_PAGE_COUNT_FAILED"
+    )
+    return None, None, code, "; ".join(reasons)[:800]
+
+
+def classify_pdf_material_page_count(actual_pages, expected_pages):
+    """Compare a fresh physical PDF page-tree count to registered metadata."""
+    if not isinstance(expected_pages, int):
+        return None, None
+    if actual_pages == expected_pages:
+        return None, None
+    return (
+        "PDF_PAGE_COUNT_MISMATCH",
+        f"physical PDF page count {actual_pages} != registered PDF pages {expected_pages}",
+    )
 
 
 def _accept_extracted_pages(pages, label, reasons):
@@ -412,7 +457,6 @@ def _accept_extracted_pages(pages, label, reasons):
 
 
 def _extractor_unavailable(label, reason):
-    """Classify dependency absence without treating it as source failure."""
     if not isinstance(reason, str):
         return False
     if label == "pdftotext":
@@ -425,10 +469,6 @@ def _extractor_unavailable(label, reason):
 
 
 def extract_pdf_text(path: Path):
-    """Extract a page-preserving existing text layer without OCR.
-
-    Returns (pages, extractor_name, blocker_code, blocker_reason).
-    """
     reasons = []
     attempted_extractors = 0
     returned_page_sets = 0
@@ -476,13 +516,6 @@ def extract_pdf_text(path: Path):
 
 
 def classify_text_layer_page_count(pages, expected_pages):
-    """Classify page-preservation mismatch after extraction returned pages.
-
-    This is not a parser/read failure: a page set already exists. If the
-    extracted set cannot preserve the registered PDF page cardinality, the text
-    layer is unusable for source-bound page review and remains an execution-only
-    diagnostic.
-    """
     if not isinstance(expected_pages, int):
         return None, None
     actual_pages = len(pages)
@@ -564,6 +597,8 @@ def blocked_row(
     reason,
     identity_mode=None,
     text_extractor=None,
+    material_page_count=None,
+    material_page_counter=None,
 ):
     return {
         "source_id": sid,
@@ -571,6 +606,8 @@ def blocked_row(
         "identity_mode": identity_mode,
         "execution_lane": lane,
         "text_extractor": text_extractor,
+        "material_page_count": material_page_count,
+        "material_page_counter": material_page_counter,
         "packet_status": "BLOCKED",
         "blocker_code": code,
         "blocker_reason": reason,
@@ -644,11 +681,40 @@ def main():
         suffix = local_path.suffix.lower()
         expected_pages = item.get("pages")
         text_extractor = None
+        material_page_count = None
+        material_page_counter = None
         if suffix == ".pdf":
+            material_page_count, material_page_counter, code, reason = (
+                inspect_pdf_material_page_count(local_path)
+            )
+            if material_page_count is None:
+                manifest.append(blocked_row(
+                    sid, lane, actual_hash, code, reason,
+                    identity_mode=identity_mode,
+                    material_page_count=material_page_count,
+                    material_page_counter=material_page_counter,
+                ))
+                continue
+            code, reason = classify_pdf_material_page_count(
+                material_page_count, expected_pages
+            )
+            if code is not None:
+                manifest.append(blocked_row(
+                    sid, lane, actual_hash, code, reason,
+                    identity_mode=identity_mode,
+                    material_page_count=material_page_count,
+                    material_page_counter=material_page_counter,
+                ))
+                continue
+
             pages, text_extractor, code, reason = extract_pdf_text(local_path)
             if pages is None:
                 manifest.append(blocked_row(
-                    sid, lane, actual_hash, code, reason, identity_mode, text_extractor
+                    sid, lane, actual_hash, code, reason,
+                    identity_mode=identity_mode,
+                    text_extractor=text_extractor,
+                    material_page_count=material_page_count,
+                    material_page_counter=material_page_counter,
                 ))
                 continue
             code, reason = classify_text_layer_page_count(pages, expected_pages)
@@ -657,6 +723,8 @@ def main():
                     sid, lane, actual_hash, code, reason,
                     identity_mode=identity_mode,
                     text_extractor=text_extractor,
+                    material_page_count=material_page_count,
+                    material_page_counter=material_page_counter,
                 ))
                 continue
         else:
@@ -680,6 +748,8 @@ def main():
             "identity_mode": identity_mode,
             "execution_lane": lane,
             "text_extractor": text_extractor,
+            "material_page_count": material_page_count,
+            "material_page_counter": material_page_counter,
             "packet_status": "READY",
             "blocker_code": None,
             "blocker_reason": None,
