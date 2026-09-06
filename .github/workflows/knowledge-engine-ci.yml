@@ -110,6 +110,8 @@ jobs:
         run: python3 tools/test_k2_python_deps.py
       - name: Test K2 local page-packet semantic readability fail-closed cases
         run: python3 tools/test_k2_local_page_packets.py
+      - name: Test K2 text-layer page-count semantics
+        run: python3 tools/test_k2_text_page_count_contract.py
       - name: Test K2 evidence fail-closed cases
         run: python3 tools/test_k2_evidence.py
       - name: Enforce K2 evidence state
