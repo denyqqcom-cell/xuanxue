@@ -34,13 +34,26 @@ def main():
     assert resolved == legacy | composite
     assert set(source_ids) == expected - resolved, (
         "queue must equal authoritative Wave1 selection minus "
-        "legacy terminal units and validated composite-exception execution closures"
+        "terminal Reading units and validated composite-exception execution closures"
     )
     assert rows == sorted(rows, key=semantic_sort_key), (
         "queue must sort by semantic domain, then execution lane, then source_id"
     )
 
-    # Composite closure must not mutate legacy completion semantics.
+    # Consumer convergence: transient execution-only BLOCKED diagnostics must
+    # never suppress a source from the actionable queue. Only COMPLETE and a
+    # genuine source-terminal BLOCKED state are Reading-terminal.
+    synthetic_ledger = [
+        {"source_id": "DONE", "read_status": "COMPLETE", "blocker_code": None},
+        {"source_id": "CORRUPT", "read_status": "BLOCKED", "blocker_code": "CORRUPT_SOURCE"},
+        {"source_id": "NO_VISION", "read_status": "BLOCKED", "blocker_code": "VISION_UNAVAILABLE"},
+        {"source_id": "NO_STACK", "read_status": "BLOCKED", "blocker_code": "TEXT_EXTRACTOR_STACK_UNAVAILABLE"},
+        {"source_id": "UNUSABLE", "read_status": "BLOCKED", "blocker_code": "TEXT_LAYER_UNUSABLE"},
+        {"source_id": "MISSING", "read_status": "BLOCKED", "blocker_code": "FILE_MISSING"},
+    ]
+    assert q.terminal_source_ids_from_ledger(synthetic_ledger) == {"DONE", "CORRUPT"}
+
+    # Composite closure must not mutate Reading-terminal semantics.
     assert q.completed_source_ids(ROOT) == legacy
 
     # Intake prefixes are not semantic domains. Preserve the existing ordering
@@ -81,7 +94,7 @@ def main():
         if row["deep_reading_reusable"]:
             assert row["next_action"] == "REUSE_VERIFIED_DEEP_READING"
 
-    # Legacy terminal progress must still shrink the queue by exactly one.
+    # Reading-terminal progress must still shrink the queue by exactly one.
     if source_ids:
         simulated = source_ids[0]
         original_completed = q.completed_source_ids
@@ -115,7 +128,7 @@ def main():
     print("k2-wave1-execution-queue-tests: PASS")
     print(
         f"remaining={len(rows)} deep_reusable={len(reusable)} "
-        f"legacy_terminal={len(legacy)} composite_closed={len(composite)}"
+        f"reading_terminal={len(legacy)} composite_closed={len(composite)}"
     )
     for row in rows:
         print("queue=" + json.dumps(row, ensure_ascii=False, sort_keys=True))
