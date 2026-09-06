@@ -431,10 +431,12 @@ def extract_pdf_text(path: Path):
     """
     reasons = []
     attempted_extractors = 0
+    returned_page_sets = 0
 
     pages, reason = extract_pdf_text_pdftotext(path)
     if pages is not None:
         attempted_extractors += 1
+        returned_page_sets += 1
         if _accept_extracted_pages(pages, "pdftotext", reasons):
             return pages, "PDFTOTEXT_LAYOUT", None, None
     elif reason:
@@ -445,6 +447,7 @@ def extract_pdf_text(path: Path):
     pages, reason = extract_pdf_text_pypdf(path)
     if pages is not None:
         attempted_extractors += 1
+        returned_page_sets += 1
         if _accept_extracted_pages(pages, "pypdf", reasons):
             return pages, "PYPDF_TEXT_LAYER", None, None
     elif reason:
@@ -455,6 +458,7 @@ def extract_pdf_text(path: Path):
     pages, reason = extract_pdf_text_pdfminer(path)
     if pages is not None:
         attempted_extractors += 1
+        returned_page_sets += 1
         if _accept_extracted_pages(pages, "pdfminer", reasons):
             return pages, "PDFMINER_TEXT_LAYER", None, None
     elif reason:
@@ -462,11 +466,12 @@ def extract_pdf_text(path: Path):
         if not _extractor_unavailable("pdfminer", reason):
             attempted_extractors += 1
 
-    blocker_code = (
-        "TEXT_EXTRACTOR_STACK_UNAVAILABLE"
-        if attempted_extractors == 0
-        else "TEXT_EXTRACTION_FAILED"
-    )
+    if attempted_extractors == 0:
+        blocker_code = "TEXT_EXTRACTOR_STACK_UNAVAILABLE"
+    elif returned_page_sets > 0:
+        blocker_code = "TEXT_LAYER_UNUSABLE"
+    else:
+        blocker_code = "TEXT_EXTRACTION_FAILED"
     return None, None, blocker_code, "; ".join(reasons)[:800]
 
 
