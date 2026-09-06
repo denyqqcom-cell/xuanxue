@@ -392,6 +392,87 @@ def extract_pdf_text_pdfminer(path: Path):
     return pages, None
 
 
+def count_pdf_pages_pypdf(path: Path):
+    """Count physical PDF pages from the page tree without extracting text."""
+    try:
+        module = importlib.import_module("pypdf")
+    except Exception as e:
+        return None, f"pypdf unavailable: {type(e).__name__}: {e}"
+    try:
+        reader = module.PdfReader(str(path), strict=False)
+        return len(reader.pages), None
+    except Exception as e:
+        return None, f"pypdf page count failed: {type(e).__name__}: {e}"
+
+
+def count_pdf_pages_pdfminer(path: Path):
+    """Fallback physical page-tree counter; no text extraction and no OCR."""
+    try:
+        module = importlib.import_module("pdfminer.pdfpage")
+    except Exception as e:
+        return None, f"pdfminer unavailable: {type(e).__name__}: {e}"
+    try:
+        with path.open("rb") as fh:
+            count = sum(1 for _ in module.PDFPage.get_pages(fh))
+        return count, None
+    except Exception as e:
+        return None, f"pdfminer page count failed: {type(e).__name__}: {e}"
+
+
+def _page_counter_unavailable(label, reason):
+    if not isinstance(reason, str):
+        return False
+    if label == "pypdf":
+        return reason.startswith("pypdf unavailable:")
+    if label == "pdfminer":
+        return reason.startswith("pdfminer unavailable:")
+    return False
+
+
+def inspect_pdf_material_page_count(path: Path):
+    """Read physical PDF page cardinality independently of text extraction.
+
+    Returns (page_count, counter_name, blocker_code, blocker_reason).
+    """
+    reasons = []
+    attempted_counters = 0
+
+    count, reason = count_pdf_pages_pypdf(path)
+    if count is not None:
+        return count, "PYPDF_PAGE_TREE", None, None
+    if reason:
+        reasons.append(f"pypdf: {reason}")
+        if not _page_counter_unavailable("pypdf", reason):
+            attempted_counters += 1
+
+    count, reason = count_pdf_pages_pdfminer(path)
+    if count is not None:
+        return count, "PDFMINER_PAGE_TREE", None, None
+    if reason:
+        reasons.append(f"pdfminer: {reason}")
+        if not _page_counter_unavailable("pdfminer", reason):
+            attempted_counters += 1
+
+    code = (
+        "PDF_PAGE_COUNTER_UNAVAILABLE"
+        if attempted_counters == 0
+        else "PDF_PAGE_COUNT_FAILED"
+    )
+    return None, None, code, "; ".join(reasons)[:800]
+
+
+def classify_pdf_material_page_count(actual_pages, expected_pages):
+    """Compare a fresh physical PDF page-tree count to registered metadata."""
+    if not isinstance(expected_pages, int):
+        return None, None
+    if actual_pages == expected_pages:
+        return None, None
+    return (
+        "PDF_PAGE_COUNT_MISMATCH",
+        f"physical PDF page count {actual_pages} != registered PDF pages {expected_pages}",
+    )
+
+
 def _accept_extracted_pages(pages, label, reasons):
     if not any(page.strip() for page in pages):
         reasons.append(f"{label}: returned no extractable text")
@@ -564,6 +645,8 @@ def blocked_row(
     reason,
     identity_mode=None,
     text_extractor=None,
+    material_page_count=None,
+    material_page_counter=None,
 ):
     return {
         "source_id": sid,
@@ -571,6 +654,8 @@ def blocked_row(
         "identity_mode": identity_mode,
         "execution_lane": lane,
         "text_extractor": text_extractor,
+        "material_page_count": material_page_count,
+        "material_page_counter": material_page_counter,
         "packet_status": "BLOCKED",
         "blocker_code": code,
         "blocker_reason": reason,
@@ -644,11 +729,40 @@ def main():
         suffix = local_path.suffix.lower()
         expected_pages = item.get("pages")
         text_extractor = None
+        material_page_count = None
+        material_page_counter = None
         if suffix == ".pdf":
+            material_page_count, material_page_counter, code, reason = (
+                inspect_pdf_material_page_count(local_path)
+            )
+            if material_page_count is None:
+                manifest.append(blocked_row(
+                    sid, lane, actual_hash, code, reason,
+                    identity_mode=identity_mode,
+                    material_page_count=material_page_count,
+                    material_page_counter=material_page_counter,
+                ))
+                continue
+            code, reason = classify_pdf_material_page_count(
+                material_page_count, expected_pages
+            )
+            if code is not None:
+                manifest.append(blocked_row(
+                    sid, lane, actual_hash, code, reason,
+                    identity_mode=identity_mode,
+                    material_page_count=material_page_count,
+                    material_page_counter=material_page_counter,
+                ))
+                continue
+
             pages, text_extractor, code, reason = extract_pdf_text(local_path)
             if pages is None:
                 manifest.append(blocked_row(
-                    sid, lane, actual_hash, code, reason, identity_mode, text_extractor
+                    sid, lane, actual_hash, code, reason,
+                    identity_mode=identity_mode,
+                    text_extractor=text_extractor,
+                    material_page_count=material_page_count,
+                    material_page_counter=material_page_counter,
                 ))
                 continue
             code, reason = classify_text_layer_page_count(pages, expected_pages)
@@ -657,6 +771,8 @@ def main():
                     sid, lane, actual_hash, code, reason,
                     identity_mode=identity_mode,
                     text_extractor=text_extractor,
+                    material_page_count=material_page_count,
+                    material_page_counter=material_page_counter,
                 ))
                 continue
         else:
@@ -680,6 +796,8 @@ def main():
             "identity_mode": identity_mode,
             "execution_lane": lane,
             "text_extractor": text_extractor,
+            "material_page_count": material_page_count,
+            "material_page_counter": material_page_counter,
             "packet_status": "READY",
             "blocker_code": None,
             "blocker_reason": None,
