@@ -114,6 +114,8 @@ jobs:
         run: python3 tools/test_k2_evidence.py
       - name: Enforce K2 evidence state
         run: python3 tools/validate_k2_evidence.py
+      - name: Test Wave1 execution queue terminal-state semantics
+        run: python3 tools/test_k2_wave1_execution_queue.py
       - name: Test K2 claim extraction readiness fail-closed cases
         run: python3 tools/test_k2_claim_extraction_readiness.py
       - name: Enforce current K2 claim extraction readiness snapshot

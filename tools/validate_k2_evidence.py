@@ -18,6 +18,33 @@ aggregate_wave1 = agg.aggregate_wave1
 apply_verified_source_metadata = routing.apply_verified_source_metadata
 load_execution_routing_corrections = routing.load_execution_routing_corrections
 
+# Reading lifecycle state and execution-attempt diagnostics are separate. A
+# transient local/runtime limitation must never become a source-level terminal
+# BLOCKED row merely because the legacy validator has a blocker_code field.
+EXECUTION_ONLY_BLOCKER_CODES = {
+    "FILE_MISSING",
+    "VISION_UNAVAILABLE",
+    "TEXT_EXTRACTOR_STACK_UNAVAILABLE",
+    "TEXT_EXTRACTION_FAILED",
+    "TEXT_LAYER_UNUSABLE",
+    "ACCESS_UNAVAILABLE",
+}
+TERMINAL_SOURCE_BLOCKER_CODES = {"CORRUPT_SOURCE"}
+
+# validate_k2_evidence_base.main() performs the authoritative BLOCKED-row check
+# against its module-level BLOCKER_CODES. Narrow that accepted set before main()
+# runs, while retaining the execution-only taxonomy here for diagnostics/tests.
+BLOCKER_CODES = set(TERMINAL_SOURCE_BLOCKER_CODES)
+base.BLOCKER_CODES = set(TERMINAL_SOURCE_BLOCKER_CODES)
+
+
+def read_blocker_scope(code):
+    if code in TERMINAL_SOURCE_BLOCKER_CODES:
+        return "SOURCE_TERMINAL"
+    if code in EXECUTION_ONLY_BLOCKER_CODES:
+        return "EXECUTION_ONLY"
+    return "UNSUPPORTED"
+
 
 def _write_jsonl(path, rows):
     path.write_text(

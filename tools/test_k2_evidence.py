@@ -49,7 +49,25 @@ def main():
     assert any("exceeds" in m for _,m in issues),issues
     assert v.PATH_RE.search("/home/user/book.pdf")
     assert v.PDF_LOC_RE.search("printed:p5|pdf:p8-p9")
-    assert "VISION_UNAVAILABLE" in v.BLOCKER_CODES
+
+    # A source-level terminal Reading state must not be created from a transient
+    # execution-surface or extraction-attempt failure. Those failures remain
+    # diagnostic execution states outside the authoritative Reading lifecycle.
+    assert v.TERMINAL_SOURCE_BLOCKER_CODES=={"CORRUPT_SOURCE"},v.TERMINAL_SOURCE_BLOCKER_CODES
+    assert v.EXECUTION_ONLY_BLOCKER_CODES=={
+        "FILE_MISSING",
+        "VISION_UNAVAILABLE",
+        "TEXT_EXTRACTOR_STACK_UNAVAILABLE",
+        "TEXT_EXTRACTION_FAILED",
+        "TEXT_LAYER_UNUSABLE",
+        "ACCESS_UNAVAILABLE",
+    },v.EXECUTION_ONLY_BLOCKER_CODES
+    assert v.TERMINAL_SOURCE_BLOCKER_CODES.isdisjoint(v.EXECUTION_ONLY_BLOCKER_CODES)
+    assert v.BLOCKER_CODES==v.TERMINAL_SOURCE_BLOCKER_CODES
+    assert v.read_blocker_scope("CORRUPT_SOURCE")=="SOURCE_TERMINAL"
+    assert v.read_blocker_scope("VISION_UNAVAILABLE")=="EXECUTION_ONLY"
+    assert v.read_blocker_scope("TEXT_LAYER_UNUSABLE")=="EXECUTION_ONLY"
+    assert v.read_blocker_scope("OTHER")=="UNSUPPORTED"
 
     # Incremental Wave1 review contract: only actually reviewed rows may emit Evidence,
     # and each lane must use a verification mode that matches its source quality.
