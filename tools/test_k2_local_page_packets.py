@@ -63,6 +63,42 @@ def main():
     assert not p.text_layer_has_semantic_coverage(overlay_only)
     assert p.text_layer_has_semantic_coverage(source_body)
 
+    # Extractor availability is an execution-surface state, not source
+    # readability evidence. If no accepted text-layer reader can execute, the
+    # helper must report a dedicated blocker instead of blaming the source.
+    original_pdftotext = p.extract_pdf_text_pdftotext
+    original_pypdf = p.extract_pdf_text_pypdf
+    original_pdfminer = p.extract_pdf_text_pdfminer
+    try:
+        p.extract_pdf_text_pdftotext = lambda path: (None, "pdftotext is not installed")
+        p.extract_pdf_text_pypdf = lambda path: (
+            None, "pypdf unavailable: ModuleNotFoundError: No module named 'pypdf'"
+        )
+        p.extract_pdf_text_pdfminer = lambda path: (
+            None, "pdfminer unavailable: ModuleNotFoundError: No module named 'pdfminer'"
+        )
+        pages, extractor, code, reason = p.extract_pdf_text(Path("synthetic.pdf"))
+        assert pages is None
+        assert extractor is None
+        assert code == "TEXT_EXTRACTOR_STACK_UNAVAILABLE"
+        assert "pdftotext is not installed" in reason
+        assert "pypdf unavailable" in reason
+        assert "pdfminer unavailable" in reason
+
+        # Once at least one accepted extractor actually attempts the source, a
+        # source/parser failure remains TEXT_EXTRACTION_FAILED even if the other
+        # fallback dependencies are absent.
+        p.extract_pdf_text_pdftotext = lambda path: (None, "Syntax Error: bad xref")
+        pages, extractor, code, reason = p.extract_pdf_text(Path("synthetic.pdf"))
+        assert pages is None
+        assert extractor is None
+        assert code == "TEXT_EXTRACTION_FAILED"
+        assert "bad xref" in reason
+    finally:
+        p.extract_pdf_text_pdftotext = original_pdftotext
+        p.extract_pdf_text_pypdf = original_pypdf
+        p.extract_pdf_text_pdfminer = original_pdfminer
+
     # If an earlier extractor returns non-empty but semantically garbled text,
     # the helper must continue to the next text-layer extractor instead of
     # producing a false READY packet.
@@ -78,19 +114,23 @@ def main():
         assert extractor == "PDFMINER_TEXT_LAYER"
         assert code is None and reason is None
 
-        # If every available text-layer path is unreadable, fail closed. OCR is
-        # still outside this helper's contract.
+        # If every available text-layer path returns pages but none is usable,
+        # that is materially different from a parser/read failure. It must be
+        # reported as TEXT_LAYER_UNUSABLE so a higher-level registry comparison
+        # can decide whether READABILITY_MISMATCH_CANDIDATE applies.
+        p.extract_pdf_text_pdftotext = lambda path: ([], None)
         p.extract_pdf_text_pypdf = lambda path: (garbled, None)
         p.extract_pdf_text_pdfminer = lambda path: (garbled, None)
         pages, extractor, code, reason = p.extract_pdf_text(Path("synthetic.pdf"))
         assert pages is None
         assert extractor is None
-        assert code == "TEXT_EXTRACTION_FAILED"
+        assert code == "TEXT_LAYER_UNUSABLE"
+        assert "no extractable text" in reason.lower()
         assert "semantic readability" in reason.lower()
 
         # Unicode-valid repeated overlay text must also trigger extractor
-        # fallback. If every extractor sees only the overlay, fail closed rather
-        # than writing a misleading READY packet.
+        # fallback. If every extractor sees only the overlay, fail closed as an
+        # unusable text layer rather than conflating it with parser failure.
         p.extract_pdf_text_pdftotext = lambda path: (overlay_only, None)
         p.extract_pdf_text_pypdf = lambda path: (overlay_only, None)
         p.extract_pdf_text_pdfminer = lambda path: (source_body, None)
@@ -103,7 +143,7 @@ def main():
         pages, extractor, code, reason = p.extract_pdf_text(Path("synthetic.pdf"))
         assert pages is None
         assert extractor is None
-        assert code == "TEXT_EXTRACTION_FAILED"
+        assert code == "TEXT_LAYER_UNUSABLE"
         assert "semantic coverage" in reason.lower()
     finally:
         p.extract_pdf_text_pdftotext = original_pdftotext
