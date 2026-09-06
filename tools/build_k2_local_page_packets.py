@@ -475,6 +475,25 @@ def extract_pdf_text(path: Path):
     return None, None, blocker_code, "; ".join(reasons)[:800]
 
 
+def classify_text_layer_page_count(pages, expected_pages):
+    """Classify page-preservation mismatch after extraction returned pages.
+
+    This is not a parser/read failure: a page set already exists. If the
+    extracted set cannot preserve the registered PDF page cardinality, the text
+    layer is unusable for source-bound page review and remains an execution-only
+    diagnostic.
+    """
+    if not isinstance(expected_pages, int):
+        return None, None
+    actual_pages = len(pages)
+    if actual_pages == expected_pages:
+        return None, None
+    return (
+        "TEXT_LAYER_UNUSABLE",
+        f"text-layer page count {actual_pages} != registered PDF pages {expected_pages}",
+    )
+
+
 def write_packet(path: Path, source_id: str, source_file_sha256: str, pages):
     with path.open("w", encoding="utf-8") as fh:
         for page_no, text in enumerate(pages, 1):
@@ -632,10 +651,10 @@ def main():
                     sid, lane, actual_hash, code, reason, identity_mode, text_extractor
                 ))
                 continue
-            if isinstance(expected_pages, int) and len(pages) != expected_pages:
+            code, reason = classify_text_layer_page_count(pages, expected_pages)
+            if code is not None:
                 manifest.append(blocked_row(
-                    sid, lane, actual_hash, "TEXT_EXTRACTION_FAILED",
-                    f"text-layer page count {len(pages)} != registered PDF pages {expected_pages}",
+                    sid, lane, actual_hash, code, reason,
                     identity_mode=identity_mode,
                     text_extractor=text_extractor,
                 ))
