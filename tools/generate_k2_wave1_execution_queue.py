@@ -3,11 +3,8 @@ import json
 from pathlib import Path
 
 import k2_wave1_aggregate as agg
-import validate_k2_evidence_base as evidence
-import k2_execution_routing as routing
+import validate_k2_evidence as evidence
 import validate_k2_composite_source_closures as composite_closure
-
-routing.patch_validator_module(evidence)
 
 ROOT = Path(__file__).resolve().parents[1]
 K = ROOT / "knowledge"
@@ -49,14 +46,34 @@ def queue_row_sort_key(row):
     )
 
 
+def terminal_source_ids_from_ledger(rows):
+    """Return only source-level Reading-terminal units.
+
+    COMPLETE is terminal. BLOCKED is terminal only when the authoritative
+    Evidence contract classifies its blocker as SOURCE_TERMINAL. Execution-only
+    failures remain actionable even if a stale/invalid ledger row carries the
+    legacy BLOCKED label; the validator will reject that row separately.
+    """
+    terminal = set()
+    for row in rows:
+        sid = row.get("source_id")
+        if not sid:
+            continue
+        status = row.get("read_status")
+        if status == "COMPLETE":
+            terminal.add(sid)
+        elif (
+            status == "BLOCKED"
+            and evidence.read_blocker_scope(row.get("blocker_code")) == "SOURCE_TERMINAL"
+        ):
+            terminal.add(sid)
+    return terminal
+
+
 def completed_source_ids(root=ROOT):
-    """Legacy Wave1 terminal set. Semantics intentionally unchanged."""
+    """Authoritative Wave1 Reading-terminal set used to suppress queue units."""
     ledger, _, _ = agg.aggregate_wave1(root)
-    return {
-        row.get("source_id")
-        for row in ledger
-        if row.get("read_status") in {"COMPLETE", "BLOCKED"}
-    }
+    return terminal_source_ids_from_ledger(ledger)
 
 
 def composite_closed_source_ids(root=ROOT):
@@ -150,7 +167,7 @@ def main():
         f"legacy_terminal={len(legacy)} composite_execution_closed={len(composite)} "
         f"execution_resolved={len(resolved)}"
     )
-    print("legacy_wave1_completion_semantics=unchanged")
+    print("legacy_wave1_completion_semantics=source_terminal_only")
     for row in rows:
         print(json.dumps(row, ensure_ascii=False, sort_keys=True))
 
