@@ -411,35 +411,63 @@ def _accept_extracted_pages(pages, label, reasons):
     return True
 
 
+def _extractor_unavailable(label, reason):
+    """Classify dependency absence without treating it as source failure."""
+    if not isinstance(reason, str):
+        return False
+    if label == "pdftotext":
+        return reason == "pdftotext is not installed"
+    if label == "pypdf":
+        return reason.startswith("pypdf unavailable:")
+    if label == "pdfminer":
+        return reason.startswith("pdfminer unavailable:")
+    return False
+
+
 def extract_pdf_text(path: Path):
     """Extract a page-preserving existing text layer without OCR.
 
     Returns (pages, extractor_name, blocker_code, blocker_reason).
     """
     reasons = []
+    attempted_extractors = 0
 
     pages, reason = extract_pdf_text_pdftotext(path)
     if pages is not None:
+        attempted_extractors += 1
         if _accept_extracted_pages(pages, "pdftotext", reasons):
             return pages, "PDFTOTEXT_LAYOUT", None, None
     elif reason:
         reasons.append(f"pdftotext: {reason}")
+        if not _extractor_unavailable("pdftotext", reason):
+            attempted_extractors += 1
 
     pages, reason = extract_pdf_text_pypdf(path)
     if pages is not None:
+        attempted_extractors += 1
         if _accept_extracted_pages(pages, "pypdf", reasons):
             return pages, "PYPDF_TEXT_LAYER", None, None
     elif reason:
         reasons.append(f"pypdf: {reason}")
+        if not _extractor_unavailable("pypdf", reason):
+            attempted_extractors += 1
 
     pages, reason = extract_pdf_text_pdfminer(path)
     if pages is not None:
+        attempted_extractors += 1
         if _accept_extracted_pages(pages, "pdfminer", reasons):
             return pages, "PDFMINER_TEXT_LAYER", None, None
     elif reason:
         reasons.append(f"pdfminer: {reason}")
+        if not _extractor_unavailable("pdfminer", reason):
+            attempted_extractors += 1
 
-    return None, None, "TEXT_EXTRACTION_FAILED", "; ".join(reasons)[:800]
+    blocker_code = (
+        "TEXT_EXTRACTOR_STACK_UNAVAILABLE"
+        if attempted_extractors == 0
+        else "TEXT_EXTRACTION_FAILED"
+    )
+    return None, None, blocker_code, "; ".join(reasons)[:800]
 
 
 def write_packet(path: Path, source_id: str, source_file_sha256: str, pages):
