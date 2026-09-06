@@ -43,6 +43,13 @@ SKIP_DIR_NAMES = {
     "K2_WAVE1_PAGE_PACKETS", "K2_PYTHON_DEPS",
 }
 
+
+# Families are deliberately coarse. The goal is not language identification;
+# it is to detect the characteristic many-unrelated-scripts pattern produced
+# by broken embedded-font/CMap decoding while leaving ordinary monolingual and
+# bilingual text alone. Japanese/Korean/CJK-related scripts are grouped so a
+# normal East-Asian document is not treated as corruption merely for mixing
+# ideographs with kana/hangul/bopomofo.
 SCRIPT_PREFIXES = (
     "LATIN", "GREEK", "CYRILLIC", "ARMENIAN", "HEBREW", "ARABIC",
     "THAANA", "DEVANAGARI", "BENGALI", "GURMUKHI", "GUJARATI", "ORIYA",
@@ -110,7 +117,11 @@ def normalize_local_path(raw, host_os=None):
 
 
 def configure_python_deps(raw):
-    """Expose an external, local-only Python dependency directory."""
+    """Expose an external, local-only Python dependency directory.
+
+    This is deliberately outside the repository so helper dependencies do not
+    become knowledge artifacts or require global machine installation.
+    """
     if raw is None:
         return None
     path = ensure_local_only(normalize_local_path(str(raw)))
@@ -229,10 +240,20 @@ def _letter_script_family(ch: str):
     for prefix in SCRIPT_PREFIXES:
         if name.startswith(prefix):
             return prefix
+    # Keep less common scripts visible instead of silently grouping them into
+    # one bucket; a damaged CMap often sprays glyphs across exactly these names.
     return name.split()[0]
 
 
 def text_layer_is_semantically_readable(pages):
+    """Reject obvious Unicode font/CMap mojibake without guessing language.
+
+    This is intentionally conservative. Empty-text handling remains elsewhere.
+    Short samples pass because there is not enough signal. A normal document in
+    one script, or a bilingual document in two/three scripts, also passes. We
+    reject only when letter characters are materially spread across at least
+    four unrelated script families and no family dominates the text.
+    """
     counts = {}
     total_letters = 0
     for page in pages or []:
@@ -258,6 +279,15 @@ def text_layer_is_semantically_readable(pages):
 
 
 def text_layer_has_semantic_coverage(pages):
+    """Reject probable repeated overlay/watermark layers without source body.
+
+    A scanned book can carry a perfectly readable Unicode advertisement or
+    watermark on every page while the actual book body exists only as page
+    images. Such a file must not become TEXT_DIRECT merely because the overlay
+    is non-empty and linguistically readable. We fail closed only when there is
+    enough page-level signal and the extracted layer is simultaneously short,
+    highly repetitive, and low-diversity across the document.
+    """
     normalized = []
     for page in pages or []:
         if not isinstance(page, str):
@@ -266,6 +296,7 @@ def text_layer_has_semantic_coverage(pages):
         if compact:
             normalized.append(compact)
 
+    # Small samples do not provide enough evidence to classify repetition.
     if len(normalized) < 8:
         return True
 
@@ -340,6 +371,11 @@ def extract_pdf_text_pypdf(path: Path):
 
 
 def extract_pdf_text_pdfminer(path: Path):
+    """Read an existing PDF text layer with pdfminer.six, preserving pages.
+
+    pdfminer.six ships predefined CMaps that can decode some CJK PDFs that
+    pypdf cannot. This remains a text-layer-only path and never performs OCR.
+    """
     try:
         module = importlib.import_module("pdfminer.high_level")
     except Exception as e:
@@ -457,6 +493,7 @@ def _accept_extracted_pages(pages, label, reasons):
 
 
 def _extractor_unavailable(label, reason):
+    """Classify dependency absence without treating it as source failure."""
     if not isinstance(reason, str):
         return False
     if label == "pdftotext":
@@ -469,6 +506,10 @@ def _extractor_unavailable(label, reason):
 
 
 def extract_pdf_text(path: Path):
+    """Extract a page-preserving existing text layer without OCR.
+
+    Returns (pages, extractor_name, blocker_code, blocker_reason).
+    """
     reasons = []
     attempted_extractors = 0
     returned_page_sets = 0
@@ -516,6 +557,13 @@ def extract_pdf_text(path: Path):
 
 
 def classify_text_layer_page_count(pages, expected_pages):
+    """Classify page-preservation mismatch after extraction returned pages.
+
+    This is not a parser/read failure: a page set already exists. If the
+    extracted set cannot preserve the registered PDF page cardinality, the text
+    layer is unusable for source-bound page review and remains an execution-only
+    diagnostic.
+    """
     if not isinstance(expected_pages, int):
         return None, None
     actual_pages = len(pages)
