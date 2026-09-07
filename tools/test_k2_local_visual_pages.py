@@ -56,7 +56,8 @@ def test_plan_and_dpi_contracts():
     assert v.classify_rendered_page_count(2, 2) == (None, None)
     code, reason = v.classify_rendered_page_count(1, 2)
     assert code == "PDF_RENDER_PAGE_COUNT_MISMATCH"
-    assert "1 != 2" in reason
+    assert "rendered PDF page count 1" in reason
+    assert "physical PDF pages 2" in reason
 
 
 def test_renderer_capability_and_page_artifacts():
