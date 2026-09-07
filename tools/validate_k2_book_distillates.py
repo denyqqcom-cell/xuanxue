@@ -3,6 +3,8 @@ import json,re,sys
 from pathlib import Path
 from collections import Counter
 
+import k2_wave1_aggregate as agg
+
 ROOT=Path(__file__).resolve().parents[1]
 PATH_RE=re.compile(r"(?:/home/|/mnt/|[A-Za-z]:\\\\)")
 REQUIRED_LIST_FIELDS=[
@@ -120,20 +122,12 @@ def main():
     if project.get("phase")!="K2_EVIDENCE_EXTRACTION":fail("validator only valid during K2_EVIDENCE_EXTRACTION")
     if project.get("claim_extraction_blocked") is not True:fail("Claim Extraction must remain blocked during K2B distillation")
 
-    lp=k/"K2_READING_LEDGER_WAVE1.jsonl"
-    ep=k/"K2_EVIDENCE_WAVE1.jsonl"
-    dp=k/"K2_BOOK_DISTILLATES_WAVE1.jsonl"
+    lp=k/agg.BASE_LEDGER
+    ep=k/agg.BASE_EVIDENCE
     if not lp.exists() or not ep.exists():fail("Reading Ledger and Evidence are required before distillation validation")
-    ledger=load_jsonl(lp);evidence=load_jsonl(ep)
-    complete_count=sum(1 for r in ledger if r.get("read_status")=="COMPLETE")
-    if not dp.exists():
-        if complete_count:fail(f"{complete_count} COMPLETE reading sources require book distillates")
-        print("k2-book-distillates: PASS")
-        print("complete_sources=0 distillates=0 issues=0")
-        print("claim_extraction_blocked=true")
-        return
 
-    distillates=load_jsonl(dp)
+    ledger,evidence,distillates=agg.aggregate_wave1(ROOT)
+    complete_count=sum(1 for r in ledger if r.get("read_status")=="COMPLETE")
     issues=validate_rows(ledger,evidence,distillates)
     if issues:
         first=issues[0]

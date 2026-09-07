@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 from copy import deepcopy
+import json
+from pathlib import Path
+import tempfile
+
 import validate_k2_book_distillates as v
 
 
@@ -26,6 +30,58 @@ def baseline():
 
 def has(issues,text):
     return any(text in msg for _,msg in issues)
+
+
+def write_jsonl(path,rows):
+    path.parent.mkdir(parents=True,exist_ok=True)
+    path.write_text(
+        "".join(json.dumps(row,ensure_ascii=False,sort_keys=True)+"\n" for row in rows),
+        encoding="utf-8",
+    )
+
+
+def assert_standalone_main_aggregates_shards():
+    """A shard-resident contract break must fail the standalone validator too."""
+    with tempfile.TemporaryDirectory(prefix="k2-book-distillate-shard-test-") as tmp:
+        root=Path(tmp)
+        k=root/"knowledge"
+        k.mkdir(parents=True)
+        (k/"PROJECT_STATE.json").write_text(
+            json.dumps({"phase":"K2_EVIDENCE_EXTRACTION","claim_extraction_blocked":True}),
+            encoding="utf-8",
+        )
+
+        ledger,evidence,distillates=baseline()
+        ledger[0]["reading_id"]="R1"
+        write_jsonl(k/v.agg.BASE_LEDGER,ledger)
+        write_jsonl(k/v.agg.BASE_EVIDENCE,evidence)
+        write_jsonl(k/v.agg.BASE_DISTILLATES,distillates)
+
+        shard_ledger=[{
+            "reading_id":"R2","source_id":"S2","work_id":"W2",
+            "read_status":"COMPLETE","evidence_count":1,
+        }]
+        shard_evidence=[{"evidence_id":"E3","source_id":"S2","domain":"qimen"}]
+        shard_distillate=deepcopy(distillates[0])
+        shard_distillate.update({
+            "distillate_id":"D2","source_id":"S2","work_id":"WRONG",
+            "evidence_count":1,"evidence_anchor_refs":["E3"],
+        })
+        write_jsonl(k/v.agg.SHARD_DIRS["ledger"]/"S2.jsonl",shard_ledger)
+        write_jsonl(k/v.agg.SHARD_DIRS["evidence"]/"S2.jsonl",shard_evidence)
+        write_jsonl(k/v.agg.SHARD_DIRS["distillate"]/"S2.jsonl",[shard_distillate])
+
+        previous_root=v.ROOT
+        try:
+            v.ROOT=root
+            try:
+                v.main()
+            except SystemExit as exc:
+                assert exc.code==1
+            else:
+                raise AssertionError("standalone validator ignored invalid shard distillate")
+        finally:
+            v.ROOT=previous_root
 
 
 def main():
@@ -61,6 +117,8 @@ def main():
 
     d=deepcopy(distillates);d[0]["extra_field"]="x"
     assert has(v.validate_rows(ledger,evidence,d),"unexpected distillate fields")
+
+    assert_standalone_main_aggregates_shards()
 
     print("k2-book-distillate-tests: PASS")
 
