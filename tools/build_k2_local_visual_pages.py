@@ -20,13 +20,11 @@ force across rendering; this helper never changes `packaged`, `local_only`, or
 import argparse
 import importlib
 import json
-import re
 import sys
 from pathlib import Path
 
 import build_k2_local_page_packets as base
 
-ROOT = base.ROOT
 MIN_DPI = 72
 MAX_DPI = 400
 VISUAL_READABILITY = {"SCAN", "OCR_WEAK", "OCR_FAIL"}
@@ -56,7 +54,7 @@ def validate_dpi(value):
 def validate_visual_plan(plan):
     """Require the C2-entry source/policy snapshot before visual preparation."""
     base.validate_plan(plan)
-    for n, item in enumerate(plan, 1):
+    for item in plan:
         sid = item["source_id"]
         if item.get("execution_lane") != "VISUAL_REQUIRED":
             fail(f"{sid}: visual renderer only accepts VISUAL_REQUIRED sources")
@@ -116,59 +114,94 @@ def _prepare_output_dir(path: Path):
     return resolved
 
 
-def render_pdf_pymupdf(path: Path, output_dir: Path, source_id: str, source_hash: str, dpi: int):
-    """Render original PDF pages without OCR using an isolated PyMuPDF import."""
+def _safe_close(obj):
+    if obj is None:
+        return
+    close = getattr(obj, "close", None)
+    if callable(close):
+        try:
+            close()
+        except Exception:
+            pass
+
+
+def _sanitize_reason(reason, local_path=None):
+    text = str(reason or "")
+    if local_path is not None:
+        candidates = {str(local_path)}
+        try:
+            candidates.add(str(local_path.resolve()))
+        except OSError:
+            pass
+        for candidate in sorted(candidates, key=len, reverse=True):
+            if candidate:
+                text = text.replace(candidate, "<LOCAL_CARRIER>")
+    return text[:800]
+
+
+def render_pdf_pdfium(path: Path, output_dir: Path, source_id: str, source_hash: str, dpi: int):
+    """Render original PDF pages without OCR using pypdfium2 + Pillow."""
     try:
-        pymupdf = importlib.import_module("pymupdf")
+        pdfium = importlib.import_module("pypdfium2")
+        importlib.import_module("PIL.Image")
     except Exception as exc:
         return (
             None,
             None,
             "PDF_RENDER_SURFACE_UNAVAILABLE",
-            f"pymupdf unavailable: {type(exc).__name__}: {exc}",
+            _sanitize_reason(
+                f"pypdfium2/Pillow unavailable: {type(exc).__name__}: {exc}", path
+            ),
         )
 
     out = _prepare_output_dir(output_dir)
     document = None
     rows = []
     try:
-        document = pymupdf.open(str(path))
-        page_count = getattr(document, "page_count", None)
+        document = pdfium.PdfDocument(str(path))
+        page_count = len(document)
         if not isinstance(page_count, int) or page_count < 0:
-            raise ValueError(f"invalid PyMuPDF page_count: {page_count!r}")
+            raise ValueError(f"invalid PDFium page count: {page_count!r}")
         scale = dpi / 72.0
-        matrix = pymupdf.Matrix(scale, scale)
         for page_index in range(page_count):
-            page = document.load_page(page_index)
-            pixmap = page.get_pixmap(matrix=matrix, alpha=False)
-            image = out / f"page-{page_index + 1:04d}.png"
-            pixmap.save(str(image))
-            rows.append({
-                "source_id": source_id,
-                "source_file_sha256": source_hash,
-                "page": page_index + 1,
-                "image_file": image.name,
-                "image_sha256": base.sha_file(image),
-                "width_px": int(pixmap.width),
-                "height_px": int(pixmap.height),
-                "dpi": dpi,
-                "renderer": "PYMUPDF",
-            })
+            page = None
+            bitmap = None
+            pil_image = None
+            try:
+                page = document[page_index]
+                bitmap = page.render(scale=scale)
+                pil_image = bitmap.to_pil()
+                image = out / f"page-{page_index + 1:04d}.png"
+                pil_image.save(str(image), format="PNG")
+                width, height = pil_image.size
+                rows.append({
+                    "source_id": source_id,
+                    "source_file_sha256": source_hash,
+                    "page": page_index + 1,
+                    "image_file": image.name,
+                    "image_sha256": base.sha_file(image),
+                    "width_px": int(width),
+                    "height_px": int(height),
+                    "dpi": dpi,
+                    "renderer": "PYPDFIUM2",
+                })
+            finally:
+                _safe_close(pil_image)
+                _safe_close(bitmap)
+                _safe_close(page)
     except Exception as exc:
         return (
             rows or None,
-            "PYMUPDF",
+            "PYPDFIUM2",
             "PDF_RENDER_FAILED",
-            f"PyMuPDF render failed: {type(exc).__name__}: {exc}"[:800],
+            _sanitize_reason(
+                f"PDFium render failed: {type(exc).__name__}: {exc}", path
+            ),
         )
     finally:
-        if document is not None:
-            try:
-                document.close()
-            except Exception:
-                pass
+        _safe_close(document)
 
-    return rows, "PYMUPDF", None, None
+    return rows, "PYPDFIUM2", None, None
 
 
 def blocked_row(
@@ -188,7 +221,7 @@ def blocked_row(
         "source_file_sha256": source_file_sha256,
         "identity_mode": identity_mode,
         "execution_lane": item.get("execution_lane"),
-        "execution_status": "BLOCKED",
+        "execution_status": "EXECUTION_BLOCKED",
         "blocker_code": code,
         "blocker_reason": reason,
         "material_page_count": material_page_count,
@@ -220,7 +253,7 @@ def main():
     )
     ap.add_argument(
         "--python-deps-dir", type=Path,
-        help="optional repo-external dependency dir containing PyMuPDF",
+        help="optional repo-external dependency dir containing pypdfium2/Pillow",
     )
     ap.add_argument("--output-dir", type=Path, required=True)
     ap.add_argument("--dpi", type=int, default=160)
@@ -277,7 +310,7 @@ def main():
                 item,
                 actual_hash,
                 code,
-                reason,
+                _sanitize_reason(reason, local_path),
                 identity_mode=identity_mode,
                 material_page_count=material_page_count,
                 material_page_counter=material_page_counter,
@@ -292,7 +325,7 @@ def main():
                 item,
                 actual_hash,
                 code,
-                reason,
+                _sanitize_reason(reason, local_path),
                 identity_mode=identity_mode,
                 material_page_count=material_page_count,
                 material_page_counter=material_page_counter,
@@ -300,7 +333,7 @@ def main():
             continue
 
         source_out = output_dir / sid
-        rows, renderer, code, reason = render_pdf_pymupdf(
+        rows, renderer, code, reason = render_pdf_pdfium(
             local_path, source_out, sid, actual_hash, dpi
         )
         if code is not None:
