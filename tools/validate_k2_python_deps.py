@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """Validate the external Python dependency directory used by K2 local helpers.
 
-The K2 page-packet builder intentionally supports dependencies installed with
+The K2 local material helpers intentionally support dependencies installed with
 ``pip --target`` outside the repository. A partially interrupted target install
 can leave importable pure-Python package shells while omitting native modules
-needed by cffi/cryptography. This validator fails closed before corpus work
-starts and also rejects accidental fallback to globally installed packages.
+needed by cffi/cryptography or the PDF renderer. This validator fails closed
+before corpus work starts and also rejects accidental fallback to globally
+installed packages.
 """
 
 import argparse
@@ -79,20 +80,23 @@ def main():
     # Package roots must come from the target directory, not global site-packages.
     pypdf, pypdf_origin = import_from_target("pypdf", target)
     pdfminer, pdfminer_origin = import_from_target("pdfminer", target)
+    pymupdf, pymupdf_origin = import_from_target("pymupdf", target)
     cryptography, crypto_origin = import_from_target("cryptography", target)
     cffi, cffi_origin = import_from_target("cffi", target)
 
     # Exercise the exact native/runtime pieces that were missing in the observed
-    # interrupted Windows target install.
+    # interrupted Windows target install, plus the visual PDF renderer import.
     _, cffi_backend_origin = import_from_target("_cffi_backend", target)
     _, rust_origin = import_from_target("cryptography.hazmat.bindings._rust", target)
     import_from_target("pdfminer.high_level", target)
     import_from_target("pypdf._crypt_providers._cryptography", target)
+    import_from_target("pymupdf", target)
 
     print("k2-python-deps: PASS")
     print(f"python_deps_dir={target}")
     print(f"pypdf={version_of(pypdf)} origin={pypdf_origin}")
     print(f"pdfminer={version_of(pdfminer)} origin={pdfminer_origin}")
+    print(f"pymupdf={version_of(pymupdf)} origin={pymupdf_origin}")
     print(f"cryptography={version_of(cryptography)} origin={crypto_origin}")
     print(f"cffi={version_of(cffi)} origin={cffi_origin}")
     print(f"_cffi_backend_origin={cffi_backend_origin}")
