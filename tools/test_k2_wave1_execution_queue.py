@@ -42,7 +42,8 @@ def main():
 
     # Consumer convergence: transient execution-only BLOCKED diagnostics must
     # never suppress a source from the actionable queue. Only COMPLETE and a
-    # genuine source-terminal BLOCKED state are Reading-terminal.
+    # genuine source-terminal BLOCKED state are Reading-terminal. Cover both
+    # text/material preparation and the visual-render producer taxonomy.
     synthetic_ledger = [
         {"source_id": "DONE", "read_status": "COMPLETE", "blocker_code": None},
         {"source_id": "CORRUPT", "read_status": "BLOCKED", "blocker_code": "CORRUPT_SOURCE"},
@@ -50,6 +51,13 @@ def main():
         {"source_id": "NO_STACK", "read_status": "BLOCKED", "blocker_code": "TEXT_EXTRACTOR_STACK_UNAVAILABLE"},
         {"source_id": "UNUSABLE", "read_status": "BLOCKED", "blocker_code": "TEXT_LAYER_UNUSABLE"},
         {"source_id": "MISSING", "read_status": "BLOCKED", "blocker_code": "FILE_MISSING"},
+        {"source_id": "NO_COUNTER", "read_status": "BLOCKED", "blocker_code": "PDF_PAGE_COUNTER_UNAVAILABLE"},
+        {"source_id": "COUNT_FAILED", "read_status": "BLOCKED", "blocker_code": "PDF_PAGE_COUNT_FAILED"},
+        {"source_id": "COUNT_MISMATCH", "read_status": "BLOCKED", "blocker_code": "PDF_PAGE_COUNT_MISMATCH"},
+        {"source_id": "NOT_PDF", "read_status": "BLOCKED", "blocker_code": "VISUAL_CARRIER_NOT_PDF"},
+        {"source_id": "NO_RENDER", "read_status": "BLOCKED", "blocker_code": "PDF_RENDER_SURFACE_UNAVAILABLE"},
+        {"source_id": "RENDER_FAILED", "read_status": "BLOCKED", "blocker_code": "PDF_RENDER_FAILED"},
+        {"source_id": "RENDER_COUNT_MISMATCH", "read_status": "BLOCKED", "blocker_code": "PDF_RENDER_PAGE_COUNT_MISMATCH"},
     ]
     assert q.terminal_source_ids_from_ledger(synthetic_ledger) == {"DONE", "CORRUPT"}
 

@@ -51,8 +51,9 @@ def main():
     assert v.PDF_LOC_RE.search("printed:p5|pdf:p8-p9")
 
     # A source-level terminal Reading state must not be created from a transient
-    # execution-surface or extraction-attempt failure. Those failures remain
-    # diagnostic execution states outside the authoritative Reading lifecycle.
+    # execution-surface, material inspection, or render-attempt failure. Those
+    # failures remain diagnostic execution states outside the authoritative
+    # Reading lifecycle.
     assert v.TERMINAL_SOURCE_BLOCKER_CODES=={"CORRUPT_SOURCE"},v.TERMINAL_SOURCE_BLOCKER_CODES
     assert v.EXECUTION_ONLY_BLOCKER_CODES=={
         "FILE_MISSING",
@@ -61,12 +62,23 @@ def main():
         "TEXT_EXTRACTION_FAILED",
         "TEXT_LAYER_UNUSABLE",
         "ACCESS_UNAVAILABLE",
+        "PDF_PAGE_COUNTER_UNAVAILABLE",
+        "PDF_PAGE_COUNT_FAILED",
+        "PDF_PAGE_COUNT_MISMATCH",
+        "VISUAL_CARRIER_NOT_PDF",
+        "PDF_RENDER_SURFACE_UNAVAILABLE",
+        "PDF_RENDER_FAILED",
+        "PDF_RENDER_PAGE_COUNT_MISMATCH",
     },v.EXECUTION_ONLY_BLOCKER_CODES
     assert v.TERMINAL_SOURCE_BLOCKER_CODES.isdisjoint(v.EXECUTION_ONLY_BLOCKER_CODES)
     assert v.BLOCKER_CODES==v.TERMINAL_SOURCE_BLOCKER_CODES
     assert v.read_blocker_scope("CORRUPT_SOURCE")=="SOURCE_TERMINAL"
     assert v.read_blocker_scope("VISION_UNAVAILABLE")=="EXECUTION_ONLY"
     assert v.read_blocker_scope("TEXT_LAYER_UNUSABLE")=="EXECUTION_ONLY"
+    assert v.read_blocker_scope("PDF_PAGE_COUNT_MISMATCH")=="EXECUTION_ONLY"
+    assert v.read_blocker_scope("PDF_RENDER_SURFACE_UNAVAILABLE")=="EXECUTION_ONLY"
+    assert v.read_blocker_scope("PDF_RENDER_FAILED")=="EXECUTION_ONLY"
+    assert v.read_blocker_scope("PDF_RENDER_PAGE_COUNT_MISMATCH")=="EXECUTION_ONLY"
     assert v.read_blocker_scope("OTHER")=="UNSUPPORTED"
 
     # Incremental Wave1 review contract: only actually reviewed rows may emit Evidence,
