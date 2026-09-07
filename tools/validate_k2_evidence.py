@@ -19,8 +19,11 @@ apply_verified_source_metadata = routing.apply_verified_source_metadata
 load_execution_routing_corrections = routing.load_execution_routing_corrections
 
 # Reading lifecycle state and execution-attempt diagnostics are separate. A
-# transient local/runtime limitation must never become a source-level terminal
-# BLOCKED row merely because the legacy validator has a blocker_code field.
+# transient local/runtime/material/render limitation must never become a
+# source-level terminal BLOCKED row merely because the legacy validator has a
+# blocker_code field. Keep every currently produced local-helper diagnostic in
+# this execution-only taxonomy; only genuinely source-terminal codes are passed
+# to the authoritative Reading validator below.
 EXECUTION_ONLY_BLOCKER_CODES = {
     "FILE_MISSING",
     "VISION_UNAVAILABLE",
@@ -28,6 +31,13 @@ EXECUTION_ONLY_BLOCKER_CODES = {
     "TEXT_EXTRACTION_FAILED",
     "TEXT_LAYER_UNUSABLE",
     "ACCESS_UNAVAILABLE",
+    "PDF_PAGE_COUNTER_UNAVAILABLE",
+    "PDF_PAGE_COUNT_FAILED",
+    "PDF_PAGE_COUNT_MISMATCH",
+    "VISUAL_CARRIER_NOT_PDF",
+    "PDF_RENDER_SURFACE_UNAVAILABLE",
+    "PDF_RENDER_FAILED",
+    "PDF_RENDER_PAGE_COUNT_MISMATCH",
 }
 TERMINAL_SOURCE_BLOCKER_CODES = {"CORRUPT_SOURCE"}
 
