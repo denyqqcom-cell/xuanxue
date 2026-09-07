@@ -14,7 +14,13 @@ except ImportError:
     hardening = None
 
 
-HARDENING_FIELDS = {"outcome_ontology", "factor_budget", "path_budget"}
+HARDENING_FIELDS = {"outcome_ontology", "factor_budget", "path_budget", "abstain_lock"}
+ABSTAIN_REASON_CODES = [
+    "INPUT_PROVENANCE_INSUFFICIENT",
+    "FACTOR_PATH_CONFLICT",
+    "FACTOR_OUTSIDE_FROZEN_SET",
+    "BUDGET_OR_STOP_RULE_EXCEEDED",
+]
 
 
 def plan():
@@ -50,24 +56,47 @@ def ontology():
     }
 
 
-def freeze(p=None, b=None):
+def abstain_lock(decision="PREDICT", reason=None):
+    return {
+        "decision": decision,
+        "allowed_reason_codes": list(ABSTAIN_REASON_CODES),
+        "selected_reason_code": reason,
+        "coverage_denominator": "ALL_FROZEN_CASES",
+        "rewrite_policy": "IMMUTABLE_PRE_OUTCOME_DECISION",
+    }
+
+
+def freeze(p=None, b=None, decision="PREDICT", reason=None):
     p = p or plan()
     b = b or batch(p)
     f = fixtures.freeze(p, b)
     f["frozen_payload"]["outcome_ontology"] = ontology()
     f["frozen_payload"]["factor_budget"] = 2
     f["frozen_payload"]["path_budget"] = 2
+    f["frozen_payload"]["abstain_lock"] = abstain_lock(decision, reason)
+    if decision == "ABSTAIN":
+        f["frozen_payload"]["prediction"] = "ABSTAIN"
     f["frozen_payload_sha256"] = base.canonical_sha256(f["frozen_payload"])
     return f
 
 
-def validate_all(p, b=None, f=None):
+def abstain_outcome(f):
+    o = fixtures.outcome(f)
+    o["observed_value"] = None
+    o["outcome_summary"] = "pre-outcome abstention retained in cohort"
+    o["evaluation"] = "ABSTAIN"
+    o["score_components"] = {}
+    return o
+
+
+def validate_all(p, b=None, f=None, o=None):
     plans = [p]
     batches = [b] if b is not None else []
     freezes = [f] if f is not None else []
-    issues = list(base.validate_records(fixtures.distillates(), plans, batches, freezes, []))
+    outcomes = [o] if o is not None else []
+    issues = list(base.validate_records(fixtures.distillates(), plans, batches, freezes, outcomes))
     if hardening is not None:
-        issues.extend(hardening.validate_hardening(fixtures.distillates(), plans, batches, freezes, []))
+        issues.extend(hardening.validate_hardening(fixtures.distillates(), plans, batches, freezes, outcomes))
     return issues
 
 
@@ -75,8 +104,8 @@ def text(issues):
     return "; ".join(f"{key}: {message}" for key, message in issues)
 
 
-def assert_fail(p, b, f, needle):
-    issues = validate_all(p, b, f)
+def assert_fail(p, b, f, needle, o=None):
+    issues = validate_all(p, b, f, o)
     rendered = text(issues)
     assert issues, f"expected fail-closed issue containing {needle!r}"
     assert needle in rendered, (needle, rendered)
@@ -92,6 +121,12 @@ def main():
 
     badp = copy.deepcopy(p)
     badp["freeze_required_fields"].remove("outcome_ontology")
+    badb = batch(badp)
+    badf = freeze(badp, badb)
+    assert_fail(badp, badb, badf, "hardening fields")
+
+    badp = copy.deepcopy(p)
+    badp["freeze_required_fields"].remove("abstain_lock")
     badb = batch(badp)
     badf = freeze(badp, badb)
     assert_fail(badp, badb, badf, "hardening fields")
@@ -136,8 +171,37 @@ def main():
     bad["frozen_payload_sha256"] = base.canonical_sha256(bad["frozen_payload"])
     assert_fail(p, b, bad, "factor_budget must be positive integer")
 
+    bad = copy.deepcopy(f)
+    bad["frozen_payload"]["abstain_lock"] = "decide later"
+    bad["frozen_payload_sha256"] = base.canonical_sha256(bad["frozen_payload"])
+    assert_fail(p, b, bad, "abstain_lock must be machine-evaluable object")
+
+    bad = copy.deepcopy(f)
+    bad["frozen_payload"]["abstain_lock"]["selected_reason_code"] = "FACTOR_PATH_CONFLICT"
+    bad["frozen_payload_sha256"] = base.canonical_sha256(bad["frozen_payload"])
+    assert_fail(p, b, bad, "PREDICT decision cannot carry selected abstain reason")
+
+    bad = copy.deepcopy(f)
+    bad["frozen_payload"]["abstain_lock"]["coverage_denominator"] = "ONLY_EASY_CASES"
+    bad["frozen_payload_sha256"] = base.canonical_sha256(bad["frozen_payload"])
+    assert_fail(p, b, bad, "coverage_denominator must retain all frozen cases")
+
+    af = freeze(p, b, decision="ABSTAIN", reason="FACTOR_PATH_CONFLICT")
+    ao = abstain_outcome(af)
+    issues = validate_all(p, b, af, ao)
+    assert not issues, issues
+
+    bad = freeze(p, b, decision="ABSTAIN", reason="POST_HOC_BAD_REASON")
+    assert_fail(p, b, bad, "selected abstain reason must be predeclared governed code")
+
+    posthoc = abstain_outcome(f)
+    assert_fail(p, b, f, "post-outcome PREDICT to ABSTAIN rewrite forbidden", posthoc)
+
+    rescored = fixtures.outcome(af)
+    assert_fail(p, b, af, "pre-outcome ABSTAIN decision cannot be rescored as evaluable", rescored)
+
     print("k2-prospective-hardening-tests: PASS")
-    print("cases=9")
+    print("cases=16")
 
 
 if __name__ == "__main__":
