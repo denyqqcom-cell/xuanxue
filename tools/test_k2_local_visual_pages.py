@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import hashlib
+import importlib
 import json
+import os
 import sys
 import tempfile
 from pathlib import Path
@@ -164,6 +166,45 @@ def test_renderer_capability_and_page_artifacts():
         assert all("text" not in row for row in rows)
 
 
+def test_real_renderer_smoke_from_isolated_target():
+    """Windows portability CI supplies K2_PYTHON_DEPS; use it for a real render."""
+    raw_target = os.environ.get("K2_PYTHON_DEPS")
+    if not raw_target:
+        return
+    target = Path(raw_target)
+    if not target.is_dir():
+        raise AssertionError(f"K2_PYTHON_DEPS does not exist: {target}")
+    v.base.configure_python_deps(target)
+    pypdf = importlib.import_module("pypdf")
+
+    with tempfile.TemporaryDirectory(prefix="k2-visual-real-render-") as td:
+        root = Path(td)
+        source = root / "one-page.pdf"
+        writer = pypdf.PdfWriter()
+        try:
+            writer.add_blank_page(width=72, height=72)
+            with source.open("wb") as fh:
+                writer.write(fh)
+        finally:
+            close = getattr(writer, "close", None)
+            if callable(close):
+                close()
+
+        out = root / "rendered"
+        digest = v.base.sha_file(source)
+        rows, renderer, code, reason = v.render_pdf_pdfium(
+            source, out, "BZ-SRC-REAL", digest, 144
+        )
+        assert code is None, reason
+        assert renderer == "PYPDFIUM2"
+        assert len(rows) == 1
+        assert rows[0]["page"] == 1
+        assert rows[0]["source_file_sha256"] == digest
+        assert rows[0]["width_px"] > 0 and rows[0]["height_px"] > 0
+        assert (out / "page-0001.png").is_file()
+        assert (out / "page-0001.png").stat().st_size > 0
+
+
 def test_renderer_failure_redacts_local_carrier_path():
     with tempfile.TemporaryDirectory(prefix="k2-visual-redaction-test-") as td:
         root = Path(td)
@@ -278,6 +319,7 @@ def test_main_emits_execution_only_manifest_without_local_path():
 def main():
     test_plan_and_dpi_contracts()
     test_renderer_capability_and_page_artifacts()
+    test_real_renderer_smoke_from_isolated_target()
     test_renderer_failure_redacts_local_carrier_path()
     test_main_emits_execution_only_manifest_without_local_path()
     print("k2-local-visual-pages-tests: PASS")
