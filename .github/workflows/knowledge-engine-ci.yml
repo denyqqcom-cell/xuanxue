@@ -104,6 +104,8 @@ jobs:
         run: python3 tools/validate_k2_prospective_hardening.py
       - name: Test versioned pre-outcome revision fail-closed cases
         run: python3 tools/test_k2_versioned_preoutcome_revision.py
+      - name: Enforce versioned pre-outcome revision
+        run: python3 tools/validate_k2_versioned_preoutcome_revision.py
       - name: Test prospective batch review fail-closed cases
         run: python3 tools/test_k2_prospective_batch_review.py
       - name: Enforce prospective batch review contracts
