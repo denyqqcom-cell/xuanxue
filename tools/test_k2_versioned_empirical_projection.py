@@ -81,6 +81,16 @@ def main():
     )
     assert not provenance_issues, provenance_issues
 
+    # Revision history cannot silently change the underlying sample identity.
+    drift = copy.deepcopy(v3)
+    drift["frozen_payload"]["sample_fingerprint"] = "4" * 64
+    drift["frozen_payload_sha256"] = pv.canonical_sha256(drift["frozen_payload"])
+    drift_issues = sp.validate_records(
+        [b], [v1, v2, drift], [binding], [sample_policy], [sample_schema]
+    )
+    drift_text = "; ".join(message for _, message in drift_issues)
+    assert "versioned case sample_fingerprint must remain stable across revisions" in drift_text, drift_text
+
     empirical_policy = er.policy_for_batch(b)
     assert empirical_policy is not None
     summary = er.compute_credit_summary(p, [b], [v1, v2, v3], [outcome], [], empirical_policy)
@@ -111,7 +121,7 @@ def main():
     assert not issues, text
 
     print("k2-versioned-empirical-projection-tests: PASS")
-    print("cases=3")
+    print("cases=4")
 
 
 if __name__ == "__main__":
