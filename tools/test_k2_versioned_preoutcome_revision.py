@@ -7,10 +7,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import test_k2_prospective_hardening as fixtures
 import validate_k2_prospective_validation as base
-import validate_k2_prospective_hardening as hardening
+import validate_k2_versioned_preoutcome_revision as revision
 
 REVISION_FIELD = "revision_lock"
-PRIMARY_SCORING_POLICIES = {"FIRST_ISSUED", "LATEST_PRE_OUTCOME_CUTOFF"}
 
 
 def revision_lock(version, parent_freeze_id, issued_at, cutoff_at, policy="LATEST_PRE_OUTCOME_CUTOFF", eligibility="SCORABLE_PRE_OUTCOME"):
@@ -49,9 +48,7 @@ def outcome_for(f, observed_at="2026-08-23T00:00:00Z"):
 
 def validate(p, b, freezes, outcomes):
     ds = fixtures.fixtures.distillates()
-    issues = list(base.validate_records(ds, [p], [b], freezes, outcomes))
-    issues.extend(hardening.validate_hardening(ds, [p], [b], freezes, outcomes))
-    return issues
+    return revision.validate_records(ds, [p], [b], freezes, outcomes)
 
 
 def text(issues):
@@ -80,12 +77,12 @@ def main():
     )
     o2 = outcome_for(v2)
 
-    # Required capability: one preregistered case may retain multiple immutable
-    # pre-outcome prediction versions without inflating the case denominator.
+    # Multiple immutable versions remain one preregistered case.
     issues = validate(p, b, [v1, v2], [o2])
     assert not issues, issues
+    assert revision.unique_case_count_by_batch([v1, v2]) == {b["batch_id"]: 1}
+    assert revision.primary_scoring_freeze([v1, v2], base.utc_value(o2["observed_at_utc"]))["freeze_id"] == v2["freeze_id"]
 
-    # Version sequence and parent chain are immutable/auditable.
     bad = copy.deepcopy(v2)
     bad["frozen_payload"][REVISION_FIELD]["prediction_version"] = 3
     bad["frozen_payload_sha256"] = base.canonical_sha256(bad["frozen_payload"])
@@ -96,13 +93,16 @@ def main():
     bad["frozen_payload_sha256"] = base.canonical_sha256(bad["frozen_payload"])
     assert_fail(p, b, [v1, bad], [], "parent_freeze_id must bind previous immutable version")
 
-    # New information may arrive before outcome, but cutoff must not move past issue time.
     bad = copy.deepcopy(v2)
     bad["frozen_payload"][REVISION_FIELD]["information_cutoff_at_utc"] = "2026-08-22T07:00:00Z"
     bad["frozen_payload_sha256"] = base.canonical_sha256(bad["frozen_payload"])
     assert_fail(p, b, [v1, bad], [], "information cutoff must not be after prediction issue")
 
-    # Scoring policy is frozen before outcome and cannot cherry-pick a favorable version.
+    bad = copy.deepcopy(v2)
+    bad["frozen_payload"][REVISION_FIELD]["allowed_information_channels"].append("POST_HOC_CHANNEL")
+    bad["frozen_payload_sha256"] = base.canonical_sha256(bad["frozen_payload"])
+    assert_fail(p, b, [v1, bad], [], "allowed information channels cannot expand or change across revisions")
+
     first_policy_v1 = versioned_freeze(p, b, policy="FIRST_ISSUED")
     first_policy_v2 = versioned_freeze(
         p, b, version=2, parent=first_policy_v1["freeze_id"],
@@ -112,7 +112,6 @@ def main():
     cherry = outcome_for(first_policy_v2)
     assert_fail(p, b, [first_policy_v1, first_policy_v2], [cherry], "outcome binds non-primary scoring version")
 
-    # Once the outcome is visible, another revision is audit-only/non-scorable.
     late = versioned_freeze(
         p, b, version=3, parent=v2["freeze_id"],
         issued_at="2026-08-24T00:00:00Z", cutoff_at="2026-08-23T23:59:00Z",
@@ -120,8 +119,16 @@ def main():
     )
     assert_fail(p, b, [v1, v2, late], [o2], "outcome-visible revision must be AUDIT_ONLY_POST_OUTCOME")
 
+    audit_only = versioned_freeze(
+        p, b, version=3, parent=v2["freeze_id"],
+        issued_at="2026-08-24T00:00:00Z", cutoff_at="2026-08-23T23:59:00Z",
+        prediction="EVENT_A", eligibility="AUDIT_ONLY_POST_OUTCOME",
+    )
+    issues = validate(p, b, [v1, v2, audit_only], [o2])
+    assert not issues, issues
+
     print("k2-versioned-preoutcome-revision-tests: PASS")
-    print("cases=5")
+    print("cases=7")
 
 
 if __name__ == "__main__":
