@@ -3,6 +3,7 @@ import copy,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import test_k2_prospective_validation as fx
+import test_k2_versioned_preoutcome_revision as rvfx
 import validate_k2_prospective_batch_review as br
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -112,7 +113,17 @@ def main():
     r2=review_for(b2,freezes2,outcomes2,verdict="FAIL",aggregate=-1.0,decision_met=False)
     assert not validate(p2,b2,freezes2,outcomes2,[r2]),validate(p2,b2,freezes2,outcomes2,[r2])
 
+    # RED contract: two immutable versions of one case must remain one denominator unit.
+    rp=rvfx.plan();rb=rvfx.fixtures.batch(rp);rb["planned_case_count"]=1
+    rv1=rvfx.versioned_freeze(rp,rb)
+    rv2=rvfx.versioned_freeze(rp,rb,version=2,parent=rv1["freeze_id"],issued_at="2026-08-22T06:00:00Z",cutoff_at="2026-08-22T05:59:00Z",prediction="EVENT_B")
+    ro=rvfx.outcome_for(rv2)
+    rr=review_for(rb,[rv1,rv2],[ro],verdict="FAIL",aggregate=0.0,decision_met=False)
+    rr["freeze_count"]=1
+    issues=br.validate_records(rvfx.fixtures.fixtures.distillates(),[rp],[rb],[rv1,rv2],[ro],[rr])
+    assert not issues,issues
+
     print("k2-prospective-batch-review-tests: PASS")
-    print("cases=12")
+    print("cases=13")
 
 if __name__=="__main__":main()
