@@ -4,6 +4,7 @@ from datetime import datetime,timezone
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_prospective_validation as pv
+import validate_k2_versioned_preoutcome_revision as rev
 
 ROOT=Path(__file__).resolve().parents[1]
 K=ROOT/"knowledge"
@@ -53,7 +54,12 @@ def apply_operator(value,operator,threshold):
 
 def validate_records(distillates,plans,batches,freezes,outcomes,reviews):
     issues=[]
-    upstream=pv.validate_records(distillates,plans,batches,freezes,outcomes)
+    versioned_mode=any(isinstance(rev.lock_of(f),dict) for f in freezes)
+    upstream=(
+        rev.validate_records(distillates,plans,batches,freezes,outcomes)
+        if versioned_mode
+        else pv.validate_records(distillates,plans,batches,freezes,outcomes)
+    )
     if upstream:
         issues.extend(("UPSTREAM_PROSPECTIVE",f"upstream prospective contract invalid: {rid}: {msg}") for rid,msg in upstream)
         return issues
@@ -87,8 +93,11 @@ def validate_records(distillates,plans,batches,freezes,outcomes,reviews):
         if not isinstance(r.get("batch_sha256"),str) or not SHA64_RE.match(r.get("batch_sha256","")):issues.append((rid,"batch_sha256 must be lowercase sha256"))
 
         fs=freezes_by_batch.get(bid,[]);os=outcomes_by_batch.get(bid,[])
+        batch_versioned=any(isinstance(rev.lock_of(f),dict) for f in fs)
+        case_groups=rev.case_groups(fs) if batch_versioned else {}
         planned=batch.get("planned_case_count")
-        freeze_count=len(fs);outcome_count=len(os)
+        freeze_count=len(case_groups) if batch_versioned else len(fs)
+        outcome_count=len(os)
         evaluations=[o.get("evaluation") for o in os]
         evaluable_count=sum(x in EVALUABLE for x in evaluations)
         abstain_count=sum(x=="ABSTAIN" for x in evaluations)
@@ -124,8 +133,19 @@ def validate_records(distillates,plans,batches,freezes,outcomes,reviews):
             issues.append((rid,"aggregate_primary_metric must equal preregistered primary_metric"))
 
         fixed_n_complete=freeze_count==planned
-        outcome_freeze_ids={o.get("freeze_id") for o in os}
-        outcome_complete=outcome_count==freeze_count and all(f.get("freeze_id") in outcome_freeze_ids for f in fs)
+        if batch_versioned:
+            outcome_case_keys=set()
+            for o in os:
+                fr=freeze_by_id.get(o.get("freeze_id"))
+                if fr is not None:outcome_case_keys.add(rev.case_key(fr))
+            outcome_complete=(
+                outcome_count==freeze_count
+                and len(outcome_case_keys)==freeze_count
+                and all(key in outcome_case_keys for key in case_groups)
+            )
+        else:
+            outcome_freeze_ids={o.get("freeze_id") for o in os}
+            outcome_complete=outcome_count==freeze_count and all(f.get("freeze_id") in outcome_freeze_ids for f in fs)
         has_non_evaluable=(abstain_count+unevaluable_count)>0
 
         if not fixed_n_complete and r.get("batch_verdict")!="INCOMPLETE":
@@ -190,6 +210,7 @@ def main():
     if issues:fail(f"issues={len(issues)} first={issues[0][0]}: {issues[0][1]}")
     print("k2-prospective-batch-review: PASS")
     print(f"batches={len(batches)} reviews={len(reviews)} issues=0")
+    print("versioned_case_denominator=UNIQUE_BATCH_CASE_ID")
     print("empirical_credit_upgrade_blocked=true")
 
 if __name__=="__main__":main()
