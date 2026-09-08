@@ -11,25 +11,26 @@ import validate_k2_prospective_validation as base
 ROOT = Path(__file__).resolve().parents[1]
 K = ROOT / "knowledge"
 
-HARDENING_FREEZE_FIELDS = {"outcome_ontology", "factor_budget", "path_budget"}
+HARDENING_FREEZE_FIELDS = {"outcome_ontology", "factor_budget", "path_budget", "abstain_lock"}
 OUTCOME_ONTOLOGY_FIELDS = {
-    "target_domain",
-    "target_variable",
-    "event_definition",
-    "direction",
-    "event_window",
-    "threshold",
-    "tolerance",
-    "unit",
-    "scale",
-    "subject_binding",
-    "matching_rule",
-    "missingness_handling",
-    "censoring_handling",
-    "scorable_conditions",
-    "non_scorable_conditions",
+    "target_domain", "target_variable", "event_definition", "direction", "event_window",
+    "threshold", "tolerance", "unit", "scale", "subject_binding", "matching_rule",
+    "missingness_handling", "censoring_handling", "scorable_conditions", "non_scorable_conditions",
 }
 EVENT_WINDOW_FIELDS = {"start_at_utc", "end_at_utc"}
+ABSTAIN_LOCK_FIELDS = {
+    "decision", "allowed_reason_codes", "selected_reason_code",
+    "coverage_denominator", "rewrite_policy",
+}
+ABSTAIN_DECISIONS = {"PREDICT", "ABSTAIN"}
+ABSTAIN_REASON_CODES = {
+    "INPUT_PROVENANCE_INSUFFICIENT",
+    "FACTOR_PATH_CONFLICT",
+    "FACTOR_OUTSIDE_FROZEN_SET",
+    "BUDGET_OR_STOP_RULE_EXCEEDED",
+}
+ABSTAIN_COVERAGE_DENOMINATOR = "ALL_FROZEN_CASES"
+ABSTAIN_REWRITE_POLICY = "IMMUTABLE_PRE_OUTCOME_DECISION"
 MACHINE_KEY_RE = re.compile(r"^[A-Z][A-Z0-9_]{1,63}$")
 
 
@@ -62,14 +63,12 @@ def validate_outcome_ontology(owner_id, ontology, governed_routes):
         return [(owner_id, "outcome_ontology must be machine-evaluable object")]
 
     if set(ontology) != OUTCOME_ONTOLOGY_FIELDS:
-        issues.append(
-            (
-                owner_id,
-                "outcome_ontology fields mismatch "
-                f"missing={sorted(OUTCOME_ONTOLOGY_FIELDS - set(ontology))} "
-                f"extra={sorted(set(ontology) - OUTCOME_ONTOLOGY_FIELDS)}",
-            )
-        )
+        issues.append((
+            owner_id,
+            "outcome_ontology fields mismatch "
+            f"missing={sorted(OUTCOME_ONTOLOGY_FIELDS - set(ontology))} "
+            f"extra={sorted(set(ontology) - OUTCOME_ONTOLOGY_FIELDS)}",
+        ))
 
     target_domain = ontology.get("target_domain")
     if not base.nonempty_text(target_domain):
@@ -78,12 +77,8 @@ def validate_outcome_ontology(owner_id, ontology, governed_routes):
         issues.append((owner_id, f"target_domain outside governed routes: {target_domain}"))
 
     for field in [
-        "target_variable",
-        "event_definition",
-        "subject_binding",
-        "matching_rule",
-        "missingness_handling",
-        "censoring_handling",
+        "target_variable", "event_definition", "subject_binding", "matching_rule",
+        "missingness_handling", "censoring_handling",
     ]:
         if not base.nonempty_text(ontology.get(field)):
             issues.append((owner_id, f"outcome_ontology {field} must be non-empty text"))
@@ -93,8 +88,7 @@ def validate_outcome_ontology(owner_id, ontology, governed_routes):
         if not isinstance(value, str) or not MACHINE_KEY_RE.match(value):
             issues.append((owner_id, f"outcome_ontology {field} must be uppercase machine key"))
 
-    direction = ontology.get("direction")
-    if not base.nonempty_text(direction):
+    if not base.nonempty_text(ontology.get("direction")):
         issues.append((owner_id, "outcome_ontology direction must be non-empty text"))
 
     window = ontology.get("event_window")
@@ -102,14 +96,12 @@ def validate_outcome_ontology(owner_id, ontology, governed_routes):
         issues.append((owner_id, "outcome_ontology event_window must be machine-evaluable object"))
     else:
         if set(window) != EVENT_WINDOW_FIELDS:
-            issues.append(
-                (
-                    owner_id,
-                    "event_window fields mismatch "
-                    f"missing={sorted(EVENT_WINDOW_FIELDS - set(window))} "
-                    f"extra={sorted(set(window) - EVENT_WINDOW_FIELDS)}",
-                )
-            )
+            issues.append((
+                owner_id,
+                "event_window fields mismatch "
+                f"missing={sorted(EVENT_WINDOW_FIELDS - set(window))} "
+                f"extra={sorted(set(window) - EVENT_WINDOW_FIELDS)}",
+            ))
         start = base.utc_value(window.get("start_at_utc"))
         end = base.utc_value(window.get("end_at_utc"))
         if start is None:
@@ -140,11 +132,53 @@ def validate_outcome_ontology(owner_id, ontology, governed_routes):
     return issues
 
 
+def validate_abstain_lock(owner_id, lock, payload):
+    issues = []
+    if not isinstance(lock, dict):
+        return [(owner_id, "abstain_lock must be machine-evaluable object")]
+
+    if set(lock) != ABSTAIN_LOCK_FIELDS:
+        issues.append((
+            owner_id,
+            "abstain_lock fields mismatch "
+            f"missing={sorted(ABSTAIN_LOCK_FIELDS - set(lock))} "
+            f"extra={sorted(set(lock) - ABSTAIN_LOCK_FIELDS)}",
+        ))
+
+    decision = lock.get("decision")
+    if decision not in ABSTAIN_DECISIONS:
+        issues.append((owner_id, f"abstain decision must be one of {sorted(ABSTAIN_DECISIONS)}"))
+
+    allowed = lock.get("allowed_reason_codes")
+    if not unique_string_list(allowed) or set(allowed) != ABSTAIN_REASON_CODES:
+        issues.append((owner_id, "allowed abstain reasons must equal governed reason-code set"))
+
+    selected = lock.get("selected_reason_code")
+    if decision == "PREDICT":
+        if selected is not None:
+            issues.append((owner_id, "PREDICT decision cannot carry selected abstain reason"))
+        if payload.get("prediction") == "ABSTAIN":
+            issues.append((owner_id, "PREDICT abstain_lock cannot freeze ABSTAIN prediction"))
+    elif decision == "ABSTAIN":
+        if selected not in ABSTAIN_REASON_CODES or not isinstance(allowed, list) or selected not in allowed:
+            issues.append((owner_id, "selected abstain reason must be predeclared governed code"))
+        if payload.get("prediction") != "ABSTAIN":
+            issues.append((owner_id, "ABSTAIN decision requires frozen prediction=ABSTAIN"))
+
+    if lock.get("coverage_denominator") != ABSTAIN_COVERAGE_DENOMINATOR:
+        issues.append((owner_id, "coverage_denominator must retain all frozen cases"))
+    if lock.get("rewrite_policy") != ABSTAIN_REWRITE_POLICY:
+        issues.append((owner_id, "abstain rewrite_policy must forbid post-outcome decision rewrite"))
+
+    return issues
+
+
 def validate_hardening(distillates, plans, batches, freezes, outcomes):
-    del batches, outcomes
+    del batches
     issues = []
     routes_by_hypothesis = plan_routes(distillates)
     plan_by_id = {}
+    freeze_by_id = {}
 
     for plan in plans:
         plan_id = plan.get("plan_id") or "<missing>"
@@ -159,6 +193,7 @@ def validate_hardening(distillates, plans, batches, freezes, outcomes):
 
     for freeze in freezes:
         freeze_id = freeze.get("freeze_id") or "<missing>"
+        freeze_by_id[freeze_id] = freeze
         plan = plan_by_id.get(freeze.get("plan_id"))
         governed_routes = routes_by_hypothesis.get(plan.get("hypothesis_id"), []) if plan else []
         payload = freeze.get("frozen_payload")
@@ -184,6 +219,24 @@ def validate_hardening(distillates, plans, batches, freezes, outcomes):
             issues.append((freeze_id, "interpretation_path must be non-empty unique string array for budget audit"))
         elif positive_int(path_budget) and len(path) > path_budget:
             issues.append((freeze_id, "interpretation_path exceeds path_budget"))
+
+        issues.extend(validate_abstain_lock(freeze_id, payload.get("abstain_lock"), payload))
+
+    for outcome in outcomes:
+        outcome_id = outcome.get("outcome_id") or "<missing>"
+        freeze = freeze_by_id.get(outcome.get("freeze_id"))
+        payload = freeze.get("frozen_payload") if isinstance(freeze, dict) else None
+        lock = payload.get("abstain_lock") if isinstance(payload, dict) else None
+        if not isinstance(lock, dict):
+            continue
+        decision = lock.get("decision")
+        evaluation = outcome.get("evaluation")
+        if decision == "PREDICT" and evaluation == "ABSTAIN":
+            issues.append((outcome_id, "post-outcome PREDICT to ABSTAIN rewrite forbidden"))
+        if decision == "ABSTAIN" and evaluation != "ABSTAIN":
+            issues.append((outcome_id, "pre-outcome ABSTAIN decision cannot be rescored as evaluable"))
+        if decision == "ABSTAIN" and outcome.get("score_components") not in ({}, None):
+            issues.append((outcome_id, "pre-outcome ABSTAIN decision cannot carry evaluable score components"))
 
     return issues
 
@@ -217,9 +270,9 @@ def main():
 
     print("k2-prospective-hardening: PASS")
     print(f"plans={len(plans)} freezes={len(freezes)} outcomes={len(outcomes)} issues=0")
-    print("scope=OUTCOME_ONTOLOGY_FREEZE+FACTOR_PATH_BUDGETS")
+    print("scope=OUTCOME_ONTOLOGY_FREEZE+FACTOR_PATH_BUDGETS+ABSTAIN_COVERAGE_LOCK")
     print("versioned_preoutcome_revision=NOT_IMPLEMENTED")
-    print("abstain_coverage_lock=NOT_IMPLEMENTED")
+    print("abstain_coverage_lock=IMPLEMENTED")
     print("empirical_credit_upgrade_blocked=true")
 
 
