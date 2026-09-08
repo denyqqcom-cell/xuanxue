@@ -3,6 +3,7 @@ import json,re,sys
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_prospective_validation as pv
+import validate_k2_versioned_preoutcome_revision as rev
 import k2_sample_fingerprint as sf
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -78,6 +79,23 @@ def recursive_keys(value):
     return keys
 
 
+def _versioned_case_fingerprint_representatives(batch_freezes, fingerprints_by_freeze, issues):
+    representatives=[]
+    for key,rows in rev.case_groups(batch_freezes).items():
+        pairs=[(row.get("freeze_id") or "<missing>",fingerprints_by_freeze.get(row.get("freeze_id"))) for row in rows]
+        pairs=[pair for pair in pairs if pair[1] is not None]
+        versioned=len(rows)>1 and all(isinstance(rev.lock_of(row),dict) for row in rows)
+        if versioned:
+            distinct={fingerprint for _,fingerprint in pairs}
+            if len(distinct)>1:
+                issues.append((pairs[-1][0] if pairs else str(key),"versioned case sample_fingerprint must remain stable across revisions"))
+            if pairs:
+                representatives.append(pairs[0])
+        else:
+            representatives.extend(pairs)
+    return representatives
+
+
 def validate_records(batches,freezes,bindings,policies,identity_schemas=None):
     issues=[]
     policy_by_version,policy_issues=policy_index(policies);issues.extend(policy_issues)
@@ -126,7 +144,7 @@ def validate_records(batches,freezes,bindings,policies,identity_schemas=None):
         bid=batch.get("batch_id") or "<missing>"
         if bid not in binding_by_batch:issues.append((bid,"preregistered batch requires pre-outcome sample provenance binding"))
 
-    fingerprints_by_batch={}
+    fingerprints_by_batch={};fingerprints_by_freeze={}
     for f in freezes:
         fid=f.get("freeze_id") or "<missing>";bid=f.get("batch_id");binding=binding_by_batch.get(bid)
         policy=policy_by_version.get(binding.get("sample_provenance_policy_version")) if isinstance(binding,dict) else None
@@ -146,13 +164,16 @@ def validate_records(batches,freezes,bindings,policies,identity_schemas=None):
         if schema is not None:
             if payload.get("sample_identity_schema_version")!=schema.get("schema_version"):issues.append((fid,"freeze sample_identity_schema_version must match preregistered binding"))
             if payload.get("sample_identity_schema_sha256")!=sf.canonical_sha256(schema):issues.append((fid,"freeze sample_identity_schema_sha256 must match preregistered binding"))
-        if isinstance(fingerprint,str) and SHA64_RE.match(fingerprint):fingerprints_by_batch.setdefault(bid,[]).append((fid,fingerprint))
+        if isinstance(fingerprint,str) and SHA64_RE.match(fingerprint):
+            fingerprints_by_batch.setdefault(bid,[]).append((fid,fingerprint))
+            fingerprints_by_freeze[fid]=fingerprint
 
     for bid,pairs in fingerprints_by_batch.items():
         binding=binding_by_batch.get(bid);policy=policy_by_version.get(binding.get("sample_provenance_policy_version")) if isinstance(binding,dict) else None
         if policy and policy.get("require_unique_within_batch"):
+            representatives=_versioned_case_fingerprint_representatives(freezes_by_batch.get(bid,[]),fingerprints_by_freeze,issues)
             seen={}
-            for fid,fingerprint in pairs:
+            for fid,fingerprint in representatives:
                 if fingerprint in seen:issues.append((fid,f"sample_fingerprint duplicates another case inside batch: {seen[fingerprint]}"))
                 else:seen[fingerprint]=fid
     return issues
