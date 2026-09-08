@@ -4,6 +4,7 @@ from datetime import datetime,timezone
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parent))
 import validate_k2_prospective_validation as pv
+import validate_k2_versioned_preoutcome_revision as rev
 import validate_k2_prospective_batch_review as br
 import validate_k2_sample_provenance as sp
 import k2_sample_fingerprint as sf
@@ -150,9 +151,41 @@ def sample_provenance_summary(freezes):
     }
 
 
+def project_empirical_case_freezes(batches,freezes,outcomes):
+    """Project immutable version history to one primary scoring Freeze per underlying case."""
+    batch_ids={b.get("batch_id") for b in batches}
+    selected=[f for f in freezes if f.get("batch_id") in batch_ids]
+    if not any(isinstance(rev.lock_of(f),dict) for f in selected):
+        return selected
+
+    freeze_by_id={f.get("freeze_id"):f for f in selected}
+    outcomes_by_case={}
+    for outcome in outcomes:
+        freeze=freeze_by_id.get(outcome.get("freeze_id"))
+        if freeze is not None:
+            outcomes_by_case.setdefault(rev.case_key(freeze),[]).append(outcome)
+
+    projected=[]
+    for key,rows in rev.case_groups(selected).items():
+        if rows and all(isinstance(rev.lock_of(row),dict) for row in rows):
+            case_outcomes=outcomes_by_case.get(key,[])
+            observed_at=None
+            if len(case_outcomes)==1:
+                observed_at=pv.utc_value(case_outcomes[0].get("observed_at_utc"))
+            primary=rev.primary_scoring_freeze(rows,observed_at)
+            if primary is not None:
+                projected.append(primary)
+            else:
+                projected.extend(rows)
+        else:
+            projected.extend(rows)
+    return projected
+
+
 def compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews,policy=None):
     policy=policy or (policy_for_batch(batches[0]) if batches else None)
-    sample_summary=sample_provenance_summary(freezes)
+    projected_freezes=project_empirical_case_freezes(batches,freezes,outcomes)
+    sample_summary=sample_provenance_summary(projected_freezes)
     if policy is None:
         return {
             "batch_review_ids":sorted(r.get("review_id") for r in batch_reviews),
@@ -163,11 +196,8 @@ def compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews,policy=No
             "replication_consistent":False,"case_token_unique":False,
             **sample_summary,"credit_readiness":"NOT_ELIGIBLE",
         }
-    batch_ids={b.get("batch_id") for b in batches}
-    selected_freezes=[f for f in freezes if f.get("batch_id") in batch_ids]
-    freeze_by_id={f.get("freeze_id"):f for f in selected_freezes}
+    freeze_by_id={f.get("freeze_id"):f for f in projected_freezes}
     selected_outcomes=[o for o in outcomes if o.get("freeze_id") in freeze_by_id]
-    sample_summary=sample_provenance_summary(selected_freezes)
 
     candidate_wins=0;comparator_wins=0;ties=0;deltas=[]
     complete_scores=True
@@ -185,7 +215,7 @@ def compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews,policy=No
         elif delta<0:comparator_wins+=1
         else:ties+=1
 
-    total_case_count=len(selected_freezes)
+    total_case_count=len(projected_freezes)
     discordant=candidate_wins+comparator_wins
     pooled=(sum(deltas)/total_case_count) if total_case_count>0 and len(deltas)==total_case_count else None
     pvalue=exact_one_sided_binomial_pvalue(candidate_wins,comparator_wins) if complete_scores and discordant>0 else None
@@ -194,7 +224,7 @@ def compute_credit_summary(plan,batches,freezes,outcomes,batch_reviews,policy=No
     replication_consistent=bool(batch_reviews)
     if policy.get("require_all_batch_reviews_pass"):replication_consistent=replication_consistent and review_passes
     if policy.get("require_positive_batch_aggregate"):replication_consistent=replication_consistent and positive_effects
-    case_ids=[f.get("case_id") for f in selected_freezes]
+    case_ids=[f.get("case_id") for f in projected_freezes]
     case_token_unique=len(case_ids)==len(set(case_ids)) and all(isinstance(x,str) and bool(x) for x in case_ids)
     ready=(
         len(batch_reviews)>=policy["minimum_batch_count"]
@@ -239,7 +269,12 @@ def validate_records(distillates,plans,batches,freezes,outcomes,batch_reviews,cr
     issues=[]
     policies,policy_by_version,policy_issues=load_policy_index(empirical_credit_policies)
     issues.extend(policy_issues)
-    upstream=pv.validate_records(distillates,plans,batches,freezes,outcomes,policies)
+    versioned_mode=any(isinstance(rev.lock_of(f),dict) for f in freezes)
+    upstream=(
+        rev.validate_records(distillates,plans,batches,freezes,outcomes)
+        if versioned_mode
+        else pv.validate_records(distillates,plans,batches,freezes,outcomes,policies)
+    )
     if upstream:
         issues.extend(("UPSTREAM_PROSPECTIVE",f"upstream prospective contract invalid: {rid}: {msg}") for rid,msg in upstream)
         return issues
