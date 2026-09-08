@@ -110,6 +110,8 @@ jobs:
         run: python3 tools/test_k2_prospective_batch_review.py
       - name: Enforce prospective batch review contracts
         run: python3 tools/validate_k2_prospective_batch_review.py
+      - name: Test versioned empirical-credit projection fail-closed cases
+        run: python3 tools/test_k2_versioned_empirical_projection.py
       - name: Test empirical credit review fail-closed cases
         run: python3 tools/test_k2_empirical_credit_review.py
       - name: Enforce empirical credit review contracts
