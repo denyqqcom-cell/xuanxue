@@ -43,6 +43,17 @@ def versioned_freeze(p, b, version=1, parent=None, issued_at="2026-08-22T00:00:0
 def outcome_for(f, observed_at="2026-08-23T00:00:00Z"):
     o = fixtures.fixtures.outcome(f)
     o["observed_at_utc"] = observed_at
+    observed = "EVENT_B"
+    payload = f["frozen_payload"]
+    candidate_score = 1.0 if payload.get("prediction") == observed else 0.0
+    comparator_score = 1.0 if payload.get("comparator_prediction") == observed else 0.0
+    o["observed_value"] = observed
+    o["evaluation"] = "SUCCESS" if candidate_score == 1.0 else "FAIL"
+    o["score_components"] = {
+        "CANDIDATE_SCORE": candidate_score,
+        "COMPARATOR_SCORE": comparator_score,
+        "PAIRED_SCORE_DELTA": candidate_score - comparator_score,
+    }
     return o
 
 
