@@ -17,3 +17,4 @@ dependencyResolutionManagement {
 rootProject.name = "xuanxue"
 include(":app")
 include(":ziwei-core")
+include(":qimen-core")

@@ -1,258 +1,396 @@
-# Qimen algorithm spec (encodable only)
+# Qimen algorithm spec — current encodable contract
 
-Anything not in this file is not an algorithm.  
-If a step needs a school choice, it is written as a parameter, not as “the” method.
+Status date: 2026-08-14
 
-Timezone default for this project: **Asia/Shanghai (UTC+8, no DST)**.  
-Do not use the machine local zone.  
-True solar time: **not specified** — leave `useTrueSolarTime=false` until a sourced algorithm exists.
+This file is the canonical **engineering** specification for `qimen-core`. It records only rules that are either implemented with executable tests or explicitly blocked. It is a rewrite, not a transcription of modern teaching material.
 
----
+Rules:
 
-## ALG-CAL-01  Sexagenary day index
-
-**Inputs:** civil date `Y-M-D` in Asia/Shanghai.  
-**Preconditions:** Gregorian date after 1900-01-01 is enough for this App.  
-**Steps:**
-
-1. Convert the civil date to a Julian Day Number (or equivalent continuous day count).  
-2. Map to 60-jiazi. Two anchors already used in user verification (do not hardcode a single magic day without documenting it):
-   - 1900-01-01 = 甲戌  
-   - 2000-01-01 = 戊午  
-3. Both anchors must agree. If they disagree, fail the build.
-
-**Boundary:** date at 00:00 belongs to that civil date. Whether 23:00 still belongs to that **qimen day** is ALG-CAL-03, not this function.
-
-**Output:** `dayStem`, `dayBranch`, `jiaziIndex` 1–60.
-
-**Sources:** N01 交叉验证 2026-08-07 (two-anchor check).  
-**Versions:** none.  
-**Default:** two-anchor agreement required.  
-**implementation_ready:** YES for civil day.  
-**Not ready:** lunar date (not required for 时家起局).
+- If a method differs by school, encode the school/method id instead of pretending there is one universal rule.
+- Source examples validate only the layout/calculation fact they reproduce; later outcome claims in a case are not engine evidence.
+- An online paipan site is never ground truth.
+- A source gap produces an explicit unsupported/locked state, not a guess.
+- Default timezone for the current core is `Asia/Shanghai`.
 
 ---
 
-## ALG-CAL-02  Hour pillar (五鼠遁)
+## ALG-CAL-01 — civil day pillar
 
-**Inputs:** `dayStem`, `hourBranch` (子丑寅卯辰巳午未申酉戌亥).  
-**Steps:**
+**Input:** Gregorian civil date used by the current Qimen day.
 
-Song used in notes (do not treat the poem as copyrighted modern prose):
+**Contract:** map the date to the sexagenary cycle using a continuous day count. Regression anchors include 1900-01-01 = 甲戌 and 2000-01-01 = 戊午; both anchors must agree with the same mapping.
 
-- 甲己 → 甲  
-- 乙庚 → 丙  
-- 丙辛 → 戊  
-- 丁壬 → 庚  
-- 戊癸 → 壬  
-
-Then walk the 12 branches from 子.
-
-**Output:** `hourStem`, `hourBranch`.
-
-**Sources:** N02 qimen-qiju §11; N05 script. Multi-source traditional.  
-**implementation_ready:** YES.
-
-**Table (rewrite, not a book facsimile):**
-
-| day stem | stem at 子 |
-|---|---|
-| 甲 / 己 | 甲 |
-| 乙 / 庚 | 丙 |
-| 丙 / 辛 | 戊 |
-| 丁 / 壬 | 庚 |
-| 戊 / 癸 | 壬 |
+**State:** implemented and tested.
 
 ---
 
-## ALG-CAL-03  Early / late 子时
+## ALG-CAL-02 — hour pillar / 五鼠遁
 
-**Inputs:** local clock `HH:mm` in Asia/Shanghai.  
-**Recommended default (B, notes disagree — see 04_CONFLICTS):**
+**Input:** day stem + hour branch.
 
-| clock | branch | day adjustment |
-|---|---|---|
-| 00:00–00:59 | 早子 | same civil date |
-| 01:00–02:59 | 丑 | same |
-| … 2-hour slots … | | |
-| 23:00–23:59 | 晚子 | **qimen day = next civil date** (then recompute day pillar) |
+Stem at 子:
 
-**Do not encode** “20:00–23:00 = 晚子” as default. It appears in one note heading and contradicts the 13-label list used by the Ziwei app (`早子 00–01` … `晚子 23–00`).
+- 甲/己 -> 甲
+- 乙/庚 -> 丙
+- 丙/辛 -> 戊
+- 丁/壬 -> 庚
+- 戊/癸 -> 壬
 
-**implementation_ready:** YES for the 13-slot table; day-change at 23:00 is a **config flag** `lateZiRollsToNextDay` default true.  
-**Sources:** N01/N02 mixed; Ziwei `SHICHEN_LABELS` in `xuanxue` app (same household convention, not a qimen book).
+Advance one stem for each branch from 子.
 
----
-
-## ALG-CAL-04  Solar terms (jieqi)
-
-**Inputs:** instant + timezone.  
-**Required:** compute 24 jieqi from **solar longitude** (or a tested astronomy library).  
-**Forbidden as encoder:** the rounded table “立春2.4 / 立秋8.7” in N01 §2.5. That table is a memory aid, not a boundary.
-
-**Output:** current jieqi name, `yinYangDun` (`YANG` if jieqi is in 冬至…芒种 inclusive set; `YIN` if 夏至…大雪), seconds-since-jieqi-start, day-index-in-jieqi 1-based.
-
-**Boundary:** “交节当天” — user notes: 拆补 uses the new jieqi as soon as the instant passes the term. That is a school choice (拆补). 置闰 may keep 符头 logic across the term.
-
-**implementation_ready:** calendar library YES; wiring to ju NO until jieqi tests exist.  
-**Sources:** N01 §2.5 (approx, reject for code); N01/N02 拆补 “一进交接即用该节气之局”.  
-**MODEL_KNOWLEDGE_ONLY:** that 24 terms are defined by 15° solar longitude. Do not put this sentence into fixtures until a library + test is added.
+**State:** implemented and tested.
 
 ---
 
-## ALG-JU-01  拆补 ju (default school)
+## ALG-CAL-03 — 13 clock slots and late 子
 
-**Inputs:** `yinYangDun`, `dayIndexInJieqi` (1–15+), jieqi name.  
-**Steps:**
+Current supported convention:
 
-1. yuan = 上 if day in 1–5; 中 if 6–10; 下 if 11–15. Days 16+ (long jieqi) → treat as 下 unless a sourced rule says otherwise. **Uncertain — see 09.**  
-2. Look up ju number in ALG-JU-TABLE.  
-3. Return `{dun, ju, yuan, method=CHAI_BU}`.
+- 00:00–00:59 = 早子, same civil date.
+- 01:00–22:59 = ordinary two-hour branches.
+- 23:00–23:59 = 晚子; when `lateZiRollsToNextDay=true`, Qimen day rolls to the next civil date before recomputing day/hour pillars.
 
-**Must not** use 甲己 符头 to choose yuan in this method.
+A stray note describing 20:00–23:00 as late 子 is not a supported school.
 
-**Sources:** N01 §3.1; N02 qiju §2.4; B01 pp.66–68 internally contradicts this — default follows the “day-count” reading + user adjudication, labeled school `CHAI_BU_DAYCOUNT`.  
-**implementation_ready:** YES once jieqi day-index is exact.
+**State:** implemented as a configurable late-Zi day-roll policy; tested.
 
 ---
 
-## ALG-JU-02  置闰 ju (alternate school)
+## ALG-CAL-04 — exact jieqi boundary
 
-**Inputs:** day pillar 符头, jieqi, days between 上元符头 and jieqi.  
-**Steps (as rewritten from notes, not coded this pass):**
+**Input:** instant + zone.
 
-1. 符头 days: 上元 子午卯酉; 中元 寅申巳亥; 下元 辰戌丑未. First day of a yuan is 甲 or 己.  
-2. 超神: 符头 before jieqi. 接气: jieqi before 符头. 正授: they coincide.  
-3. 置闰 only at 芒种 and 大雪; if 超神 > 9 days, insert a 60-day intercalation.  
+`JieqiClock` uses the repository's existing `cn.6tail:lunar:1.7.7` dependency to obtain second-level solar-term boundaries. Rounded memory dates such as “2/4 = 立春” are never used as the boundary algorithm.
 
-**implementation_ready:** NO. No independent worked example was recomputed this pass.  
-**Sources:** N01 §3.2; N02 §2.3 / §9; B01 pp.66–67.
+Current v1 deliberately supports only `Asia/Shanghai`; other zones and true-solar-time semantics are rejected until sourced and tested.
 
----
+The new jieqi takes effect at its exact boundary instant. A civil-day index inside the term may be exposed as metadata, but it is not the current yuan resolver.
 
-## ALG-JU-TABLE  24 jieqi × 3 yuan
-
-Rewrite of the mnemonic table in N01 §2.7. User checked “宫组” 1-4-7 / 2-5-8 / 3-6-9.  
-**confidence B.** Origin claimed: 烟波钓叟歌 lineage + web cross-check (百度百科 / ctext). **B22 PDF was not read this pass**, so this table is **not A** and not a golden fixture until checked against B22 or two printed editions.
-
-阳遁:
-
-| jieqi | 上 | 中 | 下 |
-|---|---:|---:|---:|
-| 冬至, 惊蛰 | 1 | 7 | 4 |
-| 小寒 | 2 | 8 | 5 |
-| 大寒, 春分 | 3 | 9 | 6 |
-| 立春 | 8 | 5 | 2 |
-| 雨水 | 9 | 6 | 3 |
-| 清明, 立夏 | 4 | 1 | 7 |
-| 谷雨, 小满 | 5 | 2 | 8 |
-| 芒种 | 6 | 3 | 9 |
-
-阴遁:
-
-| jieqi | 上 | 中 | 下 |
-|---|---:|---:|---:|
-| 夏至, 白露 | 9 | 3 | 6 |
-| 小暑 | 8 | 2 | 5 |
-| 大暑, 秋分 | 7 | 1 | 4 |
-| 立秋 | 2 | 5 | 8 |
-| 处暑 | 1 | 4 | 7 |
-| 寒露, 立冬 | 6 | 9 | 3 |
-| 霜降, 小雪 | 5 | 8 | 2 |
-| 大雪 | 4 | 7 | 1 |
-
-Invariant: each row is a rotation of one 宫组. Use this as a unit test on the table itself, not as proof the historical song matches.
+**State:** implemented; second-level boundary tests include 2022 立春 / 立秋 values from the dependency's own tested data.
 
 ---
 
-## ALG-PLATE-01  Earth plate (地盘)
+## ALG-JU-01 — current 拆补 method: `CHAI_BU_FUTOU`
 
-**Inputs:** `{dun, ju}`.  
-**Steps:**
+**Input:** exact current jieqi + current day pillar.
 
-1. 洛书 numbers: 1坎 2坤 3震 4巽 5中 6乾 7兑 8艮 9离.  
-2. Sequence of 九仪: 戊己庚辛壬癸丁丙乙.  
-3. Place 戊 on palace `ju`. That is the definition of “几局”.  
-4. YANG: walk the remaining 八仪 in 洛书 **forward** (notes: 顺). YIN: **backward** (逆).  
-5. 中5: 天禽 / 寄坤 is a later star rule, not an earth-yi skip. Earth still has a 戊…乙 in some palace including possibly 5.
+1. Crossing the exact jieqi instant switches to the new term.
+2. Resolve the nearest previous day whose stem is 甲 or 己; this is the five-day 符头.
+3. Yuan from the branch of that 符头:
+   - 子/午/卯/酉 -> 上
+   - 寅/申/巳/亥 -> 中
+   - 辰/戌/丑/未 -> 下
+4. Resolve `{jieqi, yuan}` through the 24-term ju table.
 
-**implementation_ready:** PARTIAL. The walk order on 洛书 (numeric 1→9 vs 洛书邻格) is **not uniquely specified** in the notes I read. N05 used `fly=[5,6,7,8,9,1,2,3,4]` which is **not sourced** in that file. Do not copy N05 as truth.
+The earlier `CHAI_BU_DAYCOUNT` handoff assumption is retained as an id but is unsupported; it is not silently aliased to the current method.
 
-**Sources:** N02 §7.1; N01 §3.3.  
-**Conflicts:** see C-PLATE-WALK.
-
----
-
-## ALG-PLATE-02  旬首 / 值符 / 值使
-
-**Inputs:** hour pillar.  
-**Steps:**
-
-1. 旬首 of hour: 甲子戊, 甲戌己, 甲申庚, 甲午辛, 甲辰壬, 甲寅癸.  
-2. 旬空: the two branches not in that 10-day xun (戌亥 / 申酉 / 午未 / 辰巳 / 寅卯 / 子丑).  
-3. Find which earth palace holds that 遁仪.  
-4. Home star of that palace = 值符星. Home gate = 值使门 (中5 has no gate — 寄, usually 坤2).  
-
-Home stars (standard 洛书驻地, N01 §2.1):  
-1天蓬 2天芮 3天冲 4天辅 5天禽 6天心 7天柱 8天任 9天英  
-
-Home gates:  
-1休 2死 3伤 4杜 6开 7惊 8生 9景  
-
-**implementation_ready:** YES for the maps; depends on ALG-PLATE-01 for palace of 遁仪.
+**State:** implemented and source-reviewed. See `10_SOURCE_REVIEW_CORRECTION.md`.
 
 ---
 
-## ALG-PLATE-03  Sky / gate / spirit rotation
+## ALG-JU-02 — 置闰 and other ju schools
 
-**Inputs:** earth plate, 值符星, 值使门, hour stem, hour branch, dun.  
-**Intended steps (from notes, not independently executed):**
+`ZHI_RUN` and other alternate ju methods are not implemented merely from outline notes. They require independent worked fixtures for edge cases such as 超神/接气/闰局.
 
-1. Sky: move 值符星 to the palace where **hour stem** currently sits on the earth plate; keep star cyclic order. 天禽 usually 寄坤2.  
-2. Gates: 值使 follows **hour branch**; notes also say gates always rotate clockwise regardless of dun — **conflicts with “阴逆”**.  
-3. Spirits: 小值符追大值符; YANG clockwise 值符→螣蛇→太阴→六合→白虎→玄武→九地→九天; YIN reverse. 飞宫 school uses 勾陈/太常/朱雀 names instead of 白虎/玄武.
-
-**implementation_ready:** NO for this pass. N05 explicitly stopped before these plates.
-
-**Sources:** N02 §10–11; N01 §5.3; B02 ch.12 notes on 飞宫.
+**State:** blocked / unsupported.
 
 ---
 
-## ALG-REL-01  六仪击刑 map (data, not a story)
+## ALG-JU-TABLE — 24 jieqi × three yuan
 
-| yi | hidden branch | 刑 | palace |
-|---|---|---|---|
-| 戊 | 子 | 卯 | 3 |
-| 己 | 戌 | 未 | 2 |
-| 庚 | 申 | 寅 | 8 |
-| 辛 | 午 | 午 | 9 |
-| 壬 | 辰 | 辰 | 4 |
-| 癸 | 寅 | 巳 | 4 |
+Current triples in `{上,中,下}` order:
 
-**Sources:** N01 交叉验证 + claimed B01 p.92.  
-**implementation_ready:** YES as a static map.  
-**confidence:** B (two note-internal derivations; book page not reopened this pass).
+Yang terms:
 
----
+- 冬至 1/7/4; 小寒 2/8/5; 大寒 3/9/6
+- 立春 8/5/2; 雨水 9/6/3; 惊蛰 1/7/4
+- 春分 3/9/6; 清明 4/1/7; 谷雨 5/2/8
+- 立夏 4/1/7; 小满 5/2/8; 芒种 6/3/9
 
-## ALG-REL-02  五不遇时 generator
+Yin terms:
 
-**Rule rewrite:** hour stem overcomes day stem, same yin/yang, stems 5 apart in the 10-cycle.  
-Enumerate 60 days × 12 hours.  
+- 夏至 9/3/6; 小暑 8/2/5; 大暑 7/1/4
+- 立秋 2/5/8; 处暑 1/4/7; 白露 9/3/6
+- 秋分 7/1/4; 寒露 6/9/3; 霜降 5/8/2
+- 立冬 6/9/3; 小雪 5/8/2; 大雪 4/7/1
 
-Book table (善天道精华 pp.25–26 per notes) lists 10 pairs. Independent generation adds 己日乙亥, 庚日丙戌.  
-**Default for App:** expose **generator output** (12 pairs), show book-10 as optional “printed table” school.
+Each triple is protected by range/structure tests. Historical-lineage confidence is still lower than executable confidence because the actual B22 scan remains difficult to compare directly.
 
-**implementation_ready:** YES for the generator.  
-**Sources:** N01 验证1.
+**State:** implemented; historical-source cross-check remains open.
 
 ---
 
-## What not to encode yet
+## ALG-PLATE-01 — earth plate / 地盘九仪
 
-- Any money / score / weather numeric formula  
-- 90 十干克应 omen strings as logic  
-- 年家/月家/日家  
-- 飞宫  
-- True solar time  
-- N05 earth-plate walk
+**Input:** `{dun, ju}`.
+
+Fixed sequence:
+
+`戊 -> 己 -> 庚 -> 辛 -> 壬 -> 癸 -> 丁 -> 丙 -> 乙`
+
+1. Put 戊 in palace `ju`.
+2. Yang: remaining sequence follows numeric palace `+1`, wrapping 9 -> 1.
+3. Yin: remaining sequence follows numeric palace `-1`, wrapping 1 -> 9.
+4. Center 5 is a normal earth-plate location; do not apply later Tian-Qin hosting rules here.
+
+**Evidence:** complete Yang-3 and Yin-3 source boards plus all-18-ju invariants.
+
+**State:** implemented as `EarthPlateBuilder` and closed by CI.
+
+---
+
+## ALG-PLATE-02 — xun hidden Yi, value star and value gate anchor
+
+Hidden-Yi mapping:
+
+- 甲子 -> 戊
+- 甲戌 -> 己
+- 甲申 -> 庚
+- 甲午 -> 辛
+- 甲辰 -> 壬
+- 甲寅 -> 癸
+
+Home stars:
+
+`1蓬 2芮 3冲 4辅 5禽 6心 7柱 8任 9英`
+
+Ordinary home gates:
+
+`1休 2死 3伤 4杜 6开 7惊 8生 9景`
+
+Algorithm:
+
+1. Find the earth palace holding the xun hidden Yi.
+2. Its home star is the value star.
+3. For an outer palace, the same palace's home gate is the value gate.
+4. If the hidden Yi is in center 5, the currently supported turning-board source rule uses Tian-Qin as value star and Kun-2's Death gate as the value gate's home source. Record `gateHomePalace=2`, but keep `dunYiPalace=5` as the actual time-movement anchor.
+
+**Important boundary:** `CENTER_PALACE_HOSTED_KUN2` is an anchor rule, not permission to redirect every later center target to palace 2.
+
+**State:** implemented as `DutyAnchorResolver`; Yang and center-hosted Yin fixtures pass.
+
+---
+
+## ALG-PLATE-03 — current value star / value gate positions
+
+### Value star
+
+- Normally follows the current hour stem's earth-palace location.
+- If the hour stem is 甲, use the xun hidden Yi as the effective stem.
+
+### Value gate
+
+1. Start from the xun hidden-Yi **actual** earth palace, including center 5.
+2. Compute branch steps from xun-head branch to current hour branch; valid steps within the xun are 0..9.
+3. Yang: numeric palace `+steps` over 1..9.
+4. Yin: numeric palace `-steps` over 1..9.
+
+**Fixtures:**
+
+- 2004-05-29 Wu-Wu, Yang 8: Tian-Fu / Du from 4 -> current 8/8.
+- printed Yin-7 example: Tian-Chong current 6, Shang gate current 7.
+- printed center-hosted Yin-8 example: Tian-Qin current 8; Death gate starts at center 5 and reaches 1 at Xu.
+
+**State:** implemented as `DutyMovementResolver` and closed by CI.
+
+---
+
+## ALG-PLATE-04 — human plate / 人盘八门
+
+Two operations must remain separate.
+
+### A. Value-gate movement
+
+Already resolved by ALG-PLATE-03: Yang numeric forward, Yin numeric reverse through 1..9.
+
+### B. Full eight-gate arrangement
+
+Once the current value gate is on an outer palace, preserve the gate cycle along the clockwise outer-palace ring.
+
+Outer clockwise ring:
+
+`1 -> 8 -> 3 -> 4 -> 9 -> 2 -> 7 -> 6 -> 1`
+
+Gate cycle:
+
+`休 -> 生 -> 伤 -> 杜 -> 景 -> 死 -> 惊 -> 开 -> 休`
+
+This separation resolves the earlier apparent conflict between “阳顺阴逆” and “八门固定顺时针相邻”.
+
+**Hard lock:** if the value gate's **current target** is center 5, full human-plate layout returns `CenterValueGateUnverified`. No host rule is borrowed from another stage.
+
+**Evidence:** complete Yang-8 and Yin-8 source boards.
+
+**State:** implemented as `HumanPlateBuilder`; source fixtures and center-negative test pass.
+
+---
+
+## ALG-PLATE-05 — sky plate / 天盘九星 + carried stems
+
+The supported turning-board model rotates eight outer groups.
+
+Outer clockwise ring:
+
+`1 -> 8 -> 3 -> 4 -> 9 -> 2 -> 7 -> 6`
+
+Home groups in that ring order:
+
+- 1: Tian-Peng
+- 8: Tian-Ren
+- 3: Tian-Chong
+- 4: Tian-Fu
+- 9: Tian-Ying
+- 2+5 hosted group: Tian-Rui + Tian-Qin
+- 7: Tian-Zhu
+- 6: Tian-Xin
+
+Each star carries the earth-plate stem from its own home palace. Tian-Rui and Tian-Qin therefore share one target palace but can carry different stems from homes 2 and 5.
+
+Algorithm:
+
+1. ALG-PLATE-03 supplies the current value-star target.
+2. Place the value star's rotating group on that outer target.
+3. Place remaining groups in fixed order around the outer clockwise ring.
+4. Preserve each `homePalace` and `carriedStem` in `SkyStarPlacement`.
+
+**Hard lock:** current value-star target = center 5 -> `CenterValueStarUnverified`.
+
+**Evidence:**
+
+- 2004 Yang-8 complete star board.
+- 1995-06-11 Yang-3 complete star + carried-stem board, including separately carried stems for Tian-Rui and hosted Tian-Qin.
+- printed Yin-8 complete star board.
+
+**State:** implemented as `SkyPlateBuilder`; tests pass.
+
+---
+
+## ALG-PLATE-06 — spirit plate / 神盘八神
+
+Methods are explicit:
+
+### `FOLLOW_VALUE_STAR` — supported
+
+Spirit cycle:
+
+`值符 -> 螣蛇 -> 太阴 -> 六合 -> 白虎 -> 玄武 -> 九地 -> 九天`
+
+1. Put the small value symbol in the current big-value-star palace.
+2. Yang: continue on the outer ring clockwise.
+3. Yin: continue on the outer ring counterclockwise.
+
+### `PER_XUN_GROUND_SPIRITS` — unsupported
+
+A readable source records this alternate method, but the branch does not yet have independent fixtures for it. It returns `UnsupportedMethod`; it is not merged into the supported method.
+
+**Hard lock:** current value-star target = center 5.
+
+**Evidence:** complete printed Yang and Yin spirit boards.
+
+**State:** `FOLLOW_VALUE_STAR` implemented as `SpiritPlateBuilder`; alternate method blocked.
+
+---
+
+## ALG-PLATE-07 — conditional full four-layer plate
+
+`FullPlateResolver` composes earth, sky, human and spirit layers.
+
+Return states:
+
+- `Resolved(FullPlate)` when the current supported turning-board builders can construct all four layers.
+- `Locked(reasons)` when current value star and/or current value gate targets center 5.
+
+Lock reasons:
+
+- `VALUE_STAR_IN_CENTER`
+- `VALUE_GATE_IN_CENTER`
+
+Engine-level states:
+
+- `FULL_PLATE_RESOLVED_SUPPORTED_METHOD`
+- `FULL_PLATE_LOCKED_CENTER_TARGET`
+
+**Golden civil-time fixture:** `1995-06-11 09:30 Asia/Shanghai` must reproduce day/hour/xun/ju and all four source layers end-to-end.
+
+**Real center-lock acceptance:** `1995-08-13 12:00 Asia/Shanghai` resolves to the source-supported Bing-Zi / Yin-8 day and Jia-Wu hour; hidden Xin is center 5, so both center lock reasons must appear.
+
+**State:** conditionally implemented and closed by tests/CI. This is not a claim that all Qimen schools are complete.
+
+---
+
+## ALG-REL-01 — 六仪击刑 static map
+
+Current engine map:
+
+- 戊 -> 3
+- 己 -> 2
+- 庚 -> 8
+- 辛 -> 9
+- 壬 -> 4
+- 癸 -> 4
+
+This is structured rule data only; interpretive wording is not embedded in engine logic.
+
+**State:** implemented. Source confidence remains lower than the full-board fixtures because the claimed printed page has not been reopened in this cycle.
+
+---
+
+## ALG-REL-02 — 五不遇时 generator
+
+The engine generates candidates from the stem relation rather than trusting a short printed lookup table as exhaustive. Existing tests protect the generator output and known discrepancies with one printed table.
+
+**State:** implemented; interpretation of severity belongs outside plate math.
+
+---
+
+## AI-01 — interpretation evidence gate
+
+This is an engineering contract, not a traditional Qimen rule.
+
+Execution modes:
+
+- `DISABLED` — default
+- `LOCAL_MODEL`
+- `REMOTE_USER_CONFIGURED`
+
+Remote mode requires `explicitRemoteConsent=true` on the individual request. `qimen-core` stores no API key and performs no HTTP request.
+
+Scopes:
+
+- `PRE_PLATE`
+- `EARTH_PLATE`
+- `DUTY_RUNTIME`
+- `FULL_PLATE`
+
+`FULL_PLATE` is available only when `QimenChart.fullPlate` is `Resolved`. A center-target `Locked` chart returns `ScopeLocked`; an LLM cannot bypass the deterministic guard.
+
+For a resolved full plate, the evidence packet can contain:
+
+- calendar/xun/ju facts;
+- earth plate;
+- value-star/value-gate runtime;
+- sky stars with carried stems;
+- human gates;
+- spirits.
+
+The LLM receives facts to interpret; it is not asked to recalculate the plate. `ENGINE_VERIFIED` means “produced by the current tested engine”, not “scientifically validated metaphysical conclusion”.
+
+**Acceptance:** resolved golden-chart evidence, real center-locked chart rejection, carried-stem presence and per-request remote consent are executable tests.
+
+See `12_FULL_PLATE_AI_CLOSED_LOOP.md`.
+
+---
+
+## Explicitly not encoded / not globally claimed
+
+- 置闰, 茅山, 飞宫 complete algorithms
+- true solar time
+- year/month/day Qimen
+- alternate per-xun ground-spirit method
+- full target-at-center sky/human/spirit representation
+- modern-book omen prose as hard logic
+- money/score/weather numeric formulas derived from retrospective cases
+- universal Yong-Shen selection or reading priority across question types
+- predictive accuracy claims inferred from source case outcomes
+
+The current core is a **conditionally complete, source-fixtured turning-board implementation for its supported method**, not a universal Qimen oracle.
